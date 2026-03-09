@@ -86,7 +86,7 @@ const FranqueadoPortal = () => {
       .single();
 
     if (storeData) {
-      setStore({
+      const storeObj: Store = {
         id: storeData.id,
         nome: storeData.nome,
         filial: storeData.filial || "",
@@ -96,8 +96,8 @@ const FranqueadoPortal = () => {
         inauguracao: storeData.inauguracao || "",
         checklist: (storeData.checklist as any) || createDefaultChecklist(),
         cronograma: (storeData.cronograma as any) || createDefaultCronograma(),
-        custos: (storeData.custos as any) || createDefaultCustos(),
-      });
+      };
+      setStore(storeObj);
     }
     setLoading(false);
   }, [user]);
