@@ -379,10 +379,19 @@ const Index = () => {
                 <Button className="gap-2"><Plus className="h-4 w-4" /> Liberar Acesso</Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader><DialogTitle>Liberar Acesso ao Franqueado</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Liberar Acesso</DialogTitle></DialogHeader>
                 <div className="space-y-4 pt-2">
-                  <div className="space-y-2"><Label>E-mail do Franqueado *</Label>
-                    <Input type="email" placeholder="franqueado@email.com" value={accessForm.franchisee_email} onChange={(e) => setAccessForm({ ...accessForm, franchisee_email: e.target.value })} />
+                  <div className="space-y-2"><Label>Tipo de Acesso *</Label>
+                    <Select value={accessForm.access_type} onValueChange={(v) => setAccessForm({ ...accessForm, access_type: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="franqueado">Franqueado</SelectItem>
+                        <SelectItem value="construtor">Construtor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2"><Label>E-mail *</Label>
+                    <Input type="email" placeholder="email@exemplo.com" value={accessForm.franchisee_email} onChange={(e) => setAccessForm({ ...accessForm, franchisee_email: e.target.value })} />
                   </div>
                   <div className="space-y-2"><Label>Loja *</Label>
                     <Select value={accessForm.store_id} onValueChange={(v) => setAccessForm({ ...accessForm, store_id: v })}>
@@ -420,15 +429,23 @@ const Index = () => {
                       <div className="space-y-2">
                         <p className="text-xs font-medium text-muted-foreground">Diário de Obra</p>
                         <div className="flex items-center gap-2">
-                          <Checkbox id="view-diario" checked={accessForm.can_view_diario} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_diario: !!v })} />
+                          <Checkbox id="view-diario" checked={accessForm.can_view_diario} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_diario: !!v, can_edit_diario: !v ? false : accessForm.can_edit_diario })} />
                           <Label htmlFor="view-diario" className="text-xs">Visualizar</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="edit-diario" checked={accessForm.can_edit_diario} disabled={!accessForm.can_view_diario} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_edit_diario: !!v })} />
+                          <Label htmlFor="edit-diario" className="text-xs">Editar</Label>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <p className="text-xs font-medium text-muted-foreground">Custos</p>
                         <div className="flex items-center gap-2">
-                          <Checkbox id="view-custos" checked={accessForm.can_view_custos} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_custos: !!v })} />
+                          <Checkbox id="view-custos" checked={accessForm.can_view_custos} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_custos: !!v, can_edit_custos: !v ? false : accessForm.can_edit_custos })} />
                           <Label htmlFor="view-custos" className="text-xs">Visualizar</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="edit-custos" checked={accessForm.can_edit_custos} disabled={!accessForm.can_view_custos} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_edit_custos: !!v })} />
+                          <Label htmlFor="edit-custos" className="text-xs">Editar</Label>
                         </div>
                       </div>
                     </div>
