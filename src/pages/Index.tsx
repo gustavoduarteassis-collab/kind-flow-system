@@ -36,7 +36,9 @@ type FranchiseeAccess = {
   id: string; store_id: string; franchisee_email: string;
   can_view_checklist: boolean; can_edit_checklist: boolean;
   can_view_cronograma: boolean; can_edit_cronograma: boolean;
-  can_view_diario: boolean; can_view_custos: boolean;
+  can_view_diario: boolean; can_edit_diario: boolean;
+  can_view_custos: boolean; can_edit_custos: boolean;
+  access_type: string;
 };
 
 const statusLabels: Record<string, string> = {
@@ -81,10 +83,11 @@ const Index = () => {
   const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
   const [accessOpen, setAccessOpen] = useState(false);
   const [accessForm, setAccessForm] = useState({
-    store_id: "", franchisee_email: "",
+    store_id: "", franchisee_email: "", access_type: "franqueado",
     can_view_checklist: true, can_edit_checklist: true,
     can_view_cronograma: true, can_edit_cronograma: true,
-    can_view_diario: true, can_view_custos: true,
+    can_view_diario: true, can_edit_diario: true,
+    can_view_custos: true, can_edit_custos: true,
   });
   const { toast } = useToast();
 
@@ -131,20 +134,24 @@ const Index = () => {
       store_id: accessForm.store_id,
       franchisee_email: accessForm.franchisee_email.toLowerCase(),
       created_by: user.id,
+      access_type: accessForm.access_type,
       can_view_checklist: accessForm.can_view_checklist,
       can_edit_checklist: accessForm.can_edit_checklist,
       can_view_cronograma: accessForm.can_view_cronograma,
       can_edit_cronograma: accessForm.can_edit_cronograma,
       can_view_diario: accessForm.can_view_diario,
+      can_edit_diario: accessForm.can_edit_diario,
       can_view_custos: accessForm.can_view_custos,
+      can_edit_custos: accessForm.can_edit_custos,
     });
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Acesso liberado!", description: `Franqueado ${accessForm.franchisee_email} vinculado à loja.` });
     setAccessForm({
-      store_id: "", franchisee_email: "",
+      store_id: "", franchisee_email: "", access_type: "franqueado",
       can_view_checklist: true, can_edit_checklist: true,
       can_view_cronograma: true, can_edit_cronograma: true,
-      can_view_diario: true, can_view_custos: true,
+      can_view_diario: true, can_edit_diario: true,
+      can_view_custos: true, can_edit_custos: true,
     });
     setAccessOpen(false);
     fetchData();
@@ -372,10 +379,19 @@ const Index = () => {
                 <Button className="gap-2"><Plus className="h-4 w-4" /> Liberar Acesso</Button>
               </DialogTrigger>
               <DialogContent>
-                <DialogHeader><DialogTitle>Liberar Acesso ao Franqueado</DialogTitle></DialogHeader>
+                <DialogHeader><DialogTitle>Liberar Acesso</DialogTitle></DialogHeader>
                 <div className="space-y-4 pt-2">
-                  <div className="space-y-2"><Label>E-mail do Franqueado *</Label>
-                    <Input type="email" placeholder="franqueado@email.com" value={accessForm.franchisee_email} onChange={(e) => setAccessForm({ ...accessForm, franchisee_email: e.target.value })} />
+                  <div className="space-y-2"><Label>Tipo de Acesso *</Label>
+                    <Select value={accessForm.access_type} onValueChange={(v) => setAccessForm({ ...accessForm, access_type: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="franqueado">Franqueado</SelectItem>
+                        <SelectItem value="construtor">Construtor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2"><Label>E-mail *</Label>
+                    <Input type="email" placeholder="email@exemplo.com" value={accessForm.franchisee_email} onChange={(e) => setAccessForm({ ...accessForm, franchisee_email: e.target.value })} />
                   </div>
                   <div className="space-y-2"><Label>Loja *</Label>
                     <Select value={accessForm.store_id} onValueChange={(v) => setAccessForm({ ...accessForm, store_id: v })}>
@@ -413,15 +429,23 @@ const Index = () => {
                       <div className="space-y-2">
                         <p className="text-xs font-medium text-muted-foreground">Diário de Obra</p>
                         <div className="flex items-center gap-2">
-                          <Checkbox id="view-diario" checked={accessForm.can_view_diario} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_diario: !!v })} />
+                          <Checkbox id="view-diario" checked={accessForm.can_view_diario} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_diario: !!v, can_edit_diario: !v ? false : accessForm.can_edit_diario })} />
                           <Label htmlFor="view-diario" className="text-xs">Visualizar</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="edit-diario" checked={accessForm.can_edit_diario} disabled={!accessForm.can_view_diario} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_edit_diario: !!v })} />
+                          <Label htmlFor="edit-diario" className="text-xs">Editar</Label>
                         </div>
                       </div>
                       <div className="space-y-2">
                         <p className="text-xs font-medium text-muted-foreground">Custos</p>
                         <div className="flex items-center gap-2">
-                          <Checkbox id="view-custos" checked={accessForm.can_view_custos} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_custos: !!v })} />
+                          <Checkbox id="view-custos" checked={accessForm.can_view_custos} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_custos: !!v, can_edit_custos: !v ? false : accessForm.can_edit_custos })} />
                           <Label htmlFor="view-custos" className="text-xs">Visualizar</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="edit-custos" checked={accessForm.can_edit_custos} disabled={!accessForm.can_view_custos} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_edit_custos: !!v })} />
+                          <Label htmlFor="edit-custos" className="text-xs">Editar</Label>
                         </div>
                       </div>
                     </div>
@@ -443,7 +467,8 @@ const Index = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>E-mail do Franqueado</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>E-mail</TableHead>
                       <TableHead>Loja Vinculada</TableHead>
                       <TableHead>Permissões</TableHead>
                       <TableHead className="w-10"></TableHead>
@@ -452,14 +477,19 @@ const Index = () => {
                   <TableBody>
                     {franchiseeAccess.map((fa) => (
                       <TableRow key={fa.id}>
+                        <TableCell>
+                          <Badge className={fa.access_type === "construtor" ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] text-[10px]" : "bg-primary text-primary-foreground text-[10px]"}>
+                            {fa.access_type === "construtor" ? "Construtor" : "Franqueado"}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="text-sm">{fa.franchisee_email}</TableCell>
                         <TableCell className="text-sm font-medium">{getStoreName(fa.store_id)}</TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {fa.can_view_checklist && <Badge variant="outline" className="text-[10px]">Checklist {fa.can_edit_checklist ? "✏️" : "👁️"}</Badge>}
                             {fa.can_view_cronograma && <Badge variant="outline" className="text-[10px]">Cronograma {fa.can_edit_cronograma ? "✏️" : "👁️"}</Badge>}
-                            {fa.can_view_diario && <Badge variant="outline" className="text-[10px]">Diário 👁️</Badge>}
-                            {fa.can_view_custos && <Badge variant="outline" className="text-[10px]">Custos 👁️</Badge>}
+                            {fa.can_view_diario && <Badge variant="outline" className="text-[10px]">Diário {fa.can_edit_diario ? "✏️" : "👁️"}</Badge>}
+                            {fa.can_view_custos && <Badge variant="outline" className="text-[10px]">Custos {fa.can_edit_custos ? "✏️" : "👁️"}</Badge>}
                           </div>
                         </TableCell>
                         <TableCell>
