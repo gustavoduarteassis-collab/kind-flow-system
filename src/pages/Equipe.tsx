@@ -119,9 +119,9 @@ const Equipe = () => {
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(null);
   const [accessForm, setAccessForm] = useState({
     store_id: "", franchisee_email: "",
-    can_view_checklist: true, can_edit_checklist: false,
-    can_view_cronograma: true, can_edit_cronograma: false,
-    can_view_diario: false, can_view_custos: false,
+    can_view_checklist: true, can_edit_checklist: true,
+    can_view_cronograma: true, can_edit_cronograma: true,
+    can_view_diario: true, can_view_custos: true,
   });
 
   // Mon-Fri only
