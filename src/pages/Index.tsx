@@ -147,10 +147,11 @@ const Index = () => {
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Acesso liberado!", description: `Franqueado ${accessForm.franchisee_email} vinculado à loja.` });
     setAccessForm({
-      store_id: "", franchisee_email: "",
+      store_id: "", franchisee_email: "", access_type: "franqueado",
       can_view_checklist: true, can_edit_checklist: true,
       can_view_cronograma: true, can_edit_cronograma: true,
-      can_view_diario: true, can_view_custos: true,
+      can_view_diario: true, can_edit_diario: true,
+      can_view_custos: true, can_edit_custos: true,
     });
     setAccessOpen(false);
     fetchData();
