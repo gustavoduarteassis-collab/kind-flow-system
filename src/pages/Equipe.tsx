@@ -113,6 +113,7 @@ const Equipe = () => {
   const [calendarView, setCalendarView] = useState<"month" | "week">("month");
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
+  const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(null);
   const [accessForm, setAccessForm] = useState({ store_id: "", franchisee_email: "" });
 
   // Mon-Fri only
