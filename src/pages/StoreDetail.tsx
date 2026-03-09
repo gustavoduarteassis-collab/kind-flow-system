@@ -106,6 +106,7 @@ const StoreDetail = () => {
             </Button>
             <div className="flex-1">
               <h1 className="text-xl font-bold tracking-tight">{store.nome}</h1>
+              <h1 className="text-xl font-bold tracking-tight">{store.nome}</h1>
               <div className="flex items-center gap-4 text-sm text-muted-foreground mt-0.5">
                 {store.filial && (
                   <span className="flex items-center gap-1">
