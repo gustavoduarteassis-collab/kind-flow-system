@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Store, createDefaultChecklist } from "@/data/checklistData";
+import { createDefaultCronograma } from "@/data/cronogramaData";
 
 const STORAGE_KEY = "checklist-stores";
 
