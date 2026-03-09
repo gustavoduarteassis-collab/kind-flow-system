@@ -10,6 +10,7 @@ import StoreReport from "./pages/StoreReport";
 import Auth from "./pages/Auth";
 import Equipe from "./pages/Equipe";
 import FranqueadoPortal from "./pages/FranqueadoPortal";
+import Pipeline from "./pages/Pipeline";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
