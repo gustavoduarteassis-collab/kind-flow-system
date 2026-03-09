@@ -27,6 +27,7 @@ export function useStores() {
         inauguracao: row.inauguracao || "",
         checklist: row.checklist || createDefaultChecklist(),
         cronograma: row.cronograma || createDefaultCronograma(),
+        custos: row.custos || createDefaultCustos(),
       })));
     }
     setLoading(false);
