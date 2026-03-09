@@ -122,13 +122,15 @@ const Equipe = () => {
     if (!user) return;
     const monthStart = format(startOfMonth(calendarMonth), "yyyy-MM-dd");
     const monthEnd = format(endOfMonth(calendarMonth), "yyyy-MM-dd");
+    const habitMonthStart = format(startOfMonth(habitMonth), "yyyy-MM-dd");
+    const habitMonthEnd = format(endOfMonth(habitMonth), "yyyy-MM-dd");
     const [m, t, h, c, e, fa] = await Promise.all([
       supabase.from("team_members").select("*").eq("user_id", user.id).order("name"),
       supabase.from("tasks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("habits").select("*").eq("user_id", user.id).order("name"),
       supabase.from("habit_completions").select("*").eq("user_id", user.id)
-        .gte("completion_date", format(weekStart, "yyyy-MM-dd"))
-        .lte("completion_date", format(addDays(weekStart, 4), "yyyy-MM-dd")),
+        .gte("completion_date", habitMonthStart)
+        .lte("completion_date", habitMonthEnd),
       supabase.from("team_events").select("*").eq("user_id", user.id)
         .gte("event_date", monthStart).lte("event_date", monthEnd),
       supabase.from("franchisee_access").select("*").eq("created_by", user.id),
