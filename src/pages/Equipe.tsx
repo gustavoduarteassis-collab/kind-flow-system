@@ -265,12 +265,17 @@ const Equipe = () => {
   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
   // Build virtual events from all data sources (only scheduled/agendado items)
-  type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean };
+  type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean; originalId?: string };
   const allCalendarEvents: CalendarEvent[] = [];
 
-  // 1. Team events (manually created in calendar)
+  // 1. Team events (manually created in calendar) - expand date ranges
   events.forEach((e) => {
-    allCalendarEvents.push({ id: e.id, title: e.title, event_type: e.event_type, date: new Date(e.event_date + "T00:00:00"), deletable: true });
+    const start = new Date(e.event_date + "T00:00:00");
+    const end = e.end_date ? new Date(e.end_date + "T00:00:00") : start;
+    const days = eachDayOfInterval({ start, end });
+    days.forEach((day) => {
+      allCalendarEvents.push({ id: `${e.id}-${day.toISOString()}`, title: e.title, event_type: e.event_type, date: day, deletable: true, originalId: e.id });
+    });
   });
 
   // 2. Store inaugurations
@@ -638,7 +643,7 @@ const Equipe = () => {
                           {dayEvents.slice(0, 3).map((ev) => (
                             <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
                               title={ev.title}
-                              onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.id); }}
+                              onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
                             >
                               {ev.title}
                             </div>
@@ -654,8 +659,16 @@ const Equipe = () => {
 
             {/* Events list for the month */}
             {(() => {
+              // Deduplicate expanded events for the list (show each event once)
+              const seen = new Set<string>();
               const monthEvents = allCalendarEvents
                 .filter((e) => e.date >= startOfMonth(calendarMonth) && e.date <= endOfMonth(calendarMonth))
+                .filter((e) => {
+                  const key = e.originalId || e.id;
+                  if (seen.has(key)) return false;
+                  seen.add(key);
+                  return true;
+                })
                 .sort((a, b) => a.date.getTime() - b.date.getTime());
               return monthEvents.length > 0 ? (
                 <Card className="mt-4">
@@ -663,7 +676,7 @@ const Equipe = () => {
                   <CardContent>
                     <div className="space-y-2">
                       {monthEvents.map((ev) => (
-                        <div key={ev.id} className="flex items-center justify-between p-2 rounded-md border">
+                        <div key={ev.originalId || ev.id} className="flex items-center justify-between p-2 rounded-md border">
                           <div className="flex items-center gap-3">
                             <Badge className={`${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"} text-[10px]`}>{eventTypeLabels[ev.event_type] || "Evento"}</Badge>
                             <div>
@@ -672,7 +685,7 @@ const Equipe = () => {
                             </div>
                           </div>
                           {ev.deletable && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteEvent(ev.id); }}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteEvent(ev.originalId || ev.id); }}>
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />
                             </Button>
                           )}
