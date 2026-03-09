@@ -43,6 +43,9 @@ type TeamEvent = {
   id: string; title: string; event_type: string; event_date: string;
   end_date: string | null; store_name: string | null; team_member_id: string | null; description: string | null;
 };
+type FranchiseeAccess = {
+  id: string; store_id: string; franchisee_email: string;
+};
 
 const statusLabels: Record<string, string> = {
   pendente: "Pendente", em_andamento: "Em Andamento", concluida: "Concluída", cancelada: "Cancelada",
