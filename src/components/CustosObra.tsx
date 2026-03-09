@@ -12,7 +12,7 @@ import {
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Upload, FileText, Trash2, DollarSign } from "lucide-react";
+import { Upload, FileText, Trash2, DollarSign, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
@@ -40,6 +40,26 @@ export default function CustosObra({ store, onUpdate }: Props) {
   const updateItem = (catIdx: number, itemIdx: number, field: string, value: any) => {
     const updated = JSON.parse(JSON.stringify(custos)) as CustosData;
     (updated.categorias[catIdx].items[itemIdx] as any)[field] = value;
+    onUpdate(updated);
+  };
+
+  const addItem = (catIdx: number) => {
+    const updated = JSON.parse(JSON.stringify(custos)) as CustosData;
+    const cat = updated.categorias[catIdx];
+    cat.items.push({
+      id: `${cat.id}-custom-${Date.now()}`,
+      nome: "",
+      fornecedor: "",
+      valorPrevisto: 0,
+      valorRealizado: 0,
+      proposta: "",
+    });
+    onUpdate(updated);
+  };
+
+  const removeItem = (catIdx: number, itemIdx: number) => {
+    const updated = JSON.parse(JSON.stringify(custos)) as CustosData;
+    updated.categorias[catIdx].items.splice(itemIdx, 1);
     onUpdate(updated);
   };
 
@@ -211,12 +231,24 @@ export default function CustosObra({ store, onUpdate }: Props) {
                       <TableHead className="w-[140px]">Valor Previsto</TableHead>
                       <TableHead className="w-[140px]">Valor Realizado</TableHead>
                       <TableHead className="w-[120px]">Proposta</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {cat.items.map((item, itemIdx) => (
                       <TableRow key={item.id}>
-                        <TableCell className="text-sm">{item.nome}</TableCell>
+                        <TableCell className="text-sm">
+                          {item.id.includes("custom") ? (
+                            <Input
+                              className="h-8 text-xs"
+                              value={item.nome}
+                              placeholder="Nome do item..."
+                              onChange={(e) => updateItem(catIdx, itemIdx, "nome", e.target.value)}
+                            />
+                          ) : (
+                            item.nome
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Input
                             className="h-8 text-xs"
@@ -278,6 +310,16 @@ export default function CustosObra({ store, onUpdate }: Props) {
                             </Button>
                           )}
                         </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => removeItem(catIdx, itemIdx)}
+                          >
+                            <X className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                     {/* Category subtotal */}
@@ -285,7 +327,19 @@ export default function CustosObra({ store, onUpdate }: Props) {
                       <TableCell colSpan={2} className="text-sm">Subtotal {cat.nome}</TableCell>
                       <TableCell className="text-sm">{formatCurrency(getCatTotal(catIdx, "valorPrevisto"))}</TableCell>
                       <TableCell className="text-sm">{formatCurrency(getCatTotal(catIdx, "valorRealizado"))}</TableCell>
-                      <TableCell />
+                      <TableCell colSpan={2} />
+                    </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1 text-xs text-primary"
+                          onClick={() => addItem(catIdx)}
+                        >
+                          <Plus className="h-3.5 w-3.5" /> Adicionar item
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
