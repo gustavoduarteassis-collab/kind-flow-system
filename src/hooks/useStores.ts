@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Store, createDefaultChecklist } from "@/data/checklistData";
+import { createDefaultCronograma } from "@/data/cronogramaData";
 
 const STORAGE_KEY = "checklist-stores";
 
@@ -23,11 +24,12 @@ export function useStores() {
     saveStores(stores);
   }, [stores]);
 
-  const addStore = useCallback((data: Omit<Store, "id" | "checklist">) => {
+  const addStore = useCallback((data: Omit<Store, "id" | "checklist" | "cronograma">) => {
     const newStore: Store = {
       ...data,
       id: crypto.randomUUID(),
       checklist: createDefaultChecklist(),
+      cronograma: createDefaultCronograma(),
     };
     setStores((prev) => {
       const updated = [...prev, newStore];

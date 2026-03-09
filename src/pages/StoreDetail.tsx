@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import CronogramaObra from "@/components/CronogramaObra";
 import {
   Select,
   SelectContent,
@@ -50,7 +51,7 @@ const StoreDetail = () => {
   const { getStore, updateStore } = useStores();
   const store = getStore(id || "");
 
-  const [activeTab, setActiveTab] = useState(checklistCategories[0].id);
+  const [activeTab, setActiveTab] = useState("cronograma");
 
   if (!store) {
     return (
@@ -146,6 +147,12 @@ const StoreDetail = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="overflow-x-auto pb-2 -mx-4 px-4">
             <TabsList className="h-auto flex-wrap gap-1 bg-transparent p-0">
+              <TabsTrigger
+                value="cronograma"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+              >
+                📊 Cronograma de Obra
+              </TabsTrigger>
               {checklistCategories.map((cat) => {
                 const catProgress = getCategoryProgress(cat.id);
                 return (
@@ -161,6 +168,13 @@ const StoreDetail = () => {
               })}
             </TabsList>
           </div>
+
+          <TabsContent value="cronograma" className="mt-4">
+            <CronogramaObra
+              store={store}
+              onUpdate={(cronograma) => updateStore(store.id, { cronograma })}
+            />
+          </TabsContent>
 
           {checklistCategories.map((cat) => (
             <TabsContent key={cat.id} value={cat.id} className="mt-4">

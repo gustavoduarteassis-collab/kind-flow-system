@@ -25,6 +25,8 @@ export interface ChecklistCategory {
   statusOptions: StatusType[];
 }
 
+import { CronogramaStore } from "./cronogramaData";
+
 export interface Store {
   id: string;
   nome: string;
@@ -37,6 +39,7 @@ export interface Store {
     prazoFinal: string;
     observacoes: string;
   }>;
+  cronograma: CronogramaStore;
 }
 
 const defaultStatusOptions: StatusType[] = [
