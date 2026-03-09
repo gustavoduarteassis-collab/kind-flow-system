@@ -83,10 +83,11 @@ const Index = () => {
   const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
   const [accessOpen, setAccessOpen] = useState(false);
   const [accessForm, setAccessForm] = useState({
-    store_id: "", franchisee_email: "",
+    store_id: "", franchisee_email: "", access_type: "franqueado",
     can_view_checklist: true, can_edit_checklist: true,
     can_view_cronograma: true, can_edit_cronograma: true,
-    can_view_diario: true, can_view_custos: true,
+    can_view_diario: true, can_edit_diario: true,
+    can_view_custos: true, can_edit_custos: true,
   });
   const { toast } = useToast();
 
