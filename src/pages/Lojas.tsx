@@ -51,9 +51,10 @@ const Lojas = () => {
 
   const filtered = stores.filter(
     (s) =>
-      s.nome.toLowerCase().includes(search.toLowerCase()) ||
+      (s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
-      s.filial.toLowerCase().includes(search.toLowerCase())
+      s.filial.toLowerCase().includes(search.toLowerCase())) &&
+      (!filterAnalista || s.analistaObra === filterAnalista)
   );
 
   return (
