@@ -20,7 +20,10 @@ const Lojas = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [filterAnalista, setFilterAnalista] = useState("");
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
+
+  const analistas = Array.from(new Set(stores.map((s) => s.analistaObra).filter(Boolean)));
 
   const handleAdd = async () => {
     if (!form.nome) return;
