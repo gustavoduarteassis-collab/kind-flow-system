@@ -157,6 +157,18 @@ const Pipeline = () => {
     }
   };
 
+  const importFromSpreadsheet = async () => {
+    if (!user) return;
+    if (!confirm(`Importar ${pipelineImportData.length} lojas da planilha?`)) return;
+    for (const item of pipelineImportData) {
+      await supabase.from("pipeline_stores").insert({
+        user_id: user.id, ...item,
+      } as any);
+    }
+    toast({ title: "Importação concluída!", description: `${pipelineImportData.length} lojas importadas.` });
+    fetchStores();
+  };
+
   const filtered = stores.filter((s) =>
     s.local.toLowerCase().includes(search.toLowerCase()) ||
     s.filial.toLowerCase().includes(search.toLowerCase()) ||
