@@ -67,11 +67,13 @@ const FranqueadoPortal = () => {
     const acc = access[0] as any;
     const perms: Permissions = {
       can_view_checklist: acc.can_view_checklist ?? true,
-      can_edit_checklist: acc.can_edit_checklist ?? false,
+      can_edit_checklist: acc.can_edit_checklist ?? true,
       can_view_cronograma: acc.can_view_cronograma ?? true,
-      can_edit_cronograma: acc.can_edit_cronograma ?? false,
-      can_view_diario: acc.can_view_diario ?? false,
-      can_view_custos: acc.can_view_custos ?? false,
+      can_edit_cronograma: acc.can_edit_cronograma ?? true,
+      can_view_diario: acc.can_view_diario ?? true,
+      can_edit_diario: acc.can_edit_diario ?? true,
+      can_view_custos: acc.can_view_custos ?? true,
+      can_edit_custos: acc.can_edit_custos ?? true,
     };
     setPermissions(perms);
 
