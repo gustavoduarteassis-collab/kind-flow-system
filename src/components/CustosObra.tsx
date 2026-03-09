@@ -221,7 +221,7 @@ export default function CustosObra({ store, onUpdate }: Props) {
                           <Input
                             className="h-8 text-xs"
                             value={item.fornecedor}
-                            placeholder="Fornecedor..."
+                            placeholder="Observação..."
                             onChange={(e) => updateItem(catIdx, itemIdx, "fornecedor", e.target.value)}
                           />
                         </TableCell>
