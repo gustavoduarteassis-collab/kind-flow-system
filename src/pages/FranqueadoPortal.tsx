@@ -38,16 +38,19 @@ type Permissions = {
   can_view_cronograma: boolean;
   can_edit_cronograma: boolean;
   can_view_diario: boolean;
+  can_edit_diario: boolean;
   can_view_custos: boolean;
+  can_edit_custos: boolean;
 };
 
 const FranqueadoPortal = () => {
   const { user, signOut } = useAuth();
   const [store, setStore] = useState<Store | null>(null);
   const [permissions, setPermissions] = useState<Permissions>({
-    can_view_checklist: true, can_edit_checklist: false,
-    can_view_cronograma: true, can_edit_cronograma: false,
-    can_view_diario: false, can_view_custos: false,
+    can_view_checklist: true, can_edit_checklist: true,
+    can_view_cronograma: true, can_edit_cronograma: true,
+    can_view_diario: true, can_edit_diario: true,
+    can_view_custos: true, can_edit_custos: true,
   });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("");
