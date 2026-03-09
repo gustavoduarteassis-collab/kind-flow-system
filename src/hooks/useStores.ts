@@ -1,0 +1,47 @@
+import { useState, useEffect, useCallback } from "react";
+import { Store, createDefaultChecklist } from "@/data/checklistData";
+
+const STORAGE_KEY = "checklist-stores";
+
+function loadStores(): Store[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveStores(stores: Store[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(stores));
+}
+
+export function useStores() {
+  const [stores, setStores] = useState<Store[]>(loadStores);
+
+  useEffect(() => {
+    saveStores(stores);
+  }, [stores]);
+
+  const addStore = useCallback((data: Omit<Store, "id" | "checklist">) => {
+    const newStore: Store = {
+      ...data,
+      id: crypto.randomUUID(),
+      checklist: createDefaultChecklist(),
+    };
+    setStores((prev) => [...prev, newStore]);
+    return newStore.id;
+  }, []);
+
+  const updateStore = useCallback((id: string, data: Partial<Store>) => {
+    setStores((prev) => prev.map((s) => (s.id === id ? { ...s, ...data } : s)));
+  }, []);
+
+  const deleteStore = useCallback((id: string) => {
+    setStores((prev) => prev.filter((s) => s.id !== id));
+  }, []);
+
+  const getStore = useCallback((id: string) => stores.find((s) => s.id === id), [stores]);
+
+  return { stores, addStore, updateStore, deleteStore, getStore };
+}
