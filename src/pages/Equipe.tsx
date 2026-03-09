@@ -643,7 +643,7 @@ const Equipe = () => {
                           {dayEvents.slice(0, 3).map((ev) => (
                             <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
                               title={ev.title}
-                              onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.id); }}
+                              onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
                             >
                               {ev.title}
                             </div>
