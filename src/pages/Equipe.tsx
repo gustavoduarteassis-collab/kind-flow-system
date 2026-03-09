@@ -141,7 +141,7 @@ const Equipe = () => {
     if (c.data) setCompletions(c.data);
     if (e.data) setEvents(e.data as TeamEvent[]);
     if (fa.data) setFranchiseeAccess(fa.data as FranchiseeAccess[]);
-  }, [user, weekStart, calendarMonth]);
+  }, [user, weekStart, calendarMonth, habitMonth]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
