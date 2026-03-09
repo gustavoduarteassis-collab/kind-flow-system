@@ -22,12 +22,12 @@ const Lojas = () => {
   const [search, setSearch] = useState("");
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!form.nome) return;
-    const id = addStore(form);
+    const id = await addStore(form);
     setForm({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
     setOpen(false);
-    navigate(`/loja/${id}`);
+    if (id) navigate(`/loja/${id}`);
   };
 
   const getProgress = (store: typeof stores[0]) => {
