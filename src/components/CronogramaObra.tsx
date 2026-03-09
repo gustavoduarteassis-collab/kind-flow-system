@@ -26,9 +26,14 @@ const cellColors: Record<CronogramaDayStatus, string> = {
 };
 
 function ensureCronograma(store: Store): CronogramaStore {
-  return store.cronograma && store.cronograma.itemDates
-    ? store.cronograma
-    : { cells: store.cronograma?.cells || {}, startDate: store.cronograma?.startDate || "", itemDates: {} };
+  const c = store.cronograma || {};
+  return {
+    cells: c.cells || {},
+    startDate: c.startDate || "",
+    itemDates: c.itemDates || {},
+    itemDatesReal: c.itemDatesReal || {},
+    actionPlans: c.actionPlans || {},
+  };
 }
 
 const CronogramaObra = ({ store, onUpdate }: CronogramaObraProps) => {

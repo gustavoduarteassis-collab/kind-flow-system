@@ -151,5 +151,9 @@ export function createDefaultCronograma(): CronogramaStore {
     cells: {},
     startDate: "",
     itemDates: {},
+    itemDatesReal: {},
+    actionPlans: {},
+  };
+}
   };
 }
