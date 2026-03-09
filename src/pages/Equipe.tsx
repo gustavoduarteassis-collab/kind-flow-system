@@ -743,7 +743,7 @@ const Equipe = () => {
             {(() => {
               // Deduplicate expanded events for the list (show each event once)
               const seen = new Set<string>();
-              const monthEvents = allCalendarEvents
+              const monthEvents = filteredCalendarEvents
                 .filter((e) => e.date >= startOfMonth(calendarMonth) && e.date <= endOfMonth(calendarMonth))
                 .filter((e) => {
                   const key = e.originalId || e.id;
