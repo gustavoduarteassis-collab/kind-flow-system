@@ -21,9 +21,10 @@ import {
 const Lojas = () => {
   const { stores, addStore, deleteStore } = useStores();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [filterAnalista, setFilterAnalista] = useState("");
+  const [filterAnalista, setFilterAnalista] = useState(searchParams.get("analista") || "");
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
 
   const analistas = Array.from(new Set(stores.map((s) => s.analistaObra).filter(Boolean)));
