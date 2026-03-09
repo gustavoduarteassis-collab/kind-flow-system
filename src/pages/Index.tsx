@@ -83,9 +83,12 @@ const Index = () => {
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2">
-                  <Plus className="h-4 w-4" /> Nova Loja
+              <Plus className="h-4 w-4" /> Nova Loja
                 </Button>
               </DialogTrigger>
+              <Button variant="outline" className="gap-2" onClick={() => navigate("/equipe")}>
+                <Users className="h-4 w-4" /> Painel da Equipe
+              </Button>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Adicionar Nova Loja</DialogTitle>
