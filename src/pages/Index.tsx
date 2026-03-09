@@ -1,74 +1,85 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useStores } from "@/hooks/useStores";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { checklistCategories, StatusType } from "@/data/checklistData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Plus,
-  Store,
-  Calendar,
-  User,
-  Search,
-  Trash2,
-  ChevronRight,
-  Building2,
-  ClipboardCheck,
-  Users,
+  Building2, ClipboardCheck, Users, ListTodo, Target,
+  ChevronRight, LogOut, Store,
 } from "lucide-react";
 
+type Task = {
+  id: string; title: string; status: string; priority: string;
+  assigned_to: string | null; due_date: string | null;
+};
+type TeamMember = { id: string; name: string };
+type Habit = { id: string; name: string };
+
+const statusLabels: Record<string, string> = {
+  pendente: "Pendente", em_andamento: "Em Andamento", concluida: "Concluída", cancelada: "Cancelada",
+};
+const priorityColors: Record<string, string> = {
+  baixa: "bg-muted text-muted-foreground",
+  media: "bg-secondary text-secondary-foreground",
+  alta: "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
+  urgente: "bg-destructive text-destructive-foreground",
+};
+const priorityLabels: Record<string, string> = {
+  baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente",
+};
+
 const Index = () => {
-  const { stores, addStore, deleteStore } = useStores();
+  const { stores } = useStores();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
 
-  const handleAdd = () => {
-    if (!form.nome) return;
-    const id = addStore(form);
-    setForm({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
-    setOpen(false);
-    navigate(`/loja/${id}`);
-  };
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
 
-  const getProgress = (store: typeof stores[0]) => {
-    const totalItems = checklistCategories.flatMap((c) => c.items).length;
-    const doneItems = Object.values(store.checklist).filter(
-      (c) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA"
-    ).length;
-    return Math.round((doneItems / totalItems) * 100);
-  };
+  const fetchData = useCallback(async () => {
+    if (!user) return;
+    const [t, m, h] = await Promise.all([
+      supabase.from("tasks").select("id, title, status, priority, assigned_to, due_date").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+      supabase.from("team_members").select("id, name").eq("user_id", user.id),
+      supabase.from("habits").select("id, name").eq("user_id", user.id),
+    ]);
+    if (t.data) setTasks(t.data);
+    if (m.data) setMembers(m.data);
+    if (h.data) setHabits(h.data);
+  }, [user]);
 
-  const getStatusCounts = (store: typeof stores[0]) => {
-    const counts: Partial<Record<StatusType, number>> = {};
-    Object.values(store.checklist).forEach((c) => {
-      counts[c.status] = (counts[c.status] || 0) + 1;
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Store summary
+  const getStoreStatusSummary = () => {
+    const summary: Partial<Record<StatusType, number>> = {};
+    stores.forEach((store) => {
+      Object.values(store.checklist).forEach((c) => {
+        summary[c.status] = (summary[c.status] || 0) + 1;
+      });
     });
-    return counts;
+    return summary;
   };
 
-  const filtered = stores.filter(
-    (s) =>
-      s.nome.toLowerCase().includes(search.toLowerCase()) ||
-      s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
-      s.filial.toLowerCase().includes(search.toLowerCase())
-  );
+  const totalItems = stores.length * checklistCategories.flatMap((c) => c.items).length;
+  const statusSummary = getStoreStatusSummary();
+  const doneItems = (statusSummary["REALIZADO"] || 0) + (statusSummary["NÃO SE APLICA"] || 0);
+  const overallProgress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+
+  const pendingTasks = tasks.filter((t) => t.status === "pendente").length;
+  const inProgressTasks = tasks.filter((t) => t.status === "em_andamento").length;
+  const completedTasks = tasks.filter((t) => t.status === "concluida").length;
+
+  const getMemberName = (id: string | null) => members.find((m) => m.id === id)?.name || "—";
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
@@ -77,195 +88,197 @@ const Index = () => {
                 <ClipboardCheck className="h-5 w-5 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-bold tracking-tight">Checklist de Implantação</h1>
-                <p className="text-sm text-muted-foreground">Tradicional / Light</p>
+                <h1 className="text-xl font-bold tracking-tight">Gestão de Obra</h1>
+                <p className="text-sm text-muted-foreground">Painel Principal</p>
               </div>
             </div>
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-              <Plus className="h-4 w-4" /> Nova Loja
+            {user && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground hidden sm:inline">{user.email}</span>
+                <Button variant="ghost" size="sm" className="gap-2" onClick={() => signOut()}>
+                  <LogOut className="h-4 w-4" /> Sair
                 </Button>
-              </DialogTrigger>
-              <Button variant="outline" className="gap-2" onClick={() => navigate("/equipe")}>
-                <Users className="h-4 w-4" /> Painel da Equipe
-              </Button>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Adicionar Nova Loja</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-2">
-                  <div className="space-y-2">
-                    <Label>Nome da Loja *</Label>
-                    <Input
-                      placeholder="Ex: Shopping Center Norte"
-                      value={form.nome}
-                      onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Filial</Label>
-                    <Input
-                      placeholder="Ex: 001"
-                      value={form.filial}
-                      onChange={(e) => setForm({ ...form, filial: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Franqueado</Label>
-                    <Input
-                      placeholder="Nome do franqueado"
-                      value={form.franqueado}
-                      onChange={(e) => setForm({ ...form, franqueado: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Construtor</Label>
-                    <Input
-                      placeholder="Nome do construtor"
-                      value={form.construtor}
-                      onChange={(e) => setForm({ ...form, construtor: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Analista de Obra</Label>
-                    <Input
-                      placeholder="Nome da analista de obra"
-                      value={form.analistaObra}
-                      onChange={(e) => setForm({ ...form, analistaObra: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Data de Inauguração</Label>
-                    <Input
-                      type="date"
-                      value={form.inauguracao}
-                      onChange={(e) => setForm({ ...form, inauguracao: e.target.value })}
-                    />
-                  </div>
-                  <Button onClick={handleAdd} className="w-full">
-                    Criar Loja
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+              </div>
+            )}
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Quick navigation cards */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Card
+            className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 group"
+            onClick={() => navigate("/lojas")}
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Building2 className="h-6 w-6 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">Lojas</p>
+                <p className="text-2xl font-bold">{stores.length}</p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </CardContent>
+          </Card>
+
+          <Card
+            className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 group"
+            onClick={() => navigate("/equipe")}
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-[hsl(var(--accent))]/10 flex items-center justify-center">
+                <Users className="h-6 w-6 text-[hsl(var(--accent))]" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">Equipe</p>
+                <p className="text-2xl font-bold">{members.length}</p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </CardContent>
+          </Card>
+
+          <Card
+            className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 group"
+            onClick={() => navigate("/equipe")}
+          >
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-[hsl(var(--success))]/10 flex items-center justify-center">
+                <Target className="h-6 w-6 text-[hsl(var(--success))]" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">Hábitos</p>
+                <p className="text-2xl font-bold">{habits.length}</p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Store overview dashboard */}
         {stores.length > 0 && (
-          <div className="relative mb-6 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar loja, franqueado..."
-              className="pl-10"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-        )}
-
-        {/* Empty state */}
-        {stores.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="h-20 w-20 rounded-2xl bg-muted flex items-center justify-center mb-6">
-              <Building2 className="h-10 w-10 text-muted-foreground" />
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Resumo das Lojas</h2>
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/lojas")}>
+                Ver Todas <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-            <h2 className="text-2xl font-bold mb-2">Nenhuma loja cadastrada</h2>
-            <p className="text-muted-foreground mb-6 max-w-md">
-              Adicione sua primeira loja para começar a acompanhar o checklist de implantação.
-            </p>
-            <Button onClick={() => setOpen(true)} size="lg" className="gap-2">
-              <Plus className="h-5 w-5" /> Adicionar Primeira Loja
-            </Button>
-          </div>
-        )}
 
-        {/* Store grid */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((store) => {
-            const progress = getProgress(store);
-            const counts = getStatusCounts(store);
-            return (
-              <Card
-                key={store.id}
-                className="group cursor-pointer transition-all hover:shadow-lg hover:border-primary/30"
-                onClick={() => navigate(`/loja/${store.id}`)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg leading-tight">{store.nome}</CardTitle>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        {store.filial && (
-                          <span className="flex items-center gap-1">
-                            <Store className="h-3.5 w-3.5" /> {store.filial}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm("Excluir esta loja?")) deleteStore(store.id);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {store.franqueado && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <User className="h-3.5 w-3.5" /> {store.franqueado}
-                    </div>
-                  )}
-                  {store.inauguracao && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-3.5 w-3.5" />
-                      {new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR")}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Progresso</span>
-                      <span className="font-semibold">{progress}%</span>
-                    </div>
-                    <Progress value={progress} className="h-2" />
-                  </div>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {counts["REALIZADO"] && (
-                      <Badge className="bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)] text-xs">
-                        ✓ {counts["REALIZADO"]}
-                      </Badge>
-                    )}
-                    {counts["ATRASADO"] && (
-                      <Badge variant="destructive" className="text-xs">
-                        ! {counts["ATRASADO"]}
-                      </Badge>
-                    )}
-                    {counts["NÃO INICIADO"] && (
-                      <Badge variant="secondary" className="text-xs">
-                        ○ {counts["NÃO INICIADO"]}
-                      </Badge>
-                    )}
-                  </div>
-
-                  <div className="flex justify-end">
-                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                  </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-muted-foreground mb-1">Progresso Geral</p>
+                  <p className="text-3xl font-bold text-primary">{overallProgress}%</p>
+                  <Progress value={overallProgress} className="h-2 mt-2" />
                 </CardContent>
               </Card>
-            );
-          })}
-        </div>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-muted-foreground mb-1">Realizados</p>
+                  <p className="text-3xl font-bold text-[hsl(var(--success))]">{statusSummary["REALIZADO"] || 0}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-muted-foreground mb-1">Atrasados</p>
+                  <p className="text-3xl font-bold text-destructive">{statusSummary["ATRASADO"] || 0}</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-sm text-muted-foreground mb-1">Não Iniciados</p>
+                  <p className="text-3xl font-bold text-muted-foreground">{statusSummary["NÃO INICIADO"] || 0}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Per-store mini cards */}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {stores.slice(0, 6).map((store) => {
+                const total = checklistCategories.flatMap((c) => c.items).length;
+                const done = Object.values(store.checklist).filter(
+                  (c) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA"
+                ).length;
+                const pct = Math.round((done / total) * 100);
+                const delayed = Object.values(store.checklist).filter((c) => c.status === "ATRASADO").length;
+                return (
+                  <Card key={store.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/loja/${store.id}`)}>
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{store.nome}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Progress value={pct} className="h-1.5 flex-1" />
+                          <span className="text-xs font-semibold text-muted-foreground">{pct}%</span>
+                        </div>
+                      </div>
+                      {delayed > 0 && (
+                        <Badge variant="destructive" className="text-xs">! {delayed}</Badge>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Tasks summary */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <ListTodo className="h-5 w-5" /> Tarefas
+            </h2>
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/equipe")}>
+              Ver Todas <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3 mb-4">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-1">Pendentes</p>
+                <p className="text-2xl font-bold text-[hsl(var(--accent))]">{pendingTasks}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-1">Em Andamento</p>
+                <p className="text-2xl font-bold text-primary">{inProgressTasks}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-sm text-muted-foreground mb-1">Concluídas</p>
+                <p className="text-2xl font-bold text-[hsl(var(--success))]">{completedTasks}</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {tasks.length > 0 && (
+            <div className="space-y-2">
+              {tasks.slice(0, 5).map((task) => (
+                <Card key={task.id}>
+                  <CardContent className="p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <Badge className={`${priorityColors[task.priority]} text-[10px] shrink-0`}>
+                        {priorityLabels[task.priority]}
+                      </Badge>
+                      <span className="text-sm font-medium truncate">{task.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {task.assigned_to && (
+                        <span className="text-xs text-muted-foreground">{getMemberName(task.assigned_to)}</span>
+                      )}
+                      <Badge variant="outline" className="text-[10px]">{statusLabels[task.status]}</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
       </main>
     </div>
   );
