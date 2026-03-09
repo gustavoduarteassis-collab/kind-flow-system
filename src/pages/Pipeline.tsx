@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
+import { pipelineImportData } from "@/data/pipelineImportData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
