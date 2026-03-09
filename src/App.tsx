@@ -86,6 +86,7 @@ function AppRoutes() {
       <Route path="/loja/:id" element={<StoreDetail />} />
       <Route path="/loja/:id/relatorio" element={<StoreReport />} />
       <Route path="/equipe" element={<Equipe />} />
+      <Route path="/pipeline" element={<Pipeline />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
