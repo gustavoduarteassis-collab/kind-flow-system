@@ -522,45 +522,51 @@ const Equipe = () => {
                 </CardContent>
               </Card>
             ) : (
-              <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    {(() => {
-                      const monthDaysHabit = eachDayOfInterval({ start: startOfMonth(habitMonth), end: endOfMonth(habitMonth) });
-                      const dayLabels = ["D", "S", "T", "Q", "Q", "S", "S"];
-                      const today = new Date();
-                      const filteredMembers = members.filter((m) => m.name !== "Gustavo").filter((m) => !habitMemberFilter || m.id === habitMemberFilter);
+              <div className="space-y-6">
+                {(() => {
+                  const monthDaysHabit = eachDayOfInterval({ start: startOfMonth(habitMonth), end: endOfMonth(habitMonth) });
+                  const dayLabels = ["D", "S", "T", "Q", "Q", "S", "S"];
+                  const today = new Date();
+                  const todayStr = format(today, "yyyy-MM-dd");
+                  const filteredMembers = members.filter((m) => m.name !== "Gustavo").filter((m) => !habitMemberFilter || m.id === habitMemberFilter);
 
-                      return (
-                        <table className="w-full text-xs border-collapse">
-                          <thead>
-                            <tr className="border-b border-border">
-                              <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[140px] font-semibold">Hábito</th>
-                              {monthDaysHabit.map((day) => {
-                                const isToday = isSameDay(day, today);
-                                return (
-                                  <th key={day.toISOString()} className={`text-center px-0 py-1 min-w-[28px] ${isToday ? "text-primary" : "text-muted-foreground"}`}>
-                                    <div className="text-[10px]">{dayLabels[day.getDay()]}</div>
-                                    <div className={`text-xs font-medium ${isToday ? "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center mx-auto" : ""}`}>
-                                      {format(day, "d")}
-                                    </div>
-                                  </th>
-                                );
-                              })}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {habits.map((habit) => (
-                              filteredMembers.length > 0 ? (
-                                habitMemberFilter ? (
-                                  /* Single member view - one row per habit */
+                  const renderMemberTracker = (member: typeof members[0]) => {
+                    // Filter habits: hide ones completed today
+                    const pendingHabits = habits.filter((h) => !isCompleted(h.id, member.id, todayStr));
+                    const completedHabits = habits.filter((h) => isCompleted(h.id, member.id, todayStr));
+
+                    return (
+                      <Card key={member.id}>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base">{member.name}</CardTitle>
+                          <p className="text-xs text-muted-foreground">{member.role}</p>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs border-collapse">
+                              <thead>
+                                <tr className="border-b border-border">
+                                  <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[140px] font-semibold">Hábito</th>
+                                  {monthDaysHabit.map((day) => {
+                                    const isToday = isSameDay(day, today);
+                                    return (
+                                      <th key={day.toISOString()} className={`text-center px-0 py-1 min-w-[28px] ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                                        <div className="text-[10px]">{dayLabels[day.getDay()]}</div>
+                                        <div className={`text-xs font-medium ${isToday ? "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center mx-auto" : ""}`}>
+                                          {format(day, "d")}
+                                        </div>
+                                      </th>
+                                    );
+                                  })}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {/* Pending habits first */}
+                                {pendingHabits.map((habit) => (
                                   <tr key={habit.id} className="border-b border-border/50 hover:bg-muted/30">
                                     <td className="sticky left-0 z-10 bg-card px-3 py-2">
                                       <div className="flex items-center justify-between">
-                                        <div>
-                                          <span className="font-medium">{habit.name}</span>
-                                          {habit.description && <p className="text-[10px] text-muted-foreground">{habit.description}</p>}
-                                        </div>
+                                        <span className="font-medium">{habit.name}</span>
                                         <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => { if (confirm("Excluir?")) deleteHabit(habit.id); }}>
                                           <Trash2 className="h-3 w-3 text-destructive" />
                                         </Button>
@@ -568,13 +574,13 @@ const Equipe = () => {
                                     </td>
                                     {monthDaysHabit.map((day) => {
                                       const dateStr = format(day, "yyyy-MM-dd");
-                                      const done = isCompleted(habit.id, habitMemberFilter, dateStr);
-                                      const isToday = isSameDay(day, today);
+                                      const done = isCompleted(habit.id, member.id, dateStr);
+                                      const isDayToday = isSameDay(day, today);
                                       return (
                                         <td key={dateStr} className="text-center px-0 py-1">
                                           <button
-                                            className={`w-6 h-6 rounded-md border transition-all ${done ? "bg-primary border-primary text-primary-foreground" : isToday ? "border-primary/50 bg-primary/5" : "border-border/50"}`}
-                                            onClick={() => toggleCompletion(habit.id, habitMemberFilter, dateStr)}
+                                            className={`w-6 h-6 rounded-md border transition-all ${done ? "bg-primary border-primary text-primary-foreground" : isDayToday ? "border-primary/50 bg-primary/5" : "border-border/50"}`}
+                                            onClick={() => toggleCompletion(habit.id, member.id, dateStr)}
                                           >
                                             {done && <span className="text-[10px]">✓</span>}
                                           </button>
@@ -582,52 +588,46 @@ const Equipe = () => {
                                       );
                                     })}
                                   </tr>
-                                ) : (
-                                  /* All members view - one row per member per habit */
-                                  filteredMembers.map((member, mi) => (
-                                    <tr key={`${habit.id}-${member.id}`} className={`border-b border-border/30 hover:bg-muted/30 ${mi === 0 ? "border-t border-border/50" : ""}`}>
-                                      <td className="sticky left-0 z-10 bg-card px-3 py-1.5">
-                                        {mi === 0 ? (
-                                          <div className="flex items-center justify-between">
-                                            <div>
-                                              <span className="font-medium">{habit.name}</span>
-                                              <span className="text-muted-foreground ml-2 text-[10px]">— {member.name}</span>
-                                            </div>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => { if (confirm("Excluir?")) deleteHabit(habit.id); }}>
-                                              <Trash2 className="h-3 w-3 text-destructive" />
-                                            </Button>
-                                          </div>
-                                        ) : (
-                                          <span className="text-muted-foreground ml-4 text-[10px]">— {member.name}</span>
-                                        )}
-                                      </td>
-                                      {monthDaysHabit.map((day) => {
-                                        const dateStr = format(day, "yyyy-MM-dd");
-                                        const done = isCompleted(habit.id, member.id, dateStr);
-                                        const isToday = isSameDay(day, today);
-                                        return (
-                                          <td key={dateStr} className="text-center px-0 py-1">
-                                            <button
-                                              className={`w-5 h-5 rounded-md border transition-all ${done ? "bg-primary border-primary text-primary-foreground" : isToday ? "border-primary/50 bg-primary/5" : "border-border/40"}`}
-                                              onClick={() => toggleCompletion(habit.id, member.id, dateStr)}
-                                            >
-                                              {done && <span className="text-[9px]">✓</span>}
-                                            </button>
-                                          </td>
-                                        );
-                                      })}
-                                    </tr>
-                                  ))
-                                )
-                              ) : null
-                            ))}
-                          </tbody>
-                        </table>
-                      );
-                    })()}
-                  </div>
-                </CardContent>
-              </Card>
+                                ))}
+                                {/* Completed today - shown faded at bottom */}
+                                {completedHabits.length > 0 && (
+                                  <>
+                                    <tr><td colSpan={monthDaysHabit.length + 1} className="sticky left-0 z-10 bg-card px-3 py-1 text-[10px] text-muted-foreground font-medium border-b border-border/30">✓ Realizados hoje</td></tr>
+                                    {completedHabits.map((habit) => (
+                                      <tr key={habit.id} className="border-b border-border/20 opacity-50">
+                                        <td className="sticky left-0 z-10 bg-card px-3 py-1.5">
+                                          <span className="font-medium line-through">{habit.name}</span>
+                                        </td>
+                                        {monthDaysHabit.map((day) => {
+                                          const dateStr = format(day, "yyyy-MM-dd");
+                                          const done = isCompleted(habit.id, member.id, dateStr);
+                                          const isDayToday = isSameDay(day, today);
+                                          return (
+                                            <td key={dateStr} className="text-center px-0 py-1">
+                                              <button
+                                                className={`w-6 h-6 rounded-md border transition-all ${done ? "bg-primary border-primary text-primary-foreground" : isDayToday ? "border-primary/50 bg-primary/5" : "border-border/50"}`}
+                                                onClick={() => toggleCompletion(habit.id, member.id, dateStr)}
+                                              >
+                                                {done && <span className="text-[10px]">✓</span>}
+                                              </button>
+                                            </td>
+                                          );
+                                        })}
+                                      </tr>
+                                    ))}
+                                  </>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  };
+
+                  return filteredMembers.map((member) => renderMemberTracker(member));
+                })()}
+              </div>
             )}
           </TabsContent>
 
