@@ -37,7 +37,7 @@ const Index = () => {
   const handleAdd = () => {
     if (!form.nome) return;
     const id = addStore(form);
-    setForm({ nomeconstrutor: "", analistaObra: "", : "", filial: "", franqueado: "", inauguracao: "" });
+    setForm({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
     setOpen(false);
     navigate(`/loja/${id}`);
   };
