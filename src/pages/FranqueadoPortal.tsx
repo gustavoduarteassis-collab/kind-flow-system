@@ -316,7 +316,7 @@ const FranqueadoPortal = () => {
 
           {permissions.can_view_custos && (
             <TabsContent value="custos" className="mt-4">
-              <CustosObra store={store} onUpdate={() => {}} />
+              <CustosObra store={store} onUpdate={permissions.can_edit_custos ? (custos) => updateStore({ custos } as any) : () => {}} />
             </TabsContent>
           )}
         </Tabs>
