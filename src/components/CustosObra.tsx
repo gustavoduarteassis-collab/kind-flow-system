@@ -309,6 +309,7 @@ export default function CustosObra({ store, onUpdate }: Props) {
                               {uploading === item.id ? "..." : "Anexar"}
                             </Button>
                           )}
+                        </TableCell>
                         <TableCell>
                           <Button
                             variant="ghost"
