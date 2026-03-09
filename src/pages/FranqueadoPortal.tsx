@@ -216,8 +216,7 @@ const FranqueadoPortal = () => {
             <TabsContent value="cronograma" className="mt-4">
               <CronogramaObra
                 store={store}
-                onUpdate={permissions.can_edit_cronograma ? (cronograma) => updateStore({ cronograma }) : undefined}
-                readOnly={!permissions.can_edit_cronograma}
+                onUpdate={permissions.can_edit_cronograma ? (cronograma) => updateStore({ cronograma }) : () => {}}
               />
             </TabsContent>
           )}
