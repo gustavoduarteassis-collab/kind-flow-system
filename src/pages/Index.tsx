@@ -36,7 +36,9 @@ type FranchiseeAccess = {
   id: string; store_id: string; franchisee_email: string;
   can_view_checklist: boolean; can_edit_checklist: boolean;
   can_view_cronograma: boolean; can_edit_cronograma: boolean;
-  can_view_diario: boolean; can_view_custos: boolean;
+  can_view_diario: boolean; can_edit_diario: boolean;
+  can_view_custos: boolean; can_edit_custos: boolean;
+  access_type: string;
 };
 
 const statusLabels: Record<string, string> = {
