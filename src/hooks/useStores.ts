@@ -13,6 +13,8 @@ function loadStores(): Store[] {
     return stores.map((s) => ({
       ...s,
       cronograma: s.cronograma || createDefaultCronograma(),
+      construtor: s.construtor || "",
+      analistaObra: s.analistaObra || "",
     }));
   } catch {
     return [];

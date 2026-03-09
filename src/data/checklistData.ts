@@ -32,6 +32,8 @@ export interface Store {
   nome: string;
   filial: string;
   franqueado: string;
+  construtor: string;
+  analistaObra: string;
   inauguracao: string;
   checklist: Record<number, {
     status: StatusType;

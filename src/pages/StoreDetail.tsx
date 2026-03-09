@@ -106,8 +106,7 @@ const StoreDetail = () => {
             </Button>
             <div className="flex-1">
               <h1 className="text-xl font-bold tracking-tight">{store.nome}</h1>
-              <h1 className="text-xl font-bold tracking-tight">{store.nome}</h1>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-0.5">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-0.5 flex-wrap">
                 {store.filial && (
                   <span className="flex items-center gap-1">
                     <Store className="h-3.5 w-3.5" /> Filial: {store.filial}
@@ -116,6 +115,16 @@ const StoreDetail = () => {
                 {store.franqueado && (
                   <span className="flex items-center gap-1">
                     <User className="h-3.5 w-3.5" /> {store.franqueado}
+                  </span>
+                )}
+                {store.construtor && (
+                  <span className="flex items-center gap-1">
+                    🏗️ {store.construtor}
+                  </span>
+                )}
+                {store.analistaObra && (
+                  <span className="flex items-center gap-1">
+                    📋 {store.analistaObra}
                   </span>
                 )}
                 {store.inauguracao && (

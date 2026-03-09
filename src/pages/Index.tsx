@@ -32,12 +32,12 @@ const Index = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", inauguracao: "" });
+  const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
 
   const handleAdd = () => {
     if (!form.nome) return;
     const id = addStore(form);
-    setForm({ nome: "", filial: "", franqueado: "", inauguracao: "" });
+    setForm({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
     setOpen(false);
     navigate(`/loja/${id}`);
   };
@@ -113,6 +113,22 @@ const Index = () => {
                       placeholder="Nome do franqueado"
                       value={form.franqueado}
                       onChange={(e) => setForm({ ...form, franqueado: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Construtor</Label>
+                    <Input
+                      placeholder="Nome do construtor"
+                      value={form.construtor}
+                      onChange={(e) => setForm({ ...form, construtor: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Analista de Obra</Label>
+                    <Input
+                      placeholder="Nome da analista de obra"
+                      value={form.analistaObra}
+                      onChange={(e) => setForm({ ...form, analistaObra: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
