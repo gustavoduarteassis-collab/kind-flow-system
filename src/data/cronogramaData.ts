@@ -155,5 +155,3 @@ export function createDefaultCronograma(): CronogramaStore {
     actionPlans: {},
   };
 }
-  };
-}
