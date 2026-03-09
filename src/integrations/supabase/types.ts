@@ -92,6 +92,12 @@ export type Database = {
       }
       franchisee_access: {
         Row: {
+          can_edit_checklist: boolean
+          can_edit_cronograma: boolean
+          can_view_checklist: boolean
+          can_view_cronograma: boolean
+          can_view_custos: boolean
+          can_view_diario: boolean
           created_at: string
           created_by: string
           franchisee_email: string
@@ -99,6 +105,12 @@ export type Database = {
           store_id: string
         }
         Insert: {
+          can_edit_checklist?: boolean
+          can_edit_cronograma?: boolean
+          can_view_checklist?: boolean
+          can_view_cronograma?: boolean
+          can_view_custos?: boolean
+          can_view_diario?: boolean
           created_at?: string
           created_by: string
           franchisee_email: string
@@ -106,6 +118,12 @@ export type Database = {
           store_id: string
         }
         Update: {
+          can_edit_checklist?: boolean
+          can_edit_cronograma?: boolean
+          can_view_checklist?: boolean
+          can_view_cronograma?: boolean
+          can_view_custos?: boolean
+          can_view_diario?: boolean
           created_at?: string
           created_by?: string
           franchisee_email?: string
