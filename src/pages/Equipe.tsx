@@ -117,7 +117,12 @@ const Equipe = () => {
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(null);
-  const [accessForm, setAccessForm] = useState({ store_id: "", franchisee_email: "" });
+  const [accessForm, setAccessForm] = useState({
+    store_id: "", franchisee_email: "",
+    can_view_checklist: true, can_edit_checklist: false,
+    can_view_cronograma: true, can_edit_cronograma: false,
+    can_view_diario: false, can_view_custos: false,
+  });
 
   // Mon-Fri only
   const weekDays = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 4) });
