@@ -207,7 +207,7 @@ export default function CustosObra({ store, onUpdate }: Props) {
                   <TableHeader>
                     <TableRow className="bg-muted/30">
                       <TableHead className="min-w-[200px]">Item</TableHead>
-                      <TableHead className="min-w-[140px]">Fornecedor</TableHead>
+                      <TableHead className="min-w-[140px]">Observação</TableHead>
                       <TableHead className="w-[140px]">Valor Previsto</TableHead>
                       <TableHead className="w-[140px]">Valor Realizado</TableHead>
                       <TableHead className="w-[120px]">Proposta</TableHead>
