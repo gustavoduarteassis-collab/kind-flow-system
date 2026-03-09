@@ -3,7 +3,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Store, checklistCategories, StatusType, createDefaultChecklist } from "@/data/checklistData";
 import { createDefaultCronograma } from "@/data/cronogramaData";
-import { createDefaultCronograma } from "@/data/cronogramaData";
 import CronogramaObra from "@/components/CronogramaObra";
 import CustosObra from "@/components/CustosObra";
 import DiarioObra from "@/components/DiarioObra";
