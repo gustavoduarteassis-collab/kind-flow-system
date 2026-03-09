@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Store, createDefaultChecklist } from "@/data/checklistData";
 import { createDefaultCronograma } from "@/data/cronogramaData";
+import { createDefaultCustos } from "@/data/custosData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
