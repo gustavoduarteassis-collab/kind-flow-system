@@ -190,10 +190,11 @@ const Index = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Quick navigation */}
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-5">
           {[
+            { label: "Funil", count: null, icon: GitBranch, path: "/pipeline", color: "bg-[hsl(var(--accent))]/10 text-[hsl(var(--accent))]" },
             { label: "Lojas", count: stores.length, icon: Building2, path: "/lojas", color: "bg-primary/10 text-primary" },
-            { label: "Equipe", count: members.length, icon: Users, path: "/equipe", color: "bg-[hsl(var(--accent))]/10 text-[hsl(var(--accent))]" },
+            { label: "Equipe", count: members.length, icon: Users, path: "/equipe", color: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]" },
             { label: "Hábitos", count: habits.length, icon: Target, path: "/equipe", color: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]" },
             { label: "Calendário", count: null, icon: Calendar, path: "/equipe", color: "bg-primary/10 text-primary" },
           ].map((item) => (
