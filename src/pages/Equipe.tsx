@@ -264,11 +264,11 @@ const Equipe = () => {
   const firstDayOfWeek = getDay(startOfMonth(calendarMonth));
   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
-  // Build virtual events from all data sources
+  // Build virtual events from all data sources (only scheduled/agendado items)
   type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean };
   const allCalendarEvents: CalendarEvent[] = [];
 
-  // 1. Team events (from DB)
+  // 1. Team events (manually created in calendar)
   events.forEach((e) => {
     allCalendarEvents.push({ id: e.id, title: e.title, event_type: e.event_type, date: new Date(e.event_date + "T00:00:00"), deletable: true });
   });
@@ -276,45 +276,35 @@ const Equipe = () => {
   // 2. Store inaugurations
   stores.forEach((s) => {
     if (s.inauguracao) {
-      allCalendarEvents.push({ id: `inaug-${s.id}`, title: `🎉 Inauguração: ${s.nome}`, event_type: "implantacao", date: new Date(s.inauguracao + "T00:00:00"), deletable: false });
+      allCalendarEvents.push({ id: `inaug-${s.id}`, title: `Inauguração: ${s.nome}`, event_type: "implantacao", date: new Date(s.inauguracao + "T00:00:00"), deletable: false });
     }
   });
 
-  // 3. Tasks (start_date and due_date)
-  tasks.forEach((t) => {
-    if (t.start_date) {
-      allCalendarEvents.push({ id: `task-start-${t.id}`, title: `▶ ${t.title}`, event_type: "outro", date: new Date(t.start_date + "T00:00:00"), deletable: false });
-    }
-    if (t.due_date) {
-      allCalendarEvents.push({ id: `task-due-${t.id}`, title: `⏰ ${t.title}`, event_type: t.priority === "urgente" ? "agm" : "reuniao", date: new Date(t.due_date + "T00:00:00"), deletable: false });
-    }
-  });
-
-  // 4. Cronograma dates from stores
+  // 3. Cronograma dates from stores
   stores.forEach((s) => {
     const cron = s.cronograma as any;
     if (cron?.itemDates) {
       Object.entries(cron.itemDates as Record<string, { inicio: string; fim: string }>).forEach(([itemId, dates]) => {
         if (dates.inicio) {
-          allCalendarEvents.push({ id: `cron-ini-${s.id}-${itemId}`, title: `🔨 ${s.nome} - ${itemId} início`, event_type: "checklist", date: new Date(dates.inicio + "T00:00:00"), deletable: false });
+          allCalendarEvents.push({ id: `cron-ini-${s.id}-${itemId}`, title: `${s.nome} - ${itemId} início`, event_type: "checklist", date: new Date(dates.inicio + "T00:00:00"), deletable: false });
         }
         if (dates.fim) {
-          allCalendarEvents.push({ id: `cron-fim-${s.id}-${itemId}`, title: `🔨 ${s.nome} - ${itemId} término`, event_type: "checklist", date: new Date(dates.fim + "T00:00:00"), deletable: false });
+          allCalendarEvents.push({ id: `cron-fim-${s.id}-${itemId}`, title: `${s.nome} - ${itemId} término`, event_type: "checklist", date: new Date(dates.fim + "T00:00:00"), deletable: false });
         }
       });
     }
   });
 
-  // 5. Checklist dates from stores
+  // 4. Checklist dates from stores (only items with dates filled)
   stores.forEach((s) => {
     const cl = s.checklist as any;
     if (cl) {
       Object.entries(cl).forEach(([itemId, data]: [string, any]) => {
         if (data?.prazoInicial) {
-          allCalendarEvents.push({ id: `cl-ini-${s.id}-${itemId}`, title: `📋 ${s.nome} - Item ${itemId}`, event_type: "checklist", date: new Date(data.prazoInicial + "T00:00:00"), deletable: false });
+          allCalendarEvents.push({ id: `cl-ini-${s.id}-${itemId}`, title: `${s.nome} - Item ${itemId} início`, event_type: "checklist", date: new Date(data.prazoInicial + "T00:00:00"), deletable: false });
         }
         if (data?.prazoFinal) {
-          allCalendarEvents.push({ id: `cl-fim-${s.id}-${itemId}`, title: `📋 ${s.nome} - Item ${itemId} prazo`, event_type: "agm", date: new Date(data.prazoFinal + "T00:00:00"), deletable: false });
+          allCalendarEvents.push({ id: `cl-fim-${s.id}-${itemId}`, title: `${s.nome} - Item ${itemId} prazo`, event_type: "checklist", date: new Date(data.prazoFinal + "T00:00:00"), deletable: false });
         }
       });
     }
