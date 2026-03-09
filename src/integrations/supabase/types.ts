@@ -122,6 +122,7 @@ export type Database = {
           construtor: string
           created_at: string
           cronograma: Json
+          custos: Json
           filial: string
           franqueado: string
           id: string
@@ -136,6 +137,7 @@ export type Database = {
           construtor?: string
           created_at?: string
           cronograma?: Json
+          custos?: Json
           filial?: string
           franqueado?: string
           id?: string
@@ -150,6 +152,7 @@ export type Database = {
           construtor?: string
           created_at?: string
           cronograma?: Json
+          custos?: Json
           filial?: string
           franqueado?: string
           id?: string

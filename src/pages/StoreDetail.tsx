@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CronogramaObra from "@/components/CronogramaObra";
+import CustosObra from "@/components/CustosObra";
 import {
   Select,
   SelectContent,
@@ -31,6 +32,7 @@ import {
   ClipboardCheck,
   Save,
   FileText,
+  DollarSign,
 } from "lucide-react";
 
 const statusColors: Record<StatusType, string> = {
@@ -172,6 +174,12 @@ const StoreDetail = () => {
               >
                 📊 Cronograma de Obra
               </TabsTrigger>
+              <TabsTrigger
+                value="custos"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+              >
+                💰 Custos
+              </TabsTrigger>
               {checklistCategories.map((cat) => {
                 const catProgress = getCategoryProgress(cat.id);
                 return (
@@ -192,6 +200,13 @@ const StoreDetail = () => {
             <CronogramaObra
               store={store}
               onUpdate={(cronograma) => updateStore(store.id, { cronograma })}
+            />
+          </TabsContent>
+
+          <TabsContent value="custos" className="mt-4">
+            <CustosObra
+              store={store}
+              onUpdate={(custos) => updateStore(store.id, { custos } as any)}
             />
           </TabsContent>
 

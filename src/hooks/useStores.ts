@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Store, createDefaultChecklist } from "@/data/checklistData";
 import { createDefaultCronograma } from "@/data/cronogramaData";
+import { createDefaultCustos } from "@/data/custosData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -26,6 +27,7 @@ export function useStores() {
         inauguracao: row.inauguracao || "",
         checklist: row.checklist || createDefaultChecklist(),
         cronograma: row.cronograma || createDefaultCronograma(),
+        custos: row.custos || createDefaultCustos(),
       })));
     }
     setLoading(false);
@@ -37,6 +39,7 @@ export function useStores() {
     if (!user) return "";
     const checklist = createDefaultChecklist();
     const cronograma = createDefaultCronograma();
+    const custos = createDefaultCustos();
     const { data: inserted, error } = await supabase.from("stores").insert({
       user_id: user.id,
       nome: data.nome,
@@ -47,6 +50,7 @@ export function useStores() {
       inauguracao: data.inauguracao,
       checklist: checklist as any,
       cronograma: cronograma as any,
+      custos: custos as any,
     }).select("id").single();
     if (inserted) {
       await fetchStores();
@@ -65,6 +69,7 @@ export function useStores() {
     if (updates.inauguracao !== undefined) dbUpdates.inauguracao = updates.inauguracao;
     if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
     if (updates.cronograma !== undefined) dbUpdates.cronograma = updates.cronograma;
+    if ((updates as any).custos !== undefined) dbUpdates.custos = (updates as any).custos;
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
     // Optimistic update
