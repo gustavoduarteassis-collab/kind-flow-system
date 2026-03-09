@@ -477,7 +477,7 @@ const Equipe = () => {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    ))}
+                    ))})()}
                   </TableBody>
                 </Table>
               </div>
