@@ -1,61 +1,82 @@
 import { useState, useEffect, useCallback } from "react";
 import { Store, createDefaultChecklist } from "@/data/checklistData";
 import { createDefaultCronograma } from "@/data/cronogramaData";
-
-const STORAGE_KEY = "checklist-stores";
-
-function loadStores(): Store[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const stores: Store[] = JSON.parse(raw);
-    // Migrate old stores missing cronograma
-    return stores.map((s) => ({
-      ...s,
-      cronograma: s.cronograma || createDefaultCronograma(),
-      construtor: s.construtor || "",
-      analistaObra: s.analistaObra || "",
-    }));
-  } catch {
-    return [];
-  }
-}
-
-function saveStores(stores: Store[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(stores));
-}
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export function useStores() {
-  const [stores, setStores] = useState<Store[]>(loadStores);
+  const { user } = useAuth();
+  const [stores, setStores] = useState<Store[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    saveStores(stores);
-  }, [stores]);
+  const fetchStores = useCallback(async () => {
+    if (!user) { setStores([]); setLoading(false); return; }
+    const { data, error } = await supabase
+      .from("stores")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (data) {
+      setStores(data.map((row: any) => ({
+        id: row.id,
+        nome: row.nome,
+        filial: row.filial || "",
+        franqueado: row.franqueado || "",
+        construtor: row.construtor || "",
+        analistaObra: row.analista_obra || "",
+        inauguracao: row.inauguracao || "",
+        checklist: row.checklist || createDefaultChecklist(),
+        cronograma: row.cronograma || createDefaultCronograma(),
+      })));
+    }
+    setLoading(false);
+  }, [user]);
 
-  const addStore = useCallback((data: Omit<Store, "id" | "checklist" | "cronograma">) => {
-    const newStore: Store = {
-      ...data,
-      id: crypto.randomUUID(),
-      checklist: createDefaultChecklist(),
-      cronograma: createDefaultCronograma(),
-    };
-    setStores((prev) => {
-      const updated = [...prev, newStore];
-      saveStores(updated);
-      return updated;
-    });
-    return newStore.id;
+  useEffect(() => { fetchStores(); }, [fetchStores]);
+
+  const addStore = useCallback(async (data: Omit<Store, "id" | "checklist" | "cronograma">) => {
+    if (!user) return "";
+    const checklist = createDefaultChecklist();
+    const cronograma = createDefaultCronograma();
+    const { data: inserted, error } = await supabase.from("stores").insert({
+      user_id: user.id,
+      nome: data.nome,
+      filial: data.filial,
+      franqueado: data.franqueado,
+      construtor: data.construtor,
+      analista_obra: data.analistaObra,
+      inauguracao: data.inauguracao,
+      checklist: checklist as any,
+      cronograma: cronograma as any,
+    }).select("id").single();
+    if (inserted) {
+      await fetchStores();
+      return inserted.id;
+    }
+    return "";
+  }, [user, fetchStores]);
+
+  const updateStore = useCallback(async (id: string, updates: Partial<Store>) => {
+    const dbUpdates: any = {};
+    if (updates.nome !== undefined) dbUpdates.nome = updates.nome;
+    if (updates.filial !== undefined) dbUpdates.filial = updates.filial;
+    if (updates.franqueado !== undefined) dbUpdates.franqueado = updates.franqueado;
+    if (updates.construtor !== undefined) dbUpdates.construtor = updates.construtor;
+    if (updates.analistaObra !== undefined) dbUpdates.analista_obra = updates.analistaObra;
+    if (updates.inauguracao !== undefined) dbUpdates.inauguracao = updates.inauguracao;
+    if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
+    if (updates.cronograma !== undefined) dbUpdates.cronograma = updates.cronograma;
+
+    await supabase.from("stores").update(dbUpdates).eq("id", id);
+    // Optimistic update
+    setStores((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   }, []);
 
-  const updateStore = useCallback((id: string, data: Partial<Store>) => {
-    setStores((prev) => prev.map((s) => (s.id === id ? { ...s, ...data } : s)));
-  }, []);
-
-  const deleteStore = useCallback((id: string) => {
+  const deleteStore = useCallback(async (id: string) => {
+    await supabase.from("stores").delete().eq("id", id);
     setStores((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
   const getStore = useCallback((id: string) => stores.find((s) => s.id === id), [stores]);
 
-  return { stores, addStore, updateStore, deleteStore, getStore };
+  return { stores, loading, addStore, updateStore, deleteStore, getStore, refetch: fetchStores };
 }
