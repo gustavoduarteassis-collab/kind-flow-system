@@ -417,7 +417,7 @@ const Equipe = () => {
               >
                 Todos
               </Button>
-              {members.filter((m) => m.name !== "Gustavo").map((m) => (
+              {members.map((m) => (
                 <Button
                   key={m.id}
                   variant={taskMemberFilter === m.id ? "default" : "outline"}
