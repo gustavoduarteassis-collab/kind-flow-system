@@ -978,9 +978,47 @@ const Equipe = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      O franqueado precisa criar uma conta com este e-mail. Ao entrar, verá apenas o checklist e cronograma da loja selecionada.
-                    </p>
+                    <div className="space-y-3">
+                      <Label className="text-sm font-semibold">Permissões</Label>
+                      <div className="grid grid-cols-2 gap-3 p-3 rounded-lg border bg-muted/30">
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Checklist</p>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="view-checklist" checked={accessForm.can_view_checklist} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_checklist: !!v, can_edit_checklist: !v ? false : accessForm.can_edit_checklist })} />
+                            <Label htmlFor="view-checklist" className="text-xs">Visualizar</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="edit-checklist" checked={accessForm.can_edit_checklist} disabled={!accessForm.can_view_checklist} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_edit_checklist: !!v })} />
+                            <Label htmlFor="edit-checklist" className="text-xs">Editar</Label>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Cronograma</p>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="view-cronograma" checked={accessForm.can_view_cronograma} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_cronograma: !!v, can_edit_cronograma: !v ? false : accessForm.can_edit_cronograma })} />
+                            <Label htmlFor="view-cronograma" className="text-xs">Visualizar</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="edit-cronograma" checked={accessForm.can_edit_cronograma} disabled={!accessForm.can_view_cronograma} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_edit_cronograma: !!v })} />
+                            <Label htmlFor="edit-cronograma" className="text-xs">Editar</Label>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Diário de Obra</p>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="view-diario" checked={accessForm.can_view_diario} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_diario: !!v })} />
+                            <Label htmlFor="view-diario" className="text-xs">Visualizar</Label>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Custos</p>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="view-custos" checked={accessForm.can_view_custos} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_custos: !!v })} />
+                            <Label htmlFor="view-custos" className="text-xs">Visualizar</Label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <Button onClick={addAccess} className="w-full">Liberar Acesso</Button>
                   </div>
                 </DialogContent>
