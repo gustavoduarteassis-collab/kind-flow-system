@@ -14,9 +14,10 @@ export interface CronogramaCategory {
 export type CronogramaDayStatus = "planned" | "done" | "delayed" | "none";
 
 export interface CronogramaStore {
-  // key: `${itemId}-${day}` → status
   cells: Record<string, CronogramaDayStatus>;
   startDate: string; // date when day 1 starts
+  // key: itemId → { inicio, fim }
+  itemDates: Record<string, { inicio: string; fim: string }>;
 }
 
 export const TOTAL_DAYS = 30;
@@ -145,5 +146,6 @@ export function createDefaultCronograma(): CronogramaStore {
   return {
     cells: {},
     startDate: "",
+    itemDates: {},
   };
 }
