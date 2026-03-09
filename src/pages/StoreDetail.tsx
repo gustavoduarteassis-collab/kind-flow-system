@@ -203,6 +203,13 @@ const StoreDetail = () => {
             />
           </TabsContent>
 
+          <TabsContent value="custos" className="mt-4">
+            <CustosObra
+              store={store}
+              onUpdate={(custos) => updateStore(store.id, { custos } as any)}
+            />
+          </TabsContent>
+
           {checklistCategories.map((cat) => (
             <TabsContent key={cat.id} value={cat.id} className="mt-4">
               <div className="rounded-xl border bg-card overflow-hidden">
