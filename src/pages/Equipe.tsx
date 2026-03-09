@@ -45,6 +45,9 @@ type TeamEvent = {
 };
 type FranchiseeAccess = {
   id: string; store_id: string; franchisee_email: string;
+  can_view_checklist: boolean; can_edit_checklist: boolean;
+  can_view_cronograma: boolean; can_edit_cronograma: boolean;
+  can_view_diario: boolean; can_view_custos: boolean;
 };
 
 const statusLabels: Record<string, string> = {
