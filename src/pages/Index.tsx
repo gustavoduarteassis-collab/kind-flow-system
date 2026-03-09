@@ -8,13 +8,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
   Building2, ClipboardCheck, Users, ListTodo, Target,
-  ChevronRight, LogOut, Calendar,
+  ChevronRight, LogOut, Calendar, KeyRound, Plus, Trash2,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 type Task = {
   id: string; title: string; status: string; priority: string;
@@ -22,6 +32,12 @@ type Task = {
 };
 type TeamMember = { id: string; name: string };
 type Habit = { id: string; name: string };
+type FranchiseeAccess = {
+  id: string; store_id: string; franchisee_email: string;
+  can_view_checklist: boolean; can_edit_checklist: boolean;
+  can_view_cronograma: boolean; can_edit_cronograma: boolean;
+  can_view_diario: boolean; can_view_custos: boolean;
+};
 
 const statusLabels: Record<string, string> = {
   pendente: "Pendente", em_andamento: "Em Andamento", concluida: "Concluída", cancelada: "Cancelada",
@@ -62,17 +78,28 @@ const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
+  const [accessOpen, setAccessOpen] = useState(false);
+  const [accessForm, setAccessForm] = useState({
+    store_id: "", franchisee_email: "",
+    can_view_checklist: true, can_edit_checklist: true,
+    can_view_cronograma: true, can_edit_cronograma: true,
+    can_view_diario: true, can_view_custos: true,
+  });
+  const { toast } = useToast();
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-    const [t, m, h] = await Promise.all([
+    const [t, m, h, fa] = await Promise.all([
       supabase.from("tasks").select("id, title, status, priority, assigned_to, due_date, start_date").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
       supabase.from("team_members").select("id, name").eq("user_id", user.id),
       supabase.from("habits").select("id, name").eq("user_id", user.id),
+      supabase.from("franchisee_access").select("*").eq("created_by", user.id),
     ]);
     if (t.data) setTasks(t.data as Task[]);
     if (m.data) setMembers(m.data);
     if (h.data) setHabits(h.data);
+    if (fa.data) setFranchiseeAccess(fa.data as FranchiseeAccess[]);
   }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -96,6 +123,37 @@ const Index = () => {
   const completedTasks = tasks.filter((t) => t.status === "concluida").length;
 
   const getMemberName = (id: string | null) => members.find((m) => m.id === id)?.name || "—";
+  const getStoreName = (storeId: string) => stores.find((s) => s.id === storeId)?.nome || storeId;
+
+  const addAccess = async () => {
+    if (!user || !accessForm.store_id || !accessForm.franchisee_email) return;
+    const { error } = await supabase.from("franchisee_access").insert({
+      store_id: accessForm.store_id,
+      franchisee_email: accessForm.franchisee_email.toLowerCase(),
+      created_by: user.id,
+      can_view_checklist: accessForm.can_view_checklist,
+      can_edit_checklist: accessForm.can_edit_checklist,
+      can_view_cronograma: accessForm.can_view_cronograma,
+      can_edit_cronograma: accessForm.can_edit_cronograma,
+      can_view_diario: accessForm.can_view_diario,
+      can_view_custos: accessForm.can_view_custos,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Acesso liberado!", description: `Franqueado ${accessForm.franchisee_email} vinculado à loja.` });
+    setAccessForm({
+      store_id: "", franchisee_email: "",
+      can_view_checklist: true, can_edit_checklist: true,
+      can_view_cronograma: true, can_edit_cronograma: true,
+      can_view_diario: true, can_view_custos: true,
+    });
+    setAccessOpen(false);
+    fetchData();
+  };
+
+  const deleteAccess = async (id: string) => {
+    await supabase.from("franchisee_access").delete().eq("id", id);
+    fetchData();
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -293,6 +351,121 @@ const Index = () => {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-[10px]">{statusLabels[task.status]}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          )}
+        </section>
+
+        {/* Franqueados section */}
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              <KeyRound className="h-5 w-5" /> Acesso de Franqueados
+            </h2>
+            <Dialog open={accessOpen} onOpenChange={setAccessOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2"><Plus className="h-4 w-4" /> Liberar Acesso</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Liberar Acesso ao Franqueado</DialogTitle></DialogHeader>
+                <div className="space-y-4 pt-2">
+                  <div className="space-y-2"><Label>E-mail do Franqueado *</Label>
+                    <Input type="email" placeholder="franqueado@email.com" value={accessForm.franchisee_email} onChange={(e) => setAccessForm({ ...accessForm, franchisee_email: e.target.value })} />
+                  </div>
+                  <div className="space-y-2"><Label>Loja *</Label>
+                    <Select value={accessForm.store_id} onValueChange={(v) => setAccessForm({ ...accessForm, store_id: v })}>
+                      <SelectTrigger><SelectValue placeholder="Selecione a loja..." /></SelectTrigger>
+                      <SelectContent>
+                        {stores.map((s) => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold">Permissões</Label>
+                    <div className="grid grid-cols-2 gap-3 p-3 rounded-lg border bg-muted/30">
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Checklist</p>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="view-checklist" checked={accessForm.can_view_checklist} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_checklist: !!v, can_edit_checklist: !v ? false : accessForm.can_edit_checklist })} />
+                          <Label htmlFor="view-checklist" className="text-xs">Visualizar</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="edit-checklist" checked={accessForm.can_edit_checklist} disabled={!accessForm.can_view_checklist} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_edit_checklist: !!v })} />
+                          <Label htmlFor="edit-checklist" className="text-xs">Editar</Label>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Cronograma</p>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="view-cronograma" checked={accessForm.can_view_cronograma} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_cronograma: !!v, can_edit_cronograma: !v ? false : accessForm.can_edit_cronograma })} />
+                          <Label htmlFor="view-cronograma" className="text-xs">Visualizar</Label>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="edit-cronograma" checked={accessForm.can_edit_cronograma} disabled={!accessForm.can_view_cronograma} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_edit_cronograma: !!v })} />
+                          <Label htmlFor="edit-cronograma" className="text-xs">Editar</Label>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Diário de Obra</p>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="view-diario" checked={accessForm.can_view_diario} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_diario: !!v })} />
+                          <Label htmlFor="view-diario" className="text-xs">Visualizar</Label>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Custos</p>
+                        <div className="flex items-center gap-2">
+                          <Checkbox id="view-custos" checked={accessForm.can_view_custos} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_custos: !!v })} />
+                          <Label htmlFor="view-custos" className="text-xs">Visualizar</Label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <Button onClick={addAccess} className="w-full">Liberar Acesso</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {franchiseeAccess.length === 0 ? (
+            <Card><CardContent className="py-8 text-center text-muted-foreground">
+              Nenhum franqueado com acesso liberado.<br />
+              <span className="text-xs">Clique em "Liberar Acesso" para vincular um e-mail a uma loja.</span>
+            </CardContent></Card>
+          ) : (
+            <Card>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>E-mail do Franqueado</TableHead>
+                      <TableHead>Loja Vinculada</TableHead>
+                      <TableHead>Permissões</TableHead>
+                      <TableHead className="w-10"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {franchiseeAccess.map((fa) => (
+                      <TableRow key={fa.id}>
+                        <TableCell className="text-sm">{fa.franchisee_email}</TableCell>
+                        <TableCell className="text-sm font-medium">{getStoreName(fa.store_id)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {fa.can_view_checklist && <Badge variant="outline" className="text-[10px]">Checklist {fa.can_edit_checklist ? "✏️" : "👁️"}</Badge>}
+                            {fa.can_view_cronograma && <Badge variant="outline" className="text-[10px]">Cronograma {fa.can_edit_cronograma ? "✏️" : "👁️"}</Badge>}
+                            {fa.can_view_diario && <Badge variant="outline" className="text-[10px]">Diário 👁️</Badge>}
+                            {fa.can_view_custos && <Badge variant="outline" className="text-[10px]">Custos 👁️</Badge>}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Revogar acesso?")) deleteAccess(fa.id); }}>
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
