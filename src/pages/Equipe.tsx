@@ -117,7 +117,7 @@ const Equipe = () => {
     if (!user) return;
     const monthStart = format(startOfMonth(calendarMonth), "yyyy-MM-dd");
     const monthEnd = format(endOfMonth(calendarMonth), "yyyy-MM-dd");
-    const [m, t, h, c, e] = await Promise.all([
+    const [m, t, h, c, e, fa] = await Promise.all([
       supabase.from("team_members").select("*").eq("user_id", user.id).order("name"),
       supabase.from("tasks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("habits").select("*").eq("user_id", user.id).order("name"),
@@ -126,12 +126,14 @@ const Equipe = () => {
         .lte("completion_date", format(addDays(weekStart, 4), "yyyy-MM-dd")),
       supabase.from("team_events").select("*").eq("user_id", user.id)
         .gte("event_date", monthStart).lte("event_date", monthEnd),
+      supabase.from("franchisee_access").select("*").eq("created_by", user.id),
     ]);
     if (m.data) setMembers(m.data);
     if (t.data) setTasks(t.data as Task[]);
     if (h.data) setHabits(h.data);
     if (c.data) setCompletions(c.data);
     if (e.data) setEvents(e.data as TeamEvent[]);
+    if (fa.data) setFranchiseeAccess(fa.data as FranchiseeAccess[]);
   }, [user, weekStart, calendarMonth]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
