@@ -18,6 +18,10 @@ export interface CronogramaStore {
   startDate: string; // date when day 1 starts
   // key: itemId → { inicio, fim }
   itemDates: Record<string, { inicio: string; fim: string }>;
+  // key: itemId → { inicioReal, fimReal }
+  itemDatesReal: Record<string, { inicioReal: string; fimReal: string }>;
+  // key: itemId → action plan text
+  actionPlans: Record<string, string>;
 }
 
 export const TOTAL_DAYS = 30;
@@ -147,5 +151,7 @@ export function createDefaultCronograma(): CronogramaStore {
     cells: {},
     startDate: "",
     itemDates: {},
+    itemDatesReal: {},
+    actionPlans: {},
   };
 }
