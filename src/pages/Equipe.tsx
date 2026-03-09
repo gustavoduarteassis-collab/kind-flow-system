@@ -265,7 +265,7 @@ const Equipe = () => {
   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
   // Build virtual events from all data sources (only scheduled/agendado items)
-  type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean };
+  type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean; originalId?: string };
   const allCalendarEvents: CalendarEvent[] = [];
 
   // 1. Team events (manually created in calendar) - expand date ranges
