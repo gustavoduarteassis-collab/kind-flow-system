@@ -237,7 +237,18 @@ export default function CustosObra({ store, onUpdate }: Props) {
                   <TableBody>
                     {cat.items.map((item, itemIdx) => (
                       <TableRow key={item.id}>
-                        <TableCell className="text-sm">{item.nome}</TableCell>
+                        <TableCell className="text-sm">
+                          {item.id.includes("custom") ? (
+                            <Input
+                              className="h-8 text-xs"
+                              value={item.nome}
+                              placeholder="Nome do item..."
+                              onChange={(e) => updateItem(catIdx, itemIdx, "nome", e.target.value)}
+                            />
+                          ) : (
+                            item.nome
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Input
                             className="h-8 text-xs"
