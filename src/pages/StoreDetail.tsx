@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CronogramaObra from "@/components/CronogramaObra";
 import CustosObra from "@/components/CustosObra";
 import DiarioObra from "@/components/DiarioObra";
+import FornecedoresObra from "@/components/FornecedoresObra";
 import {
   Select,
   SelectContent,
