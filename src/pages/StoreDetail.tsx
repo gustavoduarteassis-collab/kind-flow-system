@@ -126,6 +126,14 @@ const StoreDetail = () => {
                 )}
               </div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => navigate(`/loja/${store.id}/relatorio`)}
+            >
+              <FileText className="h-4 w-4" /> Relatório
+            </Button>
           </div>
           {/* Progress bar */}
           <div className="flex items-center gap-4">
