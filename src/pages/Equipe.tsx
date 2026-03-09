@@ -226,9 +226,10 @@ const Equipe = () => {
       store_name: eventForm.store_name || null,
       team_member_id: eventForm.team_member_id || null,
       description: eventForm.description || null,
-    });
+      event_time: eventForm.event_time || null,
+    } as any);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    setEventForm({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "" });
+    setEventForm({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "", event_time: "" });
     setEventOpen(false);
     fetchAll();
   };
