@@ -69,6 +69,7 @@ export function useStores() {
     if (updates.inauguracao !== undefined) dbUpdates.inauguracao = updates.inauguracao;
     if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
     if (updates.cronograma !== undefined) dbUpdates.cronograma = updates.cronograma;
+    if ((updates as any).custos !== undefined) dbUpdates.custos = (updates as any).custos;
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
     // Optimistic update
