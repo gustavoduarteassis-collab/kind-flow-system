@@ -7,7 +7,13 @@ const STORAGE_KEY = "checklist-stores";
 function loadStores(): Store[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    if (!raw) return [];
+    const stores: Store[] = JSON.parse(raw);
+    // Migrate old stores missing cronograma
+    return stores.map((s) => ({
+      ...s,
+      cronograma: s.cronograma || createDefaultCronograma(),
+    }));
   } catch {
     return [];
   }
