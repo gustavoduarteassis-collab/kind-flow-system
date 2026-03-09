@@ -25,6 +25,7 @@ import {
   ChevronRight,
   Building2,
   ClipboardCheck,
+  Users,
 } from "lucide-react";
 
 const Index = () => {
