@@ -646,9 +646,9 @@ const Equipe = () => {
                         </div>
                         <div className="space-y-0.5">
                           {dayEvents.slice(0, 3).map((ev) => (
-                            <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate cursor-pointer ${eventTypeColors[ev.event_type]}`}
-                              title={`${ev.title}${ev.store_name ? ` - ${ev.store_name}` : ""}${ev.team_member_id ? ` - ${getMemberName(ev.team_member_id)}` : ""}`}
-                              onClick={() => { if (confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.id); }}
+                            <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
+                              title={ev.title}
+                              onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.id); }}
                             >
                               {ev.title}
                             </div>
