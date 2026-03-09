@@ -90,14 +90,16 @@ const Index = () => {
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-    const [t, m, h] = await Promise.all([
+    const [t, m, h, fa] = await Promise.all([
       supabase.from("tasks").select("id, title, status, priority, assigned_to, due_date, start_date").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
       supabase.from("team_members").select("id, name").eq("user_id", user.id),
       supabase.from("habits").select("id, name").eq("user_id", user.id),
+      supabase.from("franchisee_access").select("*").eq("created_by", user.id),
     ]);
     if (t.data) setTasks(t.data as Task[]);
     if (m.data) setMembers(m.data);
     if (h.data) setHabits(h.data);
+    if (fa.data) setFranchiseeAccess(fa.data as FranchiseeAccess[]);
   }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
