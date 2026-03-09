@@ -663,34 +663,36 @@ const Equipe = () => {
             </Card>
 
             {/* Events list for the month */}
-            {events.length > 0 && (
-              <Card className="mt-4">
-                <CardHeader><CardTitle className="text-base">Eventos do Mês</CardTitle></CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {events.sort((a, b) => a.event_date.localeCompare(b.event_date)).map((ev) => (
-                      <div key={ev.id} className="flex items-center justify-between p-2 rounded-md border">
-                        <div className="flex items-center gap-3">
-                          <Badge className={`${eventTypeColors[ev.event_type]} text-[10px]`}>{eventTypeLabels[ev.event_type]}</Badge>
-                          <div>
-                            <p className="text-sm font-medium">{ev.title}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatDate(ev.event_date)}
-                              {ev.end_date && ` — ${formatDate(ev.end_date)}`}
-                              {ev.store_name && ` • ${ev.store_name}`}
-                              {ev.team_member_id && ` • ${getMemberName(ev.team_member_id)}`}
-                            </p>
+            {(() => {
+              const monthEvents = allCalendarEvents
+                .filter((e) => e.date >= startOfMonth(calendarMonth) && e.date <= endOfMonth(calendarMonth))
+                .sort((a, b) => a.date.getTime() - b.date.getTime());
+              return monthEvents.length > 0 ? (
+                <Card className="mt-4">
+                  <CardHeader><CardTitle className="text-base">Eventos do Mês</CardTitle></CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {monthEvents.map((ev) => (
+                        <div key={ev.id} className="flex items-center justify-between p-2 rounded-md border">
+                          <div className="flex items-center gap-3">
+                            <Badge className={`${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"} text-[10px]`}>{eventTypeLabels[ev.event_type] || "Evento"}</Badge>
+                            <div>
+                              <p className="text-sm font-medium">{ev.title}</p>
+                              <p className="text-xs text-muted-foreground">{format(ev.date, "dd/MM/yyyy")}</p>
+                            </div>
                           </div>
+                          {ev.deletable && (
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteEvent(ev.id); }}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          )}
                         </div>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteEvent(ev.id); }}>
-                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : null;
+            })()}
           </TabsContent>
 
           {/* === EQUIPE === */}
