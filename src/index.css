@@ -105,3 +105,18 @@
     font-family: 'Space Grotesk', sans-serif;
   }
 }
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 10px !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+}
