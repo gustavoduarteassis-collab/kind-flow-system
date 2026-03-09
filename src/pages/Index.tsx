@@ -32,12 +32,12 @@ const Index = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
+  const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", construtor: "", analistaObra: "", inauguracao: "" });
 
   const handleAdd = () => {
     if (!form.nome) return;
     const id = addStore(form);
-    setForm({ nome: "", filial: "", franqueado: "", inauguracao: "" });
+    setForm({ nomeconstrutor: "", analistaObra: "", : "", filial: "", franqueado: "", inauguracao: "" });
     setOpen(false);
     navigate(`/loja/${id}`);
   };
