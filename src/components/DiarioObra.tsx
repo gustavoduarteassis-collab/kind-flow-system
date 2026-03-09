@@ -139,6 +139,8 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
   const formatDateShort = (d: string) =>
     new Date(d + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
+  const sortedEntries = [...entries].sort((a, b) => a.entry_date.localeCompare(b.entry_date));
+
   const totalPhotos = Object.values(photos).reduce((sum, arr) => sum + arr.length, 0);
 
   return (
