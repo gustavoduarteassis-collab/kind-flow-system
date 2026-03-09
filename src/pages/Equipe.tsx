@@ -653,7 +653,29 @@ const Equipe = () => {
               ))}
             </div>
 
-            {/* Calendar grid */}
+            {/* Member filter */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button
+                variant={calendarMemberFilter === null ? "default" : "outline"}
+                size="sm"
+                className="text-xs"
+                onClick={() => setCalendarMemberFilter(null)}
+              >
+                Todos
+              </Button>
+              {members.map((m) => (
+                <Button
+                  key={m.id}
+                  variant={calendarMemberFilter === m.id ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => setCalendarMemberFilter(calendarMemberFilter === m.id ? null : m.id)}
+                >
+                  {m.name}
+                </Button>
+              ))}
+            </div>
+
             <Card>
               <CardContent className="p-2">
                 {calendarView === "month" ? (
