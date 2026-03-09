@@ -238,6 +238,27 @@ const Equipe = () => {
 
   const getMemberName = (id: string | null) => members.find((m) => m.id === id)?.name || "—";
 
+  const addAccess = async () => {
+    if (!user || !accessForm.store_id || !accessForm.franchisee_email) return;
+    const { error } = await supabase.from("franchisee_access").insert({
+      store_id: accessForm.store_id,
+      franchisee_email: accessForm.franchisee_email.toLowerCase(),
+      created_by: user.id,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Acesso liberado!", description: `Franqueado ${accessForm.franchisee_email} vinculado à loja.` });
+    setAccessForm({ store_id: "", franchisee_email: "" });
+    setAccessOpen(false);
+    fetchAll();
+  };
+
+  const deleteAccess = async (id: string) => {
+    await supabase.from("franchisee_access").delete().eq("id", id);
+    fetchAll();
+  };
+
+  const getStoreName = (storeId: string) => stores.find((s) => s.id === storeId)?.nome || storeId;
+
   // Calendar helpers
   const monthDays = eachDayOfInterval({ start: startOfMonth(calendarMonth), end: endOfMonth(calendarMonth) });
   const firstDayOfWeek = getDay(startOfMonth(calendarMonth));
