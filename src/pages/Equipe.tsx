@@ -530,7 +530,7 @@ const Equipe = () => {
               >
                 Todos
               </Button>
-              {members.filter((m) => m.name !== "Gustavo").map((m) => (
+              {members.map((m) => (
                 <Button
                   key={m.id}
                   variant={habitMemberFilter === m.id ? "default" : "outline"}
