@@ -217,6 +217,10 @@ const StoreDetail = () => {
             />
           </TabsContent>
 
+          <TabsContent value="diario" className="mt-4">
+            <DiarioObra storeId={store.id} />
+          </TabsContent>
+
           {checklistCategories.map((cat) => (
             <TabsContent key={cat.id} value={cat.id} className="mt-4">
               <div className="rounded-xl border bg-card overflow-hidden">
