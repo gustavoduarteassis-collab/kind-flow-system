@@ -32,6 +32,7 @@ import {
   ClipboardCheck,
   Save,
   FileText,
+  DollarSign,
 } from "lucide-react";
 
 const statusColors: Record<StatusType, string> = {
