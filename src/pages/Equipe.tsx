@@ -41,7 +41,7 @@ type HabitCompletion = {
 };
 type TeamEvent = {
   id: string; title: string; event_type: string; event_date: string;
-  end_date: string | null; store_name: string | null; team_member_id: string | null; description: string | null;
+  end_date: string | null; store_name: string | null; team_member_id: string | null; description: string | null; event_time: string | null;
 };
 type FranchiseeAccess = {
   id: string; store_id: string; franchisee_email: string;
