@@ -238,6 +238,9 @@ const Pipeline = () => {
             <Input placeholder="Buscar loja..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={removeDuplicates}>
+              <Trash2 className="h-4 w-4" /> Remover Duplicatas
+            </Button>
             {stores.length === 0 && (
               <Button variant="outline" className="gap-2" onClick={importFromSpreadsheet}>
                 Importar Planilha
