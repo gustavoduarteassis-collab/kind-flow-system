@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import {
   Building2, ClipboardCheck, Users, ListTodo, Target,
-  ChevronRight, LogOut, Calendar, KeyRound, Plus, Trash2,
+  ChevronRight, LogOut, Calendar, KeyRound, Plus, Trash2, GitBranch,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
