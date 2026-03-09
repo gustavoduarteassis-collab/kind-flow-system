@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CronogramaObra from "@/components/CronogramaObra";
 import CustosObra from "@/components/CustosObra";
+import DiarioObra from "@/components/DiarioObra";
 import {
   Select,
   SelectContent,
@@ -180,6 +181,12 @@ const StoreDetail = () => {
               >
                 💰 Custos
               </TabsTrigger>
+              <TabsTrigger
+                value="diario"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+              >
+                📓 Diário de Obra
+              </TabsTrigger>
               {checklistCategories.map((cat) => {
                 const catProgress = getCategoryProgress(cat.id);
                 return (
@@ -208,6 +215,10 @@ const StoreDetail = () => {
               store={store}
               onUpdate={(custos) => updateStore(store.id, { custos } as any)}
             />
+          </TabsContent>
+
+          <TabsContent value="diario" className="mt-4">
+            <DiarioObra storeId={store.id} />
           </TabsContent>
 
           {checklistCategories.map((cat) => (
