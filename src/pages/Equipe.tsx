@@ -417,7 +417,7 @@ const Equipe = () => {
               >
                 Todos
               </Button>
-              {members.filter((m) => m.name !== "Gustavo").map((m) => (
+              {members.map((m) => (
                 <Button
                   key={m.id}
                   variant={taskMemberFilter === m.id ? "default" : "outline"}
@@ -530,7 +530,7 @@ const Equipe = () => {
               >
                 Todos
               </Button>
-              {members.filter((m) => m.name !== "Gustavo").map((m) => (
+              {members.map((m) => (
                 <Button
                   key={m.id}
                   variant={habitMemberFilter === m.id ? "default" : "outline"}
@@ -556,7 +556,7 @@ const Equipe = () => {
                   const dayLabels = ["D", "S", "T", "Q", "Q", "S", "S"];
                   const today = new Date();
                   const todayStr = format(today, "yyyy-MM-dd");
-                  const filteredMembers = members.filter((m) => m.name !== "Gustavo").filter((m) => !habitMemberFilter || m.id === habitMemberFilter);
+                  const filteredMembers = members.filter((m) => !habitMemberFilter || m.id === habitMemberFilter);
 
                   const renderMemberTracker = (member: typeof members[0]) => {
                     // Filter habits: hide ones completed today
