@@ -41,7 +41,7 @@ type HabitCompletion = {
 };
 type TeamEvent = {
   id: string; title: string; event_type: string; event_date: string;
-  end_date: string | null; store_name: string | null; team_member_id: string | null; description: string | null;
+  end_date: string | null; store_name: string | null; team_member_id: string | null; description: string | null; event_time: string | null;
 };
 type FranchiseeAccess = {
   id: string; store_id: string; franchisee_email: string;
@@ -107,7 +107,9 @@ const Equipe = () => {
   const [memberForm, setMemberForm] = useState({ name: "", role: "", email: "", phone: "" });
   const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "media", assigned_to: "", due_date: "", start_date: "" });
   const [habitForm, setHabitForm] = useState({ name: "", description: "" });
-  const [eventForm, setEventForm] = useState({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "" });
+  const [eventForm, setEventForm] = useState({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "", event_time: "" });
+  const [calendarView, setCalendarView] = useState<"month" | "week">("month");
+  const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [accessForm, setAccessForm] = useState({ store_id: "", franchisee_email: "" });
 
   // Mon-Fri only
@@ -224,9 +226,10 @@ const Equipe = () => {
       store_name: eventForm.store_name || null,
       team_member_id: eventForm.team_member_id || null,
       description: eventForm.description || null,
-    });
+      event_time: eventForm.event_time || null,
+    } as any);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    setEventForm({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "" });
+    setEventForm({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "", event_time: "" });
     setEventOpen(false);
     fetchAll();
   };
@@ -265,7 +268,7 @@ const Equipe = () => {
   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
   // Build virtual events from all data sources (only scheduled/agendado items)
-  type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean; originalId?: string };
+  type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean; originalId?: string; time?: string | null };
   const allCalendarEvents: CalendarEvent[] = [];
 
   // 1. Team events (manually created in calendar) - expand date ranges
@@ -274,7 +277,7 @@ const Equipe = () => {
     const end = e.end_date ? new Date(e.end_date + "T00:00:00") : start;
     const days = eachDayOfInterval({ start, end });
     days.forEach((day) => {
-      allCalendarEvents.push({ id: `${e.id}-${day.toISOString()}`, title: e.title, event_type: e.event_type, date: day, deletable: true, originalId: e.id });
+      allCalendarEvents.push({ id: `${e.id}-${day.toISOString()}`, title: e.title, event_type: e.event_type, date: day, deletable: true, originalId: e.id, time: e.event_time });
     });
   });
 
@@ -592,6 +595,9 @@ const Equipe = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2"><Label>Horário (opcional)</Label>
+                      <Input type="time" value={eventForm.event_time} onChange={(e) => setEventForm({ ...eventForm, event_time: e.target.value })} />
+                    </div>
                     <div className="space-y-2"><Label>Descrição</Label>
                       <Textarea value={eventForm.description} onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })} />
                     </div>
@@ -601,17 +607,39 @@ const Equipe = () => {
               </Dialog>
             </div>
 
-            {/* Month navigation */}
-            <div className="flex items-center gap-4 mb-4">
-              <Button variant="outline" size="icon" onClick={() => setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm font-medium capitalize">
-                {format(calendarMonth, "MMMM yyyy", { locale: ptBR })}
-              </span>
-              <Button variant="outline" size="icon" onClick={() => setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+            {/* View toggle + navigation */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-4">
+                {calendarView === "month" ? (
+                  <>
+                    <Button variant="outline" size="icon" onClick={() => setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}>
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm font-medium capitalize">
+                      {format(calendarMonth, "MMMM yyyy", { locale: ptBR })}
+                    </span>
+                    <Button variant="outline" size="icon" onClick={() => setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" size="icon" onClick={() => setCalendarWeekStart((w) => subDays(w, 7))}>
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm font-medium">
+                      {format(calendarWeekStart, "dd/MM")} — {format(addDays(calendarWeekStart, 6), "dd/MM/yyyy")}
+                    </span>
+                    <Button variant="outline" size="icon" onClick={() => setCalendarWeekStart((w) => addDays(w, 7))}>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+              <div className="flex gap-1">
+                <Button variant={calendarView === "week" ? "default" : "outline"} size="sm" onClick={() => setCalendarView("week")}>Semana</Button>
+                <Button variant={calendarView === "month" ? "default" : "outline"} size="sm" onClick={() => setCalendarView("month")}>Mês</Button>
+              </div>
             </div>
 
             {/* Legend */}
@@ -624,36 +652,64 @@ const Equipe = () => {
             {/* Calendar grid */}
             <Card>
               <CardContent className="p-2">
-                <div className="grid grid-cols-7 gap-px">
-                  {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((d) => (
-                    <div key={d} className="text-center text-xs font-medium text-muted-foreground py-2">{d}</div>
-                  ))}
-                  {Array.from({ length: paddingDays }).map((_, i) => (
-                    <div key={`pad-${i}`} className="min-h-[80px]" />
-                  ))}
-                  {monthDays.map((day) => {
-                    const dayEvents = getEventsForDate(day);
-                    const isToday = isSameDay(day, new Date());
-                    return (
-                      <div key={day.toISOString()} className={`min-h-[80px] border rounded-md p-1 ${isToday ? "border-primary bg-primary/5" : "border-border"}`}>
-                        <div className={`text-xs font-medium mb-1 ${isToday ? "text-primary" : "text-muted-foreground"}`}>
-                          {format(day, "d")}
+                {calendarView === "month" ? (
+                  <div className="grid grid-cols-7 gap-px">
+                    {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((d) => (
+                      <div key={d} className="text-center text-xs font-medium text-muted-foreground py-2">{d}</div>
+                    ))}
+                    {Array.from({ length: paddingDays }).map((_, i) => (
+                      <div key={`pad-${i}`} className="min-h-[80px]" />
+                    ))}
+                    {monthDays.map((day) => {
+                      const dayEvents = getEventsForDate(day);
+                      const isToday = isSameDay(day, new Date());
+                      return (
+                        <div key={day.toISOString()} className={`min-h-[80px] border rounded-md p-1 ${isToday ? "border-primary bg-primary/5" : "border-border"}`}>
+                          <div className={`text-xs font-medium mb-1 ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                            {format(day, "d")}
+                          </div>
+                          <div className="space-y-0.5">
+                            {dayEvents.slice(0, 3).map((ev) => (
+                              <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
+                                title={ev.title + (ev.time ? ` às ${ev.time}` : "")}
+                                onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
+                              >
+                                {ev.time ? `${ev.time} ` : ""}{ev.title}
+                              </div>
+                            ))}
+                            {dayEvents.length > 3 && <div className="text-[9px] text-muted-foreground">+{dayEvents.length - 3}</div>}
+                          </div>
                         </div>
-                        <div className="space-y-0.5">
-                          {dayEvents.slice(0, 3).map((ev) => (
-                            <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
-                              title={ev.title}
-                              onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
-                            >
-                              {ev.title}
-                            </div>
-                          ))}
-                          {dayEvents.length > 3 && <div className="text-[9px] text-muted-foreground">+{dayEvents.length - 3}</div>}
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Week view */
+                  <div className="grid grid-cols-7 gap-px">
+                    {eachDayOfInterval({ start: calendarWeekStart, end: addDays(calendarWeekStart, 6) }).map((day) => {
+                      const dayEvents = getEventsForDate(day);
+                      const isToday = isSameDay(day, new Date());
+                      return (
+                        <div key={day.toISOString()} className={`min-h-[200px] border rounded-md p-1.5 ${isToday ? "border-primary bg-primary/5" : "border-border"}`}>
+                          <div className={`text-xs font-medium mb-2 text-center ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                            <div className="capitalize">{format(day, "EEE", { locale: ptBR })}</div>
+                            <div className="text-lg">{format(day, "d")}</div>
+                          </div>
+                          <div className="space-y-1">
+                            {dayEvents.map((ev) => (
+                              <div key={ev.id} className={`text-[10px] px-1.5 py-1 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
+                                title={ev.title + (ev.time ? ` às ${ev.time}` : "")}
+                                onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
+                              >
+                                {ev.time ? <span className="font-semibold">{ev.time} </span> : null}{ev.title}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
