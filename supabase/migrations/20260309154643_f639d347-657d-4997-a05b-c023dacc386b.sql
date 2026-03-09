@@ -1,0 +1,1 @@
+ALTER TABLE public.team_events ADD COLUMN IF NOT EXISTS event_time text DEFAULT NULL;

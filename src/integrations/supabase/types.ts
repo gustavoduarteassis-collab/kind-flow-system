@@ -219,6 +219,7 @@ export type Database = {
           description: string | null
           end_date: string | null
           event_date: string
+          event_time: string | null
           event_type: string
           id: string
           store_name: string | null
@@ -231,6 +232,7 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           event_date: string
+          event_time?: string | null
           event_type?: string
           id?: string
           store_name?: string | null
@@ -243,6 +245,7 @@ export type Database = {
           description?: string | null
           end_date?: string | null
           event_date?: string
+          event_time?: string | null
           event_type?: string
           id?: string
           store_name?: string | null
