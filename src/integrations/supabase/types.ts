@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      franchisee_access: {
+        Row: {
+          created_at: string
+          created_by: string
+          franchisee_email: string
+          id: string
+          store_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          franchisee_email: string
+          id?: string
+          store_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          franchisee_email?: string
+          id?: string
+          store_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "franchisee_access_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       habit_completions: {
         Row: {
           completed: boolean
@@ -79,6 +111,51 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stores: {
+        Row: {
+          analista_obra: string
+          checklist: Json
+          construtor: string
+          created_at: string
+          cronograma: Json
+          filial: string
+          franqueado: string
+          id: string
+          inauguracao: string
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analista_obra?: string
+          checklist?: Json
+          construtor?: string
+          created_at?: string
+          cronograma?: Json
+          filial?: string
+          franqueado?: string
+          id?: string
+          inauguracao?: string
+          nome: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analista_obra?: string
+          checklist?: Json
+          construtor?: string
+          created_at?: string
+          cronograma?: Json
+          filial?: string
+          franqueado?: string
+          id?: string
+          inauguracao?: string
+          nome?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
