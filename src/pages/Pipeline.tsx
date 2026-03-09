@@ -285,6 +285,7 @@ const Pipeline = () => {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Summary cards */}
