@@ -26,7 +26,7 @@ const cellColors: Record<CronogramaDayStatus, string> = {
 };
 
 function ensureCronograma(store: Store): CronogramaStore {
-  const c = store.cronograma || {};
+  const c = (store.cronograma || {}) as any;
   return {
     cells: c.cells || {},
     startDate: c.startDate || "",
