@@ -32,7 +32,7 @@ const Index = () => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", construtor: "", analistaObra: "", inauguracao: "" });
+  const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
 
   const handleAdd = () => {
     if (!form.nome) return;
