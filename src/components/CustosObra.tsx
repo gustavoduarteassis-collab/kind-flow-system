@@ -231,6 +231,7 @@ export default function CustosObra({ store, onUpdate }: Props) {
                       <TableHead className="w-[140px]">Valor Previsto</TableHead>
                       <TableHead className="w-[140px]">Valor Realizado</TableHead>
                       <TableHead className="w-[120px]">Proposta</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
