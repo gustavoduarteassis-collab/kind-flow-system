@@ -659,8 +659,16 @@ const Equipe = () => {
 
             {/* Events list for the month */}
             {(() => {
+              // Deduplicate expanded events for the list (show each event once)
+              const seen = new Set<string>();
               const monthEvents = allCalendarEvents
                 .filter((e) => e.date >= startOfMonth(calendarMonth) && e.date <= endOfMonth(calendarMonth))
+                .filter((e) => {
+                  const key = e.originalId || e.id;
+                  if (seen.has(key)) return false;
+                  seen.add(key);
+                  return true;
+                })
                 .sort((a, b) => a.date.getTime() - b.date.getTime());
               return monthEvents.length > 0 ? (
                 <Card className="mt-4">
@@ -668,7 +676,7 @@ const Equipe = () => {
                   <CardContent>
                     <div className="space-y-2">
                       {monthEvents.map((ev) => (
-                        <div key={ev.id} className="flex items-center justify-between p-2 rounded-md border">
+                        <div key={ev.originalId || ev.id} className="flex items-center justify-between p-2 rounded-md border">
                           <div className="flex items-center gap-3">
                             <Badge className={`${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"} text-[10px]`}>{eventTypeLabels[ev.event_type] || "Evento"}</Badge>
                             <div>
@@ -677,7 +685,7 @@ const Equipe = () => {
                             </div>
                           </div>
                           {ev.deletable && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteEvent(ev.id); }}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteEvent(ev.originalId || ev.id); }}>
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />
                             </Button>
                           )}
