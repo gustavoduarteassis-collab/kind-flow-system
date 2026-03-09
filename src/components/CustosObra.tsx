@@ -327,7 +327,19 @@ export default function CustosObra({ store, onUpdate }: Props) {
                       <TableCell colSpan={2} className="text-sm">Subtotal {cat.nome}</TableCell>
                       <TableCell className="text-sm">{formatCurrency(getCatTotal(catIdx, "valorPrevisto"))}</TableCell>
                       <TableCell className="text-sm">{formatCurrency(getCatTotal(catIdx, "valorRealizado"))}</TableCell>
-                      <TableCell />
+                      <TableCell colSpan={2} />
+                    </TableRow>
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1 text-xs text-primary"
+                          onClick={() => addItem(catIdx)}
+                        >
+                          <Plus className="h-3.5 w-3.5" /> Adicionar item
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
