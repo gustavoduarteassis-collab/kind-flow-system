@@ -1038,6 +1038,7 @@ const Equipe = () => {
                       <TableRow>
                         <TableHead>E-mail do Franqueado</TableHead>
                         <TableHead>Loja Vinculada</TableHead>
+                        <TableHead>Permissões</TableHead>
                         <TableHead className="w-10"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1046,6 +1047,14 @@ const Equipe = () => {
                         <TableRow key={fa.id}>
                           <TableCell className="text-sm">{fa.franchisee_email}</TableCell>
                           <TableCell className="text-sm font-medium">{getStoreName(fa.store_id)}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {fa.can_view_checklist && <Badge variant="outline" className="text-[10px]">Checklist {fa.can_edit_checklist ? "✏️" : "👁️"}</Badge>}
+                              {fa.can_view_cronograma && <Badge variant="outline" className="text-[10px]">Cronograma {fa.can_edit_cronograma ? "✏️" : "👁️"}</Badge>}
+                              {fa.can_view_diario && <Badge variant="outline" className="text-[10px]">Diário 👁️</Badge>}
+                              {fa.can_view_custos && <Badge variant="outline" className="text-[10px]">Custos 👁️</Badge>}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Revogar acesso?")) deleteAccess(fa.id); }}>
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />
