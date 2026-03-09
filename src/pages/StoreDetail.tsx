@@ -30,6 +30,7 @@ import {
   Store,
   ClipboardCheck,
   Save,
+  FileText,
 } from "lucide-react";
 
 const statusColors: Record<StatusType, string> = {
