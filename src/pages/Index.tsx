@@ -78,6 +78,15 @@ const Index = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
+  const [accessOpen, setAccessOpen] = useState(false);
+  const [accessForm, setAccessForm] = useState({
+    store_id: "", franchisee_email: "",
+    can_view_checklist: true, can_edit_checklist: true,
+    can_view_cronograma: true, can_edit_cronograma: true,
+    can_view_diario: true, can_view_custos: true,
+  });
+  const { toast } = useToast();
 
   const fetchData = useCallback(async () => {
     if (!user) return;
