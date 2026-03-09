@@ -407,6 +407,29 @@ const Equipe = () => {
               </Dialog>
             </div>
 
+            {/* Member filter */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button
+                variant={taskMemberFilter === null ? "default" : "outline"}
+                size="sm"
+                className="text-xs"
+                onClick={() => setTaskMemberFilter(null)}
+              >
+                Todos
+              </Button>
+              {members.filter((m) => m.name !== "Gustavo").map((m) => (
+                <Button
+                  key={m.id}
+                  variant={taskMemberFilter === m.id ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => setTaskMemberFilter(taskMemberFilter === m.id ? null : m.id)}
+                >
+                  {m.name}
+                </Button>
+              ))}
+            </div>
+
             <Card>
               <div className="overflow-x-auto">
                 <Table>
@@ -422,9 +445,13 @@ const Equipe = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {tasks.length === 0 ? (
-                      <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">Nenhuma tarefa cadastrada</TableCell></TableRow>
-                    ) : tasks.map((task) => (
+                    {(() => {
+                      const filtered = taskMemberFilter
+                        ? tasks.filter((t) => t.assigned_to === taskMemberFilter)
+                        : tasks;
+                      return filtered.length === 0 ? (
+                        <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">Nenhuma tarefa cadastrada</TableCell></TableRow>
+                      ) : filtered.map((task) => (
                       <TableRow key={task.id}>
                         <TableCell>
                           <p className="font-medium text-sm">{task.title}</p>
