@@ -268,9 +268,14 @@ const Equipe = () => {
   type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean };
   const allCalendarEvents: CalendarEvent[] = [];
 
-  // 1. Team events (manually created in calendar)
+  // 1. Team events (manually created in calendar) - expand date ranges
   events.forEach((e) => {
-    allCalendarEvents.push({ id: e.id, title: e.title, event_type: e.event_type, date: new Date(e.event_date + "T00:00:00"), deletable: true });
+    const start = new Date(e.event_date + "T00:00:00");
+    const end = e.end_date ? new Date(e.end_date + "T00:00:00") : start;
+    const days = eachDayOfInterval({ start, end });
+    days.forEach((day) => {
+      allCalendarEvents.push({ id: `${e.id}-${day.toISOString()}`, title: e.title, event_type: e.event_type, date: day, deletable: true, originalId: e.id });
+    });
   });
 
   // 2. Store inaugurations
