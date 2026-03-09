@@ -187,6 +187,14 @@ const Lojas = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {store.analistaObra && (
+                    <div
+                      className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer hover:text-primary transition-colors"
+                      onClick={(e) => { e.stopPropagation(); setFilterAnalista(store.analistaObra); }}
+                    >
+                      📋 {store.analistaObra}
+                    </div>
+                  )}
                   {store.franqueado && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <User className="h-3.5 w-3.5" /> {store.franqueado}
