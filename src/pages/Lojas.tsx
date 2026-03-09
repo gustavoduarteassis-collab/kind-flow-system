@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useStores } from "@/hooks/useStores";
 import { checklistCategories, StatusType } from "@/data/checklistData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
