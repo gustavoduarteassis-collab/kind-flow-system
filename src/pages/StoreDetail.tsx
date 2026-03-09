@@ -51,7 +51,7 @@ const StoreDetail = () => {
   const { getStore, updateStore } = useStores();
   const store = getStore(id || "");
 
-  const [activeTab, setActiveTab] = useState(checklistCategories[0].id);
+  const [activeTab, setActiveTab] = useState("cronograma");
 
   if (!store) {
     return (
