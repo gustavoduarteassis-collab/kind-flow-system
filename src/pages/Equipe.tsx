@@ -110,6 +110,7 @@ const Equipe = () => {
   const [eventForm, setEventForm] = useState({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "", event_time: "" });
   const [calendarView, setCalendarView] = useState<"month" | "week">("month");
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
   const [accessForm, setAccessForm] = useState({ store_id: "", franchisee_email: "" });
 
   // Mon-Fri only
@@ -268,7 +269,7 @@ const Equipe = () => {
   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
   // Build virtual events from all data sources (only scheduled/agendado items)
-  type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean; originalId?: string; time?: string | null };
+  type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean; originalId?: string; time?: string | null; memberId?: string | null };
   const allCalendarEvents: CalendarEvent[] = [];
 
   // 1. Team events (manually created in calendar) - expand date ranges
@@ -277,7 +278,7 @@ const Equipe = () => {
     const end = e.end_date ? new Date(e.end_date + "T00:00:00") : start;
     const days = eachDayOfInterval({ start, end });
     days.forEach((day) => {
-      allCalendarEvents.push({ id: `${e.id}-${day.toISOString()}`, title: e.title, event_type: e.event_type, date: day, deletable: true, originalId: e.id, time: e.event_time });
+      allCalendarEvents.push({ id: `${e.id}-${day.toISOString()}`, title: e.title, event_type: e.event_type, date: day, deletable: true, originalId: e.id, time: e.event_time, memberId: e.team_member_id });
     });
   });
 
@@ -318,7 +319,10 @@ const Equipe = () => {
     }
   });
 
-  const getEventsForDate = (date: Date) => allCalendarEvents.filter((e) => isSameDay(e.date, date));
+  const filteredCalendarEvents = calendarMemberFilter
+    ? allCalendarEvents.filter((e) => e.memberId === calendarMemberFilter || !e.memberId)
+    : allCalendarEvents;
+  const getEventsForDate = (date: Date) => filteredCalendarEvents.filter((e) => isSameDay(e.date, date));
 
   return (
     <div className="min-h-screen bg-background">
@@ -649,7 +653,29 @@ const Equipe = () => {
               ))}
             </div>
 
-            {/* Calendar grid */}
+            {/* Member filter */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button
+                variant={calendarMemberFilter === null ? "default" : "outline"}
+                size="sm"
+                className="text-xs"
+                onClick={() => setCalendarMemberFilter(null)}
+              >
+                Todos
+              </Button>
+              {members.map((m) => (
+                <Button
+                  key={m.id}
+                  variant={calendarMemberFilter === m.id ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => setCalendarMemberFilter(calendarMemberFilter === m.id ? null : m.id)}
+                >
+                  {m.name}
+                </Button>
+              ))}
+            </div>
+
             <Card>
               <CardContent className="p-2">
                 {calendarView === "month" ? (
@@ -717,7 +743,7 @@ const Equipe = () => {
             {(() => {
               // Deduplicate expanded events for the list (show each event once)
               const seen = new Set<string>();
-              const monthEvents = allCalendarEvents
+              const monthEvents = filteredCalendarEvents
                 .filter((e) => e.date >= startOfMonth(calendarMonth) && e.date <= endOfMonth(calendarMonth))
                 .filter((e) => {
                   const key = e.originalId || e.id;
