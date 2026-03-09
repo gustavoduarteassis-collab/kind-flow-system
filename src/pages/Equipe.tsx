@@ -319,7 +319,10 @@ const Equipe = () => {
     }
   });
 
-  const getEventsForDate = (date: Date) => allCalendarEvents.filter((e) => isSameDay(e.date, date));
+  const filteredCalendarEvents = calendarMemberFilter
+    ? allCalendarEvents.filter((e) => e.memberId === calendarMemberFilter || !e.memberId)
+    : allCalendarEvents;
+  const getEventsForDate = (date: Date) => filteredCalendarEvents.filter((e) => isSameDay(e.date, date));
 
   return (
     <div className="min-h-screen bg-background">
