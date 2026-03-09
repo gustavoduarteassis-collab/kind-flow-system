@@ -595,6 +595,9 @@ const Equipe = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="space-y-2"><Label>Horário (opcional)</Label>
+                      <Input type="time" value={eventForm.event_time} onChange={(e) => setEventForm({ ...eventForm, event_time: e.target.value })} />
+                    </div>
                     <div className="space-y-2"><Label>Descrição</Label>
                       <Textarea value={eventForm.description} onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })} />
                     </div>
