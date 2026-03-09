@@ -39,6 +39,7 @@ export function useStores() {
     if (!user) return "";
     const checklist = createDefaultChecklist();
     const cronograma = createDefaultCronograma();
+    const custos = createDefaultCustos();
     const { data: inserted, error } = await supabase.from("stores").insert({
       user_id: user.id,
       nome: data.nome,
@@ -49,6 +50,7 @@ export function useStores() {
       inauguracao: data.inauguracao,
       checklist: checklist as any,
       cronograma: cronograma as any,
+      custos: custos as any,
     }).select("id").single();
     if (inserted) {
       await fetchStores();
