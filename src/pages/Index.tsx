@@ -467,7 +467,8 @@ const Index = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>E-mail do Franqueado</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>E-mail</TableHead>
                       <TableHead>Loja Vinculada</TableHead>
                       <TableHead>Permissões</TableHead>
                       <TableHead className="w-10"></TableHead>
@@ -476,14 +477,19 @@ const Index = () => {
                   <TableBody>
                     {franchiseeAccess.map((fa) => (
                       <TableRow key={fa.id}>
+                        <TableCell>
+                          <Badge className={fa.access_type === "construtor" ? "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))] text-[10px]" : "bg-primary text-primary-foreground text-[10px]"}>
+                            {fa.access_type === "construtor" ? "Construtor" : "Franqueado"}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="text-sm">{fa.franchisee_email}</TableCell>
                         <TableCell className="text-sm font-medium">{getStoreName(fa.store_id)}</TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {fa.can_view_checklist && <Badge variant="outline" className="text-[10px]">Checklist {fa.can_edit_checklist ? "✏️" : "👁️"}</Badge>}
                             {fa.can_view_cronograma && <Badge variant="outline" className="text-[10px]">Cronograma {fa.can_edit_cronograma ? "✏️" : "👁️"}</Badge>}
-                            {fa.can_view_diario && <Badge variant="outline" className="text-[10px]">Diário 👁️</Badge>}
-                            {fa.can_view_custos && <Badge variant="outline" className="text-[10px]">Custos 👁️</Badge>}
+                            {fa.can_view_diario && <Badge variant="outline" className="text-[10px]">Diário {fa.can_edit_diario ? "✏️" : "👁️"}</Badge>}
+                            {fa.can_view_custos && <Badge variant="outline" className="text-[10px]">Custos {fa.can_edit_custos ? "✏️" : "👁️"}</Badge>}
                           </div>
                         </TableCell>
                         <TableCell>
