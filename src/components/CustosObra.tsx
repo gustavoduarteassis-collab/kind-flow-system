@@ -12,7 +12,7 @@ import {
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Upload, FileText, Trash2, DollarSign } from "lucide-react";
+import { Upload, FileText, Trash2, DollarSign, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface Props {
