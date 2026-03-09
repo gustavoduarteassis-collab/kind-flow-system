@@ -14,6 +14,82 @@ export type Database = {
   }
   public: {
     Tables: {
+      construction_diary: {
+        Row: {
+          created_at: string
+          description: string
+          entry_date: string
+          id: string
+          store_id: string
+          updated_at: string
+          user_id: string
+          weather: string | null
+          workers_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          entry_date?: string
+          id?: string
+          store_id: string
+          updated_at?: string
+          user_id: string
+          weather?: string | null
+          workers_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          entry_date?: string
+          id?: string
+          store_id?: string
+          updated_at?: string
+          user_id?: string
+          weather?: string | null
+          workers_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "construction_diary_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diary_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          diary_id: string
+          id: string
+          photo_url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          diary_id: string
+          id?: string
+          photo_url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          diary_id?: string
+          id?: string
+          photo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_photos_diary_id_fkey"
+            columns: ["diary_id"]
+            isOneToOne: false
+            referencedRelation: "construction_diary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       franchisee_access: {
         Row: {
           created_at: string
