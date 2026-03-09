@@ -161,11 +161,42 @@ const Pipeline = () => {
     if (!user) return;
     if (!confirm(`Importar ${pipelineImportData.length} lojas da planilha?`)) return;
     for (const item of pipelineImportData) {
+      // Check for existing by local to avoid duplicates
+      const { data: existing } = await supabase
+        .from("pipeline_stores")
+        .select("id")
+        .eq("local", item.local)
+        .limit(1);
+      if (existing && existing.length > 0) continue;
       await supabase.from("pipeline_stores").insert({
         user_id: user.id, ...item,
       } as any);
     }
-    toast({ title: "Importação concluída!", description: `${pipelineImportData.length} lojas importadas.` });
+    toast({ title: "Importação concluída!", description: `Lojas importadas (duplicatas ignoradas).` });
+    fetchStores();
+  };
+
+  const removeDuplicates = async () => {
+    if (!user) return;
+    if (!confirm("Remover lojas duplicadas? Apenas a primeira de cada local será mantida.")) return;
+    const seen = new Map<string, string>();
+    const toDelete: string[] = [];
+    for (const store of stores) {
+      const key = store.local.toLowerCase().trim();
+      if (seen.has(key)) {
+        toDelete.push(store.id);
+      } else {
+        seen.set(key, store.id);
+      }
+    }
+    if (toDelete.length === 0) {
+      toast({ title: "Nenhuma duplicata encontrada." });
+      return;
+    }
+    for (const id of toDelete) {
+      await supabase.from("pipeline_stores").delete().eq("id", id);
+    }
+    toast({ title: `${toDelete.length} duplicata(s) removida(s)!` });
     fetchStores();
   };
 
@@ -207,6 +238,9 @@ const Pipeline = () => {
             <Input placeholder="Buscar loja..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" className="gap-2" onClick={removeDuplicates}>
+              <Trash2 className="h-4 w-4" /> Remover Duplicatas
+            </Button>
             {stores.length === 0 && (
               <Button variant="outline" className="gap-2" onClick={importFromSpreadsheet}>
                 Importar Planilha
