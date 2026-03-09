@@ -24,11 +24,12 @@ export function useStores() {
     saveStores(stores);
   }, [stores]);
 
-  const addStore = useCallback((data: Omit<Store, "id" | "checklist">) => {
+  const addStore = useCallback((data: Omit<Store, "id" | "checklist" | "cronograma">) => {
     const newStore: Store = {
       ...data,
       id: crypto.randomUUID(),
       checklist: createDefaultChecklist(),
+      cronograma: createDefaultCronograma(),
     };
     setStores((prev) => {
       const updated = [...prev, newStore];
