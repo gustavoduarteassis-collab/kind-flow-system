@@ -434,7 +434,7 @@ const Equipe = () => {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {members.map((member) => {
+                            {members.filter((m) => m.name !== "Gustavo").map((member) => {
                               const doneCount = weekDays.filter((d) =>
                                 isCompleted(habit.id, member.id, format(d, "yyyy-MM-dd"))
                               ).length;
