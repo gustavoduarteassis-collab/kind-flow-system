@@ -116,6 +116,22 @@ const Index = () => {
                     />
                   </div>
                   <div className="space-y-2">
+                    <Label>Construtor</Label>
+                    <Input
+                      placeholder="Nome do construtor"
+                      value={form.construtor}
+                      onChange={(e) => setForm({ ...form, construtor: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Analista de Obra</Label>
+                    <Input
+                      placeholder="Nome da analista de obra"
+                      value={form.analistaObra}
+                      onChange={(e) => setForm({ ...form, analistaObra: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
                     <Label>Data de Inauguração</Label>
                     <Input
                       type="date"
