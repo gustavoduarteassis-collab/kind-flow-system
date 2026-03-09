@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
-  ChevronLeft, ChevronRight, Calendar,
+  ChevronLeft, ChevronRight, Calendar, KeyRound,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,6 +42,9 @@ type HabitCompletion = {
 type TeamEvent = {
   id: string; title: string; event_type: string; event_date: string;
   end_date: string | null; store_name: string | null; team_member_id: string | null; description: string | null;
+};
+type FranchiseeAccess = {
+  id: string; store_id: string; franchisee_email: string;
 };
 
 const statusLabels: Record<string, string> = {
@@ -81,6 +85,7 @@ const formatDate = (d: string | null) => {
 
 const Equipe = () => {
   const { user, signOut } = useAuth();
+  const { stores } = useStores();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -89,6 +94,7 @@ const Equipe = () => {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [events, setEvents] = useState<TeamEvent[]>([]);
+  const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMonth, setCalendarMonth] = useState(new Date());
 
@@ -97,10 +103,12 @@ const Equipe = () => {
   const [taskOpen, setTaskOpen] = useState(false);
   const [habitOpen, setHabitOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
+  const [accessOpen, setAccessOpen] = useState(false);
   const [memberForm, setMemberForm] = useState({ name: "", role: "", email: "", phone: "" });
   const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "media", assigned_to: "", due_date: "", start_date: "" });
   const [habitForm, setHabitForm] = useState({ name: "", description: "" });
   const [eventForm, setEventForm] = useState({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "" });
+  const [accessForm, setAccessForm] = useState({ store_id: "", franchisee_email: "" });
 
   // Mon-Fri only
   const weekDays = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 4) });
@@ -109,7 +117,7 @@ const Equipe = () => {
     if (!user) return;
     const monthStart = format(startOfMonth(calendarMonth), "yyyy-MM-dd");
     const monthEnd = format(endOfMonth(calendarMonth), "yyyy-MM-dd");
-    const [m, t, h, c, e] = await Promise.all([
+    const [m, t, h, c, e, fa] = await Promise.all([
       supabase.from("team_members").select("*").eq("user_id", user.id).order("name"),
       supabase.from("tasks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("habits").select("*").eq("user_id", user.id).order("name"),
@@ -118,12 +126,14 @@ const Equipe = () => {
         .lte("completion_date", format(addDays(weekStart, 4), "yyyy-MM-dd")),
       supabase.from("team_events").select("*").eq("user_id", user.id)
         .gte("event_date", monthStart).lte("event_date", monthEnd),
+      supabase.from("franchisee_access").select("*").eq("created_by", user.id),
     ]);
     if (m.data) setMembers(m.data);
     if (t.data) setTasks(t.data as Task[]);
     if (h.data) setHabits(h.data);
     if (c.data) setCompletions(c.data);
     if (e.data) setEvents(e.data as TeamEvent[]);
+    if (fa.data) setFranchiseeAccess(fa.data as FranchiseeAccess[]);
   }, [user, weekStart, calendarMonth]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
@@ -228,6 +238,27 @@ const Equipe = () => {
 
   const getMemberName = (id: string | null) => members.find((m) => m.id === id)?.name || "—";
 
+  const addAccess = async () => {
+    if (!user || !accessForm.store_id || !accessForm.franchisee_email) return;
+    const { error } = await supabase.from("franchisee_access").insert({
+      store_id: accessForm.store_id,
+      franchisee_email: accessForm.franchisee_email.toLowerCase(),
+      created_by: user.id,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Acesso liberado!", description: `Franqueado ${accessForm.franchisee_email} vinculado à loja.` });
+    setAccessForm({ store_id: "", franchisee_email: "" });
+    setAccessOpen(false);
+    fetchAll();
+  };
+
+  const deleteAccess = async (id: string) => {
+    await supabase.from("franchisee_access").delete().eq("id", id);
+    fetchAll();
+  };
+
+  const getStoreName = (storeId: string) => stores.find((s) => s.id === storeId)?.nome || storeId;
+
   // Calendar helpers
   const monthDays = eachDayOfInterval({ start: startOfMonth(calendarMonth), end: endOfMonth(calendarMonth) });
   const firstDayOfWeek = getDay(startOfMonth(calendarMonth));
@@ -262,6 +293,7 @@ const Equipe = () => {
             <TabsTrigger value="habitos" className="gap-2"><Target className="h-4 w-4" /> Hábitos</TabsTrigger>
             <TabsTrigger value="calendario" className="gap-2"><Calendar className="h-4 w-4" /> Calendário</TabsTrigger>
             <TabsTrigger value="equipe" className="gap-2"><Users className="h-4 w-4" /> Equipe</TabsTrigger>
+            <TabsTrigger value="franqueados" className="gap-2"><KeyRound className="h-4 w-4" /> Franqueados</TabsTrigger>
           </TabsList>
 
           {/* === TAREFAS === */}
@@ -657,6 +689,72 @@ const Equipe = () => {
                   </Card>
                 ))}
               </div>
+            )}
+          </TabsContent>
+
+          {/* === FRANQUEADOS === */}
+          <TabsContent value="franqueados">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Acesso de Franqueados</h2>
+              <Dialog open={accessOpen} onOpenChange={setAccessOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><Plus className="h-4 w-4" /> Liberar Acesso</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Liberar Acesso ao Franqueado</DialogTitle></DialogHeader>
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-2"><Label>E-mail do Franqueado *</Label>
+                      <Input type="email" placeholder="franqueado@email.com" value={accessForm.franchisee_email} onChange={(e) => setAccessForm({ ...accessForm, franchisee_email: e.target.value })} />
+                    </div>
+                    <div className="space-y-2"><Label>Loja *</Label>
+                      <Select value={accessForm.store_id} onValueChange={(v) => setAccessForm({ ...accessForm, store_id: v })}>
+                        <SelectTrigger><SelectValue placeholder="Selecione a loja..." /></SelectTrigger>
+                        <SelectContent>
+                          {stores.map((s) => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      O franqueado precisa criar uma conta com este e-mail. Ao entrar, verá apenas o checklist e cronograma da loja selecionada.
+                    </p>
+                    <Button onClick={addAccess} className="w-full">Liberar Acesso</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {franchiseeAccess.length === 0 ? (
+              <Card><CardContent className="py-12 text-center text-muted-foreground">
+                Nenhum franqueado com acesso liberado.<br />
+                <span className="text-xs">Clique em "Liberar Acesso" para vincular um e-mail a uma loja.</span>
+              </CardContent></Card>
+            ) : (
+              <Card>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>E-mail do Franqueado</TableHead>
+                        <TableHead>Loja Vinculada</TableHead>
+                        <TableHead className="w-10"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {franchiseeAccess.map((fa) => (
+                        <TableRow key={fa.id}>
+                          <TableCell className="text-sm">{fa.franchisee_email}</TableCell>
+                          <TableCell className="text-sm font-medium">{getStoreName(fa.store_id)}</TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Revogar acesso?")) deleteAccess(fa.id); }}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
             )}
           </TabsContent>
         </Tabs>
