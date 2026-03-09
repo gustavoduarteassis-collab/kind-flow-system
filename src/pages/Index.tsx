@@ -134,12 +134,15 @@ const Index = () => {
       store_id: accessForm.store_id,
       franchisee_email: accessForm.franchisee_email.toLowerCase(),
       created_by: user.id,
+      access_type: accessForm.access_type,
       can_view_checklist: accessForm.can_view_checklist,
       can_edit_checklist: accessForm.can_edit_checklist,
       can_view_cronograma: accessForm.can_view_cronograma,
       can_edit_cronograma: accessForm.can_edit_cronograma,
       can_view_diario: accessForm.can_view_diario,
+      can_edit_diario: accessForm.can_edit_diario,
       can_view_custos: accessForm.can_view_custos,
+      can_edit_custos: accessForm.can_edit_custos,
     });
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Acesso liberado!", description: `Franqueado ${accessForm.franchisee_email} vinculado à loja.` });
