@@ -119,9 +119,24 @@ const Lojas = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {stores.length > 0 && (
-          <div className="relative mb-6 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar loja, franqueado..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Buscar loja, franqueado..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            {analistas.length > 0 && (
+              <Select value={filterAnalista} onValueChange={(v) => setFilterAnalista(v === "all" ? "" : v)}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Filtrar por analista" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as analistas</SelectItem>
+                  {analistas.map((a) => (
+                    <SelectItem key={a} value={a}>{a}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         )}
 
