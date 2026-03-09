@@ -29,7 +29,11 @@ export function useStores() {
       id: crypto.randomUUID(),
       checklist: createDefaultChecklist(),
     };
-    setStores((prev) => [...prev, newStore]);
+    setStores((prev) => {
+      const updated = [...prev, newStore];
+      saveStores(updated);
+      return updated;
+    });
     return newStore.id;
   }, []);
 
