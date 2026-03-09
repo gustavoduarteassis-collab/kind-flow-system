@@ -218,6 +218,96 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_stores: {
+        Row: {
+          cd_origem: string
+          cidade: string
+          contato_franqueado: string
+          contratos: string
+          created_at: string
+          data_inauguracao: string
+          email_franqueado: string
+          estado: string
+          filial: string
+          franqueado: string
+          id: string
+          inicio_obra: string
+          local: string
+          localizacao: string
+          observacoes: string
+          orcamento_obra: string
+          padrao: string
+          previsao_inauguracao: string
+          projeto_ar_condicionado: string
+          projeto_arquitetonico: string
+          projeto_eletrico: string
+          projeto_estrutural: string
+          projeto_incendio: string
+          status_geral: string
+          transferido: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cd_origem?: string
+          cidade?: string
+          contato_franqueado?: string
+          contratos?: string
+          created_at?: string
+          data_inauguracao?: string
+          email_franqueado?: string
+          estado?: string
+          filial?: string
+          franqueado?: string
+          id?: string
+          inicio_obra?: string
+          local?: string
+          localizacao?: string
+          observacoes?: string
+          orcamento_obra?: string
+          padrao?: string
+          previsao_inauguracao?: string
+          projeto_ar_condicionado?: string
+          projeto_arquitetonico?: string
+          projeto_eletrico?: string
+          projeto_estrutural?: string
+          projeto_incendio?: string
+          status_geral?: string
+          transferido?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cd_origem?: string
+          cidade?: string
+          contato_franqueado?: string
+          contratos?: string
+          created_at?: string
+          data_inauguracao?: string
+          email_franqueado?: string
+          estado?: string
+          filial?: string
+          franqueado?: string
+          id?: string
+          inicio_obra?: string
+          local?: string
+          localizacao?: string
+          observacoes?: string
+          orcamento_obra?: string
+          padrao?: string
+          previsao_inauguracao?: string
+          projeto_ar_condicionado?: string
+          projeto_arquitetonico?: string
+          projeto_eletrico?: string
+          projeto_estrutural?: string
+          projeto_incendio?: string
+          status_geral?: string
+          transferido?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       stores: {
         Row: {
           analista_obra: string

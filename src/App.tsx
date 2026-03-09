@@ -10,6 +10,7 @@ import StoreReport from "./pages/StoreReport";
 import Auth from "./pages/Auth";
 import Equipe from "./pages/Equipe";
 import FranqueadoPortal from "./pages/FranqueadoPortal";
+import Pipeline from "./pages/Pipeline";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -85,6 +86,7 @@ function AppRoutes() {
       <Route path="/loja/:id" element={<StoreDetail />} />
       <Route path="/loja/:id/relatorio" element={<StoreReport />} />
       <Route path="/equipe" element={<Equipe />} />
+      <Route path="/pipeline" element={<Pipeline />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
