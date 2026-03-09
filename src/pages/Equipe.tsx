@@ -691,6 +691,72 @@ const Equipe = () => {
               </div>
             )}
           </TabsContent>
+
+          {/* === FRANQUEADOS === */}
+          <TabsContent value="franqueados">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Acesso de Franqueados</h2>
+              <Dialog open={accessOpen} onOpenChange={setAccessOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><Plus className="h-4 w-4" /> Liberar Acesso</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Liberar Acesso ao Franqueado</DialogTitle></DialogHeader>
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-2"><Label>E-mail do Franqueado *</Label>
+                      <Input type="email" placeholder="franqueado@email.com" value={accessForm.franchisee_email} onChange={(e) => setAccessForm({ ...accessForm, franchisee_email: e.target.value })} />
+                    </div>
+                    <div className="space-y-2"><Label>Loja *</Label>
+                      <Select value={accessForm.store_id} onValueChange={(v) => setAccessForm({ ...accessForm, store_id: v })}>
+                        <SelectTrigger><SelectValue placeholder="Selecione a loja..." /></SelectTrigger>
+                        <SelectContent>
+                          {stores.map((s) => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      O franqueado precisa criar uma conta com este e-mail. Ao entrar, verá apenas o checklist e cronograma da loja selecionada.
+                    </p>
+                    <Button onClick={addAccess} className="w-full">Liberar Acesso</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {franchiseeAccess.length === 0 ? (
+              <Card><CardContent className="py-12 text-center text-muted-foreground">
+                Nenhum franqueado com acesso liberado.<br />
+                <span className="text-xs">Clique em "Liberar Acesso" para vincular um e-mail a uma loja.</span>
+              </CardContent></Card>
+            ) : (
+              <Card>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>E-mail do Franqueado</TableHead>
+                        <TableHead>Loja Vinculada</TableHead>
+                        <TableHead className="w-10"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {franchiseeAccess.map((fa) => (
+                        <TableRow key={fa.id}>
+                          <TableCell className="text-sm">{fa.franchisee_email}</TableCell>
+                          <TableCell className="text-sm font-medium">{getStoreName(fa.store_id)}</TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Revogar acesso?")) deleteAccess(fa.id); }}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </Card>
+            )}
+          </TabsContent>
         </Tabs>
       </main>
     </div>
