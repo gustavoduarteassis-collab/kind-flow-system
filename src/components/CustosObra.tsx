@@ -309,6 +309,15 @@ export default function CustosObra({ store, onUpdate }: Props) {
                               {uploading === item.id ? "..." : "Anexar"}
                             </Button>
                           )}
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => removeItem(catIdx, itemIdx)}
+                          >
+                            <X className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
