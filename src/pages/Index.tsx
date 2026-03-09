@@ -173,6 +173,7 @@ const Index = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Loja</TableHead>
+                      <TableHead>Analista</TableHead>
                       <TableHead className="text-center">Progresso</TableHead>
                       <TableHead className="text-center">Realizados</TableHead>
                       <TableHead className="text-center">Atrasados</TableHead>
@@ -193,6 +194,16 @@ const Index = () => {
                       return (
                         <TableRow key={store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${store.id}`)}>
                           <TableCell className="font-medium">{store.nome}</TableCell>
+                          <TableCell className="text-sm">
+                            {store.analistaObra ? (
+                              <span
+                                className="text-primary cursor-pointer hover:underline"
+                                onClick={(e) => { e.stopPropagation(); navigate(`/lojas?analista=${encodeURIComponent(store.analistaObra)}`); }}
+                              >
+                                {store.analistaObra}
+                              </span>
+                            ) : <span className="text-muted-foreground">—</span>}
+                          </TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center gap-2 justify-center">
                               <Progress value={pct} className="h-1.5 w-16" />

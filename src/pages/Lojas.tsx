@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useStores } from "@/hooks/useStores";
 import { checklistCategories, StatusType } from "@/data/checklistData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,9 @@ import { Progress } from "@/components/ui/progress";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
   Plus, Store, Calendar, User, Search, Trash2, ChevronRight, Building2, ArrowLeft,
@@ -18,9 +21,13 @@ import {
 const Lojas = () => {
   const { stores, addStore, deleteStore } = useStores();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [filterAnalista, setFilterAnalista] = useState(searchParams.get("analista") || "");
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
+
+  const analistas = Array.from(new Set(stores.map((s) => s.analistaObra).filter(Boolean)));
 
   const handleAdd = async () => {
     if (!form.nome) return;
@@ -48,9 +55,10 @@ const Lojas = () => {
 
   const filtered = stores.filter(
     (s) =>
-      s.nome.toLowerCase().includes(search.toLowerCase()) ||
+      (s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
-      s.filial.toLowerCase().includes(search.toLowerCase())
+      s.filial.toLowerCase().includes(search.toLowerCase())) &&
+      (!filterAnalista || s.analistaObra === filterAnalista)
   );
 
   return (
@@ -112,9 +120,24 @@ const Lojas = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {stores.length > 0 && (
-          <div className="relative mb-6 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar loja, franqueado..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Buscar loja, franqueado..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            {analistas.length > 0 && (
+              <Select value={filterAnalista} onValueChange={(v) => setFilterAnalista(v === "all" ? "" : v)}>
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Filtrar por analista" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as analistas</SelectItem>
+                  {analistas.map((a) => (
+                    <SelectItem key={a} value={a}>{a}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         )}
 
@@ -165,6 +188,14 @@ const Lojas = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {store.analistaObra && (
+                    <div
+                      className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer hover:text-primary transition-colors"
+                      onClick={(e) => { e.stopPropagation(); setFilterAnalista(store.analistaObra); }}
+                    >
+                      📋 {store.analistaObra}
+                    </div>
+                  )}
                   {store.franqueado && (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <User className="h-3.5 w-3.5" /> {store.franqueado}
