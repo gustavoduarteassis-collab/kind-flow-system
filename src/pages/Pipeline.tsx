@@ -148,7 +148,6 @@ const Pipeline = () => {
       construtor: "",
       analistaObra: "",
       inauguracao: pipelineStore.previsao_inauguracao,
-      custos: createDefaultCustos(),
     });
     if (newStoreId) {
       await supabase.from("pipeline_stores").update({ transferido: true } as any).eq("id", pipelineStore.id);
