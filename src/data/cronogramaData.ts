@@ -146,5 +146,6 @@ export function createDefaultCronograma(): CronogramaStore {
   return {
     cells: {},
     startDate: "",
+    itemDates: {},
   };
 }
