@@ -96,6 +96,8 @@ const Equipe = () => {
   const [events, setEvents] = useState<TeamEvent[]>([]);
   const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [habitMonth, setHabitMonth] = useState(new Date());
+  const [habitMemberFilter, setHabitMemberFilter] = useState<string | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
 
   // Dialogs
@@ -120,13 +122,15 @@ const Equipe = () => {
     if (!user) return;
     const monthStart = format(startOfMonth(calendarMonth), "yyyy-MM-dd");
     const monthEnd = format(endOfMonth(calendarMonth), "yyyy-MM-dd");
+    const habitMonthStart = format(startOfMonth(habitMonth), "yyyy-MM-dd");
+    const habitMonthEnd = format(endOfMonth(habitMonth), "yyyy-MM-dd");
     const [m, t, h, c, e, fa] = await Promise.all([
       supabase.from("team_members").select("*").eq("user_id", user.id).order("name"),
       supabase.from("tasks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("habits").select("*").eq("user_id", user.id).order("name"),
       supabase.from("habit_completions").select("*").eq("user_id", user.id)
-        .gte("completion_date", format(weekStart, "yyyy-MM-dd"))
-        .lte("completion_date", format(addDays(weekStart, 4), "yyyy-MM-dd")),
+        .gte("completion_date", habitMonthStart)
+        .lte("completion_date", habitMonthEnd),
       supabase.from("team_events").select("*").eq("user_id", user.id)
         .gte("event_date", monthStart).lte("event_date", monthEnd),
       supabase.from("franchisee_access").select("*").eq("created_by", user.id),
@@ -137,7 +141,7 @@ const Equipe = () => {
     if (c.data) setCompletions(c.data);
     if (e.data) setEvents(e.data as TeamEvent[]);
     if (fa.data) setFranchiseeAccess(fa.data as FranchiseeAccess[]);
-  }, [user, weekStart, calendarMonth]);
+  }, [user, weekStart, calendarMonth, habitMonth]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -455,7 +459,7 @@ const Equipe = () => {
           {/* === HÁBITOS === */}
           <TabsContent value="habitos">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Hábitos (Seg–Sex)</h2>
+              <h2 className="text-lg font-semibold">Tracker Mensal</h2>
               <Dialog open={habitOpen} onOpenChange={setHabitOpen}>
                 <DialogTrigger asChild>
                   <Button className="gap-2"><Plus className="h-4 w-4" /> Novo Hábito</Button>
@@ -475,17 +479,40 @@ const Equipe = () => {
               </Dialog>
             </div>
 
-            {/* Week navigation */}
-            <div className="flex items-center gap-4 mb-4">
-              <Button variant="outline" size="icon" onClick={() => setWeekStart((w) => subDays(w, 7))}>
+            {/* Month navigation */}
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <Button variant="outline" size="icon" onClick={() => setHabitMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm font-medium">
-                {format(weekStart, "dd MMM", { locale: ptBR })} — {format(addDays(weekStart, 4), "dd MMM yyyy", { locale: ptBR })}
+              <span className="text-sm font-semibold capitalize">
+                {format(habitMonth, "MMMM 'de' yyyy", { locale: ptBR })}
               </span>
-              <Button variant="outline" size="icon" onClick={() => setWeekStart((w) => addDays(w, 7))}>
+              <Button variant="outline" size="icon" onClick={() => setHabitMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
+            </div>
+
+            {/* Member filter */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Button
+                variant={habitMemberFilter === null ? "default" : "outline"}
+                size="sm"
+                className="text-xs"
+                onClick={() => setHabitMemberFilter(null)}
+              >
+                Todos
+              </Button>
+              {members.filter((m) => m.name !== "Gustavo").map((m) => (
+                <Button
+                  key={m.id}
+                  variant={habitMemberFilter === m.id ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => setHabitMemberFilter(habitMemberFilter === m.id ? null : m.id)}
+                >
+                  {m.name}
+                </Button>
+              ))}
             </div>
 
             {habits.length === 0 || members.length === 0 ? (
@@ -495,66 +522,112 @@ const Equipe = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-6">
-                {habits.map((habit) => (
-                  <Card key={habit.id}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <CardTitle className="text-base">{habit.name}</CardTitle>
-                          {habit.description && <p className="text-xs text-muted-foreground">{habit.description}</p>}
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteHabit(habit.id); }}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="min-w-[120px]">Membro</TableHead>
-                              {weekDays.map((day) => (
-                                <TableHead key={day.toISOString()} className="text-center w-16">
-                                  <div className="text-[10px] uppercase">{format(day, "EEE", { locale: ptBR })}</div>
-                                  <div className="text-xs">{format(day, "dd")}</div>
-                                </TableHead>
-                              ))}
-                              <TableHead className="text-center w-16">%</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {members.filter((m) => m.name !== "Gustavo").map((member) => {
-                              const doneCount = weekDays.filter((d) =>
-                                isCompleted(habit.id, member.id, format(d, "yyyy-MM-dd"))
-                              ).length;
-                              const pct = Math.round((doneCount / 5) * 100);
-                              return (
-                                <TableRow key={member.id}>
-                                  <TableCell className="text-sm font-medium">{member.name}</TableCell>
-                                  {weekDays.map((day) => {
-                                    const dateStr = format(day, "yyyy-MM-dd");
-                                    const done = isCompleted(habit.id, member.id, dateStr);
-                                    return (
-                                      <TableCell key={dateStr} className="text-center">
-                                        <Checkbox checked={done} onCheckedChange={() => toggleCompletion(habit.id, member.id, dateStr)} />
-                                      </TableCell>
-                                    );
-                                  })}
-                                  <TableCell className="text-center">
-                                    <Badge variant={pct >= 80 ? "default" : pct >= 50 ? "secondary" : "outline"} className="text-xs">{pct}%</Badge>
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <Card>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    {(() => {
+                      const monthDaysHabit = eachDayOfInterval({ start: startOfMonth(habitMonth), end: endOfMonth(habitMonth) });
+                      const dayLabels = ["D", "S", "T", "Q", "Q", "S", "S"];
+                      const today = new Date();
+                      const filteredMembers = members.filter((m) => m.name !== "Gustavo").filter((m) => !habitMemberFilter || m.id === habitMemberFilter);
+
+                      return (
+                        <table className="w-full text-xs border-collapse">
+                          <thead>
+                            <tr className="border-b border-border">
+                              <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[140px] font-semibold">Hábito</th>
+                              {monthDaysHabit.map((day) => {
+                                const isToday = isSameDay(day, today);
+                                return (
+                                  <th key={day.toISOString()} className={`text-center px-0 py-1 min-w-[28px] ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                                    <div className="text-[10px]">{dayLabels[day.getDay()]}</div>
+                                    <div className={`text-xs font-medium ${isToday ? "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center mx-auto" : ""}`}>
+                                      {format(day, "d")}
+                                    </div>
+                                  </th>
+                                );
+                              })}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {habits.map((habit) => (
+                              filteredMembers.length > 0 ? (
+                                habitMemberFilter ? (
+                                  /* Single member view - one row per habit */
+                                  <tr key={habit.id} className="border-b border-border/50 hover:bg-muted/30">
+                                    <td className="sticky left-0 z-10 bg-card px-3 py-2">
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <span className="font-medium">{habit.name}</span>
+                                          {habit.description && <p className="text-[10px] text-muted-foreground">{habit.description}</p>}
+                                        </div>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => { if (confirm("Excluir?")) deleteHabit(habit.id); }}>
+                                          <Trash2 className="h-3 w-3 text-destructive" />
+                                        </Button>
+                                      </div>
+                                    </td>
+                                    {monthDaysHabit.map((day) => {
+                                      const dateStr = format(day, "yyyy-MM-dd");
+                                      const done = isCompleted(habit.id, habitMemberFilter, dateStr);
+                                      const isToday = isSameDay(day, today);
+                                      return (
+                                        <td key={dateStr} className="text-center px-0 py-1">
+                                          <button
+                                            className={`w-6 h-6 rounded-md border transition-all ${done ? "bg-primary border-primary text-primary-foreground" : isToday ? "border-primary/50 bg-primary/5" : "border-border/50"}`}
+                                            onClick={() => toggleCompletion(habit.id, habitMemberFilter, dateStr)}
+                                          >
+                                            {done && <span className="text-[10px]">✓</span>}
+                                          </button>
+                                        </td>
+                                      );
+                                    })}
+                                  </tr>
+                                ) : (
+                                  /* All members view - one row per member per habit */
+                                  filteredMembers.map((member, mi) => (
+                                    <tr key={`${habit.id}-${member.id}`} className={`border-b border-border/30 hover:bg-muted/30 ${mi === 0 ? "border-t border-border/50" : ""}`}>
+                                      <td className="sticky left-0 z-10 bg-card px-3 py-1.5">
+                                        {mi === 0 ? (
+                                          <div className="flex items-center justify-between">
+                                            <div>
+                                              <span className="font-medium">{habit.name}</span>
+                                              <span className="text-muted-foreground ml-2 text-[10px]">— {member.name}</span>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => { if (confirm("Excluir?")) deleteHabit(habit.id); }}>
+                                              <Trash2 className="h-3 w-3 text-destructive" />
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <span className="text-muted-foreground ml-4 text-[10px]">— {member.name}</span>
+                                        )}
+                                      </td>
+                                      {monthDaysHabit.map((day) => {
+                                        const dateStr = format(day, "yyyy-MM-dd");
+                                        const done = isCompleted(habit.id, member.id, dateStr);
+                                        const isToday = isSameDay(day, today);
+                                        return (
+                                          <td key={dateStr} className="text-center px-0 py-1">
+                                            <button
+                                              className={`w-5 h-5 rounded-md border transition-all ${done ? "bg-primary border-primary text-primary-foreground" : isToday ? "border-primary/50 bg-primary/5" : "border-border/40"}`}
+                                              onClick={() => toggleCompletion(habit.id, member.id, dateStr)}
+                                            >
+                                              {done && <span className="text-[9px]">✓</span>}
+                                            </button>
+                                          </td>
+                                        );
+                                      })}
+                                    </tr>
+                                  ))
+                                )
+                              ) : null
+                            ))}
+                          </tbody>
+                        </table>
+                      );
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
 
