@@ -9,13 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
   Building2, ClipboardCheck, Users, ListTodo, Target,
-  ChevronRight, LogOut, Store,
+  ChevronRight, LogOut, Calendar,
 } from "lucide-react";
 
 type Task = {
   id: string; title: string; status: string; priority: string;
-  assigned_to: string | null; due_date: string | null;
+  assigned_to: string | null; due_date: string | null; start_date: string | null;
 };
 type TeamMember = { id: string; name: string };
 type Habit = { id: string; name: string };
@@ -33,6 +36,24 @@ const priorityLabels: Record<string, string> = {
   baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente",
 };
 
+const statusColors: Record<string, string> = {
+  "NÃO INICIADO": "bg-muted text-muted-foreground",
+  "EM COTAÇÃO": "bg-secondary text-secondary-foreground",
+  "EM TRANSPORTE": "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
+  "REALIZADO": "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]",
+  "ATRASADO": "bg-destructive text-destructive-foreground",
+  "NÃO SE APLICA": "bg-muted text-muted-foreground",
+  "CONSTRUTORA": "bg-primary text-primary-foreground",
+  "EM ELABORAÇÃO": "bg-secondary text-secondary-foreground",
+  "EM ANÁLISE": "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
+  "EM CONTRATAÇÃO": "bg-secondary text-secondary-foreground",
+};
+
+const formatDate = (d: string | null) => {
+  if (!d) return "—";
+  return new Date(d + "T00:00:00").toLocaleDateString("pt-BR");
+};
+
 const Index = () => {
   const { stores } = useStores();
   const { user, signOut } = useAuth();
@@ -45,18 +66,18 @@ const Index = () => {
   const fetchData = useCallback(async () => {
     if (!user) return;
     const [t, m, h] = await Promise.all([
-      supabase.from("tasks").select("id, title, status, priority, assigned_to, due_date").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+      supabase.from("tasks").select("id, title, status, priority, assigned_to, due_date, start_date").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
       supabase.from("team_members").select("id, name").eq("user_id", user.id),
       supabase.from("habits").select("id, name").eq("user_id", user.id),
     ]);
-    if (t.data) setTasks(t.data);
+    if (t.data) setTasks(t.data as Task[]);
     if (m.data) setMembers(m.data);
     if (h.data) setHabits(h.data);
   }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Store summary
+  const totalItems = stores.length * checklistCategories.flatMap((c) => c.items).length;
   const getStoreStatusSummary = () => {
     const summary: Partial<Record<StatusType, number>> = {};
     stores.forEach((store) => {
@@ -66,8 +87,6 @@ const Index = () => {
     });
     return summary;
   };
-
-  const totalItems = stores.length * checklistCategories.flatMap((c) => c.items).length;
   const statusSummary = getStoreStatusSummary();
   const doneItems = (statusSummary["REALIZADO"] || 0) + (statusSummary["NÃO SE APLICA"] || 0);
   const overallProgress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
@@ -105,58 +124,30 @@ const Index = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Quick navigation cards */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card
-            className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 group"
-            onClick={() => navigate("/lojas")}
-          >
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Building2 className="h-6 w-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Lojas</p>
-                <p className="text-2xl font-bold">{stores.length}</p>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-            </CardContent>
-          </Card>
-
-          <Card
-            className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 group"
-            onClick={() => navigate("/equipe")}
-          >
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-[hsl(var(--accent))]/10 flex items-center justify-center">
-                <Users className="h-6 w-6 text-[hsl(var(--accent))]" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Equipe</p>
-                <p className="text-2xl font-bold">{members.length}</p>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-            </CardContent>
-          </Card>
-
-          <Card
-            className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 group"
-            onClick={() => navigate("/equipe")}
-          >
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-[hsl(var(--success))]/10 flex items-center justify-center">
-                <Target className="h-6 w-6 text-[hsl(var(--success))]" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Hábitos</p>
-                <p className="text-2xl font-bold">{habits.length}</p>
-              </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-            </CardContent>
-          </Card>
+        {/* Quick navigation */}
+        <div className="grid gap-4 sm:grid-cols-4">
+          {[
+            { label: "Lojas", count: stores.length, icon: Building2, path: "/lojas", color: "bg-primary/10 text-primary" },
+            { label: "Equipe", count: members.length, icon: Users, path: "/equipe", color: "bg-[hsl(var(--accent))]/10 text-[hsl(var(--accent))]" },
+            { label: "Hábitos", count: habits.length, icon: Target, path: "/equipe", color: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]" },
+            { label: "Calendário", count: null, icon: Calendar, path: "/equipe", color: "bg-primary/10 text-primary" },
+          ].map((item) => (
+            <Card key={item.label} className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 group" onClick={() => navigate(item.path)}>
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${item.color}`}>
+                  <item.icon className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">{item.label}</p>
+                  {item.count !== null && <p className="text-2xl font-bold">{item.count}</p>}
+                </div>
+                <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Store overview dashboard */}
+        {/* Store summary table */}
         {stores.length > 0 && (
           <section className="space-y-4">
             <div className="flex items-center justify-between">
@@ -166,65 +157,74 @@ const Index = () => {
               </Button>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <p className="text-sm text-muted-foreground mb-1">Progresso Geral</p>
+            <Card className="mb-4">
+              <CardContent className="p-4 flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Progresso Geral</p>
                   <p className="text-3xl font-bold text-primary">{overallProgress}%</p>
-                  <Progress value={overallProgress} className="h-2 mt-2" />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <p className="text-sm text-muted-foreground mb-1">Realizados</p>
-                  <p className="text-3xl font-bold text-[hsl(var(--success))]">{statusSummary["REALIZADO"] || 0}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <p className="text-sm text-muted-foreground mb-1">Atrasados</p>
-                  <p className="text-3xl font-bold text-destructive">{statusSummary["ATRASADO"] || 0}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <p className="text-sm text-muted-foreground mb-1">Não Iniciados</p>
-                  <p className="text-3xl font-bold text-muted-foreground">{statusSummary["NÃO INICIADO"] || 0}</p>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+                <Progress value={overallProgress} className="h-2 flex-1" />
+              </CardContent>
+            </Card>
 
-            {/* Per-store mini cards */}
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {stores.slice(0, 6).map((store) => {
-                const total = checklistCategories.flatMap((c) => c.items).length;
-                const done = Object.values(store.checklist).filter(
-                  (c) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA"
-                ).length;
-                const pct = Math.round((done / total) * 100);
-                const delayed = Object.values(store.checklist).filter((c) => c.status === "ATRASADO").length;
-                return (
-                  <Card key={store.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate(`/loja/${store.id}`)}>
-                    <CardContent className="p-4 flex items-center gap-4">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{store.nome}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Progress value={pct} className="h-1.5 flex-1" />
-                          <span className="text-xs font-semibold text-muted-foreground">{pct}%</span>
-                        </div>
-                      </div>
-                      {delayed > 0 && (
-                        <Badge variant="destructive" className="text-xs">! {delayed}</Badge>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+            <Card>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Loja</TableHead>
+                      <TableHead className="text-center">Progresso</TableHead>
+                      <TableHead className="text-center">Realizados</TableHead>
+                      <TableHead className="text-center">Atrasados</TableHead>
+                      <TableHead className="text-center">Não Iniciados</TableHead>
+                      <TableHead className="text-center">Em Andamento</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {stores.map((store) => {
+                      const total = checklistCategories.flatMap((c) => c.items).length;
+                      const counts: Partial<Record<StatusType, number>> = {};
+                      Object.values(store.checklist).forEach((c) => {
+                        counts[c.status] = (counts[c.status] || 0) + 1;
+                      });
+                      const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
+                      const pct = Math.round((done / total) * 100);
+                      const inProgress = (counts["EM COTAÇÃO"] || 0) + (counts["EM TRANSPORTE"] || 0) + (counts["EM ELABORAÇÃO"] || 0) + (counts["EM ANÁLISE"] || 0) + (counts["EM CONTRATAÇÃO"] || 0) + (counts["CONSTRUTORA"] || 0);
+                      return (
+                        <TableRow key={store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${store.id}`)}>
+                          <TableCell className="font-medium">{store.nome}</TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center gap-2 justify-center">
+                              <Progress value={pct} className="h-1.5 w-16" />
+                              <span className="text-xs font-semibold">{pct}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">{counts["REALIZADO"] || 0}</Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {(counts["ATRASADO"] || 0) > 0
+                              ? <Badge variant="destructive" className="text-xs">{counts["ATRASADO"]}</Badge>
+                              : <span className="text-xs text-muted-foreground">0</span>
+                            }
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="text-xs text-muted-foreground">{counts["NÃO INICIADO"] || 0}</span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="text-xs text-muted-foreground">{inProgress}</span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
           </section>
         )}
 
-        {/* Tasks summary */}
+        {/* Tasks panel */}
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -257,26 +257,38 @@ const Index = () => {
           </div>
 
           {tasks.length > 0 && (
-            <div className="space-y-2">
-              {tasks.slice(0, 5).map((task) => (
-                <Card key={task.id}>
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <Badge className={`${priorityColors[task.priority]} text-[10px] shrink-0`}>
-                        {priorityLabels[task.priority]}
-                      </Badge>
-                      <span className="text-sm font-medium truncate">{task.title}</span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {task.assigned_to && (
-                        <span className="text-xs text-muted-foreground">{getMemberName(task.assigned_to)}</span>
-                      )}
-                      <Badge variant="outline" className="text-[10px]">{statusLabels[task.status]}</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <Card>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tarefa</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead>Início</TableHead>
+                      <TableHead>Prazo</TableHead>
+                      <TableHead>Prioridade</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tasks.slice(0, 8).map((task) => (
+                      <TableRow key={task.id}>
+                        <TableCell className="font-medium text-sm">{task.title}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{getMemberName(task.assigned_to)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{formatDate(task.start_date)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{formatDate(task.due_date)}</TableCell>
+                        <TableCell>
+                          <Badge className={`${priorityColors[task.priority]} text-[10px]`}>{priorityLabels[task.priority]}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-[10px]">{statusLabels[task.status]}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
           )}
         </section>
       </main>
