@@ -43,6 +43,26 @@ export default function CustosObra({ store, onUpdate }: Props) {
     onUpdate(updated);
   };
 
+  const addItem = (catIdx: number) => {
+    const updated = JSON.parse(JSON.stringify(custos)) as CustosData;
+    const cat = updated.categorias[catIdx];
+    cat.items.push({
+      id: `${cat.id}-custom-${Date.now()}`,
+      nome: "",
+      fornecedor: "",
+      valorPrevisto: 0,
+      valorRealizado: 0,
+      proposta: "",
+    });
+    onUpdate(updated);
+  };
+
+  const removeItem = (catIdx: number, itemIdx: number) => {
+    const updated = JSON.parse(JSON.stringify(custos)) as CustosData;
+    updated.categorias[catIdx].items.splice(itemIdx, 1);
+    onUpdate(updated);
+  };
+
   const updateArea = (value: number) => {
     const updated = { ...custos, areaMt2: value };
     onUpdate(updated);
