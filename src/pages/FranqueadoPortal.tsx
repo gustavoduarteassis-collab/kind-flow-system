@@ -306,13 +306,13 @@ const FranqueadoPortal = () => {
 
           {permissions.can_view_diario && (
             <TabsContent value="diario" className="mt-4">
-              <DiarioObra storeId={store.id} readOnly={true} />
+              <DiarioObra storeId={store.id} />
             </TabsContent>
           )}
 
           {permissions.can_view_custos && (
             <TabsContent value="custos" className="mt-4">
-              <CustosObra store={store} onUpdate={() => {}} readOnly={true} />
+              <CustosObra store={store} onUpdate={() => {}} />
             </TabsContent>
           )}
         </Tabs>
