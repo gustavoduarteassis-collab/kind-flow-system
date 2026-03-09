@@ -139,6 +139,8 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
   const formatDateShort = (d: string) =>
     new Date(d + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 
+  const sortedEntries = [...entries].sort((a, b) => a.entry_date.localeCompare(b.entry_date));
+
   const totalPhotos = Object.values(photos).reduce((sum, arr) => sum + arr.length, 0);
 
   return (
@@ -346,59 +348,84 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
               </CardContent>
             </Card>
           ) : (
-            <div className="relative pl-6 border-l-2 border-primary/20 space-y-6">
-              {entries.map((entry, idx) => {
-                const entryPhotos = photos[entry.id] || [];
-                return (
-                  <div key={entry.id} className="relative">
-                    {/* Timeline dot */}
-                    <div className="absolute -left-[calc(1.5rem+5px)] w-3 h-3 rounded-full bg-primary border-2 border-background" />
-                    <Card className="ml-2">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Badge className="bg-primary text-primary-foreground text-xs">
-                              {formatDateShort(entry.entry_date)}
-                            </Badge>
-                            {entry.weather && (
-                              <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                <CloudSun className="h-3 w-3" /> {entry.weather}
-                              </span>
-                            )}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Linha do Tempo</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="overflow-x-auto pb-4">
+                  <div className="relative min-w-[600px]" style={{ minWidth: `${Math.max(600, sortedEntries.length * 140)}px` }}>
+                    {/* Top labels (even indices) */}
+                    <div className="flex items-end" style={{ height: "100px", marginBottom: "8px" }}>
+                      {sortedEntries.map((entry, idx) => {
+                        if (idx % 2 !== 0) return <div key={entry.id} className="flex-1" />;
+                        const entryPhotos = photos[entry.id] || [];
+                        return (
+                          <div key={entry.id} className="flex-1 flex flex-col items-center px-1">
+                            <div
+                              className="text-center cursor-pointer hover:bg-muted/50 rounded-lg p-1.5 transition-colors max-w-[130px]"
+                              onClick={() => { setSelectedEntry(entry); setPhotoDialogOpen(true); }}
+                            >
+                              <p className="text-[11px] font-medium leading-tight line-clamp-3">{entry.description}</p>
+                              {entryPhotos.length > 0 && (
+                                <span className="text-[9px] text-muted-foreground flex items-center justify-center gap-0.5 mt-0.5">
+                                  <ImageIcon className="h-2.5 w-2.5" /> {entryPhotos.length}
+                                </span>
+                              )}
+                            </div>
+                            {/* Connector line down to dot */}
+                            <div className="w-px h-3 bg-primary/40" />
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            {entry.workers_count > 0 && (
-                              <span className="flex items-center gap-1">
-                                <Users className="h-3 w-3" /> {entry.workers_count}
-                              </span>
-                            )}
-                            <span className="flex items-center gap-1">
-                              <ImageIcon className="h-3 w-3" /> {entryPhotos.length}
+                        );
+                      })}
+                    </div>
+
+                    {/* Horizontal line with dots and dates */}
+                    <div className="relative">
+                      {/* Main horizontal line */}
+                      <div className="absolute top-[6px] left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary to-primary/40 rounded-full" />
+                      <div className="flex">
+                        {sortedEntries.map((entry) => (
+                          <div key={entry.id} className="flex-1 flex flex-col items-center">
+                            {/* Dot */}
+                            <div className="w-[14px] h-[14px] rounded-full bg-background border-[3px] border-primary relative z-10" />
+                            {/* Date label */}
+                            <span className="text-[10px] font-semibold text-muted-foreground mt-1.5 whitespace-nowrap">
+                              {new Date(entry.entry_date + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
                             </span>
                           </div>
-                        </div>
-                        <p className="text-sm line-clamp-3">{entry.description}</p>
-                        {entryPhotos.length > 0 && (
-                          <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
-                            {entryPhotos.slice(0, 4).map((photo) => (
-                              <img key={photo.id} src={photo.photo_url} alt=""
-                                className="h-16 w-16 rounded-md object-cover flex-shrink-0 cursor-pointer border border-border"
-                                onClick={() => { setSelectedEntry(entry); setPhotoDialogOpen(true); }} />
-                            ))}
-                            {entryPhotos.length > 4 && (
-                              <div className="h-16 w-16 rounded-md bg-muted flex items-center justify-center flex-shrink-0 cursor-pointer text-xs text-muted-foreground font-semibold"
-                                onClick={() => { setSelectedEntry(entry); setPhotoDialogOpen(true); }}>
-                                +{entryPhotos.length - 4}
-                              </div>
-                            )}
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Bottom labels (odd indices) */}
+                    <div className="flex items-start" style={{ marginTop: "8px", height: "100px" }}>
+                      {sortedEntries.map((entry, idx) => {
+                        if (idx % 2 !== 1) return <div key={entry.id} className="flex-1" />;
+                        const entryPhotos = photos[entry.id] || [];
+                        return (
+                          <div key={entry.id} className="flex-1 flex flex-col items-center px-1">
+                            {/* Connector line up from dot */}
+                            <div className="w-px h-3 bg-primary/40" />
+                            <div
+                              className="text-center cursor-pointer hover:bg-muted/50 rounded-lg p-1.5 transition-colors max-w-[130px]"
+                              onClick={() => { setSelectedEntry(entry); setPhotoDialogOpen(true); }}
+                            >
+                              <p className="text-[11px] font-medium leading-tight line-clamp-3">{entry.description}</p>
+                              {entryPhotos.length > 0 && (
+                                <span className="text-[9px] text-muted-foreground flex items-center justify-center gap-0.5 mt-0.5">
+                                  <ImageIcon className="h-2.5 w-2.5" /> {entryPhotos.length}
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                        );
+                      })}
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
       </Tabs>
