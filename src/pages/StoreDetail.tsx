@@ -174,6 +174,12 @@ const StoreDetail = () => {
               >
                 📊 Cronograma de Obra
               </TabsTrigger>
+              <TabsTrigger
+                value="custos"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+              >
+                💰 Custos
+              </TabsTrigger>
               {checklistCategories.map((cat) => {
                 const catProgress = getCategoryProgress(cat.id);
                 return (
