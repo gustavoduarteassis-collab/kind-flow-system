@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -20,12 +19,12 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ArrowLeft, Plus, Users, ListTodo, Target, Trash2, Edit, LogOut,
-  ChevronLeft, ChevronRight,
+  ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
+  ChevronLeft, ChevronRight, Calendar,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
-import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval } from "date-fns";
+import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 type TeamMember = {
@@ -33,11 +32,15 @@ type TeamMember = {
 };
 type Task = {
   id: string; title: string; description: string | null; status: string;
-  priority: string; assigned_to: string | null; due_date: string | null;
+  priority: string; assigned_to: string | null; due_date: string | null; start_date: string | null;
 };
 type Habit = { id: string; name: string; description: string | null };
 type HabitCompletion = {
   id: string; habit_id: string; team_member_id: string; completion_date: string; completed: boolean;
+};
+type TeamEvent = {
+  id: string; title: string; event_type: string; event_date: string;
+  end_date: string | null; store_name: string | null; team_member_id: string | null; description: string | null;
 };
 
 const statusLabels: Record<string, string> = {
@@ -59,6 +62,23 @@ const priorityColors: Record<string, string> = {
   urgente: "bg-destructive text-destructive-foreground",
 };
 
+const eventTypeLabels: Record<string, string> = {
+  checklist: "Checklist", folga: "Folga", implantacao: "Implantação", agm: "AGM", reuniao: "Reunião Semanal", outro: "Outro",
+};
+const eventTypeColors: Record<string, string> = {
+  checklist: "bg-primary text-primary-foreground",
+  folga: "bg-muted text-muted-foreground",
+  implantacao: "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
+  agm: "bg-destructive text-destructive-foreground",
+  reuniao: "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]",
+  outro: "bg-secondary text-secondary-foreground",
+};
+
+const formatDate = (d: string | null) => {
+  if (!d) return "—";
+  return new Date(d + "T00:00:00").toLocaleDateString("pt-BR");
+};
+
 const Equipe = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -68,36 +88,47 @@ const Equipe = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
+  const [events, setEvents] = useState<TeamEvent[]>([]);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [calendarMonth, setCalendarMonth] = useState(new Date());
 
   // Dialogs
   const [memberOpen, setMemberOpen] = useState(false);
   const [taskOpen, setTaskOpen] = useState(false);
   const [habitOpen, setHabitOpen] = useState(false);
+  const [eventOpen, setEventOpen] = useState(false);
   const [memberForm, setMemberForm] = useState({ name: "", role: "", email: "", phone: "" });
-  const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "media", assigned_to: "", due_date: "" });
+  const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "media", assigned_to: "", due_date: "", start_date: "" });
   const [habitForm, setHabitForm] = useState({ name: "", description: "" });
+  const [eventForm, setEventForm] = useState({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "" });
 
-  const weekDays = eachDayOfInterval({ start: weekStart, end: endOfWeek(weekStart, { weekStartsOn: 1 }) });
+  // Mon-Fri only
+  const weekDays = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 4) });
 
   const fetchAll = useCallback(async () => {
     if (!user) return;
-    const [m, t, h, c] = await Promise.all([
+    const monthStart = format(startOfMonth(calendarMonth), "yyyy-MM-dd");
+    const monthEnd = format(endOfMonth(calendarMonth), "yyyy-MM-dd");
+    const [m, t, h, c, e] = await Promise.all([
       supabase.from("team_members").select("*").eq("user_id", user.id).order("name"),
       supabase.from("tasks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
       supabase.from("habits").select("*").eq("user_id", user.id).order("name"),
       supabase.from("habit_completions").select("*").eq("user_id", user.id)
         .gte("completion_date", format(weekStart, "yyyy-MM-dd"))
-        .lte("completion_date", format(endOfWeek(weekStart, { weekStartsOn: 1 }), "yyyy-MM-dd")),
+        .lte("completion_date", format(addDays(weekStart, 4), "yyyy-MM-dd")),
+      supabase.from("team_events").select("*").eq("user_id", user.id)
+        .gte("event_date", monthStart).lte("event_date", monthEnd),
     ]);
     if (m.data) setMembers(m.data);
-    if (t.data) setTasks(t.data);
+    if (t.data) setTasks(t.data as Task[]);
     if (h.data) setHabits(h.data);
     if (c.data) setCompletions(c.data);
-  }, [user, weekStart]);
+    if (e.data) setEvents(e.data as TeamEvent[]);
+  }, [user, weekStart, calendarMonth]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // CRUD functions
   const addMember = async () => {
     if (!user || !memberForm.name) return;
     const { error } = await supabase.from("team_members").insert({
@@ -120,10 +151,10 @@ const Equipe = () => {
     const { error } = await supabase.from("tasks").insert({
       user_id: user.id, title: taskForm.title, description: taskForm.description || null,
       priority: taskForm.priority as any, assigned_to: taskForm.assigned_to || null,
-      due_date: taskForm.due_date || null,
+      due_date: taskForm.due_date || null, start_date: taskForm.start_date || null,
     });
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    setTaskForm({ title: "", description: "", priority: "media", assigned_to: "", due_date: "" });
+    setTaskForm({ title: "", description: "", priority: "media", assigned_to: "", due_date: "", start_date: "" });
     setTaskOpen(false);
     fetchAll();
   };
@@ -175,9 +206,33 @@ const Equipe = () => {
     );
   };
 
+  const addEvent = async () => {
+    if (!user || !eventForm.title || !eventForm.event_date) return;
+    const { error } = await supabase.from("team_events").insert({
+      user_id: user.id, title: eventForm.title, event_type: eventForm.event_type,
+      event_date: eventForm.event_date, end_date: eventForm.end_date || null,
+      store_name: eventForm.store_name || null,
+      team_member_id: eventForm.team_member_id || null,
+      description: eventForm.description || null,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    setEventForm({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "" });
+    setEventOpen(false);
+    fetchAll();
+  };
+
+  const deleteEvent = async (id: string) => {
+    await supabase.from("team_events").delete().eq("id", id);
+    fetchAll();
+  };
+
   const getMemberName = (id: string | null) => members.find((m) => m.id === id)?.name || "—";
 
-  const tasksByStatus = (status: string) => tasks.filter((t) => t.status === status);
+  // Calendar helpers
+  const monthDays = eachDayOfInterval({ start: startOfMonth(calendarMonth), end: endOfMonth(calendarMonth) });
+  const firstDayOfWeek = getDay(startOfMonth(calendarMonth));
+  const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+  const getEventsForDate = (date: Date) => events.filter((e) => isSameDay(new Date(e.event_date + "T00:00:00"), date));
 
   return (
     <div className="min-h-screen bg-background">
@@ -201,12 +256,353 @@ const Equipe = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <Tabs defaultValue="equipe">
-          <TabsList className="mb-6">
-            <TabsTrigger value="equipe" className="gap-2"><Users className="h-4 w-4" /> Equipe</TabsTrigger>
+        <Tabs defaultValue="tarefas">
+          <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="tarefas" className="gap-2"><ListTodo className="h-4 w-4" /> Tarefas</TabsTrigger>
             <TabsTrigger value="habitos" className="gap-2"><Target className="h-4 w-4" /> Hábitos</TabsTrigger>
+            <TabsTrigger value="calendario" className="gap-2"><Calendar className="h-4 w-4" /> Calendário</TabsTrigger>
+            <TabsTrigger value="equipe" className="gap-2"><Users className="h-4 w-4" /> Equipe</TabsTrigger>
           </TabsList>
+
+          {/* === TAREFAS === */}
+          <TabsContent value="tarefas">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Tarefas ({tasks.length})</h2>
+              <Dialog open={taskOpen} onOpenChange={setTaskOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><Plus className="h-4 w-4" /> Nova Tarefa</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Nova Tarefa</DialogTitle></DialogHeader>
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-2"><Label>Título *</Label>
+                      <Input value={taskForm.title} onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })} />
+                    </div>
+                    <div className="space-y-2"><Label>Descrição</Label>
+                      <Textarea value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} />
+                    </div>
+                    <div className="space-y-2"><Label>Prioridade</Label>
+                      <Select value={taskForm.priority} onValueChange={(v) => setTaskForm({ ...taskForm, priority: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(priorityLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2"><Label>Responsável</Label>
+                      <Select value={taskForm.assigned_to} onValueChange={(v) => setTaskForm({ ...taskForm, assigned_to: v })}>
+                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                        <SelectContent>
+                          {members.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label>Data de Início</Label>
+                        <Input type="date" value={taskForm.start_date} onChange={(e) => setTaskForm({ ...taskForm, start_date: e.target.value })} />
+                      </div>
+                      <div className="space-y-2"><Label>Data Limite</Label>
+                        <Input type="date" value={taskForm.due_date} onChange={(e) => setTaskForm({ ...taskForm, due_date: e.target.value })} />
+                      </div>
+                    </div>
+                    <Button onClick={addTask} className="w-full">Criar Tarefa</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            <Card>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tarefa</TableHead>
+                      <TableHead>Responsável</TableHead>
+                      <TableHead>Início</TableHead>
+                      <TableHead>Prazo</TableHead>
+                      <TableHead>Prioridade</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="w-10"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {tasks.length === 0 ? (
+                      <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">Nenhuma tarefa cadastrada</TableCell></TableRow>
+                    ) : tasks.map((task) => (
+                      <TableRow key={task.id}>
+                        <TableCell>
+                          <p className="font-medium text-sm">{task.title}</p>
+                          {task.description && <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>}
+                        </TableCell>
+                        <TableCell className="text-sm">{getMemberName(task.assigned_to)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{formatDate(task.start_date)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{formatDate(task.due_date)}</TableCell>
+                        <TableCell>
+                          <Badge className={`${priorityColors[task.priority]} text-[10px]`}>{priorityLabels[task.priority]}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Select value={task.status} onValueChange={(v) => updateTaskStatus(task.id, v)}>
+                            <SelectTrigger className="h-7 text-xs w-[120px]"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteTask(task.id); }}>
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          </TabsContent>
+
+          {/* === HÁBITOS === */}
+          <TabsContent value="habitos">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Hábitos (Seg–Sex)</h2>
+              <Dialog open={habitOpen} onOpenChange={setHabitOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><Plus className="h-4 w-4" /> Novo Hábito</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Novo Hábito</DialogTitle></DialogHeader>
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-2"><Label>Nome *</Label>
+                      <Input value={habitForm.name} onChange={(e) => setHabitForm({ ...habitForm, name: e.target.value })} />
+                    </div>
+                    <div className="space-y-2"><Label>Descrição</Label>
+                      <Textarea value={habitForm.description} onChange={(e) => setHabitForm({ ...habitForm, description: e.target.value })} />
+                    </div>
+                    <Button onClick={addHabit} className="w-full">Criar Hábito</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Week navigation */}
+            <div className="flex items-center gap-4 mb-4">
+              <Button variant="outline" size="icon" onClick={() => setWeekStart((w) => subDays(w, 7))}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm font-medium">
+                {format(weekStart, "dd MMM", { locale: ptBR })} — {format(addDays(weekStart, 4), "dd MMM yyyy", { locale: ptBR })}
+              </span>
+              <Button variant="outline" size="icon" onClick={() => setWeekStart((w) => addDays(w, 7))}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {habits.length === 0 || members.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  {members.length === 0 ? "Cadastre membros da equipe primeiro na aba Equipe" : "Nenhum hábito cadastrado"}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {habits.map((habit) => (
+                  <Card key={habit.id}>
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <CardTitle className="text-base">{habit.name}</CardTitle>
+                          {habit.description && <p className="text-xs text-muted-foreground">{habit.description}</p>}
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteHabit(habit.id); }}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="min-w-[120px]">Membro</TableHead>
+                              {weekDays.map((day) => (
+                                <TableHead key={day.toISOString()} className="text-center w-16">
+                                  <div className="text-[10px] uppercase">{format(day, "EEE", { locale: ptBR })}</div>
+                                  <div className="text-xs">{format(day, "dd")}</div>
+                                </TableHead>
+                              ))}
+                              <TableHead className="text-center w-16">%</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {members.map((member) => {
+                              const doneCount = weekDays.filter((d) =>
+                                isCompleted(habit.id, member.id, format(d, "yyyy-MM-dd"))
+                              ).length;
+                              const pct = Math.round((doneCount / 5) * 100);
+                              return (
+                                <TableRow key={member.id}>
+                                  <TableCell className="text-sm font-medium">{member.name}</TableCell>
+                                  {weekDays.map((day) => {
+                                    const dateStr = format(day, "yyyy-MM-dd");
+                                    const done = isCompleted(habit.id, member.id, dateStr);
+                                    return (
+                                      <TableCell key={dateStr} className="text-center">
+                                        <Checkbox checked={done} onCheckedChange={() => toggleCompletion(habit.id, member.id, dateStr)} />
+                                      </TableCell>
+                                    );
+                                  })}
+                                  <TableCell className="text-center">
+                                    <Badge variant={pct >= 80 ? "default" : pct >= 50 ? "secondary" : "outline"} className="text-xs">{pct}%</Badge>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* === CALENDÁRIO === */}
+          <TabsContent value="calendario">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold">Calendário da Equipe</h2>
+              <Dialog open={eventOpen} onOpenChange={setEventOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><Plus className="h-4 w-4" /> Novo Evento</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>Novo Evento</DialogTitle></DialogHeader>
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-2"><Label>Título *</Label>
+                      <Input value={eventForm.title} onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })} />
+                    </div>
+                    <div className="space-y-2"><Label>Tipo</Label>
+                      <Select value={eventForm.event_type} onValueChange={(v) => setEventForm({ ...eventForm, event_type: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(eventTypeLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label>Data *</Label>
+                        <Input type="date" value={eventForm.event_date} onChange={(e) => setEventForm({ ...eventForm, event_date: e.target.value })} />
+                      </div>
+                      <div className="space-y-2"><Label>Até (opcional)</Label>
+                        <Input type="date" value={eventForm.end_date} onChange={(e) => setEventForm({ ...eventForm, end_date: e.target.value })} />
+                      </div>
+                    </div>
+                    <div className="space-y-2"><Label>Loja (opcional)</Label>
+                      <Input value={eventForm.store_name} onChange={(e) => setEventForm({ ...eventForm, store_name: e.target.value })} placeholder="Nome da loja" />
+                    </div>
+                    <div className="space-y-2"><Label>Membro (opcional)</Label>
+                      <Select value={eventForm.team_member_id} onValueChange={(v) => setEventForm({ ...eventForm, team_member_id: v })}>
+                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                        <SelectContent>
+                          {members.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2"><Label>Descrição</Label>
+                      <Textarea value={eventForm.description} onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })} />
+                    </div>
+                    <Button onClick={addEvent} className="w-full">Criar Evento</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* Month navigation */}
+            <div className="flex items-center gap-4 mb-4">
+              <Button variant="outline" size="icon" onClick={() => setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-sm font-medium capitalize">
+                {format(calendarMonth, "MMMM yyyy", { locale: ptBR })}
+              </span>
+              <Button variant="outline" size="icon" onClick={() => setCalendarMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Legend */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {Object.entries(eventTypeLabels).map(([k, v]) => (
+                <Badge key={k} className={`${eventTypeColors[k]} text-[10px]`}>{v}</Badge>
+              ))}
+            </div>
+
+            {/* Calendar grid */}
+            <Card>
+              <CardContent className="p-2">
+                <div className="grid grid-cols-7 gap-px">
+                  {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((d) => (
+                    <div key={d} className="text-center text-xs font-medium text-muted-foreground py-2">{d}</div>
+                  ))}
+                  {Array.from({ length: paddingDays }).map((_, i) => (
+                    <div key={`pad-${i}`} className="min-h-[80px]" />
+                  ))}
+                  {monthDays.map((day) => {
+                    const dayEvents = getEventsForDate(day);
+                    const isToday = isSameDay(day, new Date());
+                    return (
+                      <div key={day.toISOString()} className={`min-h-[80px] border rounded-md p-1 ${isToday ? "border-primary bg-primary/5" : "border-border"}`}>
+                        <div className={`text-xs font-medium mb-1 ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                          {format(day, "d")}
+                        </div>
+                        <div className="space-y-0.5">
+                          {dayEvents.slice(0, 3).map((ev) => (
+                            <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate cursor-pointer ${eventTypeColors[ev.event_type]}`}
+                              title={`${ev.title}${ev.store_name ? ` - ${ev.store_name}` : ""}${ev.team_member_id ? ` - ${getMemberName(ev.team_member_id)}` : ""}`}
+                              onClick={() => { if (confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.id); }}
+                            >
+                              {ev.title}
+                            </div>
+                          ))}
+                          {dayEvents.length > 3 && <div className="text-[9px] text-muted-foreground">+{dayEvents.length - 3}</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Events list for the month */}
+            {events.length > 0 && (
+              <Card className="mt-4">
+                <CardHeader><CardTitle className="text-base">Eventos do Mês</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {events.sort((a, b) => a.event_date.localeCompare(b.event_date)).map((ev) => (
+                      <div key={ev.id} className="flex items-center justify-between p-2 rounded-md border">
+                        <div className="flex items-center gap-3">
+                          <Badge className={`${eventTypeColors[ev.event_type]} text-[10px]`}>{eventTypeLabels[ev.event_type]}</Badge>
+                          <div>
+                            <p className="text-sm font-medium">{ev.title}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(ev.event_date)}
+                              {ev.end_date && ` — ${formatDate(ev.end_date)}`}
+                              {ev.store_name && ` • ${ev.store_name}`}
+                              {ev.team_member_id && ` • ${getMemberName(ev.team_member_id)}`}
+                            </p>
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteEvent(ev.id); }}>
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
           {/* === EQUIPE === */}
           <TabsContent value="equipe">
@@ -257,200 +653,6 @@ const Equipe = () => {
                     <CardContent className="text-sm text-muted-foreground space-y-1">
                       {m.email && <p>{m.email}</p>}
                       {m.phone && <p>{m.phone}</p>}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* === TAREFAS === */}
-          <TabsContent value="tarefas">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Tarefas ({tasks.length})</h2>
-              <Dialog open={taskOpen} onOpenChange={setTaskOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2"><Plus className="h-4 w-4" /> Nova Tarefa</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Nova Tarefa</DialogTitle></DialogHeader>
-                  <div className="space-y-4 pt-2">
-                    <div className="space-y-2"><Label>Título *</Label>
-                      <Input value={taskForm.title} onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })} />
-                    </div>
-                    <div className="space-y-2"><Label>Descrição</Label>
-                      <Textarea value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} />
-                    </div>
-                    <div className="space-y-2"><Label>Prioridade</Label>
-                      <Select value={taskForm.priority} onValueChange={(v) => setTaskForm({ ...taskForm, priority: v })}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(priorityLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2"><Label>Responsável</Label>
-                      <Select value={taskForm.assigned_to} onValueChange={(v) => setTaskForm({ ...taskForm, assigned_to: v })}>
-                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-                        <SelectContent>
-                          {members.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2"><Label>Prazo</Label>
-                      <Input type="date" value={taskForm.due_date} onChange={(e) => setTaskForm({ ...taskForm, due_date: e.target.value })} />
-                    </div>
-                    <Button onClick={addTask} className="w-full">Criar Tarefa</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {(["pendente", "em_andamento", "concluida", "cancelada"] as const).map((status) => (
-                <div key={status} className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Badge className={statusColors[status]}>{statusLabels[status]}</Badge>
-                    <span className="text-sm text-muted-foreground">({tasksByStatus(status).length})</span>
-                  </div>
-                  <div className="space-y-2">
-                    {tasksByStatus(status).map((task) => (
-                      <Card key={task.id} className="group">
-                        <CardContent className="p-3 space-y-2">
-                          <div className="flex justify-between items-start">
-                            <p className="text-sm font-medium">{task.title}</p>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                              onClick={() => deleteTask(task.id)}>
-                              <Trash2 className="h-3 w-3 text-destructive" />
-                            </Button>
-                          </div>
-                          {task.description && <p className="text-xs text-muted-foreground line-clamp-2">{task.description}</p>}
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge className={`${priorityColors[task.priority]} text-[10px]`}>{priorityLabels[task.priority]}</Badge>
-                            {task.assigned_to && <span className="text-[10px] text-muted-foreground">{getMemberName(task.assigned_to)}</span>}
-                            {task.due_date && <span className="text-[10px] text-muted-foreground">{new Date(task.due_date + "T00:00:00").toLocaleDateString("pt-BR")}</span>}
-                          </div>
-                          <Select value={task.status} onValueChange={(v) => updateTaskStatus(task.id, v)}>
-                            <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* === HÁBITOS === */}
-          <TabsContent value="habitos">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Hábitos Diários</h2>
-              <Dialog open={habitOpen} onOpenChange={setHabitOpen}>
-                <DialogTrigger asChild>
-                  <Button className="gap-2"><Plus className="h-4 w-4" /> Novo Hábito</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader><DialogTitle>Novo Hábito</DialogTitle></DialogHeader>
-                  <div className="space-y-4 pt-2">
-                    <div className="space-y-2"><Label>Nome *</Label>
-                      <Input value={habitForm.name} onChange={(e) => setHabitForm({ ...habitForm, name: e.target.value })} />
-                    </div>
-                    <div className="space-y-2"><Label>Descrição</Label>
-                      <Textarea value={habitForm.description} onChange={(e) => setHabitForm({ ...habitForm, description: e.target.value })} />
-                    </div>
-                    <Button onClick={addHabit} className="w-full">Criar Hábito</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {/* Week navigation */}
-            <div className="flex items-center gap-4 mb-4">
-              <Button variant="outline" size="icon" onClick={() => setWeekStart((w) => subDays(w, 7))}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm font-medium">
-                {format(weekStart, "dd MMM", { locale: ptBR })} — {format(endOfWeek(weekStart, { weekStartsOn: 1 }), "dd MMM yyyy", { locale: ptBR })}
-              </span>
-              <Button variant="outline" size="icon" onClick={() => setWeekStart((w) => addDays(w, 7))}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {habits.length === 0 || members.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
-                  {members.length === 0
-                    ? "Cadastre membros da equipe primeiro na aba Equipe"
-                    : "Nenhum hábito cadastrado"}
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-6">
-                {habits.map((habit) => (
-                  <Card key={habit.id}>
-                    <CardHeader className="pb-2">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <CardTitle className="text-base">{habit.name}</CardTitle>
-                          {habit.description && <p className="text-xs text-muted-foreground">{habit.description}</p>}
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteHabit(habit.id); }}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead className="min-w-[120px]">Membro</TableHead>
-                              {weekDays.map((day) => (
-                                <TableHead key={day.toISOString()} className="text-center w-16">
-                                  <div className="text-[10px] uppercase">{format(day, "EEE", { locale: ptBR })}</div>
-                                  <div className="text-xs">{format(day, "dd")}</div>
-                                </TableHead>
-                              ))}
-                              <TableHead className="text-center w-16">%</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {members.map((member) => {
-                              const doneCount = weekDays.filter((d) =>
-                                isCompleted(habit.id, member.id, format(d, "yyyy-MM-dd"))
-                              ).length;
-                              const pct = Math.round((doneCount / 7) * 100);
-                              return (
-                                <TableRow key={member.id}>
-                                  <TableCell className="text-sm font-medium">{member.name}</TableCell>
-                                  {weekDays.map((day) => {
-                                    const dateStr = format(day, "yyyy-MM-dd");
-                                    const done = isCompleted(habit.id, member.id, dateStr);
-                                    return (
-                                      <TableCell key={dateStr} className="text-center">
-                                        <Checkbox
-                                          checked={done}
-                                          onCheckedChange={() => toggleCompletion(habit.id, member.id, dateStr)}
-                                        />
-                                      </TableCell>
-                                    );
-                                  })}
-                                  <TableCell className="text-center">
-                                    <Badge variant={pct >= 80 ? "default" : pct >= 50 ? "secondary" : "outline"} className="text-xs">
-                                      {pct}%
-                                    </Badge>
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </div>
                     </CardContent>
                   </Card>
                 ))}
