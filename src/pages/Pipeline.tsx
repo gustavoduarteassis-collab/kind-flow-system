@@ -206,10 +206,16 @@ const Pipeline = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar loja..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-          <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2"><Plus className="h-4 w-4" /> Nova Loja no Funil</Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            {stores.length === 0 && (
+              <Button variant="outline" className="gap-2" onClick={importFromSpreadsheet}>
+                Importar Planilha
+              </Button>
+            )}
+            <Dialog open={addOpen} onOpenChange={setAddOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2"><Plus className="h-4 w-4" /> Nova Loja no Funil</Button>
+              </DialogTrigger>
             <DialogContent className="max-h-[85vh] overflow-y-auto">
               <DialogHeader><DialogTitle>Adicionar Loja ao Funil</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
