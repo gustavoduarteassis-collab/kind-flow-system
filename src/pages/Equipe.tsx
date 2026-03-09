@@ -96,6 +96,8 @@ const Equipe = () => {
   const [events, setEvents] = useState<TeamEvent[]>([]);
   const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const [habitMonth, setHabitMonth] = useState(new Date());
+  const [habitMemberFilter, setHabitMemberFilter] = useState<string | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
 
   // Dialogs
