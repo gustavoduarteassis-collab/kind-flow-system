@@ -123,6 +123,37 @@ const Index = () => {
   const completedTasks = tasks.filter((t) => t.status === "concluida").length;
 
   const getMemberName = (id: string | null) => members.find((m) => m.id === id)?.name || "—";
+  const getStoreName = (storeId: string) => stores.find((s) => s.id === storeId)?.nome || storeId;
+
+  const addAccess = async () => {
+    if (!user || !accessForm.store_id || !accessForm.franchisee_email) return;
+    const { error } = await supabase.from("franchisee_access").insert({
+      store_id: accessForm.store_id,
+      franchisee_email: accessForm.franchisee_email.toLowerCase(),
+      created_by: user.id,
+      can_view_checklist: accessForm.can_view_checklist,
+      can_edit_checklist: accessForm.can_edit_checklist,
+      can_view_cronograma: accessForm.can_view_cronograma,
+      can_edit_cronograma: accessForm.can_edit_cronograma,
+      can_view_diario: accessForm.can_view_diario,
+      can_view_custos: accessForm.can_view_custos,
+    });
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    toast({ title: "Acesso liberado!", description: `Franqueado ${accessForm.franchisee_email} vinculado à loja.` });
+    setAccessForm({
+      store_id: "", franchisee_email: "",
+      can_view_checklist: true, can_edit_checklist: true,
+      can_view_cronograma: true, can_edit_cronograma: true,
+      can_view_diario: true, can_view_custos: true,
+    });
+    setAccessOpen(false);
+    fetchData();
+  };
+
+  const deleteAccess = async (id: string) => {
+    await supabase.from("franchisee_access").delete().eq("id", id);
+    fetchData();
+  };
 
   return (
     <div className="min-h-screen bg-background">
