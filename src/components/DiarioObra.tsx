@@ -13,11 +13,13 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Plus, Camera, Trash2, ChevronLeft, ChevronRight, CloudSun, Users,
+  Plus, Camera, Trash2, ChevronLeft, ChevronRight, Users,
   CalendarDays, ImageIcon, Upload, FileImage, Clock,
 } from "lucide-react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+type WorkerEntry = { type: string; count: number };
 
 type DiaryEntry = {
   id: string; store_id: string; entry_date: string; description: string;
@@ -26,6 +28,21 @@ type DiaryEntry = {
 type DiaryPhoto = {
   id: string; diary_id: string; photo_url: string; caption: string;
 };
+
+const WORKER_SUGGESTIONS = [
+  "Pedreiro", "Eletricista", "Encanador", "Pintor", "Gesseiro",
+  "Serralheiro", "Marceneiro", "Ajudante", "Mestre de Obra", "Engenheiro",
+];
+
+const parseWorkers = (weather: string): WorkerEntry[] => {
+  try {
+    const parsed = JSON.parse(weather);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {}
+  return [];
+};
+
+const totalWorkers = (workers: WorkerEntry[]) => workers.reduce((s, w) => s + w.count, 0);
 
 interface DiarioObraProps { storeId: string; }
 
@@ -39,8 +56,10 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
     entry_date: format(new Date(), "yyyy-MM-dd"),
-    description: "", weather: "", workers_count: 0,
+    description: "",
   });
+  const [formWorkers, setFormWorkers] = useState<WorkerEntry[]>([]);
+  const [newWorkerType, setNewWorkerType] = useState("");
   const [pendingPhotos, setPendingPhotos] = useState<File[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<DiaryEntry | null>(null);
   const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
@@ -91,19 +110,22 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
       toast({ title: "Preencha a descrição", variant: "destructive" }); return;
     }
     setUploading(true);
+    const workersTotal = totalWorkers(formWorkers);
     const { data, error } = await supabase.from("construction_diary").insert({
       store_id: storeId, user_id: user.id, entry_date: form.entry_date,
-      description: form.description, weather: form.weather, workers_count: form.workers_count,
+      description: form.description,
+      weather: JSON.stringify(formWorkers),
+      workers_count: workersTotal,
     }).select().single();
     if (error || !data) {
       toast({ title: "Erro", description: error?.message, variant: "destructive" });
       setUploading(false); return;
     }
-    // Upload pending photos
     for (const file of pendingPhotos) {
       await uploadPhoto(data.id, file);
     }
-    setForm({ entry_date: format(new Date(), "yyyy-MM-dd"), description: "", weather: "", workers_count: 0 });
+    setForm({ entry_date: format(new Date(), "yyyy-MM-dd"), description: "" });
+    setFormWorkers([]);
     setPendingPhotos([]);
     setDialogOpen(false);
     setUploading(false);
@@ -131,17 +153,46 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
     fetchEntries();
   };
 
+  const addWorker = () => {
+    const type = newWorkerType.trim();
+    if (!type) return;
+    if (formWorkers.some((w) => w.type.toLowerCase() === type.toLowerCase())) {
+      toast({ title: "Tipo já adicionado", variant: "destructive" }); return;
+    }
+    setFormWorkers([...formWorkers, { type, count: 1 }]);
+    setNewWorkerType("");
+  };
+
   const formatDateBR = (d: string) =>
     new Date(d + "T00:00:00").toLocaleDateString("pt-BR", {
       weekday: "long", day: "2-digit", month: "long", year: "numeric",
     });
 
-  const formatDateShort = (d: string) =>
-    new Date(d + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
-
   const sortedEntries = [...entries].sort((a, b) => a.entry_date.localeCompare(b.entry_date));
-
   const totalPhotos = Object.values(photos).reduce((sum, arr) => sum + arr.length, 0);
+
+  const renderWorkersBadges = (entry: DiaryEntry) => {
+    const workers = parseWorkers(entry.weather);
+    if (workers.length > 0) {
+      return (
+        <div className="flex flex-wrap gap-1">
+          {workers.map((w, i) => (
+            <Badge key={i} variant="outline" className="text-[10px]">
+              {w.type}: {w.count}
+            </Badge>
+          ))}
+        </div>
+      );
+    }
+    if (entry.workers_count > 0) {
+      return (
+        <span className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Users className="h-3.5 w-3.5" /> {entry.workers_count} funcionários
+        </span>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-4">
@@ -151,7 +202,7 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
           <DialogTrigger asChild>
             <Button className="gap-2"><Plus className="h-4 w-4" /> Novo Registro</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Novo Registro do Diário</DialogTitle></DialogHeader>
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
@@ -163,18 +214,65 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
                 <Textarea rows={4} placeholder="Descreva as atividades realizadas no dia..."
                   value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Clima</Label>
-                  <Input placeholder="Ex: Ensolarado" value={form.weather}
-                    onChange={(e) => setForm({ ...form, weather: e.target.value })} />
+
+              {/* Workers section */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> Funcionários</Label>
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <Input
+                      placeholder="Ex: Pedreiro, Eletricista..."
+                      value={newWorkerType}
+                      onChange={(e) => setNewWorkerType(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addWorker(); } }}
+                      list="worker-suggestions"
+                    />
+                    <datalist id="worker-suggestions">
+                      {WORKER_SUGGESTIONS.filter((s) => !formWorkers.some((w) => w.type === s)).map((s) => (
+                        <option key={s} value={s} />
+                      ))}
+                    </datalist>
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={addWorker}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
-                <div className="space-y-2">
-                  <Label>Nº de Funcionários</Label>
-                  <Input type="number" min={0} value={form.workers_count}
-                    onChange={(e) => setForm({ ...form, workers_count: parseInt(e.target.value) || 0 })} />
+                {/* Quick add suggestions */}
+                <div className="flex flex-wrap gap-1">
+                  {WORKER_SUGGESTIONS.filter((s) => !formWorkers.some((w) => w.type === s)).slice(0, 6).map((s) => (
+                    <Button key={s} type="button" variant="ghost" size="sm" className="h-6 text-[10px] px-2"
+                      onClick={() => setFormWorkers([...formWorkers, { type: s, count: 1 }])}>
+                      + {s}
+                    </Button>
+                  ))}
                 </div>
+                {formWorkers.length > 0 && (
+                  <div className="space-y-2 mt-2">
+                    {formWorkers.map((w, i) => (
+                      <div key={i} className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-1.5">
+                        <span className="text-sm flex-1 font-medium">{w.type}</span>
+                        <Input
+                          type="number" min={1} className="w-16 h-7 text-sm text-center"
+                          value={w.count}
+                          onChange={(e) => {
+                            const updated = [...formWorkers];
+                            updated[i] = { ...w, count: parseInt(e.target.value) || 1 };
+                            setFormWorkers(updated);
+                          }}
+                        />
+                        <Button type="button" variant="ghost" size="icon" className="h-6 w-6"
+                          onClick={() => setFormWorkers(formWorkers.filter((_, idx) => idx !== i))}>
+                          <Trash2 className="h-3 w-3 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                    <div className="text-xs text-muted-foreground text-right">
+                      Total: <span className="font-semibold">{totalWorkers(formWorkers)}</span> funcionários
+                    </div>
+                  </div>
+                )}
               </div>
+
               {/* Photo upload area */}
               <div className="space-y-2">
                 <Label>Fotos / Comprovantes</Label>
@@ -182,8 +280,7 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
                   <input type="file" accept="image/*" multiple className="hidden"
                     onChange={(e) => {
                       if (e.target.files) setPendingPhotos((prev) => [...prev, ...Array.from(e.target.files!)]);
-                    }}
-                  />
+                    }} />
                   <Upload className="h-8 w-8 text-muted-foreground mb-2" />
                   <span className="text-sm text-muted-foreground">Clique ou arraste fotos aqui</span>
                   <span className="text-xs text-muted-foreground mt-1">JPG, PNG — múltiplos arquivos</span>
@@ -193,10 +290,8 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
                     {pendingPhotos.map((f, i) => (
                       <div key={i} className="relative">
                         <img src={URL.createObjectURL(f)} alt="" className="h-16 w-16 object-cover rounded-md" />
-                        <button
-                          className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"
-                          onClick={() => setPendingPhotos((prev) => prev.filter((_, idx) => idx !== i))}
-                        >
+                        <button className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                          onClick={() => setPendingPhotos((prev) => prev.filter((_, idx) => idx !== i))}>
                           <Trash2 className="h-3 w-3" />
                         </button>
                       </div>
@@ -252,7 +347,7 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
         </Card>
       </div>
 
-      {/* Tabs: Registros / Linha do Tempo */}
+      {/* Tabs */}
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList className="w-full">
           <TabsTrigger value="registros" className="flex-1">📋 Registros</TabsTrigger>
@@ -281,17 +376,8 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
                           <CardTitle className="text-sm font-semibold capitalize">
                             {formatDateBR(entry.entry_date)}
                           </CardTitle>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                            {entry.weather && (
-                              <span className="flex items-center gap-1">
-                                <CloudSun className="h-3.5 w-3.5" /> {entry.weather}
-                              </span>
-                            )}
-                            {entry.workers_count > 0 && (
-                              <span className="flex items-center gap-1">
-                                <Users className="h-3.5 w-3.5" /> {entry.workers_count} funcionários
-                              </span>
-                            )}
+                          <div className="flex items-center gap-3 mt-1.5">
+                            {renderWorkersBadges(entry)}
                             <Badge variant="outline" className="text-[10px]">
                               <ImageIcon className="h-3 w-3 mr-1" /> {entryPhotos.length} foto(s)
                             </Badge>
@@ -362,10 +448,8 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
                         const entryPhotos = photos[entry.id] || [];
                         return (
                           <div key={entry.id} className="flex-1 flex flex-col items-center px-1">
-                            <div
-                              className="text-center cursor-pointer hover:bg-muted/50 rounded-lg p-1.5 transition-colors max-w-[130px]"
-                              onClick={() => { setSelectedEntry(entry); setPhotoDialogOpen(true); }}
-                            >
+                            <div className="text-center cursor-pointer hover:bg-muted/50 rounded-lg p-1.5 transition-colors max-w-[130px]"
+                              onClick={() => { setSelectedEntry(entry); setPhotoDialogOpen(true); }}>
                               <p className="text-[11px] font-medium leading-tight line-clamp-3">{entry.description}</p>
                               {entryPhotos.length > 0 && (
                                 <span className="text-[9px] text-muted-foreground flex items-center justify-center gap-0.5 mt-0.5">
@@ -373,7 +457,6 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
                                 </span>
                               )}
                             </div>
-                            {/* Connector line down to dot */}
                             <div className="w-px h-3 bg-primary/40" />
                           </div>
                         );
@@ -382,14 +465,11 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
 
                     {/* Horizontal line with dots and dates */}
                     <div className="relative">
-                      {/* Main horizontal line */}
                       <div className="absolute top-[6px] left-0 right-0 h-[3px] bg-gradient-to-r from-primary via-primary to-primary/40 rounded-full" />
                       <div className="flex">
                         {sortedEntries.map((entry) => (
                           <div key={entry.id} className="flex-1 flex flex-col items-center">
-                            {/* Dot */}
                             <div className="w-[14px] h-[14px] rounded-full bg-background border-[3px] border-primary relative z-10" />
-                            {/* Date label */}
                             <span className="text-[10px] font-semibold text-muted-foreground mt-1.5 whitespace-nowrap">
                               {new Date(entry.entry_date + "T00:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
                             </span>
@@ -405,12 +485,9 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
                         const entryPhotos = photos[entry.id] || [];
                         return (
                           <div key={entry.id} className="flex-1 flex flex-col items-center px-1">
-                            {/* Connector line up from dot */}
                             <div className="w-px h-3 bg-primary/40" />
-                            <div
-                              className="text-center cursor-pointer hover:bg-muted/50 rounded-lg p-1.5 transition-colors max-w-[130px]"
-                              onClick={() => { setSelectedEntry(entry); setPhotoDialogOpen(true); }}
-                            >
+                            <div className="text-center cursor-pointer hover:bg-muted/50 rounded-lg p-1.5 transition-colors max-w-[130px]"
+                              onClick={() => { setSelectedEntry(entry); setPhotoDialogOpen(true); }}>
                               <p className="text-[11px] font-medium leading-tight line-clamp-3">{entry.description}</p>
                               {entryPhotos.length > 0 && (
                                 <span className="text-[9px] text-muted-foreground flex items-center justify-center gap-0.5 mt-0.5">
