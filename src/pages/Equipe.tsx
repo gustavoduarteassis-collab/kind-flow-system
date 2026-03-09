@@ -85,6 +85,7 @@ const formatDate = (d: string | null) => {
 
 const Equipe = () => {
   const { user, signOut } = useAuth();
+  const { stores } = useStores();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -93,6 +94,7 @@ const Equipe = () => {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [events, setEvents] = useState<TeamEvent[]>([]);
+  const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMonth, setCalendarMonth] = useState(new Date());
 
@@ -101,10 +103,12 @@ const Equipe = () => {
   const [taskOpen, setTaskOpen] = useState(false);
   const [habitOpen, setHabitOpen] = useState(false);
   const [eventOpen, setEventOpen] = useState(false);
+  const [accessOpen, setAccessOpen] = useState(false);
   const [memberForm, setMemberForm] = useState({ name: "", role: "", email: "", phone: "" });
   const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "media", assigned_to: "", due_date: "", start_date: "" });
   const [habitForm, setHabitForm] = useState({ name: "", description: "" });
   const [eventForm, setEventForm] = useState({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "" });
+  const [accessForm, setAccessForm] = useState({ store_id: "", franchisee_email: "" });
 
   // Mon-Fri only
   const weekDays = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 4) });
