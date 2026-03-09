@@ -45,6 +45,9 @@ type TeamEvent = {
 };
 type FranchiseeAccess = {
   id: string; store_id: string; franchisee_email: string;
+  can_view_checklist: boolean; can_edit_checklist: boolean;
+  can_view_cronograma: boolean; can_edit_cronograma: boolean;
+  can_view_diario: boolean; can_view_custos: boolean;
 };
 
 const statusLabels: Record<string, string> = {
@@ -114,7 +117,12 @@ const Equipe = () => {
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(null);
-  const [accessForm, setAccessForm] = useState({ store_id: "", franchisee_email: "" });
+  const [accessForm, setAccessForm] = useState({
+    store_id: "", franchisee_email: "",
+    can_view_checklist: true, can_edit_checklist: false,
+    can_view_cronograma: true, can_edit_cronograma: false,
+    can_view_diario: false, can_view_custos: false,
+  });
 
   // Mon-Fri only
   const weekDays = eachDayOfInterval({ start: weekStart, end: addDays(weekStart, 4) });
@@ -253,10 +261,21 @@ const Equipe = () => {
       store_id: accessForm.store_id,
       franchisee_email: accessForm.franchisee_email.toLowerCase(),
       created_by: user.id,
+      can_view_checklist: accessForm.can_view_checklist,
+      can_edit_checklist: accessForm.can_edit_checklist,
+      can_view_cronograma: accessForm.can_view_cronograma,
+      can_edit_cronograma: accessForm.can_edit_cronograma,
+      can_view_diario: accessForm.can_view_diario,
+      can_view_custos: accessForm.can_view_custos,
     });
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Acesso liberado!", description: `Franqueado ${accessForm.franchisee_email} vinculado à loja.` });
-    setAccessForm({ store_id: "", franchisee_email: "" });
+    setAccessForm({
+      store_id: "", franchisee_email: "",
+      can_view_checklist: true, can_edit_checklist: false,
+      can_view_cronograma: true, can_edit_cronograma: false,
+      can_view_diario: false, can_view_custos: false,
+    });
     setAccessOpen(false);
     fetchAll();
   };
@@ -959,9 +978,47 @@ const Equipe = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      O franqueado precisa criar uma conta com este e-mail. Ao entrar, verá apenas o checklist e cronograma da loja selecionada.
-                    </p>
+                    <div className="space-y-3">
+                      <Label className="text-sm font-semibold">Permissões</Label>
+                      <div className="grid grid-cols-2 gap-3 p-3 rounded-lg border bg-muted/30">
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Checklist</p>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="view-checklist" checked={accessForm.can_view_checklist} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_checklist: !!v, can_edit_checklist: !v ? false : accessForm.can_edit_checklist })} />
+                            <Label htmlFor="view-checklist" className="text-xs">Visualizar</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="edit-checklist" checked={accessForm.can_edit_checklist} disabled={!accessForm.can_view_checklist} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_edit_checklist: !!v })} />
+                            <Label htmlFor="edit-checklist" className="text-xs">Editar</Label>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Cronograma</p>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="view-cronograma" checked={accessForm.can_view_cronograma} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_cronograma: !!v, can_edit_cronograma: !v ? false : accessForm.can_edit_cronograma })} />
+                            <Label htmlFor="view-cronograma" className="text-xs">Visualizar</Label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="edit-cronograma" checked={accessForm.can_edit_cronograma} disabled={!accessForm.can_view_cronograma} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_edit_cronograma: !!v })} />
+                            <Label htmlFor="edit-cronograma" className="text-xs">Editar</Label>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Diário de Obra</p>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="view-diario" checked={accessForm.can_view_diario} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_diario: !!v })} />
+                            <Label htmlFor="view-diario" className="text-xs">Visualizar</Label>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-muted-foreground">Custos</p>
+                          <div className="flex items-center gap-2">
+                            <Checkbox id="view-custos" checked={accessForm.can_view_custos} onCheckedChange={(v) => setAccessForm({ ...accessForm, can_view_custos: !!v })} />
+                            <Label htmlFor="view-custos" className="text-xs">Visualizar</Label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <Button onClick={addAccess} className="w-full">Liberar Acesso</Button>
                   </div>
                 </DialogContent>
@@ -981,6 +1038,7 @@ const Equipe = () => {
                       <TableRow>
                         <TableHead>E-mail do Franqueado</TableHead>
                         <TableHead>Loja Vinculada</TableHead>
+                        <TableHead>Permissões</TableHead>
                         <TableHead className="w-10"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -989,6 +1047,14 @@ const Equipe = () => {
                         <TableRow key={fa.id}>
                           <TableCell className="text-sm">{fa.franchisee_email}</TableCell>
                           <TableCell className="text-sm font-medium">{getStoreName(fa.store_id)}</TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              {fa.can_view_checklist && <Badge variant="outline" className="text-[10px]">Checklist {fa.can_edit_checklist ? "✏️" : "👁️"}</Badge>}
+                              {fa.can_view_cronograma && <Badge variant="outline" className="text-[10px]">Cronograma {fa.can_edit_cronograma ? "✏️" : "👁️"}</Badge>}
+                              {fa.can_view_diario && <Badge variant="outline" className="text-[10px]">Diário 👁️</Badge>}
+                              {fa.can_view_custos && <Badge variant="outline" className="text-[10px]">Custos 👁️</Badge>}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Revogar acesso?")) deleteAccess(fa.id); }}>
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />
