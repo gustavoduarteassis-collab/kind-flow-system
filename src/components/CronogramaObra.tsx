@@ -86,24 +86,27 @@ const CronogramaObra = ({ store, onUpdate }: CronogramaObraProps) => {
     const inicio = field === "inicio" ? value : current.inicio;
     const fim = field === "fim" ? value : current.fim;
 
-    if (inicio && fim && startDate) {
+    // Clear old planned cells for this item first
+    for (let d = 1; d <= TOTAL_DAYS; d++) {
+      const key = `${itemId}-${d}`;
+      if (newCells[key] === "planned") {
+        delete newCells[key];
+      }
+    }
+
+    // Fill range if we have both dates AND a start date for the obra
+    if (inicio && fim && cronograma.startDate) {
+      const obraStart = new Date(cronograma.startDate + "T00:00:00");
       const inicioDate = new Date(inicio + "T00:00:00");
       const fimDate = new Date(fim + "T00:00:00");
 
-      // Clear old planned cells for this item
-      for (let d = 1; d <= TOTAL_DAYS; d++) {
-        const key = `${itemId}-${d}`;
-        if (newCells[key] === "planned") {
-          delete newCells[key];
-        }
-      }
+      const startDay = differenceInCalendarDays(inicioDate, obraStart) + 1;
+      const endDay = differenceInCalendarDays(fimDate, obraStart) + 1;
 
-      // Fill new range
-      const startDay = differenceInCalendarDays(inicioDate, startDate) + 1;
-      const endDay = differenceInCalendarDays(fimDate, startDate) + 1;
       for (let d = Math.max(1, startDay); d <= Math.min(TOTAL_DAYS, endDay); d++) {
         const key = `${itemId}-${d}`;
-        if (!newCells[key]) {
+        // Only set to planned if not already marked as done/delayed
+        if (!newCells[key] || newCells[key] === "none") {
           newCells[key] = "planned";
         }
       }
