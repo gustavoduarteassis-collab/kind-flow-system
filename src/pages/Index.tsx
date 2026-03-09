@@ -32,6 +32,12 @@ type Task = {
 };
 type TeamMember = { id: string; name: string };
 type Habit = { id: string; name: string };
+type FranchiseeAccess = {
+  id: string; store_id: string; franchisee_email: string;
+  can_view_checklist: boolean; can_edit_checklist: boolean;
+  can_view_cronograma: boolean; can_edit_cronograma: boolean;
+  can_view_diario: boolean; can_view_custos: boolean;
+};
 
 const statusLabels: Record<string, string> = {
   pendente: "Pendente", em_andamento: "Em Andamento", concluida: "Concluída", cancelada: "Cancelada",
