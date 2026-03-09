@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
 import { pipelineImportData } from "@/data/pipelineImportData";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -18,15 +18,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
-import {
-  ArrowLeft, Plus, Trash2, LogOut, CheckCircle2, Clock, AlertCircle, ArrowRightCircle, Search,
+  ArrowLeft, Plus, Trash2, LogOut, CheckCircle2, Clock, AlertCircle,
+  ArrowRightCircle, Search, Pencil,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createDefaultChecklist } from "@/data/checklistData";
-import { createDefaultCronograma } from "@/data/cronogramaData";
-import { createDefaultCustos } from "@/data/custosData";
 
 type PipelineStore = {
   id: string;
@@ -67,12 +62,31 @@ const PHASES = [
 
 const PHASE_STATUSES = [
   { value: "pendente", label: "Pendente", color: "bg-muted text-muted-foreground", icon: Clock },
-  { value: "em_andamento", label: "Em Andamento", color: "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]", icon: AlertCircle },
-  { value: "aprovado", label: "Aprovado", color: "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]", icon: CheckCircle2 },
+  { value: "em_andamento", label: "Em Andamento", color: "bg-amber-100 text-amber-800", icon: AlertCircle },
+  { value: "aprovado", label: "Aprovado", color: "bg-emerald-100 text-emerald-800", icon: CheckCircle2 },
 ];
 
 const getPhaseColor = (status: string) => PHASE_STATUSES.find((s) => s.value === status)?.color || "bg-muted text-muted-foreground";
 const getPhaseLabel = (status: string) => PHASE_STATUSES.find((s) => s.value === status)?.label || "Pendente";
+
+const parseDate = (dateStr: string) => {
+  if (!dateStr) return new Date("2099-12-31");
+  // Handle dd/mm/yy or dd/mm/yyyy
+  const parts = dateStr.split("/");
+  if (parts.length === 3) {
+    let year = parseInt(parts[2]);
+    if (year < 100) year += 2000;
+    return new Date(year, parseInt(parts[1]) - 1, parseInt(parts[0]));
+  }
+  return new Date("2099-12-31");
+};
+
+const emptyForm = {
+  filial: "", local: "", cidade: "", estado: "", padrao: "Tradicional",
+  localizacao: "Shopping", franqueado: "", contato_franqueado: "",
+  email_franqueado: "", previsao_inauguracao: "", cd_origem: "",
+  status_geral: "", observacoes: "", inicio_obra: "",
+};
 
 const Pipeline = () => {
   const { user, signOut } = useAuth();
@@ -83,13 +97,10 @@ const Pipeline = () => {
   const [stores, setStores] = useState<PipelineStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [addOpen, setAddOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingStore, setEditingStore] = useState<PipelineStore | null>(null);
   const [search, setSearch] = useState("");
-  const [form, setForm] = useState({
-    filial: "", local: "", cidade: "", estado: "", padrao: "Tradicional",
-    localizacao: "Shopping", franqueado: "", contato_franqueado: "",
-    email_franqueado: "", previsao_inauguracao: "", cd_origem: "",
-    status_geral: "", observacoes: "",
-  });
+  const [form, setForm] = useState({ ...emptyForm });
 
   const fetchStores = useCallback(async () => {
     if (!user) return;
@@ -111,12 +122,7 @@ const Pipeline = () => {
     } as any);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     toast({ title: "Loja adicionada ao funil!" });
-    setForm({
-      filial: "", local: "", cidade: "", estado: "", padrao: "Tradicional",
-      localizacao: "Shopping", franqueado: "", contato_franqueado: "",
-      email_franqueado: "", previsao_inauguracao: "", cd_origem: "",
-      status_geral: "", observacoes: "",
-    });
+    setForm({ ...emptyForm });
     setAddOpen(false);
     fetchStores();
   };
@@ -124,6 +130,21 @@ const Pipeline = () => {
   const updatePhase = async (id: string, phase: string, value: string) => {
     await supabase.from("pipeline_stores").update({ [phase]: value } as any).eq("id", id);
     setStores((prev) => prev.map((s) => s.id === id ? { ...s, [phase]: value } : s));
+  };
+
+  const openEdit = (store: PipelineStore) => {
+    setEditingStore(store);
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editingStore) return;
+    const { id, transferido, ...rest } = editingStore;
+    await supabase.from("pipeline_stores").update(rest as any).eq("id", id);
+    setStores((prev) => prev.map((s) => s.id === id ? editingStore : s));
+    toast({ title: "Loja atualizada!" });
+    setEditOpen(false);
+    setEditingStore(null);
   };
 
   const deleteStore = async (id: string) => {
@@ -161,7 +182,6 @@ const Pipeline = () => {
     if (!user) return;
     if (!confirm(`Importar ${pipelineImportData.length} lojas da planilha?`)) return;
     for (const item of pipelineImportData) {
-      // Check for existing by local to avoid duplicates
       const { data: existing } = await supabase
         .from("pipeline_stores")
         .select("id")
@@ -178,29 +198,24 @@ const Pipeline = () => {
 
   const removeDuplicates = async () => {
     if (!user) return;
-    if (!confirm("Remover lojas duplicadas? Apenas a primeira de cada local será mantida.")) return;
+    if (!confirm("Remover lojas duplicadas?")) return;
     const seen = new Map<string, string>();
     const toDelete: string[] = [];
     for (const store of stores) {
       const key = store.local.toLowerCase().trim();
-      if (seen.has(key)) {
-        toDelete.push(store.id);
-      } else {
-        seen.set(key, store.id);
-      }
+      if (seen.has(key)) toDelete.push(store.id);
+      else seen.set(key, store.id);
     }
-    if (toDelete.length === 0) {
-      toast({ title: "Nenhuma duplicata encontrada." });
-      return;
-    }
-    for (const id of toDelete) {
-      await supabase.from("pipeline_stores").delete().eq("id", id);
-    }
+    if (toDelete.length === 0) { toast({ title: "Nenhuma duplicata encontrada." }); return; }
+    for (const id of toDelete) await supabase.from("pipeline_stores").delete().eq("id", id);
     toast({ title: `${toDelete.length} duplicata(s) removida(s)!` });
     fetchStores();
   };
 
-  const filtered = stores.filter((s) =>
+  // Sort by inauguration date
+  const sorted = [...stores].sort((a, b) => parseDate(a.previsao_inauguracao).getTime() - parseDate(b.previsao_inauguracao).getTime());
+
+  const filtered = sorted.filter((s) =>
     s.local.toLowerCase().includes(search.toLowerCase()) ||
     s.filial.toLowerCase().includes(search.toLowerCase()) ||
     s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
@@ -208,6 +223,76 @@ const Pipeline = () => {
   );
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
+
+  const StoreFormFields = ({ data, onChange }: { data: any; onChange: (d: any) => void }) => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1"><Label className="text-xs">Filial</Label>
+          <Input value={data.filial} onChange={(e) => onChange({ ...data, filial: e.target.value })} />
+        </div>
+        <div className="space-y-1"><Label className="text-xs">Local / Nome *</Label>
+          <Input value={data.local} onChange={(e) => onChange({ ...data, local: e.target.value })} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1"><Label className="text-xs">Cidade</Label>
+          <Input value={data.cidade} onChange={(e) => onChange({ ...data, cidade: e.target.value })} />
+        </div>
+        <div className="space-y-1"><Label className="text-xs">Estado</Label>
+          <Input value={data.estado} onChange={(e) => onChange({ ...data, estado: e.target.value })} maxLength={2} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1"><Label className="text-xs">Padrão</Label>
+          <Select value={data.padrao} onValueChange={(v) => onChange({ ...data, padrao: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Tradicional">Tradicional</SelectItem>
+              <SelectItem value="Light">Light</SelectItem>
+              <SelectItem value="Outlet">Outlet</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1"><Label className="text-xs">Localização</Label>
+          <Select value={data.localizacao} onValueChange={(v) => onChange({ ...data, localizacao: v })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Shopping">Shopping</SelectItem>
+              <SelectItem value="Rua">Rua</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="space-y-1"><Label className="text-xs">Franqueado</Label>
+        <Input value={data.franqueado} onChange={(e) => onChange({ ...data, franqueado: e.target.value })} />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1"><Label className="text-xs">Contato</Label>
+          <Input value={data.contato_franqueado} onChange={(e) => onChange({ ...data, contato_franqueado: e.target.value })} />
+        </div>
+        <div className="space-y-1"><Label className="text-xs">E-mail</Label>
+          <Input type="email" value={data.email_franqueado} onChange={(e) => onChange({ ...data, email_franqueado: e.target.value })} />
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <div className="space-y-1"><Label className="text-xs">Previsão Inauguração</Label>
+          <Input value={data.previsao_inauguracao} onChange={(e) => onChange({ ...data, previsao_inauguracao: e.target.value })} placeholder="dd/mm/aa" />
+        </div>
+        <div className="space-y-1"><Label className="text-xs">CD de Origem</Label>
+          <Input value={data.cd_origem} onChange={(e) => onChange({ ...data, cd_origem: e.target.value })} />
+        </div>
+        <div className="space-y-1"><Label className="text-xs">Início Obra</Label>
+          <Input value={data.inicio_obra} onChange={(e) => onChange({ ...data, inicio_obra: e.target.value })} />
+        </div>
+      </div>
+      <div className="space-y-1"><Label className="text-xs">Status Geral</Label>
+        <Textarea value={data.status_geral} onChange={(e) => onChange({ ...data, status_geral: e.target.value })} rows={2} />
+      </div>
+      <div className="space-y-1"><Label className="text-xs">Observações</Label>
+        <Textarea value={data.observacoes || ""} onChange={(e) => onChange({ ...data, observacoes: e.target.value })} rows={2} />
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -237,208 +322,166 @@ const Pipeline = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar loja..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2" onClick={removeDuplicates}>
+          <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" className="gap-2" onClick={removeDuplicates}>
               <Trash2 className="h-4 w-4" /> Remover Duplicatas
             </Button>
             {stores.length === 0 && (
-              <Button variant="outline" className="gap-2" onClick={importFromSpreadsheet}>
+              <Button variant="outline" size="sm" className="gap-2" onClick={importFromSpreadsheet}>
                 Importar Planilha
               </Button>
             )}
             <Dialog open={addOpen} onOpenChange={setAddOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2"><Plus className="h-4 w-4" /> Nova Loja no Funil</Button>
+                <Button size="sm" className="gap-2"><Plus className="h-4 w-4" /> Nova Loja</Button>
               </DialogTrigger>
-            <DialogContent className="max-h-[85vh] overflow-y-auto">
-              <DialogHeader><DialogTitle>Adicionar Loja ao Funil</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-2">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2"><Label>Filial</Label>
-                    <Input value={form.filial} onChange={(e) => setForm({ ...form, filial: e.target.value })} />
-                  </div>
-                  <div className="space-y-2"><Label>Local / Nome *</Label>
-                    <Input value={form.local} onChange={(e) => setForm({ ...form, local: e.target.value })} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2"><Label>Cidade</Label>
-                    <Input value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} />
-                  </div>
-                  <div className="space-y-2"><Label>Estado</Label>
-                    <Input value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} maxLength={2} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2"><Label>Padrão</Label>
-                    <Select value={form.padrao} onValueChange={(v) => setForm({ ...form, padrao: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Tradicional">Tradicional</SelectItem>
-                        <SelectItem value="Light">Light</SelectItem>
-                        <SelectItem value="Outlet">Outlet</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2"><Label>Localização</Label>
-                    <Select value={form.localizacao} onValueChange={(v) => setForm({ ...form, localizacao: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Shopping">Shopping</SelectItem>
-                        <SelectItem value="Rua">Rua</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="space-y-2"><Label>Franqueado</Label>
-                  <Input value={form.franqueado} onChange={(e) => setForm({ ...form, franqueado: e.target.value })} />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2"><Label>Contato</Label>
-                    <Input value={form.contato_franqueado} onChange={(e) => setForm({ ...form, contato_franqueado: e.target.value })} />
-                  </div>
-                  <div className="space-y-2"><Label>E-mail</Label>
-                    <Input type="email" value={form.email_franqueado} onChange={(e) => setForm({ ...form, email_franqueado: e.target.value })} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2"><Label>Previsão Inauguração</Label>
-                    <Input value={form.previsao_inauguracao} onChange={(e) => setForm({ ...form, previsao_inauguracao: e.target.value })} placeholder="dd/mm/aa" />
-                  </div>
-                  <div className="space-y-2"><Label>CD de Origem</Label>
-                    <Input value={form.cd_origem} onChange={(e) => setForm({ ...form, cd_origem: e.target.value })} />
-                  </div>
-                </div>
-                <div className="space-y-2"><Label>Status Geral</Label>
-                  <Textarea value={form.status_geral} onChange={(e) => setForm({ ...form, status_geral: e.target.value })} rows={2} />
-                </div>
-                <div className="space-y-2"><Label>Observações</Label>
-                  <Textarea value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} rows={2} />
-                </div>
-                <Button onClick={addPipelineStore} className="w-full">Adicionar ao Funil</Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+                <DialogHeader><DialogTitle>Adicionar Loja ao Funil</DialogTitle></DialogHeader>
+                <StoreFormFields data={form} onChange={setForm} />
+                <Button onClick={addPipelineStore} className="w-full mt-2">Adicionar ao Funil</Button>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
         {/* Summary cards */}
-        <div className="grid gap-4 sm:grid-cols-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-sm text-muted-foreground">Total no Funil</p>
-              <p className="text-2xl font-bold">{stores.length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-sm text-muted-foreground">Prontas p/ Transferir</p>
-              <p className="text-2xl font-bold text-[hsl(var(--success))]">{stores.filter(isReadyToTransfer).length}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-sm text-muted-foreground">Em Andamento</p>
-              <p className="text-2xl font-bold text-[hsl(var(--accent))]">
-                {stores.filter((s) => !isReadyToTransfer(s) && PHASES.some((p) => (s as any)[p.key] === "em_andamento")).length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-sm text-muted-foreground">Pendentes</p>
-              <p className="text-2xl font-bold text-muted-foreground">
-                {stores.filter((s) => PHASES.every((p) => (s as any)[p.key] === "pendente")).length}
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+          <Card><CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground">Total</p>
+            <p className="text-2xl font-bold">{stores.length}</p>
+          </CardContent></Card>
+          <Card><CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground">Prontas</p>
+            <p className="text-2xl font-bold text-emerald-600">{stores.filter(isReadyToTransfer).length}</p>
+          </CardContent></Card>
+          <Card><CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground">Em Andamento</p>
+            <p className="text-2xl font-bold text-amber-600">
+              {stores.filter((s) => !isReadyToTransfer(s) && PHASES.some((p) => (s as any)[p.key] === "em_andamento")).length}
+            </p>
+          </CardContent></Card>
+          <Card><CardContent className="p-4 text-center">
+            <p className="text-xs text-muted-foreground">Pendentes</p>
+            <p className="text-2xl font-bold text-muted-foreground">
+              {stores.filter((s) => PHASES.every((p) => (s as any)[p.key] === "pendente")).length}
+            </p>
+          </CardContent></Card>
         </div>
 
-        {/* Pipeline table */}
+        {/* Store cards */}
         {filtered.length === 0 ? (
           <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhuma loja no funil.</CardContent></Card>
         ) : (
-          <Card>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[60px]">Filial</TableHead>
-                    <TableHead className="min-w-[200px]">Local</TableHead>
-                    <TableHead className="min-w-[100px]">Cidade/UF</TableHead>
-                    <TableHead className="min-w-[100px]">Franqueado</TableHead>
-                    <TableHead className="min-w-[80px]">Previsão</TableHead>
-                    <TableHead className="min-w-[80px] text-center">Progresso</TableHead>
-                    {PHASES.map((p) => (
-                      <TableHead key={p.key} className="min-w-[120px] text-center text-[10px]">{p.label}</TableHead>
-                    ))}
-                    <TableHead className="w-20"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((store) => {
-                    const progress = getProgress(store);
-                    const ready = isReadyToTransfer(store);
-                    return (
-                      <TableRow key={store.id} className={ready ? "bg-[hsl(152,60%,95%)]" : ""}>
-                        <TableCell className="font-mono text-xs">{store.filial || "—"}</TableCell>
-                        <TableCell>
-                          <div>
-                            <p className="text-sm font-medium">{store.local}</p>
-                            {store.status_geral && <p className="text-[10px] text-muted-foreground line-clamp-2">{store.status_geral}</p>}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-xs">{store.cidade}{store.estado ? `/${store.estado}` : ""}</TableCell>
-                        <TableCell className="text-xs">{store.franqueado || "—"}</TableCell>
-                        <TableCell className="text-xs">{store.previsao_inauguracao || "—"}</TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex items-center gap-1 justify-center">
-                            <Progress value={progress} className="h-1.5 w-12" />
-                            <span className="text-[10px] font-semibold">{progress}%</span>
-                          </div>
-                        </TableCell>
-                        {PHASES.map((p) => (
-                          <TableCell key={p.key} className="text-center p-1">
-                            <Select value={(store as any)[p.key]} onValueChange={(v) => updatePhase(store.id, p.key, v)}>
-                              <SelectTrigger className="h-7 text-[10px] px-1 min-w-[100px]">
-                                <Badge className={`${getPhaseColor((store as any)[p.key])} text-[9px] px-1`}>
-                                  {getPhaseLabel((store as any)[p.key])}
-                                </Badge>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {PHASE_STATUSES.map((s) => (
-                                  <SelectItem key={s.value} value={s.value}>
-                                    <Badge className={`${s.color} text-[10px]`}>{s.label}</Badge>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        ))}
-                        <TableCell>
-                          <div className="flex gap-1">
-                            {ready && (
-                              <Button
-                                variant="ghost" size="icon" className="h-7 w-7 text-[hsl(var(--success))]"
-                                title="Transferir para Lojas"
-                                onClick={() => { if (confirm(`Transferir "${store.local}" para Lojas?`)) transferToLojas(store); }}
-                              >
-                                <ArrowRightCircle className="h-4 w-4" />
-                              </Button>
-                            )}
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteStore(store.id); }}>
-                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </Card>
+          <div className="space-y-4">
+            {filtered.map((store) => {
+              const progress = getProgress(store);
+              const ready = isReadyToTransfer(store);
+              return (
+                <Card key={store.id} className={ready ? "border-emerald-300 bg-emerald-50/50" : ""}>
+                  <CardContent className="p-4 space-y-3">
+                    {/* Header row */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {store.filial && <Badge variant="outline" className="font-mono text-xs">{store.filial}</Badge>}
+                          <h3 className="font-semibold text-sm">{store.local}</h3>
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
+                          <span>{store.cidade}{store.estado ? `/${store.estado}` : ""}</span>
+                          {store.franqueado && <span>👤 {store.franqueado}</span>}
+                          {store.previsao_inauguracao && <span>📅 {store.previsao_inauguracao}</span>}
+                          {store.padrao && <Badge variant="secondary" className="text-[10px] h-5">{store.padrao}</Badge>}
+                          {store.localizacao && <Badge variant="secondary" className="text-[10px] h-5">{store.localizacao}</Badge>}
+                        </div>
+                        {store.status_geral && (
+                          <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{store.status_geral}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex items-center gap-1 mr-2">
+                          <Progress value={progress} className="h-2 w-16" />
+                          <span className="text-xs font-bold">{progress}%</span>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(store)} title="Editar">
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        {ready && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Transferir para Lojas"
+                            onClick={() => { if (confirm(`Transferir "${store.local}" para Lojas?`)) transferToLojas(store); }}>
+                            <ArrowRightCircle className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteStore(store.id); }}>
+                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Phases grid - ALL phases visible */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                      {PHASES.map((p) => (
+                        <div key={p.key} className="space-y-1">
+                          <p className="text-[10px] font-medium text-muted-foreground truncate">{p.label}</p>
+                          <Select value={(store as any)[p.key]} onValueChange={(v) => updatePhase(store.id, p.key, v)}>
+                            <SelectTrigger className="h-7 text-[10px] px-2">
+                              <Badge className={`${getPhaseColor((store as any)[p.key])} text-[9px] px-1.5`}>
+                                {getPhaseLabel((store as any)[p.key])}
+                              </Badge>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PHASE_STATUSES.map((s) => (
+                                <SelectItem key={s.value} value={s.value}>
+                                  <Badge className={`${s.color} text-[10px]`}>{s.label}</Badge>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         )}
+
+        {/* Edit Dialog */}
+        <Dialog open={editOpen} onOpenChange={(open) => { setEditOpen(open); if (!open) setEditingStore(null); }}>
+          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+            <DialogHeader><DialogTitle>Editar Loja</DialogTitle></DialogHeader>
+            {editingStore && (
+              <>
+                <StoreFormFields data={editingStore} onChange={setEditingStore} />
+                <div className="pt-3 border-t space-y-3">
+                  <p className="text-sm font-semibold">Fases de Aprovação</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {PHASES.map((p) => (
+                      <div key={p.key} className="flex items-center justify-between gap-3">
+                        <Label className="text-xs flex-1">{p.label}</Label>
+                        <Select value={(editingStore as any)[p.key]} onValueChange={(v) => setEditingStore({ ...editingStore, [p.key]: v })}>
+                          <SelectTrigger className="w-40 h-8">
+                            <Badge className={`${getPhaseColor((editingStore as any)[p.key])} text-[10px]`}>
+                              {getPhaseLabel((editingStore as any)[p.key])}
+                            </Badge>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PHASE_STATUSES.map((s) => (
+                              <SelectItem key={s.value} value={s.value}>
+                                <Badge className={`${s.color} text-[10px]`}>{s.label}</Badge>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Button onClick={saveEdit} className="w-full mt-2">Salvar Alterações</Button>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
