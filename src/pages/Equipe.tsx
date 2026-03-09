@@ -107,7 +107,9 @@ const Equipe = () => {
   const [memberForm, setMemberForm] = useState({ name: "", role: "", email: "", phone: "" });
   const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "media", assigned_to: "", due_date: "", start_date: "" });
   const [habitForm, setHabitForm] = useState({ name: "", description: "" });
-  const [eventForm, setEventForm] = useState({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "" });
+  const [eventForm, setEventForm] = useState({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "", event_time: "" });
+  const [calendarView, setCalendarView] = useState<"month" | "week">("month");
+  const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [accessForm, setAccessForm] = useState({ store_id: "", franchisee_email: "" });
 
   // Mon-Fri only
