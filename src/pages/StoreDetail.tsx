@@ -368,6 +368,16 @@ const StoreDetail = () => {
                                 }
                               />
                             </TableCell>
+                            <TableCell>
+                              <Input
+                                className="h-8 text-xs"
+                                placeholder="Instruções detalhadas..."
+                                value={data.descricao || ""}
+                                onChange={(e) =>
+                                  handleFieldChange(item.id, "descricao", e.target.value)
+                                }
+                              />
+                            </TableCell>
                           </TableRow>
                         );
                       })}
