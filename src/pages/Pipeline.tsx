@@ -550,12 +550,10 @@ const Pipeline = () => {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <Input
-                              className="h-6 text-[10px] px-1"
-                              placeholder="Prazo: dd/mm/aa"
+                            <DeadlinePicker
+                              compact
                               value={deadline}
-                              onChange={(e) => updateDeadline(store.id, p.deadlineKey, e.target.value)}
-                              onBlur={(e) => updateDeadline(store.id, p.deadlineKey, e.target.value)}
+                              onChange={(v) => updateDeadline(store.id, p.deadlineKey, v)}
                             />
                             {overdue && (
                               <div className="flex items-center gap-1 text-destructive">
