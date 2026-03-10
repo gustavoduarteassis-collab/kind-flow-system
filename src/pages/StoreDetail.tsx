@@ -85,7 +85,7 @@ const StoreDetail = () => {
     updateStore(store.id, { checklist: newChecklist });
   };
 
-  const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes", value: string) => {
+  const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes" | "descricao", value: string) => {
     const newChecklist = { ...store.checklist };
     newChecklist[itemId] = { ...newChecklist[itemId], [field]: value };
     updateStore(store.id, { checklist: newChecklist });

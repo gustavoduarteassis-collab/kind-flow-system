@@ -43,6 +43,7 @@ export interface Store {
     prazoInicial: string;
     prazoFinal: string;
     observacoes: string;
+    descricao?: string;
   }>;
   cronograma: CronogramaStore;
   inauguracaoChecklist: InaugChecklistData;
