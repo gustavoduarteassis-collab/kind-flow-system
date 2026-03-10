@@ -145,7 +145,9 @@ const StoreReport = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate(`/loja/${id}`)}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h2 className="font-semibold flex-1">Relatório - {store.nome}</h2>
+        <h2 className="font-semibold flex-1">
+          {secao ? `Relatório de ${secaoLabels[secao] || secao}` : "Relatório Completo"} - {store.nome}
+        </h2>
         <Button onClick={() => window.print()} className="gap-2">
           <Printer className="h-4 w-4" /> Imprimir / PDF
         </Button>
