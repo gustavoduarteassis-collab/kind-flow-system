@@ -196,6 +196,12 @@ const StoreDetail = () => {
               >
                 🏭 Fornecedores
               </TabsTrigger>
+              <TabsTrigger
+                value="inauguracao"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+              >
+                🎉 Checklist Inauguração
+              </TabsTrigger>
               {checklistCategories.map((cat) => {
                 const catProgress = getCategoryProgress(cat.id);
                 return (
