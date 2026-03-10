@@ -70,15 +70,31 @@ const priorityColors: Record<string, string> = {
 };
 
 const eventTypeLabels: Record<string, string> = {
-  checklist: "Checklist", folga: "Folga", implantacao: "Implantação", agm: "AGM", reuniao: "Reunião Semanal", outro: "Outro",
+  checklist: "Checklist", folga: "Folga", ferias: "Férias", implantacao: "Implantação", agm: "AGM", reuniao: "Reunião Semanal", outro: "Outro",
 };
 const eventTypeColors: Record<string, string> = {
   checklist: "bg-primary text-primary-foreground",
   folga: "bg-muted text-muted-foreground",
+  ferias: "bg-[hsl(200,70%,50%)] text-[hsl(0,0%,100%)]",
   implantacao: "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
   agm: "bg-destructive text-destructive-foreground",
   reuniao: "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]",
   outro: "bg-secondary text-secondary-foreground",
+};
+
+// Fixed member colors for calendar visualization
+const MEMBER_COLORS = [
+  "hsl(25, 45%, 35%)",   // Coffee brown (Gustavo)
+  "hsl(340, 55%, 48%)",  // Rose
+  "hsl(200, 60%, 45%)",  // Blue
+  "hsl(160, 50%, 40%)",  // Teal
+  "hsl(270, 45%, 50%)",  // Purple
+  "hsl(30, 70%, 50%)",   // Orange
+];
+const getMemberColor = (memberId: string | null | undefined, membersList: { id: string }[]) => {
+  if (!memberId) return "transparent";
+  const idx = membersList.findIndex((m) => m.id === memberId);
+  return idx >= 0 ? MEMBER_COLORS[idx % MEMBER_COLORS.length] : "transparent";
 };
 
 const formatDate = (d: string | null) => {
@@ -794,9 +810,17 @@ const Equipe = () => {
             </div>
 
             {/* Legend */}
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-2">
               {Object.entries(eventTypeLabels).map(([k, v]) => (
                 <Badge key={k} className={`${eventTypeColors[k]} text-[10px]`}>{v}</Badge>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {members.map((m, i) => (
+                <div key={m.id} className="flex items-center gap-1.5 text-xs">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: MEMBER_COLORS[i % MEMBER_COLORS.length] }} />
+                  <span>{m.name}</span>
+                </div>
               ))}
             </div>
 
@@ -842,9 +866,10 @@ const Equipe = () => {
                             {format(day, "d")}
                           </div>
                           <div className="space-y-0.5">
-                            {dayEvents.slice(0, 3).map((ev) => (
+                             {dayEvents.slice(0, 3).map((ev) => (
                               <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
-                                title={ev.title + (ev.time ? ` às ${ev.time}` : "")}
+                                style={{ borderLeft: `3px solid ${getMemberColor(ev.memberId, members)}` }}
+                                title={`${ev.memberId ? getMemberName(ev.memberId) + ": " : ""}${ev.title}${ev.time ? ` às ${ev.time}` : ""}`}
                                 onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
                               >
                                 {ev.time ? `${ev.time} ` : ""}{ev.title}
@@ -871,7 +896,8 @@ const Equipe = () => {
                           <div className="space-y-1">
                             {dayEvents.map((ev) => (
                               <div key={ev.id} className={`text-[10px] px-1.5 py-1 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
-                                title={ev.title + (ev.time ? ` às ${ev.time}` : "")}
+                                style={{ borderLeft: `3px solid ${getMemberColor(ev.memberId, members)}` }}
+                                title={`${ev.memberId ? getMemberName(ev.memberId) + ": " : ""}${ev.title}${ev.time ? ` às ${ev.time}` : ""}`}
                                 onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
                               >
                                 {ev.time ? <span className="font-semibold">{ev.time} </span> : null}{ev.title}
