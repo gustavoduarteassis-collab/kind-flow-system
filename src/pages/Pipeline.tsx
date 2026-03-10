@@ -175,12 +175,18 @@ const Pipeline = () => {
   };
 
   const getProgress = (store: PipelineStore) => {
-    const approved = PHASES.filter((p) => (store as any)[p.key] === "aprovado").length;
-    return Math.round((approved / PHASES.length) * 100);
+    const done = PHASES.filter((p) => {
+      const s = (store as any)[p.key];
+      return s === "aprovado" || s === "nao_se_aplica";
+    }).length;
+    return Math.round((done / PHASES.length) * 100);
   };
 
   const isReadyToTransfer = (store: PipelineStore) => {
-    return PHASES.every((p) => (store as any)[p.key] === "aprovado");
+    return PHASES.every((p) => {
+      const s = (store as any)[p.key];
+      return s === "aprovado" || s === "nao_se_aplica";
+    });
   };
 
   const transferToLojas = async (pipelineStore: PipelineStore) => {
