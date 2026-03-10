@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useStores } from "@/hooks/useStores";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,6 +10,13 @@ import {
   CronogramaDayStatus,
 } from "@/data/cronogramaData";
 import { CustosData, createDefaultCustos } from "@/data/custosData";
+import {
+  getInaugChecklist,
+  migrateInaugData,
+  inaugStatusLabels,
+  InaugChecklistDataV2,
+  InaugStatusType,
+} from "@/data/inauguracaoChecklistData";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer } from "lucide-react";
 import { addDays, format } from "date-fns";
@@ -55,9 +62,19 @@ const cronCellSymbol: Record<CronogramaDayStatus, string> = {
   delayed: "▒",
 };
 
+const secaoLabels: Record<string, string> = {
+  cronograma: "Cronograma de Obra",
+  custos: "Custos da Obra",
+  diario: "Diário de Obra",
+  inauguracao: "Checklist de Inauguração",
+  fornecedores: "Fornecedores",
+};
+
 const StoreReport = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const secao = searchParams.get("secao"); // null = full report
   const { getStore } = useStores();
   const { user } = useAuth();
   const store = getStore(id || "");
@@ -136,7 +153,9 @@ const StoreReport = () => {
         <Button variant="ghost" size="icon" onClick={() => navigate(`/loja/${id}`)}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h2 className="font-semibold flex-1">Relatório - {store.nome}</h2>
+        <h2 className="font-semibold flex-1">
+          {secao ? `Relatório de ${secaoLabels[secao] || secao}` : "Relatório Completo"} - {store.nome}
+        </h2>
         <Button onClick={() => window.print()} className="gap-2">
           <Printer className="h-4 w-4" /> Imprimir / PDF
         </Button>
@@ -146,7 +165,9 @@ const StoreReport = () => {
       <div className="max-w-[210mm] mx-auto px-6 py-8 print:px-0 print:py-4 print:max-w-full">
         {/* ===== HEADER ===== */}
         <div className="text-center mb-6 border-b-2 border-black pb-4">
-          <h1 className="text-2xl font-bold">RELATÓRIO DIÁRIO DE OBRA</h1>
+          <h1 className="text-2xl font-bold">
+            {secao ? `RELATÓRIO — ${(secaoLabels[secao] || secao).toUpperCase()}` : "RELATÓRIO DIÁRIO DE OBRA"}
+          </h1>
           <p className="text-lg font-semibold mt-1">{store.nome}</p>
           <div className="flex justify-center gap-6 text-sm mt-2">
             {store.filial && <span>Filial: {store.filial}</span>}
@@ -162,32 +183,34 @@ const StoreReport = () => {
         </div>
 
         {/* ===== RESUMO GERAL ===== */}
-        <section className="mb-6">
-          <h2 className="text-lg font-bold border-b border-black mb-3">
-            1. RESUMO GERAL
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-            <div className="border rounded p-3">
-              <div className="text-2xl font-bold text-green-700">{progress}%</div>
-              <div className="text-xs">Progresso Total</div>
+        {!secao && (
+          <section className="mb-6">
+            <h2 className="text-lg font-bold border-b border-black mb-3">
+              1. RESUMO GERAL
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+              <div className="border rounded p-3">
+                <div className="text-2xl font-bold text-green-700">{progress}%</div>
+                <div className="text-xs">Progresso Total</div>
+              </div>
+              <div className="border rounded p-3">
+                <div className="text-2xl font-bold text-green-600">{doneItems}</div>
+                <div className="text-xs">Realizados</div>
+              </div>
+              <div className="border rounded p-3">
+                <div className="text-2xl font-bold text-red-600">{atrasados}</div>
+                <div className="text-xs">Atrasados</div>
+              </div>
+              <div className="border rounded p-3">
+                <div className="text-2xl font-bold text-blue-600">{emAndamento}</div>
+                <div className="text-xs">Em Andamento</div>
+              </div>
             </div>
-            <div className="border rounded p-3">
-              <div className="text-2xl font-bold text-green-600">{doneItems}</div>
-              <div className="text-xs">Realizados</div>
-            </div>
-            <div className="border rounded p-3">
-              <div className="text-2xl font-bold text-red-600">{atrasados}</div>
-              <div className="text-xs">Atrasados</div>
-            </div>
-            <div className="border rounded p-3">
-              <div className="text-2xl font-bold text-blue-600">{emAndamento}</div>
-              <div className="text-xs">Em Andamento</div>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* ===== ITENS ATRASADOS ===== */}
-        {atrasados > 0 && (
+        {!secao && atrasados > 0 && (
           <section className="mb-6">
             <h2 className="text-lg font-bold border-b border-black mb-3 text-red-700">
               ⚠ ITENS ATRASADOS
@@ -227,6 +250,7 @@ const StoreReport = () => {
         )}
 
         {/* ===== CRONOGRAMA DE OBRA ===== */}
+        {(!secao || secao === "cronograma") && (
         <section className="mb-6">
           <h2 className="text-lg font-bold border-b border-black mb-3">
             2. CRONOGRAMA DE OBRA
@@ -328,8 +352,10 @@ const StoreReport = () => {
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 bg-red-500 border border-black" /> Atrasado</span>
           </div>
         </section>
+        )}
 
         {/* ===== CHECKLIST COMPLETO ===== */}
+        {(!secao || checklistCategories.some(c => c.id === secao)) && (
         <section className="mb-6">
           <h2 className="text-lg font-bold border-b border-black mb-3">
             3. CHECKLIST COMPLETO
@@ -412,9 +438,10 @@ const StoreReport = () => {
             );
           })}
         </section>
+        )}
 
         {/* ===== CUSTOS ===== */}
-        {(() => {
+        {(!secao || secao === "custos") && (() => {
           const custos: CustosData = (store as any).custos && (store as any).custos.categorias
             ? (store as any).custos
             : createDefaultCustos();
@@ -506,7 +533,7 @@ const StoreReport = () => {
         })()}
 
         {/* ===== DIÁRIO DE OBRA ===== */}
-        {diaryEntries.length > 0 && (
+        {(!secao || secao === "diario") && diaryEntries.length > 0 && (
           <section className="mb-6 break-before-page">
             <h2 className="text-lg font-bold border-b border-black mb-3">5. DIÁRIO DE OBRA</h2>
             <p className="text-xs mb-3 text-gray-600">
@@ -550,9 +577,100 @@ const StoreReport = () => {
           </section>
         )}
 
+        {/* ===== CHECKLIST DE INAUGURAÇÃO ===== */}
+        {(!secao || secao === "inauguracao") && (() => {
+          const tipoLoja = (store as any).tipoLoja as "rua" | "shopping" | "";
+          if (!tipoLoja) return null;
+          const inaugData: InaugChecklistDataV2 = migrateInaugData(
+            (store as any).inauguracaoChecklist || {},
+            tipoLoja
+          );
+          if (inaugData.rounds.length === 0) return null;
+          const inaugChecklist = getInaugChecklist(tipoLoja);
+          return (
+            <section className="mb-6 break-before-page">
+              <h2 className="text-lg font-bold border-b border-black mb-3">
+                {secao ? "" : "6. "}CHECKLIST DE INAUGURAÇÃO — {tipoLoja === "rua" ? "Loja de Rua" : "Loja de Shopping"}
+              </h2>
+              {inaugData.rounds.map((round) => {
+                const allItems = inaugChecklist.categories.flatMap(c => c.items);
+                const doneCount = allItems.filter(i => {
+                  const s = round.items[i.id]?.status;
+                  return s === "TOTALMENTE_ATENDIDO" || s === "NAO_SE_APLICA";
+                }).length;
+                const roundProg = Math.round((doneCount / allItems.length) * 100);
+                return (
+                  <div key={round.id} className="mb-6 break-inside-avoid">
+                    <h3 className="text-sm font-bold bg-gray-100 px-2 py-1 border border-black">
+                      {round.label} — {roundProg}% concluído
+                      {round.date && ` | Data: ${new Date(round.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
+                      {round.deadline && ` | Prazo: ${new Date(round.deadline + "T00:00:00").toLocaleDateString("pt-BR")}`}
+                    </h3>
+                    {inaugChecklist.categories.map(cat => (
+                      <div key={cat.id} className="mb-2">
+                        <h4 className="text-xs font-bold bg-gray-50 px-2 py-0.5 border-x border-black">{cat.nome}</h4>
+                        <table className="w-full text-[10px] border-collapse">
+                          <thead>
+                            <tr className="bg-gray-50">
+                              <th className="border border-black px-1 py-0.5 text-left">Item</th>
+                              <th className="border border-black px-1 py-0.5 w-28">Status</th>
+                              <th className="border border-black px-1 py-0.5 w-20">Prazo</th>
+                              <th className="border border-black px-1 py-0.5">Obs</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {cat.items.map(item => {
+                              const iData = round.items[item.id] || { status: "NAO_ATENDIDO" as InaugStatusType, observacoes: "", photos: [] };
+                              return (
+                                <tr key={item.id} className={
+                                  iData.status === "TOTALMENTE_ATENDIDO" ? "bg-green-50" :
+                                  item.impeditivo && iData.status !== "NAO_SE_APLICA" ? "bg-red-50" : ""
+                                }>
+                                  <td className="border border-black px-1 py-0.5">
+                                    {item.nome}
+                                    {item.impeditivo && " ⚠"}
+                                  </td>
+                                  <td className="border border-black px-1 py-0.5 text-center">
+                                    {inaugStatusLabels[iData.status]}
+                                  </td>
+                                  <td className="border border-black px-1 py-0.5 text-center">
+                                    {iData.prazo ? new Date(iData.prazo + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
+                                  </td>
+                                  <td className="border border-black px-1 py-0.5">{iData.observacoes || ""}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ))}
+                    {/* Signatures */}
+                    {round.signatures && (
+                      <div className="grid grid-cols-3 gap-8 mt-6 pt-4">
+                        <div className="text-center">
+                          <div className="border-b border-black pt-8" />
+                          <p className="text-[10px] mt-1">{round.signatures.franqueado || "Franqueado"}</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="border-b border-black pt-8" />
+                          <p className="text-[10px] mt-1">{round.signatures.analistaObra || "Analista de Obra"}</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="border-b border-black pt-8" />
+                          <p className="text-[10px] mt-1">{round.signatures.construtor || "Construtor"}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </section>
+          );
+        })()}
+
         {/* Footer */}
         <div className="text-center text-xs border-t border-black pt-3 mt-8">
-          <p>Relatório gerado em {today} — Checklist de Implantação</p>
+          <p>Relatório gerado em {today} — {secao ? secaoLabels[secao] || "Relatório" : "Checklist de Implantação"}</p>
         </div>
       </div>
     </div>

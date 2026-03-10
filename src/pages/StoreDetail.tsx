@@ -37,6 +37,7 @@ import {
   Save,
   FileText,
   DollarSign,
+  Printer,
 } from "lucide-react";
 
 const statusColors: Record<StatusType, string> = {
@@ -141,14 +142,24 @@ const StoreDetail = () => {
                 )}
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => navigate(`/loja/${store.id}/relatorio`)}
-            >
-              <FileText className="h-4 w-4" /> Relatório
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => navigate(`/loja/${store.id}/relatorio`)}
+              >
+                <FileText className="h-4 w-4" /> Relatório Completo
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => navigate(`/loja/${store.id}/relatorio?secao=${activeTab}`)}
+              >
+                <Printer className="h-4 w-4" /> PDF da Aba
+              </Button>
+            </div>
           </div>
           {/* Progress bar */}
           <div className="flex items-center gap-4">

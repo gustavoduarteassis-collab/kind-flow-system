@@ -153,14 +153,19 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
     onDataChange({ rounds: newRounds });
   };
 
+  const getItemData = (itemId: string): InaugItemData => {
+    return currentRound?.items[itemId] || { status: "NAO_ATENDIDO", observacoes: "", photos: [] };
+  };
+
   const handleStatusChange = (itemId: string, status: InaugStatusType) => {
     if (!currentRound) return;
+    const existing = getItemData(itemId);
     const newRounds = [...rounds];
     newRounds[activeRoundIndex] = {
       ...currentRound,
       items: {
         ...currentRound.items,
-        [itemId]: { ...currentRound.items[itemId], status },
+        [itemId]: { ...existing, status },
       },
     };
     onDataChange({ rounds: newRounds });
@@ -168,12 +173,13 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
 
   const handleObsChange = (itemId: string, value: string) => {
     if (!currentRound) return;
+    const existing = getItemData(itemId);
     const newRounds = [...rounds];
     newRounds[activeRoundIndex] = {
       ...currentRound,
       items: {
         ...currentRound.items,
-        [itemId]: { ...currentRound.items[itemId], observacoes: value },
+        [itemId]: { ...existing, observacoes: value },
       },
     };
     onDataChange({ rounds: newRounds });

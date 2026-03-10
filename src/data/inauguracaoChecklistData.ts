@@ -527,17 +527,19 @@ export function createNewRound(tipo: "rua" | "shopping", roundNumber: number, pr
   const items: Record<string, InaugItemData> = {};
   allItems.forEach((item) => {
     const prev = previousRound?.items[item.id];
-    // Carry forward: keep completed/na status, reset others to NAO_ATENDIDO
-    if (prev && (prev.status === "TOTALMENTE_ATENDIDO" || prev.status === "NAO_SE_APLICA")) {
+    if (prev) {
+      // Carry forward ALL statuses as-is from the previous round
+      // Items already completed stay completed; pending items keep their status for review
       items[item.id] = {
         status: prev.status,
         observacoes: prev.observacoes || "",
         photos: [],
+        prazo: prev.prazo,
       };
     } else {
       items[item.id] = {
         status: "NAO_ATENDIDO",
-        observacoes: prev?.observacoes || "",
+        observacoes: "",
         photos: [],
       };
     }
