@@ -109,6 +109,7 @@ function AppRoutes() {
       <Route path="/pipeline" element={<Pipeline />} />
       <Route path="/custos-geral" element={<CustosGeral />} />
       <Route path="/diversos" element={<Diversos />} />
+      <Route path="/agm" element={<AGM />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
