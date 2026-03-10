@@ -499,7 +499,4 @@ const Diversos = () => {
   );
 };
 
-// Need Target import
-import { Target } from "lucide-react";
-
 export default Diversos;
