@@ -134,15 +134,15 @@ const Equipe = () => {
     const habitMonthStart = format(startOfMonth(habitMonth), "yyyy-MM-dd");
     const habitMonthEnd = format(endOfMonth(habitMonth), "yyyy-MM-dd");
     const [m, t, h, c, e, fa] = await Promise.all([
-      supabase.from("team_members").select("*").eq("user_id", user.id).order("name"),
-      supabase.from("tasks").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("habits").select("*").eq("user_id", user.id).order("name"),
-      supabase.from("habit_completions").select("*").eq("user_id", user.id)
+      supabase.from("team_members").select("*").order("name"),
+      supabase.from("tasks").select("*").order("created_at", { ascending: false }),
+      supabase.from("habits").select("*").order("name"),
+      supabase.from("habit_completions").select("*")
         .gte("completion_date", habitMonthStart)
         .lte("completion_date", habitMonthEnd),
-      supabase.from("team_events").select("*").eq("user_id", user.id)
+      supabase.from("team_events").select("*")
         .gte("event_date", monthStart).lte("event_date", monthEnd),
-      supabase.from("franchisee_access").select("*").eq("created_by", user.id),
+      supabase.from("franchisee_access").select("*"),
     ]);
     if (m.data) setMembers(m.data);
     if (t.data) setTasks(t.data as Task[]);

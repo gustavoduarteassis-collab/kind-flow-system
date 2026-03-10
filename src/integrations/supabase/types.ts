@@ -320,7 +320,14 @@ export type Database = {
           filial: string
           franqueado: string
           id: string
+          inicio_contratos: string
           inicio_obra: string
+          inicio_orcamento_obra: string
+          inicio_projeto_ar_condicionado: string
+          inicio_projeto_arquitetonico: string
+          inicio_projeto_eletrico: string
+          inicio_projeto_estrutural: string
+          inicio_projeto_incendio: string
           local: string
           localizacao: string
           observacoes: string
@@ -359,7 +366,14 @@ export type Database = {
           filial?: string
           franqueado?: string
           id?: string
+          inicio_contratos?: string
           inicio_obra?: string
+          inicio_orcamento_obra?: string
+          inicio_projeto_ar_condicionado?: string
+          inicio_projeto_arquitetonico?: string
+          inicio_projeto_eletrico?: string
+          inicio_projeto_estrutural?: string
+          inicio_projeto_incendio?: string
           local?: string
           localizacao?: string
           observacoes?: string
@@ -398,7 +412,14 @@ export type Database = {
           filial?: string
           franqueado?: string
           id?: string
+          inicio_contratos?: string
           inicio_obra?: string
+          inicio_orcamento_obra?: string
+          inicio_projeto_ar_condicionado?: string
+          inicio_projeto_arquitetonico?: string
+          inicio_projeto_eletrico?: string
+          inicio_projeto_estrutural?: string
+          inicio_projeto_incendio?: string
           local?: string
           localizacao?: string
           observacoes?: string

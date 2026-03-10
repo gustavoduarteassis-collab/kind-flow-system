@@ -66,13 +66,13 @@ type PipelineStore = {
 };
 
 const PHASES = [
-  { key: "projeto_arquitetonico", label: "Proj. Arquitetônico", deadlineKey: "prazo_projeto_arquitetonico" },
-  { key: "projeto_eletrico", label: "Proj. Elétrico", deadlineKey: "prazo_projeto_eletrico" },
-  { key: "projeto_incendio", label: "Proj. Incêndio", deadlineKey: "prazo_projeto_incendio" },
-  { key: "projeto_estrutural", label: "Proj. Estrutural", deadlineKey: "prazo_projeto_estrutural" },
-  { key: "projeto_ar_condicionado", label: "Proj. Ar Condicionado", deadlineKey: "prazo_projeto_ar_condicionado" },
-  { key: "orcamento_obra", label: "Orçamento de Obra", deadlineKey: "prazo_orcamento_obra" },
-  { key: "contratos", label: "Contratos", deadlineKey: "prazo_contratos" },
+  { key: "projeto_arquitetonico", label: "Proj. Arquitetônico", deadlineKey: "prazo_projeto_arquitetonico", startKey: "inicio_projeto_arquitetonico" },
+  { key: "projeto_eletrico", label: "Proj. Elétrico", deadlineKey: "prazo_projeto_eletrico", startKey: "inicio_projeto_eletrico" },
+  { key: "projeto_incendio", label: "Proj. Incêndio", deadlineKey: "prazo_projeto_incendio", startKey: "inicio_projeto_incendio" },
+  { key: "projeto_estrutural", label: "Proj. Estrutural", deadlineKey: "prazo_projeto_estrutural", startKey: "inicio_projeto_estrutural" },
+  { key: "projeto_ar_condicionado", label: "Proj. Ar Condicionado", deadlineKey: "prazo_projeto_ar_condicionado", startKey: "inicio_projeto_ar_condicionado" },
+  { key: "orcamento_obra", label: "Orçamento de Obra", deadlineKey: "prazo_orcamento_obra", startKey: "inicio_orcamento_obra" },
+  { key: "contratos", label: "Contratos", deadlineKey: "prazo_contratos", startKey: "inicio_contratos" },
 ] as const;
 
 const PHASE_STATUSES = [
