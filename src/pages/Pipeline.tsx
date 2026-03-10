@@ -575,26 +575,6 @@ const Pipeline = () => {
                                 onChange={(v) => updateDeadline(store.id, p.deadlineKey, v)}
                               />
                             </div>
-                            {isOrcamento && (
-                              <div className="space-y-1 pt-1 border-t border-border/30">
-                                <div>
-                                  <p className="text-[9px] text-muted-foreground">Liberação</p>
-                                  <DeadlinePicker
-                                    compact
-                                    value={store.data_liberacao_orcamento || ""}
-                                    onChange={(v) => updateDeadline(store.id, "data_liberacao_orcamento", v)}
-                                  />
-                                </div>
-                                <div>
-                                  <p className="text-[9px] text-muted-foreground">Prazo Conclusão</p>
-                                  <DeadlinePicker
-                                    compact
-                                    value={store.prazo_conclusao_orcamento || ""}
-                                    onChange={(v) => updateDeadline(store.id, "prazo_conclusao_orcamento", v)}
-                                  />
-                                </div>
-                              </div>
-                            )}
                             {overdue && (
                               <div className="flex items-center gap-1 text-destructive">
                                 <AlertTriangle className="h-3 w-3" />
