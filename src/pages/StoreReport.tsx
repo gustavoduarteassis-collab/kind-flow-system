@@ -10,6 +10,13 @@ import {
   CronogramaDayStatus,
 } from "@/data/cronogramaData";
 import { CustosData, createDefaultCustos } from "@/data/custosData";
+import {
+  getInaugChecklist,
+  migrateInaugData,
+  inaugStatusLabels,
+  InaugChecklistDataV2,
+  InaugStatusType,
+} from "@/data/inauguracaoChecklistData";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer } from "lucide-react";
 import { addDays, format } from "date-fns";
