@@ -259,7 +259,8 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
       }).length
     : 0;
   const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
-  const isLiberado = progress >= 95;
+  const isLiberado = progress >= 95 && impeditivosPendentes === 0;
+  const isLiberadoComRessalvas = !isLiberado && progress >= 85 && impeditivosPendentes === 0;
   const impeditivos = allItems.filter((i) => i.impeditivo);
   const impeditivosPendentes = currentRound
     ? impeditivos.filter((i) => {
