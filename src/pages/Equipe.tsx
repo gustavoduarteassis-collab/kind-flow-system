@@ -134,7 +134,7 @@ const Equipe = () => {
     const habitMonthStart = format(startOfMonth(habitMonth), "yyyy-MM-dd");
     const habitMonthEnd = format(endOfMonth(habitMonth), "yyyy-MM-dd");
     const [m, t, h, c, e, fa] = await Promise.all([
-      supabase.from("team_members").select("*").order("name"),
+      supabase.from("team_members").select("*").order("role", { ascending: false }).order("name"),
       supabase.from("tasks").select("*").order("created_at", { ascending: false }),
       supabase.from("habits").select("*").order("name"),
       supabase.from("habit_completions").select("*")
