@@ -14,6 +14,99 @@ export type Database = {
   }
   public: {
     Tables: {
+      agm_action_plans: {
+        Row: {
+          acao: string
+          ai_generated: boolean
+          causa: string
+          como: string
+          created_at: string
+          farol: string
+          fenomeno: string
+          id: string
+          indicador: string
+          mes_referencia: string
+          prazo_final: string
+          prazo_inicial: string
+          responsavel: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acao?: string
+          ai_generated?: boolean
+          causa?: string
+          como?: string
+          created_at?: string
+          farol?: string
+          fenomeno?: string
+          id?: string
+          indicador?: string
+          mes_referencia?: string
+          prazo_final?: string
+          prazo_inicial?: string
+          responsavel?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          acao?: string
+          ai_generated?: boolean
+          causa?: string
+          como?: string
+          created_at?: string
+          farol?: string
+          fenomeno?: string
+          id?: string
+          indicador?: string
+          mes_referencia?: string
+          prazo_final?: string
+          prazo_inicial?: string
+          responsavel?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      agm_entries: {
+        Row: {
+          created_at: string
+          detalhes: Json
+          id: string
+          indicador: string
+          mes_referencia: string
+          meta_valor: string
+          observacoes: string
+          realizado_valor: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detalhes?: Json
+          id?: string
+          indicador?: string
+          mes_referencia?: string
+          meta_valor?: string
+          observacoes?: string
+          realizado_valor?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          detalhes?: Json
+          id?: string
+          indicador?: string
+          mes_referencia?: string
+          meta_valor?: string
+          observacoes?: string
+          realizado_valor?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       authorized_team_emails: {
         Row: {
           created_at: string
