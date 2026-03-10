@@ -506,6 +506,7 @@ export function migrateInaugData(raw: any, tipo: "rua" | "shopping"): InaugCheck
     rounds: [{
       id: "migrated-1",
       date: new Date().toISOString().split("T")[0],
+      deadline: "",
       label: "1ª Conferência",
       items,
     }],
