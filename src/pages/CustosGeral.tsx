@@ -120,17 +120,18 @@ const CustosGeral = () => {
     }));
   }, [dashData]);
 
-  // 2026 projections: scale 2025 averages so total matches exactly the meta per m²
+  // 2026 projections: scale each category proportionally so total = meta exactly
   const projections2026 = useMemo(() => {
     const data2025 = custosGeralData.filter((d) => d.ano === 2025);
-    const avgs = calcAverages(data2025);
-    return avgs.map((d) => {
-      const rawTotal = Object.values(d.avgPerM2).reduce((s, v) => s + v, 0);
+    const rawAvgs = calcAverages(data2025);
+    return rawAvgs.map((d) => {
+      const catKeys = CATEGORIAS.map((c) => c.key);
+      const rawTotal = catKeys.reduce((sum, k) => sum + (d.avgPerM2[k] || 0), 0);
       if (rawTotal <= 0) return d;
-      const scale = d.meta / rawTotal;
+      const scaleFactor = d.meta / rawTotal;
       const adjustedPerM2: Record<string, number> = {};
-      CATEGORIAS.forEach(({ key }) => {
-        adjustedPerM2[key] = d.avgPerM2[key] * scale;
+      catKeys.forEach((k) => {
+        adjustedPerM2[k] = (d.avgPerM2[k] || 0) * scaleFactor;
       });
       return { ...d, avgPerM2: adjustedPerM2, avgTotalPerM2: d.meta };
     });
