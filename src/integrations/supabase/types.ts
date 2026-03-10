@@ -293,6 +293,7 @@ export type Database = {
           contratos: string
           created_at: string
           data_inauguracao: string
+          data_liberacao_orcamento: string
           email_franqueado: string
           estado: string
           filial: string
@@ -304,6 +305,7 @@ export type Database = {
           observacoes: string
           orcamento_obra: string
           padrao: string
+          prazo_conclusao_orcamento: string
           prazo_contratos: string
           prazo_orcamento_obra: string
           prazo_projeto_ar_condicionado: string
@@ -330,6 +332,7 @@ export type Database = {
           contratos?: string
           created_at?: string
           data_inauguracao?: string
+          data_liberacao_orcamento?: string
           email_franqueado?: string
           estado?: string
           filial?: string
@@ -341,6 +344,7 @@ export type Database = {
           observacoes?: string
           orcamento_obra?: string
           padrao?: string
+          prazo_conclusao_orcamento?: string
           prazo_contratos?: string
           prazo_orcamento_obra?: string
           prazo_projeto_ar_condicionado?: string
@@ -367,6 +371,7 @@ export type Database = {
           contratos?: string
           created_at?: string
           data_inauguracao?: string
+          data_liberacao_orcamento?: string
           email_franqueado?: string
           estado?: string
           filial?: string
@@ -378,6 +383,7 @@ export type Database = {
           observacoes?: string
           orcamento_obra?: string
           padrao?: string
+          prazo_conclusao_orcamento?: string
           prazo_contratos?: string
           prazo_orcamento_obra?: string
           prazo_projeto_ar_condicionado?: string
