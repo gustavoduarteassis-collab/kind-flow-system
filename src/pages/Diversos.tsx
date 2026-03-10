@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoConstance from "@/assets/logo-constance.svg";
+import PassoAPasso from "@/components/PassoAPasso";
 
 type Fornecedor = {
   id: string;
