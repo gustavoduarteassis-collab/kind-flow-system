@@ -523,6 +523,27 @@ const Equipe = () => {
                     <div className="space-y-2"><Label>Descrição</Label>
                       <Textarea value={habitForm.description} onChange={(e) => setHabitForm({ ...habitForm, description: e.target.value })} />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Repetir para quem? <span className="text-xs text-muted-foreground">(vazio = todos)</span></Label>
+                      <div className="space-y-2">
+                        {members.map((m) => (
+                          <label key={m.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                            <Checkbox
+                              checked={habitForm.assigned_to_members.includes(m.id)}
+                              onCheckedChange={(checked) => {
+                                setHabitForm({
+                                  ...habitForm,
+                                  assigned_to_members: checked
+                                    ? [...habitForm.assigned_to_members, m.id]
+                                    : habitForm.assigned_to_members.filter((id) => id !== m.id),
+                                });
+                              }}
+                            />
+                            {m.name} <span className="text-xs text-muted-foreground">({m.role})</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                     <Button onClick={addHabit} className="w-full">Criar Hábito</Button>
                   </div>
                 </DialogContent>
