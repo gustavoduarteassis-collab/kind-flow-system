@@ -334,9 +334,9 @@ const CustosGeral = () => {
                         );
                       })}
                       <div className="flex items-center gap-2 pt-3 mt-2 border-t-2 border-primary/20">
-                        <div className="flex-1 text-sm font-bold">TOTAL SUGERIDO</div>
+                        <div className="flex-1 text-sm font-bold">TOTAL</div>
                         <div className="text-right">
-                          <span className={`font-mono font-bold text-base ${totalProj > d.meta ? "text-destructive" : "text-[hsl(152,60%,40%)]"}`}>
+                          <span className="font-mono font-bold text-base text-[hsl(152,60%,40%)]">
                             {fmtM2(totalProj)}
                           </span>
                           <span className="text-xs text-muted-foreground ml-1">/m²</span>
