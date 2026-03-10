@@ -37,6 +37,7 @@ import {
   Save,
   FileText,
   DollarSign,
+  Printer,
 } from "lucide-react";
 
 const statusColors: Record<StatusType, string> = {
