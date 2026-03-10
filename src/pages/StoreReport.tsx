@@ -599,6 +599,13 @@ const StoreReport = () => {
                   return s === "TOTALMENTE_ATENDIDO" || s === "NAO_SE_APLICA";
                 }).length;
                 const roundProg = Math.round((doneCount / allItems.length) * 100);
+                const impItems = allItems.filter(i => i.impeditivo);
+                const impPendentes = impItems.filter(i => {
+                  const s = round.items[i.id]?.status;
+                  return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
+                }).length;
+                const libStatus = roundProg >= 95 && impPendentes === 0
+                  ? "LIBERADO" : (roundProg >= 85 && impPendentes === 0 ? "RESSALVAS" : "NAO_LIBERADO");
                 return (
                   <div key={round.id} className="mb-6 break-inside-avoid">
                     <h3 className="text-sm font-bold bg-gray-100 px-2 py-1 border border-black">
@@ -606,44 +613,60 @@ const StoreReport = () => {
                       {round.date && ` | Data: ${new Date(round.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
                       {round.deadline && ` | Prazo: ${new Date(round.deadline + "T00:00:00").toLocaleDateString("pt-BR")}`}
                     </h3>
-                    {inaugChecklist.categories.map(cat => (
-                      <div key={cat.id} className="mb-2">
-                        <h4 className="text-xs font-bold bg-gray-50 px-2 py-0.5 border-x border-black">{cat.nome}</h4>
-                        <table className="w-full text-[10px] border-collapse">
-                          <thead>
-                            <tr className="bg-gray-50">
-                              <th className="border border-black px-1 py-0.5 text-left">Item</th>
-                              <th className="border border-black px-1 py-0.5 w-28">Status</th>
-                              <th className="border border-black px-1 py-0.5 w-20">Prazo</th>
-                              <th className="border border-black px-1 py-0.5">Obs</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {cat.items.map(item => {
-                              const iData = round.items[item.id] || { status: "NAO_ATENDIDO" as InaugStatusType, observacoes: "", photos: [] };
-                              return (
-                                <tr key={item.id} className={
-                                  iData.status === "TOTALMENTE_ATENDIDO" ? "bg-green-50" :
-                                  item.impeditivo && iData.status !== "NAO_SE_APLICA" ? "bg-red-50" : ""
-                                }>
-                                  <td className="border border-black px-1 py-0.5">
-                                    {item.nome}
-                                    {item.impeditivo && " ⚠"}
-                                  </td>
-                                  <td className="border border-black px-1 py-0.5 text-center">
-                                    {inaugStatusLabels[iData.status]}
-                                  </td>
-                                  <td className="border border-black px-1 py-0.5 text-center">
-                                    {iData.prazo ? new Date(iData.prazo + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
-                                  </td>
-                                  <td className="border border-black px-1 py-0.5">{iData.observacoes || ""}</td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    ))}
+                    {inaugChecklist.categories.map(cat => {
+                      // Filter only pending items (not completed, not N/A)
+                      const pendingItems = cat.items.filter(item => {
+                        const s = round.items[item.id]?.status;
+                        return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
+                      });
+                      if (pendingItems.length === 0) return null;
+                      return (
+                        <div key={cat.id} className="mb-2">
+                          <h4 className="text-xs font-bold bg-gray-50 px-2 py-0.5 border-x border-black">
+                            {cat.nome} ({pendingItems.length} pendentes de {cat.items.length})
+                          </h4>
+                          <table className="w-full text-[10px] border-collapse">
+                            <thead>
+                              <tr className="bg-gray-50">
+                                <th className="border border-black px-1 py-0.5 text-left">Item</th>
+                                <th className="border border-black px-1 py-0.5 w-28">Status</th>
+                                <th className="border border-black px-1 py-0.5 w-20">Prazo</th>
+                                <th className="border border-black px-1 py-0.5">Obs</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {pendingItems.map(item => {
+                                const iData = round.items[item.id] || { status: "NAO_ATENDIDO" as InaugStatusType, observacoes: "", photos: [] };
+                                return (
+                                  <tr key={item.id} className={item.impeditivo ? "bg-red-50" : ""}>
+                                    <td className="border border-black px-1 py-0.5">
+                                      {item.nome}
+                                      {item.impeditivo && " ⚠"}
+                                    </td>
+                                    <td className="border border-black px-1 py-0.5 text-center">
+                                      {inaugStatusLabels[iData.status]}
+                                    </td>
+                                    <td className="border border-black px-1 py-0.5 text-center">
+                                      {iData.prazo ? new Date(iData.prazo + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
+                                    </td>
+                                    <td className="border border-black px-1 py-0.5">{iData.observacoes || ""}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })}
+                    {/* Liberation Status */}
+                    <div className={`mt-3 p-2 border border-black text-center text-sm font-bold ${
+                      libStatus === "LIBERADO" ? "bg-green-100" : libStatus === "RESSALVAS" ? "bg-yellow-100" : "bg-red-100"
+                    }`}>
+                      {libStatus === "LIBERADO" && "✅ LIBERADO PARA INAUGURAÇÃO"}
+                      {libStatus === "RESSALVAS" && "⚠️ LIBERADO COM RESSALVAS"}
+                      {libStatus === "NAO_LIBERADO" && "❌ NÃO LIBERADO PARA INAUGURAÇÃO"}
+                      {` — ${roundProg}%`}
+                    </div>
                     {/* Signatures */}
                     {round.signatures && (
                       <div className="grid grid-cols-3 gap-8 mt-6 pt-4">
