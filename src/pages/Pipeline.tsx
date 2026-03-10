@@ -145,12 +145,14 @@ const Pipeline = () => {
   };
 
   const updatePhase = async (id: string, phase: string, value: string) => {
-    await supabase.from("pipeline_stores").update({ [phase]: value } as any).eq("id", id);
+    const { error } = await supabase.from("pipeline_stores").update({ [phase]: value } as any).eq("id", id);
+    if (error) { toast({ title: "Erro ao atualizar fase", description: error.message, variant: "destructive" }); return; }
     setStores((prev) => prev.map((s) => s.id === id ? { ...s, [phase]: value } : s));
   };
 
   const updateDeadline = async (id: string, deadlineKey: string, value: string) => {
-    await supabase.from("pipeline_stores").update({ [deadlineKey]: value } as any).eq("id", id);
+    const { error } = await supabase.from("pipeline_stores").update({ [deadlineKey]: value } as any).eq("id", id);
+    if (error) { toast({ title: "Erro ao atualizar prazo", description: error.message, variant: "destructive" }); return; }
     setStores((prev) => prev.map((s) => s.id === id ? { ...s, [deadlineKey]: value } : s));
   };
 
