@@ -165,7 +165,9 @@ const StoreReport = () => {
       <div className="max-w-[210mm] mx-auto px-6 py-8 print:px-0 print:py-4 print:max-w-full">
         {/* ===== HEADER ===== */}
         <div className="text-center mb-6 border-b-2 border-black pb-4">
-          <h1 className="text-2xl font-bold">RELATÓRIO DIÁRIO DE OBRA</h1>
+          <h1 className="text-2xl font-bold">
+            {secao ? `RELATÓRIO — ${(secaoLabels[secao] || secao).toUpperCase()}` : "RELATÓRIO DIÁRIO DE OBRA"}
+          </h1>
           <p className="text-lg font-semibold mt-1">{store.nome}</p>
           <div className="flex justify-center gap-6 text-sm mt-2">
             {store.filial && <span>Filial: {store.filial}</span>}
