@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -31,7 +31,9 @@ const AGM_PASSWORD = "agm2026";
 
 const indicadores = [
   { id: "abertura_lojas", label: "Abertura de Novas Lojas", icon: Building2, color: "text-primary" },
-  { id: "custo_m2", label: "Custo/m²", icon: DollarSign, color: "text-[hsl(var(--success))]" },
+  { id: "custo_m2_tradicional", label: "Custo/m² — Tradicional (Meta: R$ 3.250)", icon: DollarSign, color: "text-[hsl(var(--success))]" },
+  { id: "custo_m2_light", label: "Custo/m² — Light (Meta: R$ 3.500)", icon: DollarSign, color: "text-[hsl(var(--success))]" },
+  { id: "custo_m2_outlet", label: "Custo/m² — Outlet (Meta: R$ 2.900)", icon: DollarSign, color: "text-[hsl(var(--success))]" },
   { id: "prazo_implantacao", label: "Prazo Médio de Implantação", icon: Clock, color: "text-[hsl(var(--accent))]" },
   { id: "novos_fornecedores", label: "Novos Fornecedores", icon: Users, color: "text-destructive" },
 ];
