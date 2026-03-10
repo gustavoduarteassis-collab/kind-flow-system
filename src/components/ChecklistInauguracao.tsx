@@ -5,6 +5,7 @@ import {
   InaugCategory,
   InaugRound,
   InaugItemData,
+  InaugSignatures,
   getInaugChecklist,
   inaugStatusLabels,
   inaugStatusColors,
@@ -63,7 +64,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   tipoLoja: "rua" | "shopping" | "";
-  data: any; // accepts legacy or v2
+  data: any;
   onTipoChange: (tipo: "rua" | "shopping") => void;
   onDataChange: (data: InaugChecklistDataV2) => void;
 }
@@ -75,7 +76,6 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   const [previewPhotos, setPreviewPhotos] = useState<string[] | null>(null);
   const [activeRoundIndex, setActiveRoundIndex] = useState(0);
 
-  // Migrate data on render
   const v2Data: InaugChecklistDataV2 = migrateInaugData(data, tipoLoja || "rua");
 
   const handleTipoSelect = (tipo: "rua" | "shopping") => {
@@ -179,6 +179,33 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
     onDataChange({ rounds: newRounds });
   };
 
+  const handleItemDeadlineChange = (itemId: string, date: Date | undefined) => {
+    if (!currentRound) return;
+    const newRounds = [...rounds];
+    const itemData = currentRound.items[itemId] || { status: "NAO_ATENDIDO", observacoes: "", photos: [] };
+    newRounds[activeRoundIndex] = {
+      ...currentRound,
+      items: {
+        ...currentRound.items,
+        [itemId]: { ...itemData, prazo: date ? date.toISOString().split("T")[0] : undefined },
+      },
+    };
+    onDataChange({ rounds: newRounds });
+  };
+
+  const handleSignatureChange = (field: keyof InaugSignatures, value: string) => {
+    if (!currentRound) return;
+    const newRounds = [...rounds];
+    newRounds[activeRoundIndex] = {
+      ...currentRound,
+      signatures: {
+        ...currentRound.signatures,
+        [field]: value,
+      },
+    };
+    onDataChange({ rounds: newRounds });
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !uploadingItemId || !currentRound) return;
     const file = e.target.files[0];
@@ -233,7 +260,6 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
     onDataChange({ rounds: newRounds });
   };
 
-  // Progress calculations for current round
   const allItems = checklist.categories.flatMap((c) => c.items);
   const totalItems = allItems.length;
   const doneItems = currentRound
@@ -265,7 +291,6 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
 
   return (
     <div className="space-y-4">
-      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
@@ -428,9 +453,10 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                           <Table>
                             <TableHeader>
                               <TableRow className="bg-muted/30">
-                                <TableHead className="min-w-[280px]">Item</TableHead>
+                                <TableHead className="min-w-[250px]">Item</TableHead>
                                 <TableHead className="w-[160px]">Status</TableHead>
                                 <TableHead className="w-[80px]">Fotos</TableHead>
+                                <TableHead className="w-[130px]">Prazo</TableHead>
                                 <TableHead className="min-w-[150px]">Observações</TableHead>
                               </TableRow>
                             </TableHeader>
@@ -442,6 +468,8 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                                   photos: [],
                                 };
                                 const photoCount = (itemData.photos || []).length;
+                                const itemDeadline = itemData.prazo ? new Date(itemData.prazo + "T00:00:00") : undefined;
+                                const isPending = itemData.status !== "TOTALMENTE_ATENDIDO" && itemData.status !== "NAO_SE_APLICA";
                                 return (
                                   <TableRow
                                     key={item.id}
@@ -510,6 +538,33 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                                       </div>
                                     </TableCell>
                                     <TableCell>
+                                      {isPending ? (
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              className={cn("h-7 text-[10px] gap-1 w-full", !itemDeadline && "text-muted-foreground")}
+                                            >
+                                              <CalendarIcon className="h-3 w-3" />
+                                              {itemDeadline ? format(itemDeadline, "dd/MM/yy", { locale: ptBR }) : "Prazo"}
+                                            </Button>
+                                          </PopoverTrigger>
+                                          <PopoverContent className="w-auto p-0" align="start">
+                                            <Calendar
+                                              mode="single"
+                                              selected={itemDeadline}
+                                              onSelect={(d) => handleItemDeadlineChange(item.id, d)}
+                                              initialFocus
+                                              className="p-3 pointer-events-auto"
+                                            />
+                                          </PopoverContent>
+                                        </Popover>
+                                      ) : (
+                                        <span className="text-xs text-muted-foreground">—</span>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
                                       <Input
                                         className="h-8 text-xs"
                                         placeholder="Obs..."
@@ -528,6 +583,48 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                   );
                 })}
               </Accordion>
+
+              {/* Signatures Section */}
+              <Card className="mt-6">
+                <CardContent className="pt-6">
+                  <h4 className="text-sm font-semibold mb-4">Assinaturas</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground">Franqueado</label>
+                      <Input
+                        placeholder="Nome do franqueado"
+                        value={currentRound.signatures?.franqueado || ""}
+                        onChange={(e) => handleSignatureChange("franqueado", e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                      <div className="border-b border-foreground/30 mt-6 pt-8" />
+                      <p className="text-[10px] text-center text-muted-foreground">Assinatura do Franqueado</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground">Analista de Obra</label>
+                      <Input
+                        placeholder="Nome do analista"
+                        value={currentRound.signatures?.analistaObra || ""}
+                        onChange={(e) => handleSignatureChange("analistaObra", e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                      <div className="border-b border-foreground/30 mt-6 pt-8" />
+                      <p className="text-[10px] text-center text-muted-foreground">Assinatura do Analista de Obra</p>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-muted-foreground">Construtor</label>
+                      <Input
+                        placeholder="Nome do construtor"
+                        value={currentRound.signatures?.construtor || ""}
+                        onChange={(e) => handleSignatureChange("construtor", e.target.value)}
+                        className="h-9 text-sm"
+                      />
+                      <div className="border-b border-foreground/30 mt-6 pt-8" />
+                      <p className="text-[10px] text-center text-muted-foreground">Assinatura do Construtor</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </>
           )}
         </>

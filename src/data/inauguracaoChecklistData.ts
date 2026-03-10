@@ -457,6 +457,14 @@ export type InaugItemData = {
   status: InaugStatusType;
   observacoes: string;
   photos: string[]; // storage URLs
+  prazo?: string; // ISO date - prazo de conclusão per item
+};
+
+// Signatures for a round
+export type InaugSignatures = {
+  franqueado?: string;
+  analistaObra?: string;
+  construtor?: string;
 };
 
 // A single checklist round/conferência
@@ -466,6 +474,7 @@ export type InaugRound = {
   deadline: string; // ISO date string - prazo de conclusão
   label: string; // e.g. "1ª Conferência"
   items: Record<string, InaugItemData>;
+  signatures?: InaugSignatures;
 };
 
 // V2 data format: multiple rounds
