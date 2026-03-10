@@ -16,6 +16,7 @@ export interface ChecklistItem {
   preRequisito?: string;
   responsavel: string;
   observacoes?: string;
+  descricao?: string;
 }
 
 export interface ChecklistCategory {
