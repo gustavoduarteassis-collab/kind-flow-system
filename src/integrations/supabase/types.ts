@@ -177,6 +177,60 @@ export type Database = {
           },
         ]
       }
+      fornecedores_prospeccao: {
+        Row: {
+          analista_responsavel: string
+          avaliacao: number
+          contato: string
+          created_at: string
+          email: string
+          id: string
+          mes_referencia: string
+          nome_empresa: string
+          observacoes: string
+          produto_servico: string
+          proposta_url: string
+          status: string
+          telefone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analista_responsavel?: string
+          avaliacao?: number
+          contato?: string
+          created_at?: string
+          email?: string
+          id?: string
+          mes_referencia?: string
+          nome_empresa: string
+          observacoes?: string
+          produto_servico?: string
+          proposta_url?: string
+          status?: string
+          telefone?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analista_responsavel?: string
+          avaliacao?: number
+          contato?: string
+          created_at?: string
+          email?: string
+          id?: string
+          mes_referencia?: string
+          nome_empresa?: string
+          observacoes?: string
+          produto_servico?: string
+          proposta_url?: string
+          status?: string
+          telefone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       franchisee_access: {
         Row: {
           access_type: string
