@@ -249,6 +249,7 @@ const StoreReport = () => {
         )}
 
         {/* ===== CRONOGRAMA DE OBRA ===== */}
+        {(!secao || secao === "cronograma") && (
         <section className="mb-6">
           <h2 className="text-lg font-bold border-b border-black mb-3">
             2. CRONOGRAMA DE OBRA
