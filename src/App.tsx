@@ -107,6 +107,7 @@ function AppRoutes() {
       <Route path="/equipe" element={<Equipe />} />
       <Route path="/pipeline" element={<Pipeline />} />
       <Route path="/custos-geral" element={<CustosGeral />} />
+      <Route path="/diversos" element={<Diversos />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
