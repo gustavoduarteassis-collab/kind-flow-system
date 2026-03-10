@@ -62,6 +62,14 @@ const cronCellSymbol: Record<CronogramaDayStatus, string> = {
   delayed: "▒",
 };
 
+const secaoLabels: Record<string, string> = {
+  cronograma: "Cronograma de Obra",
+  custos: "Custos da Obra",
+  diario: "Diário de Obra",
+  inauguracao: "Checklist de Inauguração",
+  fornecedores: "Fornecedores",
+};
+
 const StoreReport = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
