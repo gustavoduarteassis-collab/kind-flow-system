@@ -78,11 +78,28 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   const [previewPhotos, setPreviewPhotos] = useState<string[] | null>(null);
   const [activeRoundIndex, setActiveRoundIndex] = useState(0);
 
-  const v2Data: InaugChecklistDataV2 = migrateInaugData(data, tipoLoja || "rua");
+  // Use LOCAL state for rounds to avoid stale closure issues
+  const [localRounds, setLocalRounds] = useState<InaugChecklistDataV2["rounds"]>(() => {
+    return migrateInaugData(data, tipoLoja || "rua").rounds;
+  });
+  const roundsRef = useRef(localRounds);
+  roundsRef.current = localRounds;
+
+  // Sync from parent when data prop changes externally
+  useEffect(() => {
+    const migrated = migrateInaugData(data, tipoLoja || "rua");
+    setLocalRounds(migrated.rounds);
+  }, [data, tipoLoja]);
+
+  // Helper to update rounds both locally and in parent
+  const updateRounds = useCallback((newRounds: InaugChecklistDataV2["rounds"]) => {
+    setLocalRounds(newRounds);
+    onDataChange({ rounds: newRounds });
+  }, [onDataChange]);
 
   const handleTipoSelect = (tipo: "rua" | "shopping") => {
     onTipoChange(tipo);
-    onDataChange({ rounds: [] });
+    updateRounds([]);
   };
 
   if (!tipoLoja) {
@@ -117,15 +134,17 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   }
 
   const checklist = getInaugChecklist(tipoLoja);
-  const rounds = v2Data.rounds;
+  const rounds = localRounds;
   const currentRound = rounds[activeRoundIndex] || null;
 
   const handleAddRound = () => {
-    const lastRound = rounds.length > 0 ? rounds[rounds.length - 1] : undefined;
-    const newRound = createNewRound(tipoLoja, rounds.length + 1, lastRound);
-    const updated = { rounds: [...rounds, newRound] };
-    onDataChange(updated);
-    setActiveRoundIndex(updated.rounds.length - 1);
+    // Always use ref for latest data
+    const latestRounds = roundsRef.current;
+    const lastRound = latestRounds.length > 0 ? latestRounds[latestRounds.length - 1] : undefined;
+    const newRound = createNewRound(tipoLoja, latestRounds.length + 1, lastRound);
+    const updated = [...latestRounds, newRound];
+    updateRounds(updated);
+    setActiveRoundIndex(updated.length - 1);
   };
 
   const handleDeleteRound = (index: number) => {
