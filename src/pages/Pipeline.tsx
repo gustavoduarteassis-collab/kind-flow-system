@@ -103,6 +103,51 @@ const isOverdue = (deadlineStr: string, status: string) => {
   return new Date() > deadline;
 };
 
+// Convert dd/mm/aa string to Date
+const ddmmToDate = (s: string): Date | undefined => {
+  if (!s) return undefined;
+  const d = parseDate(s);
+  return d || undefined;
+};
+
+// Convert Date to dd/mm/aa string
+const dateToDdmm = (d: Date | undefined): string => {
+  if (!d) return "";
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = String(d.getFullYear()).slice(-2);
+  return `${day}/${month}/${year}`;
+};
+
+// Reusable date picker for deadlines
+const DeadlinePicker = ({ value, onChange, className, compact }: { value: string; onChange: (v: string) => void; className?: string; compact?: boolean }) => {
+  const dateVal = ddmmToDate(value);
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className={cn(
+          "justify-start text-left font-normal",
+          compact ? "h-6 text-[10px] px-1 gap-1" : "h-8 text-xs gap-1",
+          !value && "text-muted-foreground",
+          className
+        )}>
+          <CalendarIcon className={compact ? "h-3 w-3" : "h-3.5 w-3.5"} />
+          {value || (compact ? "Prazo" : "dd/mm/aa")}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={dateVal}
+          onSelect={(d) => onChange(dateToDdmm(d))}
+          initialFocus
+          className="p-3 pointer-events-auto"
+        />
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 const emptyForm = {
   filial: "", local: "", cidade: "", estado: "", padrao: "Tradicional",
   localizacao: "Shopping", franqueado: "", contato_franqueado: "",
