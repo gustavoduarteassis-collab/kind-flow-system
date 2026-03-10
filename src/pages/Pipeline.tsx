@@ -72,6 +72,7 @@ const PHASE_STATUSES = [
   { value: "pendente", label: "Pendente", color: "bg-muted text-muted-foreground", icon: Clock },
   { value: "em_andamento", label: "Em Andamento", color: "bg-amber-100 text-amber-800", icon: AlertCircle },
   { value: "aprovado", label: "Aprovado", color: "bg-emerald-100 text-emerald-800", icon: CheckCircle2 },
+  { value: "nao_se_aplica", label: "Não se Aplica", color: "bg-slate-100 text-slate-500", icon: Clock },
 ];
 
 const getPhaseColor = (status: string) => PHASE_STATUSES.find((s) => s.value === status)?.color || "bg-muted text-muted-foreground";
@@ -91,7 +92,7 @@ const parseDate = (dateStr: string) => {
 const parseDateForSort = (dateStr: string) => parseDate(dateStr) || new Date("2099-12-31");
 
 const isOverdue = (deadlineStr: string, status: string) => {
-  if (status === "aprovado" || !deadlineStr) return false;
+  if (status === "aprovado" || status === "nao_se_aplica" || !deadlineStr) return false;
   const deadline = parseDate(deadlineStr);
   if (!deadline) return false;
   return new Date() > deadline;
@@ -174,12 +175,18 @@ const Pipeline = () => {
   };
 
   const getProgress = (store: PipelineStore) => {
-    const approved = PHASES.filter((p) => (store as any)[p.key] === "aprovado").length;
-    return Math.round((approved / PHASES.length) * 100);
+    const done = PHASES.filter((p) => {
+      const s = (store as any)[p.key];
+      return s === "aprovado" || s === "nao_se_aplica";
+    }).length;
+    return Math.round((done / PHASES.length) * 100);
   };
 
   const isReadyToTransfer = (store: PipelineStore) => {
-    return PHASES.every((p) => (store as any)[p.key] === "aprovado");
+    return PHASES.every((p) => {
+      const s = (store as any)[p.key];
+      return s === "aprovado" || s === "nao_se_aplica";
+    });
   };
 
   const transferToLojas = async (pipelineStore: PipelineStore) => {
