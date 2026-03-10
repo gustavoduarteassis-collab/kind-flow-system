@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      authorized_team_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       construction_diary: {
         Row: {
           created_at: string
