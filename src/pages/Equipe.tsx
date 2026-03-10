@@ -602,9 +602,12 @@ const Equipe = () => {
                   const filteredMembers = members.filter((m) => !habitMemberFilter || m.id === habitMemberFilter);
 
                   const renderMemberTracker = (member: typeof members[0]) => {
-                    // Filter habits: hide ones completed today
-                    const pendingHabits = habits.filter((h) => !isCompleted(h.id, member.id, todayStr));
-                    const completedHabits = habits.filter((h) => isCompleted(h.id, member.id, todayStr));
+                    // Filter habits assigned to this member (empty array = all members)
+                    const memberHabits = habits.filter((h) =>
+                      !h.assigned_to_members || h.assigned_to_members.length === 0 || h.assigned_to_members.includes(member.id)
+                    );
+                    const pendingHabits = memberHabits.filter((h) => !isCompleted(h.id, member.id, todayStr));
+                    const completedHabits = memberHabits.filter((h) => isCompleted(h.id, member.id, todayStr));
 
                     return (
                       <Card key={member.id}>
