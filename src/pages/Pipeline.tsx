@@ -92,7 +92,7 @@ const parseDate = (dateStr: string) => {
 const parseDateForSort = (dateStr: string) => parseDate(dateStr) || new Date("2099-12-31");
 
 const isOverdue = (deadlineStr: string, status: string) => {
-  if (status === "aprovado" || !deadlineStr) return false;
+  if (status === "aprovado" || status === "nao_se_aplica" || !deadlineStr) return false;
   const deadline = parseDate(deadlineStr);
   if (!deadline) return false;
   return new Date() > deadline;
