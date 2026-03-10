@@ -64,6 +64,9 @@ export function useStores() {
   }, [user, fetchStores]);
 
   const updateStore = useCallback(async (id: string, updates: Partial<Store>) => {
+    // Optimistic update FIRST so UI reflects changes immediately
+    setStores((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+
     const dbUpdates: any = {};
     if (updates.nome !== undefined) dbUpdates.nome = updates.nome;
     if (updates.filial !== undefined) dbUpdates.filial = updates.filial;
@@ -78,8 +81,6 @@ export function useStores() {
     if ((updates as any).inauguracaoChecklist !== undefined) dbUpdates.inauguracao_checklist = (updates as any).inauguracaoChecklist;
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
-    // Optimistic update
-    setStores((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
   }, []);
 
   const deleteStore = useCallback(async (id: string) => {
