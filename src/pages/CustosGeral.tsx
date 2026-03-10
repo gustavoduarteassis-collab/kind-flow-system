@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
-import { ArrowLeft, TrendingUp, TrendingDown, Building2, Target, BarChart3, Calculator, Plus, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Building2, Target, BarChart3, Calculator, Plus, FileText, Trash2, Printer } from "lucide-react";
 import logoConstance from "@/assets/logo-constance.svg";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell as ReCell } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
