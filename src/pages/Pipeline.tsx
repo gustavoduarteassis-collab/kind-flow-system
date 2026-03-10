@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Plus, Trash2, LogOut, CheckCircle2, Clock, AlertCircle,
-  ArrowRightCircle, Search, Pencil,
+  ArrowRightCircle, Search, Pencil, AlertTriangle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,6 +39,7 @@ type PipelineStore = {
   inicio_obra: string;
   status_geral: string;
   cd_origem: string;
+  analista_obra: string;
   projeto_arquitetonico: string;
   projeto_eletrico: string;
   projeto_incendio: string;
@@ -46,18 +47,25 @@ type PipelineStore = {
   projeto_ar_condicionado: string;
   orcamento_obra: string;
   contratos: string;
+  prazo_projeto_arquitetonico: string;
+  prazo_projeto_eletrico: string;
+  prazo_projeto_incendio: string;
+  prazo_projeto_estrutural: string;
+  prazo_projeto_ar_condicionado: string;
+  prazo_orcamento_obra: string;
+  prazo_contratos: string;
   observacoes: string;
   transferido: boolean;
 };
 
 const PHASES = [
-  { key: "projeto_arquitetonico", label: "Proj. Arquitetônico" },
-  { key: "projeto_eletrico", label: "Proj. Elétrico" },
-  { key: "projeto_incendio", label: "Proj. Incêndio" },
-  { key: "projeto_estrutural", label: "Proj. Estrutural" },
-  { key: "projeto_ar_condicionado", label: "Proj. Ar Condicionado" },
-  { key: "orcamento_obra", label: "Orçamento de Obra" },
-  { key: "contratos", label: "Contratos" },
+  { key: "projeto_arquitetonico", label: "Proj. Arquitetônico", deadlineKey: "prazo_projeto_arquitetonico" },
+  { key: "projeto_eletrico", label: "Proj. Elétrico", deadlineKey: "prazo_projeto_eletrico" },
+  { key: "projeto_incendio", label: "Proj. Incêndio", deadlineKey: "prazo_projeto_incendio" },
+  { key: "projeto_estrutural", label: "Proj. Estrutural", deadlineKey: "prazo_projeto_estrutural" },
+  { key: "projeto_ar_condicionado", label: "Proj. Ar Condicionado", deadlineKey: "prazo_projeto_ar_condicionado" },
+  { key: "orcamento_obra", label: "Orçamento de Obra", deadlineKey: "prazo_orcamento_obra" },
+  { key: "contratos", label: "Contratos", deadlineKey: "prazo_contratos" },
 ] as const;
 
 const PHASE_STATUSES = [
@@ -70,22 +78,30 @@ const getPhaseColor = (status: string) => PHASE_STATUSES.find((s) => s.value ===
 const getPhaseLabel = (status: string) => PHASE_STATUSES.find((s) => s.value === status)?.label || "Pendente";
 
 const parseDate = (dateStr: string) => {
-  if (!dateStr) return new Date("2099-12-31");
-  // Handle dd/mm/yy or dd/mm/yyyy
+  if (!dateStr) return null;
   const parts = dateStr.split("/");
   if (parts.length === 3) {
     let year = parseInt(parts[2]);
     if (year < 100) year += 2000;
     return new Date(year, parseInt(parts[1]) - 1, parseInt(parts[0]));
   }
-  return new Date("2099-12-31");
+  return null;
+};
+
+const parseDateForSort = (dateStr: string) => parseDate(dateStr) || new Date("2099-12-31");
+
+const isOverdue = (deadlineStr: string, status: string) => {
+  if (status === "aprovado" || !deadlineStr) return false;
+  const deadline = parseDate(deadlineStr);
+  if (!deadline) return false;
+  return new Date() > deadline;
 };
 
 const emptyForm = {
   filial: "", local: "", cidade: "", estado: "", padrao: "Tradicional",
   localizacao: "Shopping", franqueado: "", contato_franqueado: "",
   email_franqueado: "", previsao_inauguracao: "", cd_origem: "",
-  status_geral: "", observacoes: "", inicio_obra: "",
+  status_geral: "", observacoes: "", inicio_obra: "", analista_obra: "",
 };
 
 const Pipeline = () => {
@@ -132,6 +148,11 @@ const Pipeline = () => {
     setStores((prev) => prev.map((s) => s.id === id ? { ...s, [phase]: value } : s));
   };
 
+  const updateDeadline = async (id: string, deadlineKey: string, value: string) => {
+    await supabase.from("pipeline_stores").update({ [deadlineKey]: value } as any).eq("id", id);
+    setStores((prev) => prev.map((s) => s.id === id ? { ...s, [deadlineKey]: value } : s));
+  };
+
   const openEdit = (store: PipelineStore) => {
     setEditingStore(store);
     setEditOpen(true);
@@ -168,12 +189,33 @@ const Pipeline = () => {
       filial: pipelineStore.filial,
       franqueado: pipelineStore.franqueado,
       construtor: "",
-      analistaObra: "",
+      analistaObra: pipelineStore.analista_obra || "",
       inauguracao: pipelineStore.previsao_inauguracao,
     });
     if (newStoreId) {
+      // Auto-create franchisee access if email provided
+      if (pipelineStore.email_franqueado) {
+        await supabase.from("franchisee_access").insert({
+          store_id: newStoreId,
+          franchisee_email: pipelineStore.email_franqueado,
+          created_by: user.id,
+          access_type: "franqueado",
+          can_view_checklist: true,
+          can_edit_checklist: false,
+          can_view_cronograma: true,
+          can_edit_cronograma: false,
+          can_view_diario: true,
+          can_edit_diario: false,
+          can_view_custos: true,
+          can_edit_custos: false,
+        } as any);
+      }
+
       await supabase.from("pipeline_stores").update({ transferido: true } as any).eq("id", pipelineStore.id);
-      toast({ title: "Loja transferida!", description: `${pipelineStore.local} foi movida para Lojas.` });
+      toast({
+        title: "Loja transferida!",
+        description: `${pipelineStore.local} foi movida para Lojas.${pipelineStore.email_franqueado ? ` Acesso liberado para ${pipelineStore.email_franqueado}.` : ""}`,
+      });
       fetchStores();
     }
   };
@@ -212,8 +254,7 @@ const Pipeline = () => {
     fetchStores();
   };
 
-  // Sort by inauguration date
-  const sorted = [...stores].sort((a, b) => parseDate(a.previsao_inauguracao).getTime() - parseDate(b.previsao_inauguracao).getTime());
+  const sorted = [...stores].sort((a, b) => parseDateForSort(a.previsao_inauguracao).getTime() - parseDateForSort(b.previsao_inauguracao).getTime());
 
   const filtered = sorted.filter((s) =>
     s.local.toLowerCase().includes(search.toLowerCase()) ||
@@ -263,15 +304,20 @@ const Pipeline = () => {
           </Select>
         </div>
       </div>
-      <div className="space-y-1"><Label className="text-xs">Franqueado</Label>
-        <Input value={data.franqueado} onChange={(e) => onChange({ ...data, franqueado: e.target.value })} />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1"><Label className="text-xs">Franqueado</Label>
+          <Input value={data.franqueado} onChange={(e) => onChange({ ...data, franqueado: e.target.value })} />
+        </div>
+        <div className="space-y-1"><Label className="text-xs font-semibold text-primary">E-mail do Franqueado *</Label>
+          <Input type="email" value={data.email_franqueado} onChange={(e) => onChange({ ...data, email_franqueado: e.target.value })} placeholder="email@franqueado.com" />
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1"><Label className="text-xs">Contato</Label>
           <Input value={data.contato_franqueado} onChange={(e) => onChange({ ...data, contato_franqueado: e.target.value })} />
         </div>
-        <div className="space-y-1"><Label className="text-xs">E-mail</Label>
-          <Input type="email" value={data.email_franqueado} onChange={(e) => onChange({ ...data, email_franqueado: e.target.value })} />
+        <div className="space-y-1"><Label className="text-xs font-semibold text-primary">Analista Responsável *</Label>
+          <Input value={data.analista_obra || ""} onChange={(e) => onChange({ ...data, analista_obra: e.target.value })} placeholder="Nome da analista" />
         </div>
       </div>
       <div className="grid grid-cols-3 gap-3">
@@ -361,9 +407,9 @@ const Pipeline = () => {
             </p>
           </CardContent></Card>
           <Card><CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground">Pendentes</p>
-            <p className="text-2xl font-bold text-muted-foreground">
-              {stores.filter((s) => PHASES.every((p) => (s as any)[p.key] === "pendente")).length}
+            <p className="text-xs text-muted-foreground">Atrasados</p>
+            <p className="text-2xl font-bold text-destructive">
+              {stores.filter((s) => PHASES.some((p) => isOverdue((s as any)[p.deadlineKey], (s as any)[p.key]))).length}
             </p>
           </CardContent></Card>
         </div>
@@ -376,8 +422,9 @@ const Pipeline = () => {
             {filtered.map((store) => {
               const progress = getProgress(store);
               const ready = isReadyToTransfer(store);
+              const hasOverdue = PHASES.some((p) => isOverdue((store as any)[p.deadlineKey], (store as any)[p.key]));
               return (
-                <Card key={store.id} className={ready ? "border-emerald-300 bg-emerald-50/50" : ""}>
+                <Card key={store.id} className={ready ? "border-emerald-300 bg-emerald-50/50" : hasOverdue ? "border-destructive/50" : ""}>
                   <CardContent className="p-4 space-y-3">
                     {/* Header row */}
                     <div className="flex items-start justify-between gap-2">
@@ -385,13 +432,15 @@ const Pipeline = () => {
                         <div className="flex items-center gap-2 flex-wrap">
                           {store.filial && <Badge variant="outline" className="font-mono text-xs">{store.filial}</Badge>}
                           <h3 className="font-semibold text-sm">{store.local}</h3>
+                          {hasOverdue && <Badge variant="destructive" className="text-[10px] h-5 gap-1"><AlertTriangle className="h-3 w-3" /> Atrasado</Badge>}
                         </div>
                         <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
                           <span>{store.cidade}{store.estado ? `/${store.estado}` : ""}</span>
                           {store.franqueado && <span>👤 {store.franqueado}</span>}
+                          {store.email_franqueado && <span>✉️ {store.email_franqueado}</span>}
+                          {store.analista_obra && <span>📋 {store.analista_obra}</span>}
                           {store.previsao_inauguracao && <span>📅 {store.previsao_inauguracao}</span>}
                           {store.padrao && <Badge variant="secondary" className="text-[10px] h-5">{store.padrao}</Badge>}
-                          {store.localizacao && <Badge variant="secondary" className="text-[10px] h-5">{store.localizacao}</Badge>}
                         </div>
                         {store.status_geral && (
                           <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{store.status_geral}</p>
@@ -417,27 +466,45 @@ const Pipeline = () => {
                       </div>
                     </div>
 
-                    {/* Phases grid - ALL phases visible */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-                      {PHASES.map((p) => (
-                        <div key={p.key} className="space-y-1">
-                          <p className="text-[10px] font-medium text-muted-foreground truncate">{p.label}</p>
-                          <Select value={(store as any)[p.key]} onValueChange={(v) => updatePhase(store.id, p.key, v)}>
-                            <SelectTrigger className="h-7 text-[10px] px-2">
-                              <Badge className={`${getPhaseColor((store as any)[p.key])} text-[9px] px-1.5`}>
-                                {getPhaseLabel((store as any)[p.key])}
-                              </Badge>
-                            </SelectTrigger>
-                            <SelectContent>
-                              {PHASE_STATUSES.map((s) => (
-                                <SelectItem key={s.value} value={s.value}>
-                                  <Badge className={`${s.color} text-[10px]`}>{s.label}</Badge>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ))}
+                    {/* Phases grid with deadlines */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+                      {PHASES.map((p) => {
+                        const status = (store as any)[p.key];
+                        const deadline = (store as any)[p.deadlineKey] || "";
+                        const overdue = isOverdue(deadline, status);
+                        return (
+                          <div key={p.key} className={`space-y-1 p-2 rounded-md border ${overdue ? "border-destructive/50 bg-destructive/5" : "border-border/50"}`}>
+                            <p className="text-[10px] font-medium text-muted-foreground truncate">{p.label}</p>
+                            <Select value={status} onValueChange={(v) => updatePhase(store.id, p.key, v)}>
+                              <SelectTrigger className="h-7 text-[10px] px-2">
+                                <Badge className={`${getPhaseColor(status)} text-[9px] px-1.5`}>
+                                  {getPhaseLabel(status)}
+                                </Badge>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {PHASE_STATUSES.map((s) => (
+                                  <SelectItem key={s.value} value={s.value}>
+                                    <Badge className={`${s.color} text-[10px]`}>{s.label}</Badge>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Input
+                              className="h-6 text-[10px] px-1"
+                              placeholder="Prazo: dd/mm/aa"
+                              value={deadline}
+                              onChange={(e) => updateDeadline(store.id, p.deadlineKey, e.target.value)}
+                              onBlur={(e) => updateDeadline(store.id, p.deadlineKey, e.target.value)}
+                            />
+                            {overdue && (
+                              <div className="flex items-center gap-1 text-destructive">
+                                <AlertTriangle className="h-3 w-3" />
+                                <span className="text-[9px] font-semibold">ATRASADO</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </CardContent>
                 </Card>
@@ -456,25 +523,39 @@ const Pipeline = () => {
                 <div className="pt-3 border-t space-y-3">
                   <p className="text-sm font-semibold">Fases de Aprovação</p>
                   <div className="grid grid-cols-1 gap-3">
-                    {PHASES.map((p) => (
-                      <div key={p.key} className="flex items-center justify-between gap-3">
-                        <Label className="text-xs flex-1">{p.label}</Label>
-                        <Select value={(editingStore as any)[p.key]} onValueChange={(v) => setEditingStore({ ...editingStore, [p.key]: v })}>
-                          <SelectTrigger className="w-40 h-8">
-                            <Badge className={`${getPhaseColor((editingStore as any)[p.key])} text-[10px]`}>
-                              {getPhaseLabel((editingStore as any)[p.key])}
-                            </Badge>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PHASE_STATUSES.map((s) => (
-                              <SelectItem key={s.value} value={s.value}>
-                                <Badge className={`${s.color} text-[10px]`}>{s.label}</Badge>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    ))}
+                    {PHASES.map((p) => {
+                      const status = (editingStore as any)[p.key];
+                      const deadline = (editingStore as any)[p.deadlineKey] || "";
+                      const overdue = isOverdue(deadline, status);
+                      return (
+                        <div key={p.key} className={`flex items-center gap-3 p-2 rounded-md ${overdue ? "bg-destructive/5 border border-destructive/30" : ""}`}>
+                          <Label className="text-xs flex-1 min-w-0">
+                            {p.label}
+                            {overdue && <span className="text-destructive text-[10px] ml-1">ATRASADO</span>}
+                          </Label>
+                          <Input
+                            className="w-28 h-8 text-xs"
+                            placeholder="dd/mm/aa"
+                            value={deadline}
+                            onChange={(e) => setEditingStore({ ...editingStore, [p.deadlineKey]: e.target.value })}
+                          />
+                          <Select value={status} onValueChange={(v) => setEditingStore({ ...editingStore, [p.key]: v })}>
+                            <SelectTrigger className="w-36 h-8">
+                              <Badge className={`${getPhaseColor(status)} text-[10px]`}>
+                                {getPhaseLabel(status)}
+                              </Badge>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PHASE_STATUSES.map((s) => (
+                                <SelectItem key={s.value} value={s.value}>
+                                  <Badge className={`${s.color} text-[10px]`}>{s.label}</Badge>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
                 <Button onClick={saveEdit} className="w-full mt-2">Salvar Alterações</Button>
