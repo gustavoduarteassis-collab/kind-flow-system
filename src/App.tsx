@@ -13,6 +13,7 @@ import FranqueadoPortal from "./pages/FranqueadoPortal";
 import Pipeline from "./pages/Pipeline";
 import CustosGeral from "./pages/CustosGeral";
 import Diversos from "./pages/Diversos";
+import AGM from "./pages/AGM";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
