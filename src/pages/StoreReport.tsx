@@ -413,6 +413,143 @@ const StoreReport = () => {
           })}
         </section>
 
+        {/* ===== CUSTOS ===== */}
+        {(() => {
+          const custos: CustosData = (store as any).custos && (store as any).custos.categorias
+            ? (store as any).custos
+            : createDefaultCustos();
+          const grandPrev = custos.categorias.reduce((s, cat) => s + cat.items.reduce((ss, it) => ss + (it.valorPrevisto || 0), 0), 0);
+          const grandReal = custos.categorias.reduce((s, cat) => s + cat.items.reduce((ss, it) => ss + (it.valorRealizado || 0), 0), 0);
+          return (
+            <section className="mb-6 break-before-page">
+              <h2 className="text-lg font-bold border-b border-black mb-3">4. CUSTOS DA OBRA</h2>
+              <div className="grid grid-cols-3 gap-4 text-center mb-4">
+                <div className="border rounded p-3">
+                  <div className="text-xs">Área</div>
+                  <div className="text-lg font-bold">{custos.areaMt2 || 0} m²</div>
+                </div>
+                <div className="border rounded p-3">
+                  <div className="text-xs">Total Previsto</div>
+                  <div className="text-lg font-bold text-blue-700">{formatCurrency(grandPrev)}</div>
+                </div>
+                <div className="border rounded p-3">
+                  <div className="text-xs">Total Realizado</div>
+                  <div className="text-lg font-bold text-green-700">{formatCurrency(grandReal)}</div>
+                </div>
+              </div>
+              <table className="w-full text-xs border-collapse border border-black mb-4">
+                <thead>
+                  <tr className="bg-gray-200">
+                    <th className="border border-black px-2 py-1 text-left">Categoria</th>
+                    <th className="border border-black px-2 py-1 text-right w-28">Previsto</th>
+                    <th className="border border-black px-2 py-1 text-right w-28">Realizado</th>
+                    <th className="border border-black px-2 py-1 text-right w-28">Diferença</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {custos.categorias.map((cat) => {
+                    const prev = cat.items.reduce((s, it) => s + (it.valorPrevisto || 0), 0);
+                    const real = cat.items.reduce((s, it) => s + (it.valorRealizado || 0), 0);
+                    const diff = real - prev;
+                    return (
+                      <tr key={cat.id}>
+                        <td className="border border-black px-2 py-1">{cat.nome}</td>
+                        <td className="border border-black px-2 py-1 text-right">{formatCurrency(prev)}</td>
+                        <td className="border border-black px-2 py-1 text-right font-semibold">{formatCurrency(real)}</td>
+                        <td className={`border border-black px-2 py-1 text-right ${diff > 0 ? "text-red-600" : diff < 0 ? "text-green-600" : ""}`}>
+                          {diff !== 0 ? (diff > 0 ? "+" : "") + formatCurrency(diff) : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr className="bg-gray-100 font-bold">
+                    <td className="border border-black px-2 py-1">TOTAL</td>
+                    <td className="border border-black px-2 py-1 text-right">{formatCurrency(grandPrev)}</td>
+                    <td className="border border-black px-2 py-1 text-right">{formatCurrency(grandReal)}</td>
+                    <td className={`border border-black px-2 py-1 text-right ${grandReal - grandPrev > 0 ? "text-red-600" : "text-green-600"}`}>
+                      {grandReal - grandPrev !== 0 ? (grandReal - grandPrev > 0 ? "+" : "") + formatCurrency(grandReal - grandPrev) : "—"}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              {custos.categorias.map((cat) => {
+                const hasValues = cat.items.some((it) => it.valorPrevisto > 0 || it.valorRealizado > 0);
+                if (!hasValues) return null;
+                return (
+                  <div key={cat.id} className="mb-3 break-inside-avoid">
+                    <h3 className="text-sm font-bold bg-gray-100 px-2 py-1 border border-black">{cat.nome}</h3>
+                    <table className="w-full text-[10px] border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50">
+                          <th className="border border-black px-1 py-0.5 text-left">Item</th>
+                          <th className="border border-black px-1 py-0.5">Observação</th>
+                          <th className="border border-black px-1 py-0.5 w-24 text-right">Previsto</th>
+                          <th className="border border-black px-1 py-0.5 w-24 text-right">Realizado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cat.items.map((item) => (
+                          <tr key={item.id}>
+                            <td className="border border-black px-1 py-0.5">{item.nome}</td>
+                            <td className="border border-black px-1 py-0.5">{item.fornecedor || "—"}</td>
+                            <td className="border border-black px-1 py-0.5 text-right">{formatCurrency(item.valorPrevisto)}</td>
+                            <td className="border border-black px-1 py-0.5 text-right font-semibold">{formatCurrency(item.valorRealizado)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })}
+            </section>
+          );
+        })()}
+
+        {/* ===== DIÁRIO DE OBRA ===== */}
+        {diaryEntries.length > 0 && (
+          <section className="mb-6 break-before-page">
+            <h2 className="text-lg font-bold border-b border-black mb-3">5. DIÁRIO DE OBRA</h2>
+            <p className="text-xs mb-3 text-gray-600">
+              Total de registros: {diaryEntries.length} | Total de fotos: {Object.values(diaryPhotos).reduce((s, arr) => s + arr.length, 0)}
+            </p>
+            {diaryEntries.map((entry) => {
+              const entryPhotos = diaryPhotos[entry.id] || [];
+              const workers = parseWorkers(entry.weather);
+              return (
+                <div key={entry.id} className="mb-4 break-inside-avoid border border-black rounded p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-bold capitalize">
+                      {new Date(entry.entry_date + "T00:00:00").toLocaleDateString("pt-BR", {
+                        weekday: "long", day: "2-digit", month: "long", year: "numeric",
+                      })}
+                    </h3>
+                    <span className="text-xs text-gray-600">
+                      {entry.workers_count > 0 ? `👷 ${entry.workers_count} funcionários` : ""}
+                    </span>
+                  </div>
+                  {workers.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {workers.map((w, i) => (
+                        <span key={i} className="text-[10px] border border-black rounded px-1.5 py-0.5">
+                          {w.type}: {w.count}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <p className="text-xs whitespace-pre-wrap">{entry.description}</p>
+                  {entryPhotos.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {entryPhotos.map((photo) => (
+                        <img key={photo.id} src={photo.photo_url} alt={photo.caption || "Foto"} className="h-20 w-20 object-cover rounded border border-black print:h-16 print:w-16" />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </section>
+        )}
+
         {/* Footer */}
         <div className="text-center text-xs border-t border-black pt-3 mt-8">
           <p>Relatório gerado em {today} — Checklist de Implantação</p>
