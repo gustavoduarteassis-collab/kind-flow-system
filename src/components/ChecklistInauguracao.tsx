@@ -79,21 +79,22 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   const [activeRoundIndex, setActiveRoundIndex] = useState(0);
 
   // Use LOCAL state for rounds to avoid stale closure issues
-  const [localRounds, setLocalRounds] = useState<InaugChecklistDataV2["rounds"]>(() => {
+  const [localRounds, setLocalRounds] = useState<InaugRound[]>(() => {
     return migrateInaugData(data, tipoLoja || "rua").rounds;
   });
   const roundsRef = useRef(localRounds);
   roundsRef.current = localRounds;
 
-  // Sync from parent when data prop changes externally
+  // Sync from parent when data prop changes (e.g. on page load)
   useEffect(() => {
     const migrated = migrateInaugData(data, tipoLoja || "rua");
     setLocalRounds(migrated.rounds);
   }, [data, tipoLoja]);
 
-  // Helper to update rounds both locally and in parent
-  const updateRounds = useCallback((newRounds: InaugChecklistDataV2["rounds"]) => {
+  // Helper to update rounds locally AND persist to parent
+  const updateRounds = useCallback((newRounds: InaugRound[]) => {
     setLocalRounds(newRounds);
+    roundsRef.current = newRounds;
     onDataChange({ rounds: newRounds });
   }, [onDataChange]);
 
@@ -110,19 +111,13 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
           O checklist de inauguração varia conforme o tipo de loja.
         </p>
         <div className="flex gap-4">
-          <Card
-            className="cursor-pointer hover:border-primary/50 transition-all w-48"
-            onClick={() => handleTipoSelect("rua")}
-          >
+          <Card className="cursor-pointer hover:border-primary/50 transition-all w-48" onClick={() => handleTipoSelect("rua")}>
             <CardContent className="pt-6 text-center">
               <div className="text-3xl mb-2">🏠</div>
               <p className="font-semibold">Loja de Rua</p>
             </CardContent>
           </Card>
-          <Card
-            className="cursor-pointer hover:border-primary/50 transition-all w-48"
-            onClick={() => handleTipoSelect("shopping")}
-          >
+          <Card className="cursor-pointer hover:border-primary/50 transition-all w-48" onClick={() => handleTipoSelect("shopping")}>
             <CardContent className="pt-6 text-center">
               <div className="text-3xl mb-2">🏬</div>
               <p className="font-semibold">Loja de Shopping</p>
@@ -138,11 +133,10 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   const currentRound = rounds[activeRoundIndex] || null;
 
   const handleAddRound = () => {
-    // Always use ref for latest data
-    const latestRounds = roundsRef.current;
-    const lastRound = latestRounds.length > 0 ? latestRounds[latestRounds.length - 1] : undefined;
-    const newRound = createNewRound(tipoLoja, latestRounds.length + 1, lastRound);
-    const updated = [...latestRounds, newRound];
+    const latest = roundsRef.current;
+    const lastRound = latest.length > 0 ? latest[latest.length - 1] : undefined;
+    const newRound = createNewRound(tipoLoja, latest.length + 1, lastRound);
+    const updated = [...latest, newRound];
     updateRounds(updated);
     setActiveRoundIndex(updated.length - 1);
   };
@@ -154,24 +148,20 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
     setActiveRoundIndex(Math.max(0, newRounds.length - 1));
   };
 
+  const updateCurrentRound = (updatedRound: InaugRound) => {
+    const newRounds = [...roundsRef.current];
+    newRounds[activeRoundIndex] = updatedRound;
+    updateRounds(newRounds);
+  };
+
   const handleRoundDateChange = (date: Date | undefined) => {
     if (!date || !currentRound) return;
-    const newRounds = [...rounds];
-    newRounds[activeRoundIndex] = {
-      ...currentRound,
-      date: date.toISOString().split("T")[0],
-    };
-    onDataChange({ rounds: newRounds });
+    updateCurrentRound({ ...currentRound, date: date.toISOString().split("T")[0] });
   };
 
   const handleDeadlineChange = (date: Date | undefined) => {
     if (!currentRound) return;
-    const newRounds = [...rounds];
-    newRounds[activeRoundIndex] = {
-      ...currentRound,
-      deadline: date ? date.toISOString().split("T")[0] : "",
-    };
-    onDataChange({ rounds: newRounds });
+    updateCurrentRound({ ...currentRound, deadline: date ? date.toISOString().split("T")[0] : "" });
   };
 
   const getItemData = (itemId: string): InaugItemData => {
@@ -181,56 +171,36 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   const handleStatusChange = (itemId: string, status: InaugStatusType) => {
     if (!currentRound) return;
     const existing = getItemData(itemId);
-    const newRounds = [...rounds];
-    newRounds[activeRoundIndex] = {
+    updateCurrentRound({
       ...currentRound,
-      items: {
-        ...currentRound.items,
-        [itemId]: { ...existing, status },
-      },
-    };
-    onDataChange({ rounds: newRounds });
+      items: { ...currentRound.items, [itemId]: { ...existing, status } },
+    });
   };
 
   const handleObsChange = (itemId: string, value: string) => {
     if (!currentRound) return;
     const existing = getItemData(itemId);
-    const newRounds = [...rounds];
-    newRounds[activeRoundIndex] = {
+    updateCurrentRound({
       ...currentRound,
-      items: {
-        ...currentRound.items,
-        [itemId]: { ...existing, observacoes: value },
-      },
-    };
-    onDataChange({ rounds: newRounds });
+      items: { ...currentRound.items, [itemId]: { ...existing, observacoes: value } },
+    });
   };
 
   const handleItemDeadlineChange = (itemId: string, date: Date | undefined) => {
     if (!currentRound) return;
-    const newRounds = [...rounds];
-    const itemData = currentRound.items[itemId] || { status: "NAO_ATENDIDO", observacoes: "", photos: [] };
-    newRounds[activeRoundIndex] = {
+    const existing = getItemData(itemId);
+    updateCurrentRound({
       ...currentRound,
-      items: {
-        ...currentRound.items,
-        [itemId]: { ...itemData, prazo: date ? date.toISOString().split("T")[0] : undefined },
-      },
-    };
-    onDataChange({ rounds: newRounds });
+      items: { ...currentRound.items, [itemId]: { ...existing, prazo: date ? date.toISOString().split("T")[0] : undefined } },
+    });
   };
 
   const handleSignatureChange = (field: keyof InaugSignatures, value: string) => {
     if (!currentRound) return;
-    const newRounds = [...rounds];
-    newRounds[activeRoundIndex] = {
+    updateCurrentRound({
       ...currentRound,
-      signatures: {
-        ...currentRound.signatures,
-        [field]: value,
-      },
-    };
-    onDataChange({ rounds: newRounds });
+      signatures: { ...currentRound.signatures, [field]: value },
+    });
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -241,32 +211,21 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
     const ext = file.name.split(".").pop();
     const path = `${currentRound.id}/${uploadingItemId}/${Date.now()}.${ext}`;
 
-    const { data: uploaded, error } = await supabase.storage
-      .from("inaug-checklist-photos")
-      .upload(path, file);
-
+    const { error } = await supabase.storage.from("inaug-checklist-photos").upload(path, file);
     if (error) {
       toast({ title: "Erro ao enviar foto", description: error.message, variant: "destructive" });
       return;
     }
 
-    const { data: urlData } = supabase.storage
-      .from("inaug-checklist-photos")
-      .getPublicUrl(path);
-
+    const { data: urlData } = supabase.storage.from("inaug-checklist-photos").getPublicUrl(path);
     const photoUrl = urlData.publicUrl;
-    const itemData = currentRound.items[uploadingItemId] || { status: "NAO_ATENDIDO", observacoes: "", photos: [] };
+    const itemData = getItemData(uploadingItemId);
     const newPhotos = [...(itemData.photos || []), photoUrl];
 
-    const newRounds = [...rounds];
-    newRounds[activeRoundIndex] = {
+    updateCurrentRound({
       ...currentRound,
-      items: {
-        ...currentRound.items,
-        [uploadingItemId]: { ...itemData, photos: newPhotos },
-      },
-    };
-    onDataChange({ rounds: newRounds });
+      items: { ...currentRound.items, [uploadingItemId]: { ...itemData, photos: newPhotos } },
+    });
     setUploadingItemId(null);
     toast({ title: "Foto anexada!" });
   };
@@ -276,17 +235,13 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
     const itemData = currentRound.items[itemId];
     if (!itemData) return;
     const newPhotos = itemData.photos.filter((_, i) => i !== photoIndex);
-    const newRounds = [...rounds];
-    newRounds[activeRoundIndex] = {
+    updateCurrentRound({
       ...currentRound,
-      items: {
-        ...currentRound.items,
-        [itemId]: { ...itemData, photos: newPhotos },
-      },
-    };
-    onDataChange({ rounds: newRounds });
+      items: { ...currentRound.items, [itemId]: { ...itemData, photos: newPhotos } },
+    });
   };
 
+  // Progress calculations
   const allItems = checklist.categories.flatMap((c) => c.items);
   const totalItems = allItems.length;
   const doneItems = currentRound
@@ -296,6 +251,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
       }).length
     : 0;
   const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+  const isLiberado = progress >= 95;
   const impeditivos = allItems.filter((i) => i.impeditivo);
   const impeditivosPendentes = currentRound
     ? impeditivos.filter((i) => {
@@ -318,13 +274,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
 
   return (
     <div className="space-y-4">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handlePhotoUpload}
-      />
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
 
       {/* Round Navigation */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
@@ -356,33 +306,15 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
         <>
           {/* Round Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              disabled={activeRoundIndex === 0}
-              onClick={() => setActiveRoundIndex((i) => i - 1)}
-            >
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" disabled={activeRoundIndex === 0} onClick={() => setActiveRoundIndex((i) => i - 1)}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
             {rounds.map((round, idx) => (
-              <Button
-                key={round.id}
-                variant={idx === activeRoundIndex ? "default" : "outline"}
-                size="sm"
-                className="shrink-0 text-xs"
-                onClick={() => setActiveRoundIndex(idx)}
-              >
+              <Button key={round.id} variant={idx === activeRoundIndex ? "default" : "outline"} size="sm" className="shrink-0 text-xs" onClick={() => setActiveRoundIndex(idx)}>
                 {round.label}
               </Button>
             ))}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              disabled={activeRoundIndex === rounds.length - 1}
-              onClick={() => setActiveRoundIndex((i) => i + 1)}
-            >
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" disabled={activeRoundIndex === rounds.length - 1} onClick={() => setActiveRoundIndex((i) => i + 1)}>
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -401,13 +333,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={roundDate}
-                        onSelect={handleRoundDateChange}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
+                      <Calendar mode="single" selected={roundDate} onSelect={handleRoundDateChange} initialFocus className="p-3 pointer-events-auto" />
                     </PopoverContent>
                   </Popover>
                   <Popover>
@@ -418,31 +344,16 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={deadlineDate}
-                        onSelect={handleDeadlineChange}
-                        initialFocus
-                        className="p-3 pointer-events-auto"
-                      />
+                      <Calendar mode="single" selected={deadlineDate} onSelect={handleDeadlineChange} initialFocus className="p-3 pointer-events-auto" />
                     </PopoverContent>
                   </Popover>
-                  <span className="text-sm text-muted-foreground">
-                    {doneItems}/{totalItems} itens
-                  </span>
+                  <span className="text-sm text-muted-foreground">{doneItems}/{totalItems} itens</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {impeditivosPendentes > 0 && (
-                    <Badge variant="destructive" className="text-xs">
-                      ⚠ {impeditivosPendentes} impeditivos pendentes
-                    </Badge>
+                    <Badge variant="destructive" className="text-xs">⚠ {impeditivosPendentes} impeditivos pendentes</Badge>
                   )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive text-xs gap-1"
-                    onClick={() => handleDeleteRound(activeRoundIndex)}
-                  >
+                  <Button variant="ghost" size="sm" className="text-destructive text-xs gap-1" onClick={() => handleDeleteRound(activeRoundIndex)}>
                     <Trash2 className="h-3.5 w-3.5" /> Excluir
                   </Button>
                 </div>
@@ -490,9 +401,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                             <TableBody>
                               {cat.items.map((item) => {
                                 const itemData: InaugItemData = currentRound.items[item.id] || {
-                                  status: "NAO_ATENDIDO",
-                                  observacoes: "",
-                                  photos: [],
+                                  status: "NAO_ATENDIDO", observacoes: "", photos: [],
                                 };
                                 const photoCount = (itemData.photos || []).length;
                                 const itemDeadline = itemData.prazo ? new Date(itemData.prazo + "T00:00:00") : undefined;
@@ -512,26 +421,17 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                                       <div className="text-sm">
                                         {item.nome}
                                         {item.impeditivo && (
-                                          <Badge variant="outline" className="ml-2 text-[10px] border-destructive text-destructive">
-                                            IMPEDITIVO
-                                          </Badge>
+                                          <Badge variant="outline" className="ml-2 text-[10px] border-destructive text-destructive">IMPEDITIVO</Badge>
                                         )}
                                       </div>
                                     </TableCell>
                                     <TableCell>
-                                      <Select
-                                        value={itemData.status}
-                                        onValueChange={(v) => handleStatusChange(item.id, v as InaugStatusType)}
-                                      >
-                                        <SelectTrigger className="h-8 text-xs">
-                                          <SelectValue />
-                                        </SelectTrigger>
+                                      <Select value={itemData.status} onValueChange={(v) => handleStatusChange(item.id, v as InaugStatusType)}>
+                                        <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                                         <SelectContent>
                                           {(Object.keys(inaugStatusLabels) as InaugStatusType[]).map((s) => (
                                             <SelectItem key={s} value={s}>
-                                              <Badge className={`${inaugStatusColors[s]} text-[10px]`}>
-                                                {inaugStatusLabels[s]}
-                                              </Badge>
+                                              <Badge className={`${inaugStatusColors[s]} text-[10px]`}>{inaugStatusLabels[s]}</Badge>
                                             </SelectItem>
                                           ))}
                                         </SelectContent>
@@ -539,27 +439,12 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                                     </TableCell>
                                     <TableCell>
                                       <div className="flex items-center gap-1">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-7 w-7"
-                                          title="Anexar foto"
-                                          onClick={() => {
-                                            setUploadingItemId(item.id);
-                                            fileInputRef.current?.click();
-                                          }}
-                                        >
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" title="Anexar foto" onClick={() => { setUploadingItemId(item.id); fileInputRef.current?.click(); }}>
                                           <Camera className="h-3.5 w-3.5" />
                                         </Button>
                                         {photoCount > 0 && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-7 px-1.5 text-xs gap-1"
-                                            onClick={() => setPreviewPhotos(itemData.photos || [])}
-                                          >
-                                            <ImageIcon className="h-3 w-3" />
-                                            {photoCount}
+                                          <Button variant="ghost" size="sm" className="h-7 px-1.5 text-xs gap-1" onClick={() => setPreviewPhotos(itemData.photos || [])}>
+                                            <ImageIcon className="h-3 w-3" /> {photoCount}
                                           </Button>
                                         )}
                                       </div>
@@ -568,23 +453,13 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                                       {isPending ? (
                                         <Popover>
                                           <PopoverTrigger asChild>
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              className={cn("h-7 text-[10px] gap-1 w-full", !itemDeadline && "text-muted-foreground")}
-                                            >
+                                            <Button variant="outline" size="sm" className={cn("h-7 text-[10px] gap-1 w-full", !itemDeadline && "text-muted-foreground")}>
                                               <CalendarIcon className="h-3 w-3" />
                                               {itemDeadline ? format(itemDeadline, "dd/MM/yy", { locale: ptBR }) : "Prazo"}
                                             </Button>
                                           </PopoverTrigger>
                                           <PopoverContent className="w-auto p-0" align="start">
-                                            <Calendar
-                                              mode="single"
-                                              selected={itemDeadline}
-                                              onSelect={(d) => handleItemDeadlineChange(item.id, d)}
-                                              initialFocus
-                                              className="p-3 pointer-events-auto"
-                                            />
+                                            <Calendar mode="single" selected={itemDeadline} onSelect={(d) => handleItemDeadlineChange(item.id, d)} initialFocus className="p-3 pointer-events-auto" />
                                           </PopoverContent>
                                         </Popover>
                                       ) : (
@@ -592,12 +467,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                                       )}
                                     </TableCell>
                                     <TableCell>
-                                      <Input
-                                        className="h-8 text-xs"
-                                        placeholder="Obs..."
-                                        value={itemData.observacoes}
-                                        onChange={(e) => handleObsChange(item.id, e.target.value)}
-                                      />
+                                      <Input className="h-8 text-xs" placeholder="Obs..." value={itemData.observacoes} onChange={(e) => handleObsChange(item.id, e.target.value)} />
                                     </TableCell>
                                   </TableRow>
                                 );
@@ -611,41 +481,54 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                 })}
               </Accordion>
 
+              {/* Liberation Status */}
+              <Card className={cn("mt-6 border-2", isLiberado ? "border-[hsl(152,60%,40%)] bg-[hsl(152,60%,95%)]" : "border-destructive bg-[hsl(0,80%,97%)]")}>
+                <CardContent className="py-6">
+                  <div className="flex items-center justify-center gap-3">
+                    {isLiberado ? (
+                      <>
+                        <CheckCircle2 className="h-8 w-8 text-[hsl(152,60%,40%)]" />
+                        <div className="text-center">
+                          <h3 className="text-lg font-bold text-[hsl(152,60%,30%)]">✅ LIBERADO PARA INAUGURAÇÃO</h3>
+                          <p className="text-sm text-[hsl(152,60%,30%)]">{progress}% dos itens atendidos</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-8 w-8 text-destructive" />
+                        <div className="text-center">
+                          <h3 className="text-lg font-bold text-destructive">❌ NÃO LIBERADO PARA INAUGURAÇÃO</h3>
+                          <p className="text-sm text-destructive">{progress}% dos itens atendidos — mínimo necessário: 95%</p>
+                          {impeditivosPendentes > 0 && (
+                            <p className="text-xs text-destructive mt-1">⚠ {impeditivosPendentes} itens impeditivos pendentes</p>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* Signatures Section */}
-              <Card className="mt-6">
+              <Card className="mt-4">
                 <CardContent className="pt-6">
                   <h4 className="text-sm font-semibold mb-4">Assinaturas</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-muted-foreground">Franqueado</label>
-                      <Input
-                        placeholder="Nome do franqueado"
-                        value={currentRound.signatures?.franqueado || ""}
-                        onChange={(e) => handleSignatureChange("franqueado", e.target.value)}
-                        className="h-9 text-sm"
-                      />
+                      <Input placeholder="Nome do franqueado" value={currentRound.signatures?.franqueado || ""} onChange={(e) => handleSignatureChange("franqueado", e.target.value)} className="h-9 text-sm" />
                       <div className="border-b border-foreground/30 mt-6 pt-8" />
                       <p className="text-[10px] text-center text-muted-foreground">Assinatura do Franqueado</p>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-muted-foreground">Analista de Obra</label>
-                      <Input
-                        placeholder="Nome do analista"
-                        value={currentRound.signatures?.analistaObra || ""}
-                        onChange={(e) => handleSignatureChange("analistaObra", e.target.value)}
-                        className="h-9 text-sm"
-                      />
+                      <Input placeholder="Nome do analista" value={currentRound.signatures?.analistaObra || ""} onChange={(e) => handleSignatureChange("analistaObra", e.target.value)} className="h-9 text-sm" />
                       <div className="border-b border-foreground/30 mt-6 pt-8" />
                       <p className="text-[10px] text-center text-muted-foreground">Assinatura do Analista de Obra</p>
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-medium text-muted-foreground">Construtor</label>
-                      <Input
-                        placeholder="Nome do construtor"
-                        value={currentRound.signatures?.construtor || ""}
-                        onChange={(e) => handleSignatureChange("construtor", e.target.value)}
-                        className="h-9 text-sm"
-                      />
+                      <Input placeholder="Nome do construtor" value={currentRound.signatures?.construtor || ""} onChange={(e) => handleSignatureChange("construtor", e.target.value)} className="h-9 text-sm" />
                       <div className="border-b border-foreground/30 mt-6 pt-8" />
                       <p className="text-[10px] text-center text-muted-foreground">Assinatura do Construtor</p>
                     </div>
@@ -667,8 +550,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
             {previewPhotos?.map((url, idx) => (
               <div key={idx} className="relative group">
                 <img src={url} alt={`Foto ${idx + 1}`} className="rounded-lg w-full h-48 object-cover" />
-                <a href={url} target="_blank" rel="noopener noreferrer"
-                  className="absolute top-2 right-2 bg-background/80 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <a href={url} target="_blank" rel="noopener noreferrer" className="absolute top-2 right-2 bg-background/80 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Eye className="h-4 w-4" />
                 </a>
               </div>
