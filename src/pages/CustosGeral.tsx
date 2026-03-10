@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { custosGeralData, getStoreCostTotal, getStoreCostPerM2, META_POR_M2, StoreCostEntry } from "@/data/custosGeralData";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,17 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, TrendingUp, TrendingDown, Building2, Target, BarChart3, Calculator } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+} from "@/components/ui/dialog";
+import { ArrowLeft, TrendingUp, TrendingDown, Building2, Target, BarChart3, Calculator, Plus, FileText, Trash2 } from "lucide-react";
 import logoConstance from "@/assets/logo-constance.svg";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell as ReCell } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -58,20 +66,93 @@ function calcAverages(data: StoreCostEntry[]) {
   });
 }
 
+const PIE_COLORS = ["hsl(220,70%,55%)", "hsl(160,55%,45%)", "hsl(35,85%,55%)", "hsl(280,55%,55%)", "hsl(350,65%,55%)", "hsl(190,60%,45%)"];
+
+const ESTADOS_BR = [
+  "ACRE","ALAGOAS","AMAPA","AMAZONAS","BAHIA","CEARA","DISTRITO FEDERAL","ESPIRITO SANTO",
+  "GOIAS","MARANHÃO","MATO GROSSO","MATO GROSSO DO SUL","MINAS GERAIS","PARA","PARAIBA",
+  "PARANA","PERNAMBUCO","PIAUI","RIO DE JANEIRO","RIO GRANDE DO NORTE","RIO GRANDE DO SUL",
+  "RONDONIA","RORAIMA","SANTA CATARINA","SÃO PAULO","SERGIPE","TOCANTINS"
+];
+
+const REGIONAIS = ["NORTE","NORDESTE","CENTRO-OESTE","SUDESTE","SUL"];
+
+interface DbEntry {
+  id: string;
+  nome: string;
+  ano: number;
+  tipo: string;
+  local: string;
+  estado: string;
+  regional: string;
+  area_total: number;
+  area_loja: number;
+  prazo: string;
+  mao_de_obra: number;
+  moveis: number;
+  piso: number;
+  iluminacao: number;
+  informatica: number;
+  demais_itens: number;
+}
+
+function dbToStore(d: DbEntry): StoreCostEntry {
+  return {
+    nome: d.nome, ano: d.ano, tipo: d.tipo as StoreCostEntry["tipo"],
+    local: d.local as StoreCostEntry["local"], estado: d.estado, regional: d.regional,
+    areaTotal: Number(d.area_total), areaLoja: Number(d.area_loja), prazo: d.prazo,
+    maoDeObra: Number(d.mao_de_obra), moveis: Number(d.moveis), piso: Number(d.piso),
+    iluminacao: Number(d.iluminacao), informatica: Number(d.informatica), demaisItens: Number(d.demais_itens),
+  };
+}
+
+const emptyForm = {
+  nome: "", tipo: "TRADICIONAL", local: "SHOPPING", estado: "", regional: "SUDESTE",
+  areaTotal: "", areaLoja: "", prazo: "",
+  maoDeObra: "", moveis: "", piso: "", iluminacao: "", informatica: "", demaisItens: "",
+};
+
 const CustosGeral = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [filterAno, setFilterAno] = useState<string>("todos");
   const [filterTipo, setFilterTipo] = useState<string>("todos");
   const [dashboardAno, setDashboardAno] = useState<string>("2025");
+  const [dbEntries, setDbEntries] = useState<DbEntry[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
 
-  const anos = [...new Set(custosGeralData.map((d) => d.ano))].sort();
+  // Load DB entries (2026+)
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from("custos_geral_entries")
+        .select("*")
+        .order("nome");
+      if (data) setDbEntries(data as unknown as DbEntry[]);
+    };
+    load();
+  }, []);
+
+  // Merge static + DB entries
+  const allEntries = useMemo(() => {
+    const fromDb = dbEntries.map(dbToStore);
+    return [...custosGeralData, ...fromDb];
+  }, [dbEntries]);
+
+  const anos = useMemo(() => {
+    const set = new Set(allEntries.map((d) => d.ano));
+    set.add(2026); // always show 2026
+    return [...set].sort();
+  }, [allEntries]);
 
   const filtered = useMemo(() => {
-    let data = custosGeralData;
+    let data = allEntries;
     if (filterAno !== "todos") data = data.filter((d) => d.ano === Number(filterAno));
     if (filterTipo !== "todos") data = data.filter((d) => d.tipo === filterTipo);
     return data;
-  }, [filterAno, filterTipo]);
+  }, [filterAno, filterTipo, allEntries]);
 
   const totals = useMemo(() => {
     let ok = 0, over = 0;
@@ -83,15 +164,13 @@ const CustosGeral = () => {
     return { ok, over, total: filtered.length };
   }, [filtered]);
 
-  // Dashboard metrics for selected year
   const dashData = useMemo(() => {
-    const yearData = custosGeralData.filter((d) => d.ano === Number(dashboardAno));
+    const yearData = allEntries.filter((d) => d.ano === Number(dashboardAno));
     return calcAverages(yearData);
-  }, [dashboardAno]);
+  }, [dashboardAno, allEntries]);
 
-  // Summary for dashboard year
   const dashSummary = useMemo(() => {
-    const yearData = custosGeralData.filter((d) => d.ano === Number(dashboardAno));
+    const yearData = allEntries.filter((d) => d.ano === Number(dashboardAno));
     const totalLojas = yearData.length;
     const totalInvestido = yearData.reduce((s, e) => s + getStoreCostTotal(e), 0);
     const totalArea = yearData.reduce((s, e) => s + e.areaTotal, 0);
@@ -103,9 +182,8 @@ const CustosGeral = () => {
       if (cm2 <= meta) ok++; else over++;
     });
     return { totalLojas, totalInvestido, totalArea, avgM2, ok, over };
-  }, [dashboardAno]);
+  }, [dashboardAno, allEntries]);
 
-  // Chart data for dashboard
   const chartData = useMemo(() => {
     return dashData.map((d) => ({
       tipo: d.tipo,
@@ -120,7 +198,6 @@ const CustosGeral = () => {
     }));
   }, [dashData]);
 
-  // 2026 projections: scale each category proportionally so total = meta exactly
   const projections2026 = useMemo(() => {
     const data2025 = custosGeralData.filter((d) => d.ano === 2025);
     const rawAvgs = calcAverages(data2025);
@@ -137,6 +214,57 @@ const CustosGeral = () => {
     });
   }, []);
 
+  // Report data
+  const reportData = useMemo(() => {
+    const reportAno = filterAno !== "todos" ? Number(filterAno) : null;
+    const reportTipo = filterTipo !== "todos" ? filterTipo : null;
+    let data = allEntries;
+    if (reportAno) data = data.filter((d) => d.ano === reportAno);
+    if (reportTipo) data = data.filter((d) => d.tipo === reportTipo);
+
+    const totalInvestido = data.reduce((s, e) => s + getStoreCostTotal(e), 0);
+    const totalArea = data.reduce((s, e) => s + e.areaTotal, 0);
+    const avgM2 = totalArea > 0 ? totalInvestido / totalArea : 0;
+
+    // By type
+    const byTipo = TIPOS.map((t) => {
+      const td = data.filter((e) => e.tipo === t);
+      const inv = td.reduce((s, e) => s + getStoreCostTotal(e), 0);
+      const area = td.reduce((s, e) => s + e.areaTotal, 0);
+      return { tipo: t, count: td.length, investido: inv, area, avgM2: area > 0 ? inv / area : 0 };
+    }).filter((d) => d.count > 0);
+
+    // By regional
+    const regSet = new Set(data.map((d) => d.regional));
+    const byRegional = [...regSet].map((r) => {
+      const rd = data.filter((e) => e.regional === r);
+      const inv = rd.reduce((s, e) => s + getStoreCostTotal(e), 0);
+      return { name: r, value: inv, count: rd.length };
+    }).sort((a, b) => b.value - a.value);
+
+    // By category totals
+    const byCat = CATEGORIAS.map(({ key, label }) => {
+      const sum = data.reduce((s, e) => s + e[key], 0);
+      return { name: label, value: sum };
+    });
+
+    // By estado
+    const estSet = new Set(data.map((d) => d.estado));
+    const byEstado = [...estSet].map((e) => {
+      const ed = data.filter((d) => d.estado === e);
+      return { estado: e, count: ed.length, investido: ed.reduce((s, d) => s + getStoreCostTotal(d), 0) };
+    }).sort((a, b) => b.count - a.count);
+
+    let ok = 0, over = 0;
+    data.forEach((e) => {
+      const cm2 = getStoreCostPerM2(e);
+      const meta = META_POR_M2[e.tipo] || 3250;
+      if (cm2 <= meta) ok++; else over++;
+    });
+
+    return { totalLojas: data.length, totalInvestido, totalArea, avgM2, ok, over, byTipo, byRegional, byCat, byEstado };
+  }, [allEntries, filterAno, filterTipo]);
+
   const getStatusInfo = (entry: StoreCostEntry) => {
     const custoM2 = getStoreCostPerM2(entry);
     const meta = META_POR_M2[entry.tipo] || 3250;
@@ -144,6 +272,48 @@ const CustosGeral = () => {
   };
 
   const barColors = ["hsl(220,70%,55%)", "hsl(160,55%,45%)", "hsl(35,85%,55%)", "hsl(280,55%,55%)", "hsl(350,65%,55%)", "hsl(190,60%,45%)"];
+
+  const handleSave = async () => {
+    if (!user) return;
+    if (!form.nome.trim()) { toast.error("Nome da loja é obrigatório"); return; }
+    if (!form.areaTotal || Number(form.areaTotal) <= 0) { toast.error("Área total é obrigatória"); return; }
+    setSaving(true);
+    const { error } = await supabase.from("custos_geral_entries").insert({
+      user_id: user.id,
+      nome: form.nome.toUpperCase(),
+      ano: 2026,
+      tipo: form.tipo,
+      local: form.local,
+      estado: form.estado,
+      regional: form.regional,
+      area_total: Number(form.areaTotal) || 0,
+      area_loja: Number(form.areaLoja) || 0,
+      prazo: form.prazo,
+      mao_de_obra: Number(form.maoDeObra) || 0,
+      moveis: Number(form.moveis) || 0,
+      piso: Number(form.piso) || 0,
+      iluminacao: Number(form.iluminacao) || 0,
+      informatica: Number(form.informatica) || 0,
+      demais_itens: Number(form.demaisItens) || 0,
+    } as any);
+    if (error) { toast.error("Erro ao salvar: " + error.message); setSaving(false); return; }
+    toast.success("Loja 2026 adicionada!");
+    setForm(emptyForm);
+    setDialogOpen(false);
+    setSaving(false);
+    // reload
+    const { data } = await supabase.from("custos_geral_entries").select("*").order("nome");
+    if (data) setDbEntries(data as unknown as DbEntry[]);
+  };
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from("custos_geral_entries").delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir"); return; }
+    toast.success("Entrada removida");
+    setDbEntries((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  const setField = (key: string, val: string) => setForm((f) => ({ ...f, [key]: val }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -164,73 +334,36 @@ const CustosGeral = () => {
 
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="dashboard" className="gap-1.5"><BarChart3 className="h-4 w-4" />Dashboard</TabsTrigger>
-            <TabsTrigger value="projecao" className="gap-1.5"><Calculator className="h-4 w-4" />Meta 2026</TabsTrigger>
-            <TabsTrigger value="tabela" className="gap-1.5"><Building2 className="h-4 w-4" />Tabela</TabsTrigger>
+          <TabsList className="grid w-full max-w-2xl grid-cols-5">
+            <TabsTrigger value="dashboard" className="gap-1.5 text-xs"><BarChart3 className="h-3.5 w-3.5" />Dashboard</TabsTrigger>
+            <TabsTrigger value="projecao" className="gap-1.5 text-xs"><Calculator className="h-3.5 w-3.5" />Meta 2026</TabsTrigger>
+            <TabsTrigger value="lancamento" className="gap-1.5 text-xs"><Plus className="h-3.5 w-3.5" />2026</TabsTrigger>
+            <TabsTrigger value="relatorio" className="gap-1.5 text-xs"><FileText className="h-3.5 w-3.5" />Relatório</TabsTrigger>
+            <TabsTrigger value="tabela" className="gap-1.5 text-xs"><Building2 className="h-3.5 w-3.5" />Tabela</TabsTrigger>
           </TabsList>
 
           {/* ===== DASHBOARD TAB ===== */}
           <TabsContent value="dashboard" className="space-y-6">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm font-medium text-muted-foreground">Ano:</span>
               {anos.map((a) => (
-                <Button
-                  key={a}
-                  size="sm"
-                  variant={dashboardAno === String(a) ? "default" : "outline"}
-                  onClick={() => setDashboardAno(String(a))}
-                >
+                <Button key={a} size="sm" variant={dashboardAno === String(a) ? "default" : "outline"} onClick={() => setDashboardAno(String(a))}>
                   {a}
                 </Button>
               ))}
             </div>
 
-            {/* Summary */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              <Card>
-                <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground truncate">Lojas</p>
-                  <p className="text-2xl font-bold">{dashSummary.totalLojas}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground truncate">Total Investido</p>
-                  <p className="text-sm font-bold truncate">{fmt(dashSummary.totalInvestido)}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground truncate">Área Total (m²)</p>
-                  <p className="text-lg font-bold">{dashSummary.totalArea.toFixed(0)}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground truncate">Média R$/m²</p>
-                  <p className="text-lg font-bold">{fmtM2(dashSummary.avgM2)}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><TrendingDown className="h-3 w-3 text-[hsl(152,60%,40%)]" /> Na Meta</p>
-                  <p className="text-2xl font-bold text-[hsl(152,60%,40%)]">{dashSummary.ok}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><TrendingUp className="h-3 w-3 text-destructive" /> Estourou</p>
-                  <p className="text-2xl font-bold text-destructive">{dashSummary.over}</p>
-                </CardContent>
-              </Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Lojas</p><p className="text-2xl font-bold">{dashSummary.totalLojas}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Total Investido</p><p className="text-sm font-bold truncate">{fmt(dashSummary.totalInvestido)}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Área Total (m²)</p><p className="text-lg font-bold">{dashSummary.totalArea.toFixed(0)}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Média R$/m²</p><p className="text-lg font-bold">{fmtM2(dashSummary.avgM2)}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate flex items-center gap-1"><TrendingDown className="h-3 w-3 text-[hsl(152,60%,40%)]" /> Na Meta</p><p className="text-2xl font-bold text-[hsl(152,60%,40%)]">{dashSummary.ok}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate flex items-center gap-1"><TrendingUp className="h-3 w-3 text-destructive" /> Estourou</p><p className="text-2xl font-bold text-destructive">{dashSummary.over}</p></CardContent></Card>
             </div>
 
-            {/* Chart - grouped bars instead of stacked */}
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Custo Médio por m² — {dashboardAno}</CardTitle>
-              </CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Custo Médio por m² — {dashboardAno}</CardTitle></CardHeader>
               <CardContent>
                 <div className="h-[380px]">
                   <ResponsiveContainer width="100%" height="100%">
@@ -238,10 +371,7 @@ const CustosGeral = () => {
                       <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
                       <XAxis dataKey="tipo" tick={{ fontSize: 12 }} />
                       <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${v}`} />
-                      <Tooltip
-                        formatter={(value: number, name: string) => [fmtM2(value), name]}
-                        contentStyle={{ fontSize: 12, borderRadius: 8 }}
-                      />
+                      <Tooltip formatter={(value: number, name: string) => [fmtM2(value), name]} contentStyle={{ fontSize: 12, borderRadius: 8 }} />
                       <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
                       {CATEGORIAS.map((cat, i) => (
                         <Bar key={cat.key} dataKey={cat.label} fill={barColors[i]} radius={[3, 3, 0, 0]} />
@@ -252,7 +382,6 @@ const CustosGeral = () => {
               </CardContent>
             </Card>
 
-            {/* Per-type detail cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {dashData.map((d) => {
                 const isOver = d.avgTotalPerM2 > d.meta;
@@ -261,32 +390,14 @@ const CustosGeral = () => {
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-sm">{d.tipo}</CardTitle>
-                        <Badge variant={isOver ? "destructive" : "outline"} className={!isOver ? "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]" : ""}>
-                          {d.count} lojas
-                        </Badge>
+                        <Badge variant={isOver ? "destructive" : "outline"} className={!isOver ? "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]" : ""}>{d.count} lojas</Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Área média</span>
-                        <span className="font-mono font-medium">{d.avgArea.toFixed(1)} m²</span>
-                      </div>
-                      {CATEGORIAS.map(({ key, label }) => (
-                        <div key={key} className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">{label}</span>
-                          <span className="font-mono">{fmtM2(d.avgPerM2[key])}/m²</span>
-                        </div>
-                      ))}
-                      <div className="border-t pt-2 mt-2 flex justify-between text-sm font-bold">
-                        <span>Total</span>
-                        <span className={`font-mono ${isOver ? "text-destructive" : "text-[hsl(152,60%,40%)]"}`}>
-                          {fmtM2(d.avgTotalPerM2)}/m²
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Meta</span>
-                        <span className="font-mono">{fmtM2(d.meta)}/m²</span>
-                      </div>
+                      <div className="flex justify-between text-sm"><span className="text-muted-foreground">Área média</span><span className="font-mono font-medium">{d.avgArea.toFixed(1)} m²</span></div>
+                      {CATEGORIAS.map(({ key, label }) => (<div key={key} className="flex justify-between text-xs"><span className="text-muted-foreground">{label}</span><span className="font-mono">{fmtM2(d.avgPerM2[key])}/m²</span></div>))}
+                      <div className="border-t pt-2 mt-2 flex justify-between text-sm font-bold"><span>Total</span><span className={`font-mono ${isOver ? "text-destructive" : "text-[hsl(152,60%,40%)]"}`}>{fmtM2(d.avgTotalPerM2)}/m²</span></div>
+                      <div className="flex justify-between text-xs text-muted-foreground"><span>Meta</span><span className="font-mono">{fmtM2(d.meta)}/m²</span></div>
                     </CardContent>
                   </Card>
                 );
@@ -298,67 +409,40 @@ const CustosGeral = () => {
           <TabsContent value="projecao" className="space-y-6">
             <Card className="border-primary/30">
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-primary" />
-                  <CardTitle>Meta de Custos por m² — Projeção 2026</CardTitle>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Baseado na média dos custos por m² das lojas inauguradas em 2025, separados por tipo de loja. Use esses valores como referência para contratação em 2026.
-                </p>
+                <div className="flex items-center gap-2"><Target className="h-5 w-5 text-primary" /><CardTitle>Meta de Custos por m² — Projeção 2026</CardTitle></div>
+                <p className="text-sm text-muted-foreground">Baseado na média dos custos por m² das lojas inauguradas em 2025, separados por tipo de loja.</p>
               </CardHeader>
             </Card>
-
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {projections2026.map((d) => {
                 const totalProj = Object.values(d.avgPerM2).reduce((s, v) => s + v, 0);
                 return (
                   <Card key={d.tipo} className="overflow-hidden">
                     <CardHeader className="bg-muted/50 pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{d.tipo}</CardTitle>
-                        <Badge variant="secondary">{d.count} lojas em 2025</Badge>
-                      </div>
+                      <div className="flex items-center justify-between"><CardTitle className="text-lg">{d.tipo}</CardTitle><Badge variant="secondary">{d.count} lojas em 2025</Badge></div>
                       <p className="text-xs text-muted-foreground">Área média: {d.avgArea.toFixed(1)} m² | Meta geral: {fmtM2(d.meta)}/m²</p>
                     </CardHeader>
                     <CardContent className="pt-4 space-y-1">
-                      <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Valor sugerido por m² para 2026</div>
+                      <div className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Valor por m² para 2026</div>
                       {CATEGORIAS.map(({ key, label }) => {
                         const val = d.avgPerM2[key];
                         const pct = totalProj > 0 ? (val / totalProj) * 100 : 0;
                         return (
                           <div key={key} className="flex items-center gap-2 py-1.5 border-b border-border/50 last:border-0">
                             <div className="flex-1 text-sm">{label}</div>
-                            <div className="text-right">
-                              <span className="font-mono font-bold text-sm">{fmtM2(val)}</span>
-                              <span className="text-xs text-muted-foreground ml-1">/m²</span>
-                            </div>
+                            <div className="text-right"><span className="font-mono font-bold text-sm">{fmtM2(val)}</span><span className="text-xs text-muted-foreground ml-1">/m²</span></div>
                             <Badge variant="outline" className="text-[10px] w-14 justify-center">{pct.toFixed(0)}%</Badge>
                           </div>
                         );
                       })}
                       <div className="flex items-center gap-2 pt-3 mt-2 border-t-2 border-primary/20">
                         <div className="flex-1 text-sm font-bold">TOTAL</div>
-                        <div className="text-right">
-                          <span className="font-mono font-bold text-base text-[hsl(152,60%,40%)]">
-                            {fmtM2(totalProj)}
-                          </span>
-                          <span className="text-xs text-muted-foreground ml-1">/m²</span>
-                        </div>
+                        <div className="text-right"><span className="font-mono font-bold text-base text-[hsl(152,60%,40%)]">{fmtM2(totalProj)}</span><span className="text-xs text-muted-foreground ml-1">/m²</span></div>
                       </div>
-
-                      {/* Example: for a 100m² store */}
                       <div className="mt-4 p-3 bg-muted/50 rounded-lg">
                         <p className="text-xs text-muted-foreground mb-2">Exemplo: loja de 100 m²</p>
-                        {CATEGORIAS.map(({ key, label }) => (
-                          <div key={key} className="flex justify-between text-xs py-0.5">
-                            <span>{label}</span>
-                            <span className="font-mono">{fmt(d.avgPerM2[key] * 100)}</span>
-                          </div>
-                        ))}
-                        <div className="flex justify-between text-sm font-bold border-t mt-1 pt-1">
-                          <span>Total</span>
-                          <span className="font-mono">{fmt(totalProj * 100)}</span>
-                        </div>
+                        {CATEGORIAS.map(({ key, label }) => (<div key={key} className="flex justify-between text-xs py-0.5"><span>{label}</span><span className="font-mono">{fmt(d.avgPerM2[key] * 100)}</span></div>))}
+                        <div className="flex justify-between text-sm font-bold border-t mt-1 pt-1"><span>Total</span><span className="font-mono">{fmt(totalProj * 100)}</span></div>
                       </div>
                     </CardContent>
                   </Card>
@@ -367,24 +451,220 @@ const CustosGeral = () => {
             </div>
           </TabsContent>
 
+          {/* ===== LANÇAMENTO 2026 TAB ===== */}
+          <TabsContent value="lancamento" className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold">Lançamentos 2026</h2>
+                <p className="text-sm text-muted-foreground">Cadastre manualmente as lojas inauguradas em 2026</p>
+              </div>
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2"><Plus className="h-4 w-4" />Nova Loja 2026</Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader><DialogTitle>Cadastrar Loja — 2026</DialogTitle></DialogHeader>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2"><Label>Nome da Loja</Label><Input value={form.nome} onChange={(e) => setField("nome", e.target.value)} placeholder="Ex: SHOPPING EXEMPLO" /></div>
+                    <div><Label>Tipo</Label>
+                      <Select value={form.tipo} onValueChange={(v) => setField("tipo", v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{TIPOS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div><Label>Local</Label>
+                      <Select value={form.local} onValueChange={(v) => setField("local", v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent><SelectItem value="SHOPPING">Shopping</SelectItem><SelectItem value="RUA">Rua</SelectItem></SelectContent>
+                      </Select>
+                    </div>
+                    <div><Label>Estado</Label>
+                      <Select value={form.estado} onValueChange={(v) => setField("estado", v)}>
+                        <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                        <SelectContent>{ESTADOS_BR.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div><Label>Regional</Label>
+                      <Select value={form.regional} onValueChange={(v) => setField("regional", v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{REGIONAIS.map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div><Label>Área Total (m²)</Label><Input type="number" value={form.areaTotal} onChange={(e) => setField("areaTotal", e.target.value)} /></div>
+                    <div><Label>Área Loja (m²)</Label><Input type="number" value={form.areaLoja} onChange={(e) => setField("areaLoja", e.target.value)} /></div>
+                    <div className="col-span-2"><Label>Prazo</Label><Input value={form.prazo} onChange={(e) => setField("prazo", e.target.value)} placeholder="Ex: 35 DIAS" /></div>
+                    <div className="col-span-2 border-t pt-4"><p className="text-sm font-semibold text-muted-foreground mb-3">Custos (R$)</p></div>
+                    <div><Label>Mão de Obra</Label><Input type="number" value={form.maoDeObra} onChange={(e) => setField("maoDeObra", e.target.value)} /></div>
+                    <div><Label>Móveis</Label><Input type="number" value={form.moveis} onChange={(e) => setField("moveis", e.target.value)} /></div>
+                    <div><Label>Piso</Label><Input type="number" value={form.piso} onChange={(e) => setField("piso", e.target.value)} /></div>
+                    <div><Label>Iluminação</Label><Input type="number" value={form.iluminacao} onChange={(e) => setField("iluminacao", e.target.value)} /></div>
+                    <div><Label>Informática</Label><Input type="number" value={form.informatica} onChange={(e) => setField("informatica", e.target.value)} /></div>
+                    <div><Label>Demais Itens</Label><Input type="number" value={form.demaisItens} onChange={(e) => setField("demaisItens", e.target.value)} /></div>
+                  </div>
+                  <DialogFooter><Button onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar"}</Button></DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+
+            {/* List 2026 entries from DB */}
+            {dbEntries.length === 0 ? (
+              <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhuma loja 2026 cadastrada ainda. Clique em "Nova Loja 2026" para começar.</CardContent></Card>
+            ) : (
+              <div className="rounded-xl border bg-card overflow-hidden">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead>Loja</TableHead>
+                        <TableHead className="text-center">Tipo</TableHead>
+                        <TableHead className="text-center">Local</TableHead>
+                        <TableHead className="text-right">Área m²</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-right">R$/m²</TableHead>
+                        <TableHead className="text-center">Status</TableHead>
+                        <TableHead className="w-12"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {dbEntries.map((d) => {
+                        const entry = dbToStore(d);
+                        const total = getStoreCostTotal(entry);
+                        const { custoM2, meta, isOver } = getStatusInfo(entry);
+                        return (
+                          <TableRow key={d.id} className={isOver ? "bg-destructive/5" : "bg-[hsl(152,60%,95%)]"}>
+                            <TableCell className="font-medium">{d.nome}</TableCell>
+                            <TableCell className="text-center"><Badge variant="outline" className="text-[10px]">{d.tipo}</Badge></TableCell>
+                            <TableCell className="text-center text-xs">{d.local}</TableCell>
+                            <TableCell className="text-right font-mono text-sm">{Number(d.area_total).toFixed(1)}</TableCell>
+                            <TableCell className="text-right font-mono text-sm font-bold">{fmt(total)}</TableCell>
+                            <TableCell className={`text-right font-mono text-sm font-bold ${isOver ? "text-destructive" : "text-[hsl(152,60%,40%)]"}`}>{fmtM2(custoM2)}</TableCell>
+                            <TableCell className="text-center">{isOver ? <Badge variant="destructive" className="text-[10px]">ESTOUROU</Badge> : <Badge className="bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)] text-[10px]">OK</Badge>}</TableCell>
+                            <TableCell><Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDelete(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button></TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          {/* ===== RELATÓRIO TAB ===== */}
+          <TabsContent value="relatorio" className="space-y-6">
+            <div className="flex flex-wrap gap-3 items-center">
+              <span className="text-sm font-medium text-muted-foreground">Filtros do Relatório:</span>
+              <Select value={filterAno} onValueChange={setFilterAno}>
+                <SelectTrigger className="w-[140px]"><SelectValue placeholder="Ano" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os anos</SelectItem>
+                  {anos.map((a) => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={filterTipo} onValueChange={setFilterTipo}>
+                <SelectTrigger className="w-[160px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os tipos</SelectItem>
+                  <SelectItem value="TRADICIONAL">Tradicional</SelectItem>
+                  <SelectItem value="LIGHT">Light</SelectItem>
+                  <SelectItem value="OUTLET">Outlet</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Summary cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Total Lojas</p><p className="text-2xl font-bold">{reportData.totalLojas}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Total Investido</p><p className="text-sm font-bold truncate">{fmt(reportData.totalInvestido)}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Área Total</p><p className="text-lg font-bold">{reportData.totalArea.toFixed(0)} m²</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Média R$/m²</p><p className="text-lg font-bold">{fmtM2(reportData.avgM2)}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Na Meta</p><p className="text-2xl font-bold text-[hsl(152,60%,40%)]">{reportData.ok}</p></CardContent></Card>
+              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Estourou</p><p className="text-2xl font-bold text-destructive">{reportData.over}</p></CardContent></Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* By Type */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Por Tipo de Loja</CardTitle></CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader><TableRow><TableHead>Tipo</TableHead><TableHead className="text-center">Qtd</TableHead><TableHead className="text-right">Investido</TableHead><TableHead className="text-right">Área m²</TableHead><TableHead className="text-right">R$/m²</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {reportData.byTipo.map((d) => (
+                        <TableRow key={d.tipo}>
+                          <TableCell className="font-medium">{d.tipo}</TableCell>
+                          <TableCell className="text-center">{d.count}</TableCell>
+                          <TableCell className="text-right font-mono text-xs">{fmt(d.investido)}</TableCell>
+                          <TableCell className="text-right font-mono text-xs">{d.area.toFixed(0)}</TableCell>
+                          <TableCell className={`text-right font-mono text-sm font-bold ${d.avgM2 > (META_POR_M2[d.tipo] || 3250) ? "text-destructive" : "text-[hsl(152,60%,40%)]"}`}>{fmtM2(d.avgM2)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* By Category pie */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Distribuição por Categoria</CardTitle></CardHeader>
+                <CardContent>
+                  <div className="h-[280px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={reportData.byCat} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={10}>
+                          {reportData.byCat.map((_, i) => <ReCell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip formatter={(v: number) => fmt(v)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* By Regional */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Por Regional</CardTitle></CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader><TableRow><TableHead>Regional</TableHead><TableHead className="text-center">Qtd</TableHead><TableHead className="text-right">Investido</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {reportData.byRegional.map((d) => (
+                        <TableRow key={d.name}><TableCell className="font-medium">{d.name}</TableCell><TableCell className="text-center">{d.count}</TableCell><TableCell className="text-right font-mono text-xs">{fmt(d.value)}</TableCell></TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              {/* By Estado */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Por Estado (Top 10)</CardTitle></CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader><TableRow><TableHead>Estado</TableHead><TableHead className="text-center">Qtd</TableHead><TableHead className="text-right">Investido</TableHead></TableRow></TableHeader>
+                    <TableBody>
+                      {reportData.byEstado.slice(0, 10).map((d) => (
+                        <TableRow key={d.estado}><TableCell className="font-medium text-xs">{d.estado}</TableCell><TableCell className="text-center">{d.count}</TableCell><TableCell className="text-right font-mono text-xs">{fmt(d.investido)}</TableCell></TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           {/* ===== TABELA TAB ===== */}
           <TabsContent value="tabela" className="space-y-6">
             <div className="flex flex-wrap gap-3 items-center">
               <Select value={filterAno} onValueChange={setFilterAno}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Ano" />
-                </SelectTrigger>
+                <SelectTrigger className="w-[140px]"><SelectValue placeholder="Ano" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os anos</SelectItem>
-                  {anos.map((a) => (
-                    <SelectItem key={a} value={String(a)}>{a}</SelectItem>
-                  ))}
+                  {anos.map((a) => <SelectItem key={a} value={String(a)}>{a}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={filterTipo} onValueChange={setFilterTipo}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Tipo" />
-                </SelectTrigger>
+                <SelectTrigger className="w-[160px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os tipos</SelectItem>
                   <SelectItem value="TRADICIONAL">Tradicional</SelectItem>
@@ -427,16 +707,11 @@ const CustosGeral = () => {
                       const total = getStoreCostTotal(entry);
                       const { custoM2, meta, isOver } = getStatusInfo(entry);
                       return (
-                        <TableRow
-                          key={`${entry.nome}-${entry.ano}`}
-                          className={isOver ? "bg-destructive/5" : "bg-[hsl(152,60%,95%)]"}
-                        >
+                        <TableRow key={`${entry.nome}-${entry.ano}-${idx}`} className={isOver ? "bg-destructive/5" : "bg-[hsl(152,60%,95%)]"}>
                           <TableCell className="text-center text-xs text-muted-foreground font-mono">{idx + 1}</TableCell>
                           <TableCell className="font-medium text-sm">{entry.nome}</TableCell>
                           <TableCell className="text-center text-sm">{entry.ano}</TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="outline" className="text-[10px]">{entry.tipo}</Badge>
-                          </TableCell>
+                          <TableCell className="text-center"><Badge variant="outline" className="text-[10px]">{entry.tipo}</Badge></TableCell>
                           <TableCell className="text-center text-xs">{entry.local}</TableCell>
                           <TableCell className="text-right text-sm font-mono">{entry.areaTotal.toFixed(1)}</TableCell>
                           <TableCell className="text-right text-xs font-mono">{fmt(entry.maoDeObra)}</TableCell>
@@ -446,17 +721,9 @@ const CustosGeral = () => {
                           <TableCell className="text-right text-xs font-mono">{fmt(entry.informatica)}</TableCell>
                           <TableCell className="text-right text-xs font-mono">{fmt(entry.demaisItens)}</TableCell>
                           <TableCell className="text-right text-sm font-bold font-mono">{fmt(total)}</TableCell>
-                          <TableCell className={`text-right text-sm font-bold font-mono ${isOver ? "text-destructive" : "text-[hsl(152,60%,40%)]"}`}>
-                            {fmtM2(custoM2)}
-                          </TableCell>
+                          <TableCell className={`text-right text-sm font-bold font-mono ${isOver ? "text-destructive" : "text-[hsl(152,60%,40%)]"}`}>{fmtM2(custoM2)}</TableCell>
                           <TableCell className="text-right text-xs font-mono text-muted-foreground">{fmtM2(meta)}</TableCell>
-                          <TableCell className="text-center">
-                            {isOver ? (
-                              <Badge variant="destructive" className="text-[10px]">ESTOUROU</Badge>
-                            ) : (
-                              <Badge className="bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)] text-[10px]">OK</Badge>
-                            )}
-                          </TableCell>
+                          <TableCell className="text-center">{isOver ? <Badge variant="destructive" className="text-[10px]">ESTOUROU</Badge> : <Badge className="bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)] text-[10px]">OK</Badge>}</TableCell>
                         </TableRow>
                       );
                     })}
