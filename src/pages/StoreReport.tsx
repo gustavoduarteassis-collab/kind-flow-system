@@ -65,6 +65,8 @@ const cronCellSymbol: Record<CronogramaDayStatus, string> = {
 const StoreReport = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const secao = searchParams.get("secao"); // null = full report
   const { getStore } = useStores();
   const { user } = useAuth();
   const store = getStore(id || "");
