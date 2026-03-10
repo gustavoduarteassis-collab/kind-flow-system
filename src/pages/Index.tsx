@@ -201,7 +201,7 @@ const Index = () => {
           </div>
 
           {/* Hero Navigation + KPIs */}
-          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
             {/* Navigation cards */}
             <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/pipeline")}>
               <div className="flex items-center justify-between mb-3">
