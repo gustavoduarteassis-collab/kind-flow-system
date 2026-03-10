@@ -542,8 +542,7 @@ const Pipeline = () => {
                         const status = (store as any)[p.key];
                         const deadline = (store as any)[p.deadlineKey] || "";
                         const overdue = isOverdue(deadline, status);
-                        const isOrcamento = p.key === "orcamento_obra";
-                        return (
+                        const overdue = isOverdue(deadline, status);
                           <div key={p.key} className={`space-y-1 p-2 rounded-md border ${overdue ? "border-destructive/50 bg-destructive/5" : "border-border/50"}`}>
                             <p className="text-[10px] font-medium text-muted-foreground truncate">{p.label}</p>
                             <Select value={status} onValueChange={(v) => updatePhase(store.id, p.key, v)}>
