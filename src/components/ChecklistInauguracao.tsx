@@ -338,7 +338,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
             <>
               {/* Round Info */}
               <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <span className="text-sm font-semibold">{currentRound.label}</span>
                   <Popover>
                     <PopoverTrigger asChild>
@@ -352,6 +352,23 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                         mode="single"
                         selected={roundDate}
                         onSelect={handleRoundDateChange}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className={cn("gap-2 text-xs", !deadlineDate && "text-muted-foreground")}>
+                        <CalendarIcon className="h-3.5 w-3.5" />
+                        {deadlineDate ? `Prazo: ${format(deadlineDate, "dd/MM/yyyy", { locale: ptBR })}` : "Prazo de conclusão"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={deadlineDate}
+                        onSelect={handleDeadlineChange}
                         initialFocus
                         className="p-3 pointer-events-auto"
                       />
