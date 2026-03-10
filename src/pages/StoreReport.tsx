@@ -184,28 +184,29 @@ const StoreReport = () => {
 
         {/* ===== RESUMO GERAL ===== */}
         {!secao && (
-          <h2 className="text-lg font-bold border-b border-black mb-3">
-            1. RESUMO GERAL
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-            <div className="border rounded p-3">
-              <div className="text-2xl font-bold text-green-700">{progress}%</div>
-              <div className="text-xs">Progresso Total</div>
+          <section className="mb-6">
+            <h2 className="text-lg font-bold border-b border-black mb-3">
+              1. RESUMO GERAL
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+              <div className="border rounded p-3">
+                <div className="text-2xl font-bold text-green-700">{progress}%</div>
+                <div className="text-xs">Progresso Total</div>
+              </div>
+              <div className="border rounded p-3">
+                <div className="text-2xl font-bold text-green-600">{doneItems}</div>
+                <div className="text-xs">Realizados</div>
+              </div>
+              <div className="border rounded p-3">
+                <div className="text-2xl font-bold text-red-600">{atrasados}</div>
+                <div className="text-xs">Atrasados</div>
+              </div>
+              <div className="border rounded p-3">
+                <div className="text-2xl font-bold text-blue-600">{emAndamento}</div>
+                <div className="text-xs">Em Andamento</div>
+              </div>
             </div>
-            <div className="border rounded p-3">
-              <div className="text-2xl font-bold text-green-600">{doneItems}</div>
-              <div className="text-xs">Realizados</div>
-            </div>
-            <div className="border rounded p-3">
-              <div className="text-2xl font-bold text-red-600">{atrasados}</div>
-              <div className="text-xs">Atrasados</div>
-            </div>
-            <div className="border rounded p-3">
-              <div className="text-2xl font-bold text-blue-600">{emAndamento}</div>
-              <div className="text-xs">Em Andamento</div>
-            </div>
-          </div>
-        </section>
+          </section>
         )}
 
         {/* ===== ITENS ATRASADOS ===== */}
