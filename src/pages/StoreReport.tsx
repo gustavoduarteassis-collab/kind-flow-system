@@ -206,9 +206,10 @@ const StoreReport = () => {
             </div>
           </div>
         </section>
+        )}
 
         {/* ===== ITENS ATRASADOS ===== */}
-        {atrasados > 0 && (
+        {!secao && atrasados > 0 && (
           <section className="mb-6">
             <h2 className="text-lg font-bold border-b border-black mb-3 text-red-700">
               ⚠ ITENS ATRASADOS
