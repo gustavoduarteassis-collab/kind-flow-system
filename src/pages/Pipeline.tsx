@@ -19,8 +19,13 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Plus, Trash2, LogOut, CheckCircle2, Clock, AlertCircle,
-  ArrowRightCircle, Search, Pencil, AlertTriangle,
+  ArrowRightCircle, Search, Pencil, AlertTriangle, CalendarIcon,
 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, parse } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 type PipelineStore = {
