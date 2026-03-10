@@ -577,9 +577,100 @@ const StoreReport = () => {
           </section>
         )}
 
+        {/* ===== CHECKLIST DE INAUGURAÇÃO ===== */}
+        {(!secao || secao === "inauguracao") && (() => {
+          const tipoLoja = (store as any).tipoLoja as "rua" | "shopping" | "";
+          if (!tipoLoja) return null;
+          const inaugData: InaugChecklistDataV2 = migrateInaugData(
+            (store as any).inauguracaoChecklist || {},
+            tipoLoja
+          );
+          if (inaugData.rounds.length === 0) return null;
+          const inaugChecklist = getInaugChecklist(tipoLoja);
+          return (
+            <section className="mb-6 break-before-page">
+              <h2 className="text-lg font-bold border-b border-black mb-3">
+                {secao ? "" : "6. "}CHECKLIST DE INAUGURAÇÃO — {tipoLoja === "rua" ? "Loja de Rua" : "Loja de Shopping"}
+              </h2>
+              {inaugData.rounds.map((round) => {
+                const allItems = inaugChecklist.categories.flatMap(c => c.items);
+                const doneCount = allItems.filter(i => {
+                  const s = round.items[i.id]?.status;
+                  return s === "TOTALMENTE_ATENDIDO" || s === "NAO_SE_APLICA";
+                }).length;
+                const roundProg = Math.round((doneCount / allItems.length) * 100);
+                return (
+                  <div key={round.id} className="mb-6 break-inside-avoid">
+                    <h3 className="text-sm font-bold bg-gray-100 px-2 py-1 border border-black">
+                      {round.label} — {roundProg}% concluído
+                      {round.date && ` | Data: ${new Date(round.date + "T00:00:00").toLocaleDateString("pt-BR")}`}
+                      {round.deadline && ` | Prazo: ${new Date(round.deadline + "T00:00:00").toLocaleDateString("pt-BR")}`}
+                    </h3>
+                    {inaugChecklist.categories.map(cat => (
+                      <div key={cat.id} className="mb-2">
+                        <h4 className="text-xs font-bold bg-gray-50 px-2 py-0.5 border-x border-black">{cat.nome}</h4>
+                        <table className="w-full text-[10px] border-collapse">
+                          <thead>
+                            <tr className="bg-gray-50">
+                              <th className="border border-black px-1 py-0.5 text-left">Item</th>
+                              <th className="border border-black px-1 py-0.5 w-28">Status</th>
+                              <th className="border border-black px-1 py-0.5 w-20">Prazo</th>
+                              <th className="border border-black px-1 py-0.5">Obs</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {cat.items.map(item => {
+                              const iData = round.items[item.id] || { status: "NAO_ATENDIDO" as InaugStatusType, observacoes: "", photos: [] };
+                              return (
+                                <tr key={item.id} className={
+                                  iData.status === "TOTALMENTE_ATENDIDO" ? "bg-green-50" :
+                                  item.impeditivo && iData.status !== "NAO_SE_APLICA" ? "bg-red-50" : ""
+                                }>
+                                  <td className="border border-black px-1 py-0.5">
+                                    {item.nome}
+                                    {item.impeditivo && " ⚠"}
+                                  </td>
+                                  <td className="border border-black px-1 py-0.5 text-center">
+                                    {inaugStatusLabels[iData.status]}
+                                  </td>
+                                  <td className="border border-black px-1 py-0.5 text-center">
+                                    {iData.prazo ? new Date(iData.prazo + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
+                                  </td>
+                                  <td className="border border-black px-1 py-0.5">{iData.observacoes || ""}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ))}
+                    {/* Signatures */}
+                    {round.signatures && (
+                      <div className="grid grid-cols-3 gap-8 mt-6 pt-4">
+                        <div className="text-center">
+                          <div className="border-b border-black pt-8" />
+                          <p className="text-[10px] mt-1">{round.signatures.franqueado || "Franqueado"}</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="border-b border-black pt-8" />
+                          <p className="text-[10px] mt-1">{round.signatures.analistaObra || "Analista de Obra"}</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="border-b border-black pt-8" />
+                          <p className="text-[10px] mt-1">{round.signatures.construtor || "Construtor"}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </section>
+          );
+        })()}
+
         {/* Footer */}
         <div className="text-center text-xs border-t border-black pt-3 mt-8">
-          <p>Relatório gerado em {today} — Checklist de Implantação</p>
+          <p>Relatório gerado em {today} — {secao ? secaoLabels[secao] || "Relatório" : "Checklist de Implantação"}</p>
         </div>
       </div>
     </div>
