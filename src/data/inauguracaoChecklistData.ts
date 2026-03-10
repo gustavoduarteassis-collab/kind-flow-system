@@ -462,7 +462,8 @@ export type InaugItemData = {
 // A single checklist round/conferência
 export type InaugRound = {
   id: string;
-  date: string; // ISO date string
+  date: string; // ISO date string - when this round was done
+  deadline: string; // ISO date string - prazo de conclusão
   label: string; // e.g. "1ª Conferência"
   items: Record<string, InaugItemData>;
 };
