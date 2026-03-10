@@ -1,0 +1,1 @@
+ALTER TABLE public.habits ADD COLUMN assigned_to_members uuid[] NOT NULL DEFAULT '{}';

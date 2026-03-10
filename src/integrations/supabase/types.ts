@@ -283,6 +283,7 @@ export type Database = {
       }
       habits: {
         Row: {
+          assigned_to_members: string[]
           created_at: string
           description: string | null
           id: string
@@ -290,6 +291,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          assigned_to_members?: string[]
           created_at?: string
           description?: string | null
           id?: string
@@ -297,6 +299,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          assigned_to_members?: string[]
           created_at?: string
           description?: string | null
           id?: string

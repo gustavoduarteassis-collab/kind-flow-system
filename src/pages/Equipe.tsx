@@ -35,7 +35,7 @@ type Task = {
   id: string; title: string; description: string | null; status: string;
   priority: string; assigned_to: string | null; due_date: string | null; start_date: string | null;
 };
-type Habit = { id: string; name: string; description: string | null };
+type Habit = { id: string; name: string; description: string | null; assigned_to_members: string[] };
 type HabitCompletion = {
   id: string; habit_id: string; team_member_id: string; completion_date: string; completed: boolean;
 };
@@ -111,7 +111,7 @@ const Equipe = () => {
   const [accessOpen, setAccessOpen] = useState(false);
   const [memberForm, setMemberForm] = useState({ name: "", role: "", email: "", phone: "" });
   const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "media", assigned_to: "", due_date: "", start_date: "" });
-  const [habitForm, setHabitForm] = useState({ name: "", description: "" });
+  const [habitForm, setHabitForm] = useState({ name: "", description: "", assigned_to_members: [] as string[] });
   const [eventForm, setEventForm] = useState({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "", event_time: "" });
   const [calendarView, setCalendarView] = useState<"month" | "week">("month");
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -197,11 +197,15 @@ const Equipe = () => {
 
   const addHabit = async () => {
     if (!user || !habitForm.name) return;
+    const assignedMembers = habitForm.assigned_to_members.length > 0
+      ? habitForm.assigned_to_members
+      : members.map((m) => m.id);
     const { error } = await supabase.from("habits").insert({
       user_id: user.id, name: habitForm.name, description: habitForm.description || null,
-    });
+      assigned_to_members: assignedMembers,
+    } as any);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    setHabitForm({ name: "", description: "" });
+    setHabitForm({ name: "", description: "", assigned_to_members: [] });
     setHabitOpen(false);
     fetchAll();
   };
@@ -519,6 +523,27 @@ const Equipe = () => {
                     <div className="space-y-2"><Label>Descrição</Label>
                       <Textarea value={habitForm.description} onChange={(e) => setHabitForm({ ...habitForm, description: e.target.value })} />
                     </div>
+                    <div className="space-y-2">
+                      <Label>Repetir para quem? <span className="text-xs text-muted-foreground">(vazio = todos)</span></Label>
+                      <div className="space-y-2">
+                        {members.map((m) => (
+                          <label key={m.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                            <Checkbox
+                              checked={habitForm.assigned_to_members.includes(m.id)}
+                              onCheckedChange={(checked) => {
+                                setHabitForm({
+                                  ...habitForm,
+                                  assigned_to_members: checked
+                                    ? [...habitForm.assigned_to_members, m.id]
+                                    : habitForm.assigned_to_members.filter((id) => id !== m.id),
+                                });
+                              }}
+                            />
+                            {m.name} <span className="text-xs text-muted-foreground">({m.role})</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                     <Button onClick={addHabit} className="w-full">Criar Hábito</Button>
                   </div>
                 </DialogContent>
@@ -577,9 +602,12 @@ const Equipe = () => {
                   const filteredMembers = members.filter((m) => !habitMemberFilter || m.id === habitMemberFilter);
 
                   const renderMemberTracker = (member: typeof members[0]) => {
-                    // Filter habits: hide ones completed today
-                    const pendingHabits = habits.filter((h) => !isCompleted(h.id, member.id, todayStr));
-                    const completedHabits = habits.filter((h) => isCompleted(h.id, member.id, todayStr));
+                    // Filter habits assigned to this member (empty array = all members)
+                    const memberHabits = habits.filter((h) =>
+                      !h.assigned_to_members || h.assigned_to_members.length === 0 || h.assigned_to_members.includes(member.id)
+                    );
+                    const pendingHabits = memberHabits.filter((h) => !isCompleted(h.id, member.id, todayStr));
+                    const completedHabits = memberHabits.filter((h) => isCompleted(h.id, member.id, todayStr));
 
                     return (
                       <Card key={member.id}>
