@@ -111,12 +111,25 @@
     background: white !important;
     color: black !important;
     font-size: 10px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  .print\:hidden {
+  .print\:hidden,
+  header,
+  [role="tablist"] {
     display: none !important;
+  }
+  .print\:block {
+    display: block !important;
+  }
+  [data-state="active"][role="tabpanel"] {
+    display: block !important;
   }
   @page {
     size: A4 landscape;
     margin: 8mm;
+  }
+  .grid {
+    break-inside: avoid;
   }
 }

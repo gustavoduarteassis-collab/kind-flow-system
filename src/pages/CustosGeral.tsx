@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
-import { ArrowLeft, TrendingUp, TrendingDown, Building2, Target, BarChart3, Calculator, Plus, FileText, Trash2 } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Building2, Target, BarChart3, Calculator, Plus, FileText, Trash2, Printer } from "lucide-react";
 import logoConstance from "@/assets/logo-constance.svg";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell as ReCell } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
@@ -552,7 +552,7 @@ const CustosGeral = () => {
 
           {/* ===== RELATÓRIO TAB ===== */}
           <TabsContent value="relatorio" className="space-y-6">
-            <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex flex-wrap gap-3 items-center print:hidden">
               <span className="text-sm font-medium text-muted-foreground">Filtros do Relatório:</span>
               <Select value={filterAno} onValueChange={setFilterAno}>
                 <SelectTrigger className="w-[140px]"><SelectValue placeholder="Ano" /></SelectTrigger>
@@ -570,6 +570,25 @@ const CustosGeral = () => {
                   <SelectItem value="OUTLET">Outlet</SelectItem>
                 </SelectContent>
               </Select>
+              <Button variant="outline" className="ml-auto gap-2" onClick={() => window.print()}>
+                <Printer className="h-4 w-4" />Gerar PDF / Imprimir
+              </Button>
+            </div>
+
+            {/* Print header - only visible when printing */}
+            <div className="hidden print:block mb-6">
+              <div className="flex items-center gap-3 mb-2">
+                <img src={logoConstance} alt="Logo" className="h-10 w-auto" />
+                <div>
+                  <h1 className="text-xl font-bold">Relatório de Custos Geral</h1>
+                  <p className="text-sm text-muted-foreground">
+                    {filterAno !== "todos" ? `Ano: ${filterAno}` : "Todos os anos"}
+                    {filterTipo !== "todos" ? ` | Tipo: ${filterTipo}` : " | Todos os tipos"}
+                    {` | Gerado em: ${new Date().toLocaleDateString("pt-BR")}`}
+                  </p>
+                </div>
+              </div>
+              <hr />
             </div>
 
             {/* Summary cards */}
