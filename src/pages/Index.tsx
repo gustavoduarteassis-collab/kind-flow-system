@@ -166,30 +166,34 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Header */}
-      <header className="relative overflow-hidden bg-gradient-to-br from-[hsl(220,70%,15%)] via-[hsl(220,60%,22%)] to-[hsl(220,50%,30%)]">
-        {/* Subtle pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.04]" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+      <header className="relative overflow-hidden" style={{
+        background: `linear-gradient(135deg, hsl(25,40%,12%) 0%, hsl(25,35%,18%) 40%, hsl(30,30%,24%) 100%)`,
+      }}>
+        {/* Gold accent line */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[hsl(38,70%,50%)] to-transparent" />
+        {/* Subtle texture */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff'%3E%3Cpath d='M20 20.5V18H0v-2h20v-2l2 3-2 3z'/%3E%3C/g%3E%3C/svg%3E")`,
         }} />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-8">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <img src={logoConstance} alt="Constance" className="h-10 brightness-0 invert" />
-              <div className="h-8 w-px bg-white/20" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-10">
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-5">
+              <img src={logoConstance} alt="Constance" className="h-12 brightness-0 invert opacity-90" />
+              <div className="h-10 w-px bg-[hsl(38,70%,50%)]/30" />
               <div>
-                <h1 className="text-xl font-bold tracking-tight text-white">Gestão de Obra</h1>
-                <p className="text-sm text-white/60">Painel de Controle</p>
+                <h1 className="text-2xl font-bold tracking-tight text-white">Gestão de Obra</h1>
+                <p className="text-sm text-[hsl(38,70%,50%)]/70 font-medium tracking-wide uppercase">Painel Executivo</p>
               </div>
             </div>
             {user && (
               <div className="flex items-center gap-3">
-                <div className="hidden sm:flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1.5">
-                  <div className="h-7 w-7 rounded-full bg-primary/80 flex items-center justify-center text-xs font-bold text-white">
+                <div className="hidden sm:flex items-center gap-2.5 bg-white/8 border border-white/10 rounded-lg px-3.5 py-2">
+                  <div className="h-8 w-8 rounded-full bg-[hsl(38,70%,50%)]/20 border border-[hsl(38,70%,50%)]/30 flex items-center justify-center text-xs font-bold text-[hsl(38,70%,50%)]">
                     {user.email?.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm text-white/80">{user.email}</span>
+                  <span className="text-sm text-white/70">{user.email}</span>
                 </div>
-                <Button variant="ghost" size="sm" className="text-white/70 hover:text-white hover:bg-white/10 gap-2" onClick={() => signOut()}>
+                <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10 gap-2" onClick={() => signOut()}>
                   <LogOut className="h-4 w-4" /> Sair
                 </Button>
               </div>
@@ -198,53 +202,53 @@ const Index = () => {
 
           {/* Hero KPI Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-5 group hover:bg-white/15 transition-all cursor-pointer" onClick={() => navigate("/lojas")}>
+            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/lojas")}>
               <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/30 flex items-center justify-center">
-                  <Building2 className="h-5 w-5 text-primary-foreground" />
+                <div className="h-10 w-10 rounded-lg bg-[hsl(38,70%,50%)]/15 flex items-center justify-center">
+                  <Building2 className="h-5 w-5 text-[hsl(38,70%,50%)]" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-white/30 group-hover:text-white/60 transition-colors" />
+                <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[hsl(38,70%,50%)]/60 transition-colors" />
               </div>
               <p className="text-3xl font-bold text-white">{stores.length}</p>
-              <p className="text-sm text-white/50 mt-0.5">Lojas Ativas</p>
+              <p className="text-sm text-white/40 mt-0.5">Lojas Ativas</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-5">
+            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5">
               <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-lg bg-[hsl(var(--success))]/30 flex items-center justify-center">
-                  <Target className="h-5 w-5 text-white" />
+                <div className="h-10 w-10 rounded-lg bg-[hsl(var(--success))]/15 flex items-center justify-center">
+                  <Target className="h-5 w-5 text-[hsl(var(--success))]" />
                 </div>
-                <span className="text-xs text-white/40">{doneItems}/{totalItems} itens</span>
+                <span className="text-xs text-white/30">{doneItems}/{totalItems}</span>
               </div>
               <p className="text-3xl font-bold text-white">{overallProgress}%</p>
               <div className="mt-2">
-                <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
                   <div className="h-full rounded-full bg-[hsl(var(--success))] transition-all" style={{ width: `${overallProgress}%` }} />
                 </div>
               </div>
-              <p className="text-sm text-white/50 mt-1">Progresso Geral</p>
+              <p className="text-sm text-white/40 mt-1">Progresso Geral</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-5 group hover:bg-white/15 transition-all cursor-pointer" onClick={() => navigate("/equipe")}>
+            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/equipe")}>
               <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-lg bg-[hsl(var(--accent))]/30 flex items-center justify-center">
-                  <ListTodo className="h-5 w-5 text-white" />
+                <div className="h-10 w-10 rounded-lg bg-[hsl(38,70%,50%)]/15 flex items-center justify-center">
+                  <ListTodo className="h-5 w-5 text-[hsl(38,70%,50%)]" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-white/30 group-hover:text-white/60 transition-colors" />
+                <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[hsl(38,70%,50%)]/60 transition-colors" />
               </div>
               <div className="flex items-baseline gap-2">
                 <p className="text-3xl font-bold text-white">{pendingTasks + inProgressTasks}</p>
                 {completedTasks > 0 && <span className="text-sm text-[hsl(var(--success))]">+{completedTasks} ✓</span>}
               </div>
-              <p className="text-sm text-white/50 mt-0.5">Tarefas Abertas</p>
+              <p className="text-sm text-white/40 mt-0.5">Tarefas Abertas</p>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl p-5 group hover:bg-white/15 transition-all cursor-pointer" onClick={() => navigate("/equipe")}>
+            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/equipe")}>
               <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/30 flex items-center justify-center">
-                  <Users className="h-5 w-5 text-white" />
+                <div className="h-10 w-10 rounded-lg bg-white/[0.08] flex items-center justify-center">
+                  <Users className="h-5 w-5 text-white/70" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-white/30 group-hover:text-white/60 transition-colors" />
+                <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[hsl(38,70%,50%)]/60 transition-colors" />
               </div>
               <p className="text-3xl font-bold text-white">{members.length}</p>
-              <p className="text-sm text-white/50 mt-0.5">Membros da Equipe</p>
+              <p className="text-sm text-white/40 mt-0.5">Equipe</p>
             </div>
           </div>
         </div>
@@ -257,7 +261,7 @@ const Index = () => {
             { label: "Funil de Lojas", icon: GitBranch, path: "/pipeline", desc: "Pipeline de implantação" },
             { label: "Lojas", icon: Building2, path: "/lojas", desc: "Gestão de lojas" },
             { label: "Custos Geral", icon: DollarSign, path: "/custos-geral", desc: "Visão consolidada" },
-            { label: "Equipe & Calendário", icon: Users, path: "/equipe", desc: "Time e agenda" },
+            { label: "Equipe", icon: Users, path: "/equipe", desc: "Time e calendário" },
           ].map((item) => (
             <Card key={item.label} className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5 group" onClick={() => navigate(item.path)}>
               <CardContent className="p-4 flex items-center gap-3">
