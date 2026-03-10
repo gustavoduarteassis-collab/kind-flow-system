@@ -351,8 +351,10 @@ const StoreReport = () => {
             <span className="flex items-center gap-1"><span className="inline-block w-3 h-3 bg-red-500 border border-black" /> Atrasado</span>
           </div>
         </section>
+        )}
 
         {/* ===== CHECKLIST COMPLETO ===== */}
+        {(!secao || checklistCategories.some(c => c.id === secao)) && (
         <section className="mb-6">
           <h2 className="text-lg font-bold border-b border-black mb-3">
             3. CHECKLIST COMPLETO
