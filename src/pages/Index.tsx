@@ -200,83 +200,79 @@ const Index = () => {
             )}
           </div>
 
-          {/* Hero KPI Cards */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Hero Navigation + KPIs */}
+          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {/* Navigation cards */}
+            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/pipeline")}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-10 w-10 rounded-lg bg-[hsl(38,70%,50%)]/15 flex items-center justify-center">
+                  <GitBranch className="h-5 w-5 text-[hsl(38,70%,50%)]" />
+                </div>
+                <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[hsl(38,70%,50%)]/60 transition-colors" />
+              </div>
+              <p className="text-lg font-bold text-white">Funil de Lojas</p>
+              <p className="text-xs text-white/40 mt-0.5">Pipeline de implantação</p>
+            </div>
             <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/lojas")}>
               <div className="flex items-center justify-between mb-3">
                 <div className="h-10 w-10 rounded-lg bg-[hsl(38,70%,50%)]/15 flex items-center justify-center">
                   <Building2 className="h-5 w-5 text-[hsl(38,70%,50%)]" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[hsl(38,70%,50%)]/60 transition-colors" />
+                <span className="text-2xl font-bold text-white">{stores.length}</span>
               </div>
-              <p className="text-3xl font-bold text-white">{stores.length}</p>
-              <p className="text-sm text-white/40 mt-0.5">Lojas Ativas</p>
+              <p className="text-lg font-bold text-white">Lojas</p>
+              <p className="text-xs text-white/40 mt-0.5">Gestão de lojas ativas</p>
             </div>
-            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-lg bg-[hsl(var(--success))]/15 flex items-center justify-center">
-                  <Target className="h-5 w-5 text-[hsl(var(--success))]" />
-                </div>
-                <span className="text-xs text-white/30">{doneItems}/{totalItems}</span>
-              </div>
-              <p className="text-3xl font-bold text-white">{overallProgress}%</p>
-              <div className="mt-2">
-                <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
-                  <div className="h-full rounded-full bg-[hsl(var(--success))] transition-all" style={{ width: `${overallProgress}%` }} />
-                </div>
-              </div>
-              <p className="text-sm text-white/40 mt-1">Progresso Geral</p>
-            </div>
-            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/equipe")}>
+            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/custos-geral")}>
               <div className="flex items-center justify-between mb-3">
                 <div className="h-10 w-10 rounded-lg bg-[hsl(38,70%,50%)]/15 flex items-center justify-center">
-                  <ListTodo className="h-5 w-5 text-[hsl(38,70%,50%)]" />
+                  <DollarSign className="h-5 w-5 text-[hsl(38,70%,50%)]" />
                 </div>
                 <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[hsl(38,70%,50%)]/60 transition-colors" />
               </div>
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold text-white">{pendingTasks + inProgressTasks}</p>
-                {completedTasks > 0 && <span className="text-sm text-[hsl(var(--success))]">+{completedTasks} ✓</span>}
+              <p className="text-lg font-bold text-white">Custos Geral</p>
+              <p className="text-xs text-white/40 mt-0.5">Visão consolidada</p>
+            </div>
+            {/* KPI cards */}
+            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/equipe")}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-10 w-10 rounded-lg bg-white/[0.08] flex items-center justify-center">
+                  <ListTodo className="h-5 w-5 text-white/70" />
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-2xl font-bold text-white">{pendingTasks + inProgressTasks}</span>
+                  {completedTasks > 0 && <span className="text-xs text-[hsl(var(--success))]">+{completedTasks} ✓</span>}
+                </div>
               </div>
-              <p className="text-sm text-white/40 mt-0.5">Tarefas Abertas</p>
+              <p className="text-lg font-bold text-white">Tarefas</p>
+              <p className="text-xs text-white/40 mt-0.5">Abertas e em andamento</p>
             </div>
             <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/equipe")}>
               <div className="flex items-center justify-between mb-3">
                 <div className="h-10 w-10 rounded-lg bg-white/[0.08] flex items-center justify-center">
                   <Users className="h-5 w-5 text-white/70" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[hsl(38,70%,50%)]/60 transition-colors" />
+                <span className="text-2xl font-bold text-white">{members.length}</span>
               </div>
-              <p className="text-3xl font-bold text-white">{members.length}</p>
-              <p className="text-sm text-white/40 mt-0.5">Equipe</p>
+              <p className="text-lg font-bold text-white">Equipe</p>
+              <p className="text-xs text-white/40 mt-0.5">Time e calendário</p>
             </div>
           </div>
+
+          {/* Progress bar */}
+          {totalItems > 0 && (
+            <div className="mt-6 bg-white/[0.05] rounded-lg p-3 flex items-center gap-4">
+              <span className="text-xs text-white/40 shrink-0">Progresso Geral (Checklists)</span>
+              <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden flex-1">
+                <div className="h-full rounded-full bg-[hsl(var(--success))] transition-all" style={{ width: `${overallProgress}%` }} />
+              </div>
+              <span className="text-sm font-bold text-white shrink-0">{overallProgress}%</span>
+            </div>
+          )}
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Quick navigation */}
-        <div className="grid gap-3 sm:grid-cols-4">
-          {[
-            { label: "Funil de Lojas", icon: GitBranch, path: "/pipeline", desc: "Pipeline de implantação" },
-            { label: "Lojas", icon: Building2, path: "/lojas", desc: "Gestão de lojas" },
-            { label: "Custos Geral", icon: DollarSign, path: "/custos-geral", desc: "Visão consolidada" },
-            { label: "Equipe", icon: Users, path: "/equipe", desc: "Time e calendário" },
-          ].map((item) => (
-            <Card key={item.label} className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5 group" onClick={() => navigate(item.path)}>
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                  <item.icon className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{item.label}</p>
-                  <p className="text-xs text-muted-foreground truncate">{item.desc}</p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
 
         {/* Store summary table */}
         {stores.length > 0 && (
