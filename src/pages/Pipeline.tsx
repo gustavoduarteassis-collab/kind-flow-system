@@ -59,6 +59,8 @@ type PipelineStore = {
   prazo_projeto_ar_condicionado: string;
   prazo_orcamento_obra: string;
   prazo_contratos: string;
+  data_liberacao_orcamento: string;
+  prazo_conclusao_orcamento: string;
   observacoes: string;
   transferido: boolean;
 };
