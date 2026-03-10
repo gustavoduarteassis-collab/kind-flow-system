@@ -243,7 +243,7 @@ const StoreDetail = () => {
           <TabsContent value="inauguracao" className="mt-4">
             <ChecklistInauguracao
               tipoLoja={store.tipoLoja as "rua" | "shopping" | ""}
-              data={store.inauguracaoChecklist || {}}
+              data={store.inauguracaoChecklist || { rounds: [] }}
               onTipoChange={(tipo) => updateStore(store.id, { tipoLoja: tipo } as any)}
               onDataChange={(inaugData) => updateStore(store.id, { inauguracaoChecklist: inaugData } as any)}
             />
