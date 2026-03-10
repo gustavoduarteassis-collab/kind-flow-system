@@ -32,7 +32,7 @@ const Lojas = () => {
   const handleAdd = async () => {
     if (!form.nome) return;
     const id = await addStore(form);
-    setForm({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
+    setForm({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "", inauguracaoChecklist: {} });
     setOpen(false);
     if (id) navigate(`/loja/${id}`);
   };
