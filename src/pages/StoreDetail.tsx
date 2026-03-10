@@ -275,6 +275,7 @@ const StoreDetail = () => {
                         <TableHead className="w-[170px]">Status</TableHead>
                         <TableHead className="w-[140px]">Responsável</TableHead>
                         <TableHead className="min-w-[160px]">Observações</TableHead>
+                        <TableHead className="min-w-[200px]">Passo a Passo</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
