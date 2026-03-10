@@ -248,7 +248,6 @@ const StoreDetail = () => {
               onDataChange={(inaugData) => updateStore(store.id, { inauguracaoChecklist: inaugData } as any)}
             />
           </TabsContent>
-          </TabsContent>
 
           {checklistCategories.map((cat) => (
             <TabsContent key={cat.id} value={cat.id} className="mt-4">
