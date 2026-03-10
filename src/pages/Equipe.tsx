@@ -888,7 +888,8 @@ const Equipe = () => {
                           <div className="space-y-1">
                             {dayEvents.map((ev) => (
                               <div key={ev.id} className={`text-[10px] px-1.5 py-1 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
-                                title={ev.title + (ev.time ? ` às ${ev.time}` : "")}
+                                style={{ borderLeft: `3px solid ${getMemberColor(ev.memberId, members)}` }}
+                                title={`${ev.memberId ? getMemberName(ev.memberId) + ": " : ""}${ev.title}${ev.time ? ` às ${ev.time}` : ""}`}
                                 onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
                               >
                                 {ev.time ? <span className="font-semibold">{ev.time} </span> : null}{ev.title}
