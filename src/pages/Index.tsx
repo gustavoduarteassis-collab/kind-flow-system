@@ -284,16 +284,6 @@ const Index = () => {
               </Button>
             </div>
 
-            <Card className="mb-4">
-              <CardContent className="p-4 flex items-center gap-6">
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Progresso Geral</p>
-                  <p className="text-3xl font-bold text-primary">{overallProgress}%</p>
-                </div>
-                <Progress value={overallProgress} className="h-2 flex-1" />
-              </CardContent>
-            </Card>
-
             <Card>
               <div className="overflow-x-auto">
                 <Table>
