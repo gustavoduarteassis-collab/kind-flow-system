@@ -167,10 +167,9 @@ const Index = () => {
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
-                <ClipboardCheck className="h-5 w-5 text-primary-foreground" />
-              </div>
+            <div className="flex items-center gap-4">
+              <img src={logoConstance} alt="Constance" className="h-10" />
+              <div className="h-8 w-px bg-border" />
               <div>
                 <h1 className="text-xl font-bold tracking-tight">Gestão de Obra</h1>
                 <p className="text-sm text-muted-foreground">Painel Principal</p>
