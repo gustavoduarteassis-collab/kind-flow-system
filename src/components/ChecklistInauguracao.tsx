@@ -173,12 +173,13 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
 
   const handleObsChange = (itemId: string, value: string) => {
     if (!currentRound) return;
+    const existing = getItemData(itemId);
     const newRounds = [...rounds];
     newRounds[activeRoundIndex] = {
       ...currentRound,
       items: {
         ...currentRound.items,
-        [itemId]: { ...currentRound.items[itemId], observacoes: value },
+        [itemId]: { ...existing, observacoes: value },
       },
     };
     onDataChange({ rounds: newRounds });
