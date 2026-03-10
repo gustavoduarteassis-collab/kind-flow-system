@@ -35,7 +35,7 @@ type Task = {
   id: string; title: string; description: string | null; status: string;
   priority: string; assigned_to: string | null; due_date: string | null; start_date: string | null;
 };
-type Habit = { id: string; name: string; description: string | null };
+type Habit = { id: string; name: string; description: string | null; assigned_to_members: string[] };
 type HabitCompletion = {
   id: string; habit_id: string; team_member_id: string; completion_date: string; completed: boolean;
 };
