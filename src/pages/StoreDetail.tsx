@@ -11,6 +11,8 @@ import CronogramaObra from "@/components/CronogramaObra";
 import CustosObra from "@/components/CustosObra";
 import DiarioObra from "@/components/DiarioObra";
 import FornecedoresObra from "@/components/FornecedoresObra";
+import ChecklistInauguracao from "@/components/ChecklistInauguracao";
+import { InaugChecklistData } from "@/data/inauguracaoChecklistData";
 import {
   Select,
   SelectContent,

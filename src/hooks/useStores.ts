@@ -50,9 +50,11 @@ export function useStores() {
       construtor: data.construtor,
       analista_obra: data.analistaObra,
       inauguracao: data.inauguracao,
+      tipo_loja: (data as any).tipoLoja || "",
       checklist: checklist as any,
       cronograma: cronograma as any,
       custos: custos as any,
+      inauguracao_checklist: (data as any).inauguracaoChecklist || {} as any,
     }).select("id").single();
     if (inserted) {
       await fetchStores();
