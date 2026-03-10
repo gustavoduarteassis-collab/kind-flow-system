@@ -25,9 +25,11 @@ export function useStores() {
         construtor: row.construtor || "",
         analistaObra: row.analista_obra || "",
         inauguracao: row.inauguracao || "",
+        tipoLoja: row.tipo_loja || "",
         checklist: row.checklist || createDefaultChecklist(),
         cronograma: row.cronograma || createDefaultCronograma(),
         custos: row.custos || createDefaultCustos(),
+        inauguracaoChecklist: row.inauguracao_checklist || {},
       })));
     }
     setLoading(false);
