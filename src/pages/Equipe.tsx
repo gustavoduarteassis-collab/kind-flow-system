@@ -197,11 +197,15 @@ const Equipe = () => {
 
   const addHabit = async () => {
     if (!user || !habitForm.name) return;
+    const assignedMembers = habitForm.assigned_to_members.length > 0
+      ? habitForm.assigned_to_members
+      : members.map((m) => m.id);
     const { error } = await supabase.from("habits").insert({
       user_id: user.id, name: habitForm.name, description: habitForm.description || null,
-    });
+      assigned_to_members: assignedMembers,
+    } as any);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    setHabitForm({ name: "", description: "" });
+    setHabitForm({ name: "", description: "", assigned_to_members: [] });
     setHabitOpen(false);
     fetchAll();
   };
