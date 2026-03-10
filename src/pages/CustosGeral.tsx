@@ -187,61 +187,64 @@ const CustosGeral = () => {
             </div>
 
             {/* Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
               <Card>
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground">Lojas</p>
+                  <p className="text-xs text-muted-foreground truncate">Lojas</p>
                   <p className="text-2xl font-bold">{dashSummary.totalLojas}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground">Total Investido</p>
-                  <p className="text-lg font-bold">{fmt(dashSummary.totalInvestido)}</p>
+                  <p className="text-xs text-muted-foreground truncate">Total Investido</p>
+                  <p className="text-sm font-bold truncate">{fmt(dashSummary.totalInvestido)}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground">Área Total (m²)</p>
+                  <p className="text-xs text-muted-foreground truncate">Área Total (m²)</p>
                   <p className="text-lg font-bold">{dashSummary.totalArea.toFixed(0)}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground">Média Geral R$/m²</p>
+                  <p className="text-xs text-muted-foreground truncate">Média R$/m²</p>
                   <p className="text-lg font-bold">{fmtM2(dashSummary.avgM2)}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1"><TrendingDown className="h-3 w-3 text-[hsl(152,60%,40%)]" /> Dentro da Meta</p>
+                  <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><TrendingDown className="h-3 w-3 text-[hsl(152,60%,40%)]" /> Na Meta</p>
                   <p className="text-2xl font-bold text-[hsl(152,60%,40%)]">{dashSummary.ok}</p>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="pt-4 pb-3 px-4">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1"><TrendingUp className="h-3 w-3 text-destructive" /> Estourou</p>
+                  <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><TrendingUp className="h-3 w-3 text-destructive" /> Estourou</p>
                   <p className="text-2xl font-bold text-destructive">{dashSummary.over}</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Chart */}
+            {/* Chart - grouped bars instead of stacked */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Custo Médio por m² por Categoria — {dashboardAno}</CardTitle>
+                <CardTitle className="text-sm">Custo Médio por m² — {dashboardAno}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="h-[350px]">
+                <div className="h-[380px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={chartData} barCategoryGap="20%">
-                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <BarChart data={chartData} barGap={4} barCategoryGap="25%">
+                      <CartesianGrid strokeDasharray="3 3" className="opacity-20" />
                       <XAxis dataKey="tipo" tick={{ fontSize: 12 }} />
                       <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${v}`} />
-                      <Tooltip formatter={(value: number) => fmtM2(value)} />
-                      <Legend wrapperStyle={{ fontSize: 11 }} />
+                      <Tooltip
+                        formatter={(value: number, name: string) => [fmtM2(value), name]}
+                        contentStyle={{ fontSize: 12, borderRadius: 8 }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
                       {CATEGORIAS.map((cat, i) => (
-                        <Bar key={cat.key} dataKey={cat.label} stackId="a" fill={barColors[i]} />
+                        <Bar key={cat.key} dataKey={cat.label} fill={barColors[i]} radius={[3, 3, 0, 0]} />
                       ))}
                     </BarChart>
                   </ResponsiveContainer>
