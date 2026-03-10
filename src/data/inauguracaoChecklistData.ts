@@ -452,23 +452,86 @@ export function getAllInaugItems(tipo: "rua" | "shopping"): InaugItem[] {
   return checklist.categories.flatMap((c) => c.items);
 }
 
-export type InaugChecklistData = Record<string, {
+// Item data within a single round
+export type InaugItemData = {
+  status: InaugStatusType;
+  observacoes: string;
+  photos: string[]; // storage URLs
+};
+
+// A single checklist round/conferência
+export type InaugRound = {
+  id: string;
+  date: string; // ISO date string
+  label: string; // e.g. "1ª Conferência"
+  items: Record<string, InaugItemData>;
+};
+
+// V2 data format: multiple rounds
+export type InaugChecklistDataV2 = {
+  rounds: InaugRound[];
+};
+
+// Legacy flat format (for backward compatibility)
+export type InaugChecklistDataLegacy = Record<string, {
   status: InaugStatusType;
   observacoes: string;
   data: string;
   prazo: string;
 }>;
 
-export function createDefaultInaugChecklist(tipo: "rua" | "shopping"): InaugChecklistData {
-  const items = getAllInaugItems(tipo);
-  const data: InaugChecklistData = {};
-  items.forEach((item) => {
-    data[item.id] = {
-      status: "NAO_ATENDIDO",
+// The actual type stored in the DB (can be either)
+export type InaugChecklistData = InaugChecklistDataV2;
+
+// Migration helper: convert legacy data to v2
+export function migrateInaugData(raw: any, tipo: "rua" | "shopping"): InaugChecklistDataV2 {
+  if (!raw || (typeof raw === "object" && Object.keys(raw).length === 0)) {
+    return { rounds: [] };
+  }
+  // Already v2 format
+  if (raw.rounds && Array.isArray(raw.rounds)) {
+    return raw as InaugChecklistDataV2;
+  }
+  // Legacy format: convert to single round
+  const items: Record<string, InaugItemData> = {};
+  for (const [key, val] of Object.entries(raw as InaugChecklistDataLegacy)) {
+    items[key] = {
+      status: (val as any).status || "NAO_ATENDIDO",
+      observacoes: (val as any).observacoes || "",
+      photos: [],
+    };
+  }
+  return {
+    rounds: [{
+      id: "migrated-1",
+      date: new Date().toISOString().split("T")[0],
+      label: "1ª Conferência",
+      items,
+    }],
+  };
+}
+
+export function createNewRound(tipo: "rua" | "shopping", roundNumber: number, previousRound?: InaugRound): InaugRound {
+  const allItems = getAllInaugItems(tipo);
+  const items: Record<string, InaugItemData> = {};
+  allItems.forEach((item) => {
+    // Carry forward status from previous round, or default
+    const prev = previousRound?.items[item.id];
+    items[item.id] = {
+      status: prev ? prev.status : "NAO_ATENDIDO",
       observacoes: "",
-      data: "",
-      prazo: "",
+      photos: [],
     };
   });
-  return data;
+  return {
+    id: `round-${Date.now()}`,
+    date: new Date().toISOString().split("T")[0],
+    label: `${roundNumber}ª Conferência`,
+    items,
+  };
+}
+
+// Keep old export name for compatibility but redirect
+export function createDefaultInaugChecklist(tipo: "rua" | "shopping"): InaugChecklistDataV2 {
+  return { rounds: [] };
 }
