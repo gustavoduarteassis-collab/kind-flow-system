@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -19,13 +19,15 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ArrowLeft, Lock, Plus, Trash2, Sparkles, Download, Target,
+  ArrowLeft, Lock, Trash2, Sparkles, Download,
   Building2, DollarSign, Clock, Users, Loader2, Save,
+  MessageCircle, Send, CheckCircle2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoConstance from "@/assets/logo-constance.svg";
+import ReactMarkdown from "react-markdown";
 
 const AGM_PASSWORD = "agm2026";
 
@@ -59,6 +61,8 @@ type ActionPlan = {
   farol: string; ai_generated: boolean; created_at: string;
 };
 
+type ChatMessage = { role: "user" | "assistant"; content: string };
+
 const AGM = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -69,9 +73,16 @@ const AGM = () => {
   const [mesRef, setMesRef] = useState(getCurrentMonth());
   const [entries, setEntries] = useState<AgmEntry[]>([]);
   const [plans, setPlans] = useState<ActionPlan[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState<string | null>(null);
   const [editingEntry, setEditingEntry] = useState<Record<string, { meta: string; realizado: string; obs: string }>>({});
+
+  // 5 Whys chat state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatIndicador, setChatIndicador] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const [generatingPlans, setGeneratingPlans] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -85,7 +96,6 @@ const AGM = () => {
       (e.data as AgmEntry[]).forEach((entry) => {
         edit[entry.indicador] = { meta: entry.meta_valor, realizado: entry.realizado_valor, obs: entry.observacoes };
       });
-      // Fill missing indicators
       indicadores.forEach((ind) => {
         if (!edit[ind.id]) edit[ind.id] = { meta: "", realizado: "", obs: "" };
       });
@@ -99,20 +109,17 @@ const AGM = () => {
   }, [user, mesRef]);
 
   useEffect(() => { if (authenticated) fetchData(); }, [authenticated, fetchData]);
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMessages]);
 
   const handleLogin = () => {
-    if (password === AGM_PASSWORD) {
-      setAuthenticated(true);
-    } else {
-      toast({ title: "Senha incorreta", variant: "destructive" });
-    }
+    if (password === AGM_PASSWORD) setAuthenticated(true);
+    else toast({ title: "Senha incorreta", variant: "destructive" });
   };
 
   const saveEntry = async (indicadorId: string) => {
     if (!user) return;
     const data = editingEntry[indicadorId];
     if (!data) return;
-
     const existing = entries.find((e) => e.indicador === indicadorId);
     if (existing) {
       await supabase.from("agm_entries").update({
@@ -128,23 +135,70 @@ const AGM = () => {
     fetchData();
   };
 
-  const generateAIPlans = async (indicadorId: string) => {
-    if (!user) return;
+  // Open 5 Whys chat for an indicator
+  const startFiveWhys = (indicadorId: string) => {
+    const ind = indicadores.find((i) => i.id === indicadorId);
     const data = editingEntry[indicadorId];
-    const indLabel = indicadores.find((i) => i.id === indicadorId)?.label || indicadorId;
-    setAiLoading(indicadorId);
+    setChatIndicador(indicadorId);
+    setChatMessages([
+      {
+        role: "assistant",
+        content: `Vamos iniciar a análise dos **5 Porquês** para o indicador **${ind?.label}**.\n\n📊 **Meta:** ${data?.meta || "não informada"}\n📈 **Realizado:** ${data?.realizado || "não informado"}\n\nMe conte: **O que você acredita que causou esse resultado?** Vou te ajudar a aprofundar até chegarmos na causa raiz.`,
+      },
+    ]);
+    setChatInput("");
+    setChatOpen(true);
+  };
+
+  // Send message in 5 Whys chat
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || chatLoading || !chatIndicador) return;
+    const userMsg: ChatMessage = { role: "user", content: chatInput.trim() };
+    const newMessages = [...chatMessages, userMsg];
+    setChatMessages(newMessages);
+    setChatInput("");
+    setChatLoading(true);
 
     try {
-      const { data: result, error } = await supabase.functions.invoke("agm-ai", {
+      const ind = indicadores.find((i) => i.id === chatIndicador);
+      const data = editingEntry[chatIndicador];
+      const { data: result, error } = await supabase.functions.invoke("agm-5whys", {
         body: {
-          indicador: indLabel,
+          messages: newMessages,
+          indicador: ind?.label || chatIndicador,
           meta: data?.meta || "",
           realizado: data?.realizado || "",
-          observacoes: data?.obs || "",
-          contexto: "Setor de Expansão da Constance Calçados. Responsável: Gustavo Duarte.",
+          mode: "chat",
         },
       });
+      if (error) throw error;
+      if (result?.reply) {
+        setChatMessages((prev) => [...prev, { role: "assistant", content: result.reply }]);
+      }
+    } catch (err: any) {
+      toast({ title: "Erro na conversa", description: err.message, variant: "destructive" });
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
+  // Generate action plans from 5 Whys conversation
+  const generatePlansFromChat = async () => {
+    if (!user || !chatIndicador) return;
+    setGeneratingPlans(true);
+
+    try {
+      const ind = indicadores.find((i) => i.id === chatIndicador);
+      const data = editingEntry[chatIndicador];
+      const { data: result, error } = await supabase.functions.invoke("agm-5whys", {
+        body: {
+          messages: chatMessages,
+          indicador: ind?.label || chatIndicador,
+          meta: data?.meta || "",
+          realizado: data?.realizado || "",
+          mode: "generate_plan",
+        },
+      });
       if (error) throw error;
 
       if (result?.planos?.length) {
@@ -152,8 +206,8 @@ const AGM = () => {
         const inserts = result.planos.map((p: any) => ({
           user_id: user.id,
           mes_referencia: mesRef,
-          indicador: indicadorId,
-          causa: p.causa || "",
+          indicador: chatIndicador,
+          causa: result.causa_raiz || p.causa || "",
           fenomeno: p.fenomeno || "",
           acao: p.acao || "",
           como: p.como || "",
@@ -163,18 +217,17 @@ const AGM = () => {
           farol: "amarelo",
           ai_generated: true,
         }));
-
         await supabase.from("agm_action_plans").insert(inserts);
-        toast({ title: "Planos gerados!", description: result.analise?.substring(0, 100) });
+        toast({ title: "Planos de ação criados!", description: `${result.planos.length} planos gerados a partir dos 5 Porquês.` });
+        setChatOpen(false);
         fetchData();
       } else {
         toast({ title: "Nenhum plano gerado", variant: "destructive" });
       }
     } catch (err: any) {
-      console.error(err);
       toast({ title: "Erro ao gerar planos", description: err.message, variant: "destructive" });
     } finally {
-      setAiLoading(null);
+      setGeneratingPlans(false);
     }
   };
 
@@ -191,9 +244,7 @@ const AGM = () => {
   const generatePDF = () => {
     const w = window.open("", "_blank");
     if (!w) return;
-
     const mesLabel = mesRef ? format(new Date(mesRef + "-01"), "MMMM yyyy", { locale: ptBR }) : mesRef;
-
     const entriesHTML = indicadores.map((ind) => {
       const data = editingEntry[ind.id];
       const indPlans = plans.filter((p) => p.indicador === ind.id);
@@ -256,6 +307,8 @@ const AGM = () => {
     w.document.close();
     setTimeout(() => w.print(), 300);
   };
+
+  const hasRootCause = chatMessages.some((m) => m.role === "assistant" && m.content.includes("✅"));
 
   // Password screen
   if (!authenticated) {
@@ -382,15 +435,10 @@ const AGM = () => {
                         size="sm"
                         variant="outline"
                         className="gap-1.5"
-                        onClick={() => generateAIPlans(ind.id)}
-                        disabled={aiLoading === ind.id}
+                        onClick={() => startFiveWhys(ind.id)}
                       >
-                        {aiLoading === ind.id ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <Sparkles className="h-3.5 w-3.5" />
-                        )}
-                        Gerar Plano de Ação com IA
+                        <MessageCircle className="h-3.5 w-3.5" />
+                        5 Porquês + Plano de Ação
                       </Button>
                     </div>
                   </CardContent>
@@ -419,22 +467,23 @@ const AGM = () => {
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead>Causa</TableHead>
+                            <TableHead>Causa Raiz</TableHead>
+                            <TableHead>Fenômeno</TableHead>
                             <TableHead>Ação</TableHead>
                             <TableHead>Como</TableHead>
                             <TableHead>Responsável</TableHead>
                             <TableHead>Prazo</TableHead>
                             <TableHead className="text-center">Farol</TableHead>
-                            <TableHead className="text-center">Origem</TableHead>
                             <TableHead className="w-10"></TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {indPlans.map((plan) => (
                             <TableRow key={plan.id}>
-                              <TableCell className="text-xs max-w-[200px]">{plan.causa}</TableCell>
-                              <TableCell className="text-xs max-w-[200px]">{plan.acao}</TableCell>
-                              <TableCell className="text-xs max-w-[200px]">{plan.como}</TableCell>
+                              <TableCell className="text-xs max-w-[180px]">{plan.causa}</TableCell>
+                              <TableCell className="text-xs max-w-[150px]">{plan.fenomeno}</TableCell>
+                              <TableCell className="text-xs max-w-[180px]">{plan.acao}</TableCell>
+                              <TableCell className="text-xs max-w-[180px]">{plan.como}</TableCell>
                               <TableCell className="text-xs">{plan.responsavel}</TableCell>
                               <TableCell className="text-xs">{plan.prazo_final}</TableCell>
                               <TableCell className="text-center">
@@ -450,15 +499,6 @@ const AGM = () => {
                                     <SelectItem value="vermelho">Vermelho</SelectItem>
                                   </SelectContent>
                                 </Select>
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {plan.ai_generated ? (
-                                  <Badge variant="secondary" className="text-[10px] gap-1">
-                                    <Sparkles className="h-3 w-3" /> IA
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="text-[10px]">Manual</Badge>
-                                )}
                               </TableCell>
                               <TableCell>
                                 <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deletePlan(plan.id)}>
@@ -477,15 +517,97 @@ const AGM = () => {
             {plans.length === 0 && (
               <Card>
                 <CardContent className="py-12 text-center text-muted-foreground">
-                  <Sparkles className="h-8 w-8 mx-auto mb-3 opacity-30" />
+                  <MessageCircle className="h-8 w-8 mx-auto mb-3 opacity-30" />
                   <p>Nenhum plano de ação criado para este mês.</p>
-                  <p className="text-xs mt-1">Preencha os indicadores e use a IA para gerar planos automaticamente.</p>
+                  <p className="text-xs mt-1">Use os 5 Porquês em cada indicador para chegar na causa raiz e gerar planos.</p>
                 </CardContent>
               </Card>
             )}
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* 5 WHYS CHAT DIALOG */}
+      <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+        <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-3 border-b">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <MessageCircle className="h-5 w-5 text-primary" />
+              5 Porquês — {indicadores.find((i) => i.id === chatIndicador)?.label}
+            </DialogTitle>
+            <p className="text-xs text-muted-foreground">Explique o que você acha que causou o resultado. Vamos aprofundar até a causa raiz.</p>
+          </DialogHeader>
+
+          {/* Chat messages */}
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            {chatMessages.map((msg, i) => (
+              <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm ${
+                  msg.role === "user"
+                    ? "bg-primary text-primary-foreground rounded-br-md"
+                    : "bg-muted text-foreground rounded-bl-md"
+                }`}>
+                  {msg.role === "assistant" ? (
+                    <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p>{msg.content}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+            {chatLoading && (
+              <div className="flex justify-start">
+                <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Input area */}
+          <div className="border-t px-6 py-4 space-y-3">
+            {hasRootCause && (
+              <Button
+                className="w-full gap-2"
+                onClick={generatePlansFromChat}
+                disabled={generatingPlans}
+              >
+                {generatingPlans ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
+                Gerar Planos de Ação a partir da Causa Raiz
+              </Button>
+            )}
+            <div className="flex gap-2">
+              <Textarea
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendChatMessage();
+                  }
+                }}
+                placeholder="Explique o que você acha que causou..."
+                className="min-h-[44px] max-h-[100px] resize-none"
+                rows={1}
+              />
+              <Button
+                size="icon"
+                onClick={sendChatMessage}
+                disabled={chatLoading || !chatInput.trim()}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
