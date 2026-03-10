@@ -592,11 +592,10 @@ const Pipeline = () => {
                             {p.label}
                             {overdue && <span className="text-destructive text-[10px] ml-1">ATRASADO</span>}
                           </Label>
-                          <Input
-                            className="w-28 h-8 text-xs"
-                            placeholder="dd/mm/aa"
+                          <DeadlinePicker
                             value={deadline}
-                            onChange={(e) => setEditingStore({ ...editingStore, [p.deadlineKey]: e.target.value })}
+                            onChange={(v) => setEditingStore({ ...editingStore, [p.deadlineKey]: v })}
+                            className="w-28"
                           />
                           <Select value={status} onValueChange={(v) => setEditingStore({ ...editingStore, [p.key]: v })}>
                             <SelectTrigger className="w-36 h-8">
