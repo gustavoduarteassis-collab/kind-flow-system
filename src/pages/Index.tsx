@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import {
   Building2, Users, ListTodo, Target,
-  ChevronRight, LogOut, Calendar, KeyRound, Plus, Trash2, GitBranch,
+  ChevronRight, LogOut, Calendar, KeyRound, Plus, Trash2, GitBranch, DollarSign,
 } from "lucide-react";
 import logoConstance from "@/assets/logo-constance.svg";
 import { useToast } from "@/hooks/use-toast";
@@ -190,10 +190,11 @@ const Index = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Quick navigation */}
-        <div className="grid gap-4 sm:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-6">
           {[
             { label: "Funil", count: null, icon: GitBranch, path: "/pipeline", color: "bg-[hsl(var(--accent))]/10 text-[hsl(var(--accent))]" },
             { label: "Lojas", count: stores.length, icon: Building2, path: "/lojas", color: "bg-primary/10 text-primary" },
+            { label: "Custos Geral", count: null, icon: DollarSign, path: "/custos-geral", color: "bg-destructive/10 text-destructive" },
             { label: "Equipe", count: members.length, icon: Users, path: "/equipe", color: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]" },
             { label: "Hábitos", count: habits.length, icon: Target, path: "/equipe", color: "bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]" },
             { label: "Calendário", count: null, icon: Calendar, path: "/equipe", color: "bg-primary/10 text-primary" },
