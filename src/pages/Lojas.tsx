@@ -25,14 +25,14 @@ const Lojas = () => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterAnalista, setFilterAnalista] = useState(searchParams.get("analista") || "");
-  const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
+  const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "" as "rua" | "shopping" | "", inauguracaoChecklist: {} as any });
 
   const analistas = Array.from(new Set(stores.map((s) => s.analistaObra).filter(Boolean)));
 
   const handleAdd = async () => {
     if (!form.nome) return;
     const id = await addStore(form);
-    setForm({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
+    setForm({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "", inauguracaoChecklist: {} });
     setOpen(false);
     if (id) navigate(`/loja/${id}`);
   };

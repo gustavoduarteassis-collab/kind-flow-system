@@ -11,6 +11,8 @@ import CronogramaObra from "@/components/CronogramaObra";
 import CustosObra from "@/components/CustosObra";
 import DiarioObra from "@/components/DiarioObra";
 import FornecedoresObra from "@/components/FornecedoresObra";
+import ChecklistInauguracao from "@/components/ChecklistInauguracao";
+import { InaugChecklistData } from "@/data/inauguracaoChecklistData";
 import {
   Select,
   SelectContent,
@@ -194,6 +196,12 @@ const StoreDetail = () => {
               >
                 🏭 Fornecedores
               </TabsTrigger>
+              <TabsTrigger
+                value="inauguracao"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+              >
+                🎉 Checklist Inauguração
+              </TabsTrigger>
               {checklistCategories.map((cat) => {
                 const catProgress = getCategoryProgress(cat.id);
                 return (
@@ -230,6 +238,15 @@ const StoreDetail = () => {
 
           <TabsContent value="fornecedores" className="mt-4">
             <FornecedoresObra />
+          </TabsContent>
+
+          <TabsContent value="inauguracao" className="mt-4">
+            <ChecklistInauguracao
+              tipoLoja={store.tipoLoja as "rua" | "shopping" | ""}
+              data={store.inauguracaoChecklist || {}}
+              onTipoChange={(tipo) => updateStore(store.id, { tipoLoja: tipo } as any)}
+              onDataChange={(inaugData) => updateStore(store.id, { inauguracaoChecklist: inaugData } as any)}
+            />
           </TabsContent>
 
           {checklistCategories.map((cat) => (

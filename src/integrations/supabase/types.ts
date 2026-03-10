@@ -344,7 +344,9 @@ export type Database = {
           franqueado: string
           id: string
           inauguracao: string
+          inauguracao_checklist: Json
           nome: string
+          tipo_loja: string
           updated_at: string
           user_id: string
         }
@@ -359,7 +361,9 @@ export type Database = {
           franqueado?: string
           id?: string
           inauguracao?: string
+          inauguracao_checklist?: Json
           nome: string
+          tipo_loja?: string
           updated_at?: string
           user_id: string
         }
@@ -374,7 +378,9 @@ export type Database = {
           franqueado?: string
           id?: string
           inauguracao?: string
+          inauguracao_checklist?: Json
           nome?: string
+          tipo_loja?: string
           updated_at?: string
           user_id?: string
         }

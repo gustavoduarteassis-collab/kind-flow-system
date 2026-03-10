@@ -98,8 +98,10 @@ const FranqueadoPortal = () => {
         construtor: storeData.construtor || "",
         analistaObra: storeData.analista_obra || "",
         inauguracao: storeData.inauguracao || "",
+        tipoLoja: (storeData as any).tipo_loja || "",
         checklist: (storeData.checklist as any) || createDefaultChecklist(),
         cronograma: (storeData.cronograma as any) || createDefaultCronograma(),
+        inauguracaoChecklist: (storeData as any).inauguracao_checklist || {},
       };
       setStore(storeObj);
     }
