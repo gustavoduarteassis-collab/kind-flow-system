@@ -61,18 +61,25 @@ type PipelineStore = {
   prazo_contratos: string;
   data_liberacao_orcamento: string;
   prazo_conclusao_orcamento: string;
+  inicio_projeto_arquitetonico: string;
+  inicio_projeto_eletrico: string;
+  inicio_projeto_incendio: string;
+  inicio_projeto_estrutural: string;
+  inicio_projeto_ar_condicionado: string;
+  inicio_orcamento_obra: string;
+  inicio_contratos: string;
   observacoes: string;
   transferido: boolean;
 };
 
 const PHASES = [
-  { key: "projeto_arquitetonico", label: "Proj. Arquitetônico", deadlineKey: "prazo_projeto_arquitetonico" },
-  { key: "projeto_eletrico", label: "Proj. Elétrico", deadlineKey: "prazo_projeto_eletrico" },
-  { key: "projeto_incendio", label: "Proj. Incêndio", deadlineKey: "prazo_projeto_incendio" },
-  { key: "projeto_estrutural", label: "Proj. Estrutural", deadlineKey: "prazo_projeto_estrutural" },
-  { key: "projeto_ar_condicionado", label: "Proj. Ar Condicionado", deadlineKey: "prazo_projeto_ar_condicionado" },
-  { key: "orcamento_obra", label: "Orçamento de Obra", deadlineKey: "prazo_orcamento_obra" },
-  { key: "contratos", label: "Contratos", deadlineKey: "prazo_contratos" },
+  { key: "projeto_arquitetonico", label: "Proj. Arquitetônico", deadlineKey: "prazo_projeto_arquitetonico", startKey: "inicio_projeto_arquitetonico" },
+  { key: "projeto_eletrico", label: "Proj. Elétrico", deadlineKey: "prazo_projeto_eletrico", startKey: "inicio_projeto_eletrico" },
+  { key: "projeto_incendio", label: "Proj. Incêndio", deadlineKey: "prazo_projeto_incendio", startKey: "inicio_projeto_incendio" },
+  { key: "projeto_estrutural", label: "Proj. Estrutural", deadlineKey: "prazo_projeto_estrutural", startKey: "inicio_projeto_estrutural" },
+  { key: "projeto_ar_condicionado", label: "Proj. Ar Condicionado", deadlineKey: "prazo_projeto_ar_condicionado", startKey: "inicio_projeto_ar_condicionado" },
+  { key: "orcamento_obra", label: "Orçamento de Obra", deadlineKey: "prazo_orcamento_obra", startKey: "inicio_orcamento_obra" },
+  { key: "contratos", label: "Contratos", deadlineKey: "prazo_contratos", startKey: "inicio_contratos" },
 ] as const;
 
 const PHASE_STATUSES = [
@@ -553,11 +560,22 @@ const Pipeline = () => {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <DeadlinePicker
-                              compact
-                              value={deadline}
-                              onChange={(v) => updateDeadline(store.id, p.deadlineKey, v)}
-                            />
+                            <div>
+                              <p className="text-[9px] text-muted-foreground">Início</p>
+                              <DeadlinePicker
+                                compact
+                                value={(store as any)[p.startKey] || ""}
+                                onChange={(v) => updateDeadline(store.id, p.startKey, v)}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-[9px] text-muted-foreground">Prazo</p>
+                              <DeadlinePicker
+                                compact
+                                value={deadline}
+                                onChange={(v) => updateDeadline(store.id, p.deadlineKey, v)}
+                              />
+                            </div>
                             {isOrcamento && (
                               <div className="space-y-1 pt-1 border-t border-border/30">
                                 <div>

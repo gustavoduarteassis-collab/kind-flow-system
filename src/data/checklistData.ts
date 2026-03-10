@@ -16,6 +16,7 @@ export interface ChecklistItem {
   preRequisito?: string;
   responsavel: string;
   observacoes?: string;
+  descricao?: string;
 }
 
 export interface ChecklistCategory {
@@ -42,6 +43,7 @@ export interface Store {
     prazoInicial: string;
     prazoFinal: string;
     observacoes: string;
+    descricao?: string;
   }>;
   cronograma: CronogramaStore;
   inauguracaoChecklist: InaugChecklistData;
@@ -212,8 +214,8 @@ export const checklistCategories: ChecklistCategory[] = [
     ],
   },
   {
-    id: "materia-prima",
-    nome: "Processos Matéria-Prima",
+    id: "papelaria-contratos",
+    nome: "Papelaria e Contratos",
     statusOptions: defaultStatusOptions,
     items: [
       { id: 118, atividade: "E-Commerce: Etiqueta de produto removível 108x138 branca - IMPEDITIVO", responsavel: "Franqueado", observacoes: "Multi Etiquetas" },
@@ -226,6 +228,19 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 125, atividade: "E-Commerce: Contrato Correios - IMPEDITIVO (30 dias antes)", responsavel: "Franqueado" },
       { id: 126, atividade: "Preencher e assinar termo CTC Performance", responsavel: "Franqueado" },
       { id: 127, atividade: "Comercial: Parceria com sapateiro local para assistência técnica", responsavel: "Franqueado" },
+    ],
+  },
+  {
+    id: "marketing",
+    nome: "Marketing",
+    statusOptions: defaultStatusOptions,
+    items: [
+      { id: 132, atividade: "Solicitar arte do adesivo de tapume ao marketing Constance", responsavel: "Franqueado" },
+      { id: 133, atividade: "Planejamento de inauguração e divulgação - IMPEDITIVO", responsavel: "Franqueado / Marketing" },
+      { id: 134, atividade: "Material de PDV (banners, displays, adesivos)", responsavel: "Marketing" },
+      { id: 135, atividade: "Ativação de redes sociais da loja", responsavel: "Franqueado / Marketing" },
+      { id: 136, atividade: "Cadastro Google Meu Negócio", responsavel: "Franqueado" },
+      { id: 137, atividade: "Fachada e comunicação visual conforme padrão", responsavel: "Franqueado" },
     ],
   },
   {

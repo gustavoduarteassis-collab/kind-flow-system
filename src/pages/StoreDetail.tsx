@@ -85,7 +85,7 @@ const StoreDetail = () => {
     updateStore(store.id, { checklist: newChecklist });
   };
 
-  const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes", value: string) => {
+  const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes" | "descricao", value: string) => {
     const newChecklist = { ...store.checklist };
     newChecklist[itemId] = { ...newChecklist[itemId], [field]: value };
     updateStore(store.id, { checklist: newChecklist });
@@ -275,6 +275,7 @@ const StoreDetail = () => {
                         <TableHead className="w-[170px]">Status</TableHead>
                         <TableHead className="w-[140px]">Responsável</TableHead>
                         <TableHead className="min-w-[160px]">Observações</TableHead>
+                        <TableHead className="min-w-[200px]">Passo a Passo</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -364,6 +365,16 @@ const StoreDetail = () => {
                                 value={data.observacoes}
                                 onChange={(e) =>
                                   handleFieldChange(item.id, "observacoes", e.target.value)
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Input
+                                className="h-8 text-xs"
+                                placeholder="Instruções detalhadas..."
+                                value={data.descricao || ""}
+                                onChange={(e) =>
+                                  handleFieldChange(item.id, "descricao", e.target.value)
                                 }
                               />
                             </TableCell>
