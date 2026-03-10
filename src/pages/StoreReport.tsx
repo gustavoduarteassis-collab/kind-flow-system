@@ -532,7 +532,7 @@ const StoreReport = () => {
         })()}
 
         {/* ===== DIÁRIO DE OBRA ===== */}
-        {diaryEntries.length > 0 && (
+        {(!secao || secao === "diario") && diaryEntries.length > 0 && (
           <section className="mb-6 break-before-page">
             <h2 className="text-lg font-bold border-b border-black mb-3">5. DIÁRIO DE OBRA</h2>
             <p className="text-xs mb-3 text-gray-600">
