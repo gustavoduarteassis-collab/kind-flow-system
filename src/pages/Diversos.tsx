@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Plus, Trash2, Star, Upload, ExternalLink, Search, Filter,
-  TrendingUp, Users, Package,
+  TrendingUp, Users, Package, Target,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
