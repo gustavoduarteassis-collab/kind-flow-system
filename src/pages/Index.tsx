@@ -21,9 +21,10 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Building2, ClipboardCheck, Users, ListTodo, Target,
+  Building2, Users, ListTodo, Target,
   ChevronRight, LogOut, Calendar, KeyRound, Plus, Trash2, GitBranch,
 } from "lucide-react";
+import logoConstance from "@/assets/logo-constance.svg";
 import { useToast } from "@/hooks/use-toast";
 
 type Task = {
