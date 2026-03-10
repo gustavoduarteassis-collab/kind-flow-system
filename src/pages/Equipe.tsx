@@ -70,15 +70,31 @@ const priorityColors: Record<string, string> = {
 };
 
 const eventTypeLabels: Record<string, string> = {
-  checklist: "Checklist", folga: "Folga", implantacao: "Implantação", agm: "AGM", reuniao: "Reunião Semanal", outro: "Outro",
+  checklist: "Checklist", folga: "Folga", ferias: "Férias", implantacao: "Implantação", agm: "AGM", reuniao: "Reunião Semanal", outro: "Outro",
 };
 const eventTypeColors: Record<string, string> = {
   checklist: "bg-primary text-primary-foreground",
   folga: "bg-muted text-muted-foreground",
+  ferias: "bg-[hsl(200,70%,50%)] text-[hsl(0,0%,100%)]",
   implantacao: "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
   agm: "bg-destructive text-destructive-foreground",
   reuniao: "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]",
   outro: "bg-secondary text-secondary-foreground",
+};
+
+// Fixed member colors for calendar visualization
+const MEMBER_COLORS = [
+  "hsl(25, 45%, 35%)",   // Coffee brown (Gustavo)
+  "hsl(340, 55%, 48%)",  // Rose
+  "hsl(200, 60%, 45%)",  // Blue
+  "hsl(160, 50%, 40%)",  // Teal
+  "hsl(270, 45%, 50%)",  // Purple
+  "hsl(30, 70%, 50%)",   // Orange
+];
+const getMemberColor = (memberId: string | null | undefined, membersList: { id: string }[]) => {
+  if (!memberId) return "transparent";
+  const idx = membersList.findIndex((m) => m.id === memberId);
+  return idx >= 0 ? MEMBER_COLORS[idx % MEMBER_COLORS.length] : "transparent";
 };
 
 const formatDate = (d: string | null) => {
