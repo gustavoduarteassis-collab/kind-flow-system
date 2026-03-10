@@ -120,10 +120,20 @@ const CustosGeral = () => {
     }));
   }, [dashData]);
 
-  // 2026 projections based on 2025 averages
+  // 2026 projections: scale 2025 averages so total matches exactly the meta per m²
   const projections2026 = useMemo(() => {
     const data2025 = custosGeralData.filter((d) => d.ano === 2025);
-    return calcAverages(data2025);
+    const avgs = calcAverages(data2025);
+    return avgs.map((d) => {
+      const rawTotal = Object.values(d.avgPerM2).reduce((s, v) => s + v, 0);
+      if (rawTotal <= 0) return d;
+      const scale = d.meta / rawTotal;
+      const adjustedPerM2: Record<string, number> = {};
+      CATEGORIAS.forEach(({ key }) => {
+        adjustedPerM2[key] = d.avgPerM2[key] * scale;
+      });
+      return { ...d, avgPerM2: adjustedPerM2, avgTotalPerM2: d.meta };
+    });
   }, []);
 
   const getStatusInfo = (entry: StoreCostEntry) => {
