@@ -37,6 +37,17 @@ const statusLabels: Record<StatusType, string> = {
   "EM CONTRATAÇÃO": "🟣 Em Contratação",
 };
 
+const formatCurrency = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const parseWorkers = (weather: string): WorkerEntry[] => {
+  try {
+    const parsed = JSON.parse(weather);
+    if (Array.isArray(parsed)) return parsed;
+  } catch {}
+  return [];
+};
+
 const cronCellSymbol: Record<CronogramaDayStatus, string> = {
   none: "",
   planned: "▓",
