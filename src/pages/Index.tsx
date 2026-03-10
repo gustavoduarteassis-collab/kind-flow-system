@@ -243,6 +243,16 @@ const Index = () => {
               <p className="text-lg font-bold text-white">Diversos</p>
               <p className="text-xs text-white/40 mt-0.5">Prospecção & Fornecedores</p>
             </div>
+            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/agm")}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-10 w-10 rounded-lg bg-destructive/15 flex items-center justify-center">
+                  <Target className="h-5 w-5 text-destructive" />
+                </div>
+                <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-destructive/60 transition-colors" />
+              </div>
+              <p className="text-lg font-bold text-white">AGM</p>
+              <p className="text-xs text-white/40 mt-0.5">Análise Gerencial Mensal</p>
+            </div>
             {/* KPI cards */}
             <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/equipe")}>
               <div className="flex items-center justify-between mb-3">
