@@ -26,6 +26,7 @@ export interface ChecklistCategory {
 }
 
 import { CronogramaStore } from "./cronogramaData";
+import { InaugChecklistData } from "./inauguracaoChecklistData";
 
 export interface Store {
   id: string;
@@ -35,6 +36,7 @@ export interface Store {
   construtor: string;
   analistaObra: string;
   inauguracao: string;
+  tipoLoja: "rua" | "shopping" | "";
   checklist: Record<number, {
     status: StatusType;
     prazoInicial: string;
@@ -42,6 +44,7 @@ export interface Store {
     observacoes: string;
   }>;
   cronograma: CronogramaStore;
+  inauguracaoChecklist: InaugChecklistData;
 }
 
 const defaultStatusOptions: StatusType[] = [

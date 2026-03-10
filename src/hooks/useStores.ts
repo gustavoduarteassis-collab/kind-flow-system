@@ -69,9 +69,11 @@ export function useStores() {
     if (updates.construtor !== undefined) dbUpdates.construtor = updates.construtor;
     if (updates.analistaObra !== undefined) dbUpdates.analista_obra = updates.analistaObra;
     if (updates.inauguracao !== undefined) dbUpdates.inauguracao = updates.inauguracao;
+    if (updates.tipoLoja !== undefined) dbUpdates.tipo_loja = updates.tipoLoja;
     if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
     if (updates.cronograma !== undefined) dbUpdates.cronograma = updates.cronograma;
     if ((updates as any).custos !== undefined) dbUpdates.custos = (updates as any).custos;
+    if ((updates as any).inauguracaoChecklist !== undefined) dbUpdates.inauguracao_checklist = (updates as any).inauguracaoChecklist;
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
     // Optimistic update
