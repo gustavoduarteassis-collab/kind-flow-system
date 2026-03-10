@@ -261,6 +261,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   };
 
   const roundDate = currentRound?.date ? new Date(currentRound.date + "T00:00:00") : undefined;
+  const deadlineDate = currentRound?.deadline ? new Date(currentRound.deadline + "T00:00:00") : undefined;
 
   return (
     <div className="space-y-4">
