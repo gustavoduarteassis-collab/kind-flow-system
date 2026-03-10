@@ -59,6 +59,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ImageIcon,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
