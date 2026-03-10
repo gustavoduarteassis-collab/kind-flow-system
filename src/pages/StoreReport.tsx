@@ -1,15 +1,28 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useStores } from "@/hooks/useStores";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { checklistCategories, StatusType } from "@/data/checklistData";
 import {
   cronogramaCategorias,
   TOTAL_DAYS,
   CronogramaDayStatus,
 } from "@/data/cronogramaData";
+import { CustosData, createDefaultCustos } from "@/data/custosData";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer } from "lucide-react";
 import { addDays, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
+type WorkerEntry = { type: string; count: number };
+type DiaryEntryReport = {
+  id: string; entry_date: string; description: string;
+  weather: string; workers_count: number;
+};
+type DiaryPhotoReport = {
+  id: string; diary_id: string; photo_url: string; caption: string;
+};
 
 const statusLabels: Record<StatusType, string> = {
   "NÃO INICIADO": "⬜ Não Iniciado",
