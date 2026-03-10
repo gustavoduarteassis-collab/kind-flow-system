@@ -183,7 +183,7 @@ const StoreReport = () => {
         </div>
 
         {/* ===== RESUMO GERAL ===== */}
-        <section className="mb-6">
+        {!secao && (
           <h2 className="text-lg font-bold border-b border-black mb-3">
             1. RESUMO GERAL
           </h2>
