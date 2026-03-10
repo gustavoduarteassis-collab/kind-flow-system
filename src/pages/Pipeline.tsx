@@ -72,6 +72,7 @@ const PHASE_STATUSES = [
   { value: "pendente", label: "Pendente", color: "bg-muted text-muted-foreground", icon: Clock },
   { value: "em_andamento", label: "Em Andamento", color: "bg-amber-100 text-amber-800", icon: AlertCircle },
   { value: "aprovado", label: "Aprovado", color: "bg-emerald-100 text-emerald-800", icon: CheckCircle2 },
+  { value: "nao_se_aplica", label: "Não se Aplica", color: "bg-slate-100 text-slate-500", icon: Clock },
 ];
 
 const getPhaseColor = (status: string) => PHASE_STATUSES.find((s) => s.value === status)?.color || "bg-muted text-muted-foreground";
