@@ -437,9 +437,10 @@ const StoreReport = () => {
             );
           })}
         </section>
+        )}
 
         {/* ===== CUSTOS ===== */}
-        {(() => {
+        {(!secao || secao === "custos") && (() => {
           const custos: CustosData = (store as any).custos && (store as any).custos.categorias
             ? (store as any).custos
             : createDefaultCustos();
