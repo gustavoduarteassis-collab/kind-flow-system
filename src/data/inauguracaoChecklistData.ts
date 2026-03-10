@@ -474,6 +474,7 @@ export type InaugRound = {
   deadline: string; // ISO date string - prazo de conclusão
   label: string; // e.g. "1ª Conferência"
   items: Record<string, InaugItemData>;
+  signatures?: InaugSignatures;
 };
 
 // V2 data format: multiple rounds
