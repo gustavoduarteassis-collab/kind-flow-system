@@ -220,6 +220,7 @@ export type Database = {
       }
       pipeline_stores: {
         Row: {
+          analista_obra: string
           cd_origem: string
           cidade: string
           contato_franqueado: string
@@ -237,6 +238,13 @@ export type Database = {
           observacoes: string
           orcamento_obra: string
           padrao: string
+          prazo_contratos: string
+          prazo_orcamento_obra: string
+          prazo_projeto_ar_condicionado: string
+          prazo_projeto_arquitetonico: string
+          prazo_projeto_eletrico: string
+          prazo_projeto_estrutural: string
+          prazo_projeto_incendio: string
           previsao_inauguracao: string
           projeto_ar_condicionado: string
           projeto_arquitetonico: string
@@ -249,6 +257,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          analista_obra?: string
           cd_origem?: string
           cidade?: string
           contato_franqueado?: string
@@ -266,6 +275,13 @@ export type Database = {
           observacoes?: string
           orcamento_obra?: string
           padrao?: string
+          prazo_contratos?: string
+          prazo_orcamento_obra?: string
+          prazo_projeto_ar_condicionado?: string
+          prazo_projeto_arquitetonico?: string
+          prazo_projeto_eletrico?: string
+          prazo_projeto_estrutural?: string
+          prazo_projeto_incendio?: string
           previsao_inauguracao?: string
           projeto_ar_condicionado?: string
           projeto_arquitetonico?: string
@@ -278,6 +294,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          analista_obra?: string
           cd_origem?: string
           cidade?: string
           contato_franqueado?: string
@@ -295,6 +312,13 @@ export type Database = {
           observacoes?: string
           orcamento_obra?: string
           padrao?: string
+          prazo_contratos?: string
+          prazo_orcamento_obra?: string
+          prazo_projeto_ar_condicionado?: string
+          prazo_projeto_arquitetonico?: string
+          prazo_projeto_eletrico?: string
+          prazo_projeto_estrutural?: string
+          prazo_projeto_incendio?: string
           previsao_inauguracao?: string
           projeto_ar_condicionado?: string
           projeto_arquitetonico?: string
