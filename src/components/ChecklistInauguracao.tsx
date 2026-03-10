@@ -143,6 +143,16 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
     onDataChange({ rounds: newRounds });
   };
 
+  const handleDeadlineChange = (date: Date | undefined) => {
+    if (!currentRound) return;
+    const newRounds = [...rounds];
+    newRounds[activeRoundIndex] = {
+      ...currentRound,
+      deadline: date ? date.toISOString().split("T")[0] : "",
+    };
+    onDataChange({ rounds: newRounds });
+  };
+
   const handleStatusChange = (itemId: string, status: InaugStatusType) => {
     if (!currentRound) return;
     const newRounds = [...rounds];
