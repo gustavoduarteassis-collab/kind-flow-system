@@ -59,7 +59,36 @@ const StoreReport = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getStore } = useStores();
+  const { user } = useAuth();
   const store = getStore(id || "");
+
+  const [diaryEntries, setDiaryEntries] = useState<DiaryEntryReport[]>([]);
+  const [diaryPhotos, setDiaryPhotos] = useState<Record<string, DiaryPhotoReport[]>>({});
+
+  useEffect(() => {
+    if (!user || !id) return;
+    const fetchDiary = async () => {
+      const { data: entries } = await supabase
+        .from("construction_diary").select("*").eq("store_id", id)
+        .order("entry_date", { ascending: true });
+      if (entries) {
+        setDiaryEntries(entries as DiaryEntryReport[]);
+        const ids = entries.map((e: any) => e.id);
+        if (ids.length > 0) {
+          const { data: photosData } = await supabase.from("diary_photos").select("*").in("diary_id", ids);
+          if (photosData) {
+            const grouped: Record<string, DiaryPhotoReport[]> = {};
+            (photosData as DiaryPhotoReport[]).forEach((p) => {
+              if (!grouped[p.diary_id]) grouped[p.diary_id] = [];
+              grouped[p.diary_id].push(p);
+            });
+            setDiaryPhotos(grouped);
+          }
+        }
+      }
+    };
+    fetchDiary();
+  }, [user, id]);
 
   if (!store) {
     return (
