@@ -84,9 +84,16 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   });
   const roundsRef = useRef(localRounds);
   roundsRef.current = localRounds;
+  
+  // Track whether we just pushed changes up to prevent echo-back overwrite
+  const skipNextSync = useRef(false);
 
-  // Sync from parent when data prop changes (e.g. on page load)
+  // Sync from parent when data prop changes (e.g. on page load, store switch)
   useEffect(() => {
+    if (skipNextSync.current) {
+      skipNextSync.current = false;
+      return;
+    }
     const migrated = migrateInaugData(data, tipoLoja || "rua");
     setLocalRounds(migrated.rounds);
   }, [data, tipoLoja]);
@@ -95,6 +102,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   const updateRounds = useCallback((newRounds: InaugRound[]) => {
     setLocalRounds(newRounds);
     roundsRef.current = newRounds;
+    skipNextSync.current = true;
     onDataChange({ rounds: newRounds });
   }, [onDataChange]);
 
