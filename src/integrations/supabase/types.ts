@@ -58,6 +58,72 @@ export type Database = {
           },
         ]
       }
+      custos_geral_entries: {
+        Row: {
+          ano: number
+          area_loja: number
+          area_total: number
+          created_at: string
+          demais_itens: number
+          estado: string
+          id: string
+          iluminacao: number
+          informatica: number
+          local: string
+          mao_de_obra: number
+          moveis: number
+          nome: string
+          piso: number
+          prazo: string
+          regional: string
+          tipo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ano?: number
+          area_loja?: number
+          area_total?: number
+          created_at?: string
+          demais_itens?: number
+          estado?: string
+          id?: string
+          iluminacao?: number
+          informatica?: number
+          local?: string
+          mao_de_obra?: number
+          moveis?: number
+          nome: string
+          piso?: number
+          prazo?: string
+          regional?: string
+          tipo?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ano?: number
+          area_loja?: number
+          area_total?: number
+          created_at?: string
+          demais_itens?: number
+          estado?: string
+          id?: string
+          iluminacao?: number
+          informatica?: number
+          local?: string
+          mao_de_obra?: number
+          moveis?: number
+          nome?: string
+          piso?: number
+          prazo?: string
+          regional?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       diary_photos: {
         Row: {
           caption: string | null
