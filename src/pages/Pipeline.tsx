@@ -61,6 +61,13 @@ type PipelineStore = {
   prazo_contratos: string;
   data_liberacao_orcamento: string;
   prazo_conclusao_orcamento: string;
+  inicio_projeto_arquitetonico: string;
+  inicio_projeto_eletrico: string;
+  inicio_projeto_incendio: string;
+  inicio_projeto_estrutural: string;
+  inicio_projeto_ar_condicionado: string;
+  inicio_orcamento_obra: string;
+  inicio_contratos: string;
   observacoes: string;
   transferido: boolean;
 };
