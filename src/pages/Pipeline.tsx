@@ -251,7 +251,7 @@ const Pipeline = () => {
       analistaObra: pipelineStore.analista_obra || "",
       inauguracao: pipelineStore.previsao_inauguracao,
       tipoLoja: "",
-      inauguracaoChecklist: {},
+      inauguracaoChecklist: { rounds: [] },
     });
     if (newStoreId) {
       // Auto-create franchisee access if email provided
