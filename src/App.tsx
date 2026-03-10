@@ -24,6 +24,7 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   const { user, loading } = useAuth();
   const [isFranqueado, setIsFranqueado] = useState<boolean | null>(null);
+  console.log("AppRoutes render:", { user: !!user, loading, isFranqueado });
 
   useEffect(() => {
     if (!user?.email) { setIsFranqueado(null); return; }
