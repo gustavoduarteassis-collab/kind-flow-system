@@ -462,7 +462,8 @@ export type InaugItemData = {
 // A single checklist round/conferência
 export type InaugRound = {
   id: string;
-  date: string; // ISO date string
+  date: string; // ISO date string - when this round was done
+  deadline: string; // ISO date string - prazo de conclusão
   label: string; // e.g. "1ª Conferência"
   items: Record<string, InaugItemData>;
 };
@@ -505,6 +506,7 @@ export function migrateInaugData(raw: any, tipo: "rua" | "shopping"): InaugCheck
     rounds: [{
       id: "migrated-1",
       date: new Date().toISOString().split("T")[0],
+      deadline: "",
       label: "1ª Conferência",
       items,
     }],
@@ -515,17 +517,26 @@ export function createNewRound(tipo: "rua" | "shopping", roundNumber: number, pr
   const allItems = getAllInaugItems(tipo);
   const items: Record<string, InaugItemData> = {};
   allItems.forEach((item) => {
-    // Carry forward status from previous round, or default
     const prev = previousRound?.items[item.id];
-    items[item.id] = {
-      status: prev ? prev.status : "NAO_ATENDIDO",
-      observacoes: "",
-      photos: [],
-    };
+    // Carry forward: keep completed/na status, reset others to NAO_ATENDIDO
+    if (prev && (prev.status === "TOTALMENTE_ATENDIDO" || prev.status === "NAO_SE_APLICA")) {
+      items[item.id] = {
+        status: prev.status,
+        observacoes: prev.observacoes || "",
+        photos: [],
+      };
+    } else {
+      items[item.id] = {
+        status: "NAO_ATENDIDO",
+        observacoes: prev?.observacoes || "",
+        photos: [],
+      };
+    }
   });
   return {
     id: `round-${Date.now()}`,
     date: new Date().toISOString().split("T")[0],
+    deadline: "",
     label: `${roundNumber}ª Conferência`,
     items,
   };
