@@ -674,7 +674,7 @@ const CustosGeral = () => {
 
           {/* ===== TABELA TAB ===== */}
           <TabsContent value="tabela" className="space-y-6">
-            <div className="flex flex-wrap gap-3 items-center">
+            <div className="flex flex-wrap gap-3 items-center print:hidden">
               <Select value={filterAno} onValueChange={setFilterAno}>
                 <SelectTrigger className="w-[140px]"><SelectValue placeholder="Ano" /></SelectTrigger>
                 <SelectContent>
@@ -696,6 +696,26 @@ const CustosGeral = () => {
                 <Badge variant="destructive">{totals.over} Estourou</Badge>
                 <span className="font-medium">{totals.total} lojas</span>
               </div>
+              <Button variant="outline" className="gap-2" onClick={() => window.print()}>
+                <Printer className="h-4 w-4" />Imprimir Tabela
+              </Button>
+            </div>
+
+            {/* Print header for table tab */}
+            <div className="hidden print:block mb-4">
+              <div className="flex items-center gap-3 mb-2">
+                <img src={logoConstance} alt="Logo" className="h-10 w-auto" />
+                <div>
+                  <h1 className="text-xl font-bold">Custos Geral — Tabela Completa</h1>
+                  <p className="text-sm text-muted-foreground">
+                    {filterAno !== "todos" ? `Ano: ${filterAno}` : "Todos os anos"}
+                    {filterTipo !== "todos" ? ` | Tipo: ${filterTipo}` : " | Todos os tipos"}
+                    {` | ${totals.total} lojas | ${totals.ok} OK | ${totals.over} Estourou`}
+                    {` | Gerado em: ${new Date().toLocaleDateString("pt-BR")}`}
+                  </p>
+                </div>
+              </div>
+              <hr />
             </div>
 
             <div className="rounded-xl border bg-card overflow-hidden">
