@@ -261,7 +261,7 @@ const Index = () => {
             { label: "Funil de Lojas", icon: GitBranch, path: "/pipeline", desc: "Pipeline de implantação" },
             { label: "Lojas", icon: Building2, path: "/lojas", desc: "Gestão de lojas" },
             { label: "Custos Geral", icon: DollarSign, path: "/custos-geral", desc: "Visão consolidada" },
-            { label: "Equipe & Calendário", icon: Users, path: "/equipe", desc: "Time e agenda" },
+            { label: "Equipe", icon: Users, path: "/equipe", desc: "Time e calendário" },
           ].map((item) => (
             <Card key={item.label} className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5 group" onClick={() => navigate(item.path)}>
               <CardContent className="p-4 flex items-center gap-3">
