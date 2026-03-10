@@ -240,6 +240,16 @@ const StoreDetail = () => {
             <FornecedoresObra />
           </TabsContent>
 
+          <TabsContent value="inauguracao" className="mt-4">
+            <ChecklistInauguracao
+              tipoLoja={store.tipoLoja as "rua" | "shopping" | ""}
+              data={store.inauguracaoChecklist || {}}
+              onTipoChange={(tipo) => updateStore(store.id, { tipoLoja: tipo } as any)}
+              onDataChange={(inaugData) => updateStore(store.id, { inauguracaoChecklist: inaugData } as any)}
+            />
+          </TabsContent>
+          </TabsContent>
+
           {checklistCategories.map((cat) => (
             <TabsContent key={cat.id} value={cat.id} className="mt-4">
               <div className="rounded-xl border bg-card overflow-hidden">
