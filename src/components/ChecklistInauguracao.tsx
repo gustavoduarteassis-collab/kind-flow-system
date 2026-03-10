@@ -84,9 +84,16 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   });
   const roundsRef = useRef(localRounds);
   roundsRef.current = localRounds;
+  
+  // Track whether we just pushed changes up to prevent echo-back overwrite
+  const skipNextSync = useRef(false);
 
-  // Sync from parent when data prop changes (e.g. on page load)
+  // Sync from parent when data prop changes (e.g. on page load, store switch)
   useEffect(() => {
+    if (skipNextSync.current) {
+      skipNextSync.current = false;
+      return;
+    }
     const migrated = migrateInaugData(data, tipoLoja || "rua");
     setLocalRounds(migrated.rounds);
   }, [data, tipoLoja]);
@@ -95,6 +102,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   const updateRounds = useCallback((newRounds: InaugRound[]) => {
     setLocalRounds(newRounds);
     roundsRef.current = newRounds;
+    skipNextSync.current = true;
     onDataChange({ rounds: newRounds });
   }, [onDataChange]);
 
@@ -251,7 +259,6 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
       }).length
     : 0;
   const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
-  const isLiberado = progress >= 95;
   const impeditivos = allItems.filter((i) => i.impeditivo);
   const impeditivosPendentes = currentRound
     ? impeditivos.filter((i) => {
@@ -259,6 +266,8 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
         return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
       }).length
     : 0;
+  const isLiberado = progress >= 95 && impeditivosPendentes === 0;
+  const isLiberadoComRessalvas = !isLiberado && progress >= 85 && impeditivosPendentes === 0;
 
   const getCatProgress = (cat: InaugCategory) => {
     if (!currentRound) return 0;
@@ -482,7 +491,12 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
               </Accordion>
 
               {/* Liberation Status */}
-              <Card className={cn("mt-6 border-2", isLiberado ? "border-[hsl(152,60%,40%)] bg-[hsl(152,60%,95%)]" : "border-destructive bg-[hsl(0,80%,97%)]")}>
+              <Card className={cn(
+                "mt-6 border-2",
+                isLiberado ? "border-[hsl(152,60%,40%)] bg-[hsl(152,60%,95%)]" :
+                isLiberadoComRessalvas ? "border-[hsl(38,90%,55%)] bg-[hsl(38,90%,97%)]" :
+                "border-destructive bg-[hsl(0,80%,97%)]"
+              )}>
                 <CardContent className="py-6">
                   <div className="flex items-center justify-center gap-3">
                     {isLiberado ? (
@@ -493,12 +507,20 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                           <p className="text-sm text-[hsl(152,60%,30%)]">{progress}% dos itens atendidos</p>
                         </div>
                       </>
+                    ) : isLiberadoComRessalvas ? (
+                      <>
+                        <CheckCircle2 className="h-8 w-8 text-[hsl(38,90%,45%)]" />
+                        <div className="text-center">
+                          <h3 className="text-lg font-bold text-[hsl(38,90%,35%)]">⚠️ LIBERADO COM RESSALVAS</h3>
+                          <p className="text-sm text-[hsl(38,90%,35%)]">{progress}% dos itens atendidos — itens pendentes devem ser resolvidos após inauguração</p>
+                        </div>
+                      </>
                     ) : (
                       <>
                         <XCircle className="h-8 w-8 text-destructive" />
                         <div className="text-center">
                           <h3 className="text-lg font-bold text-destructive">❌ NÃO LIBERADO PARA INAUGURAÇÃO</h3>
-                          <p className="text-sm text-destructive">{progress}% dos itens atendidos — mínimo necessário: 95%</p>
+                          <p className="text-sm text-destructive">{progress}% dos itens atendidos — mínimo necessário: 85%</p>
                           {impeditivosPendentes > 0 && (
                             <p className="text-xs text-destructive mt-1">⚠ {impeditivosPendentes} itens impeditivos pendentes</p>
                           )}
