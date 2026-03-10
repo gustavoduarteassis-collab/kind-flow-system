@@ -810,9 +810,17 @@ const Equipe = () => {
             </div>
 
             {/* Legend */}
-            <div className="flex flex-wrap gap-2 mb-4">
+            <div className="flex flex-wrap gap-2 mb-2">
               {Object.entries(eventTypeLabels).map(([k, v]) => (
                 <Badge key={k} className={`${eventTypeColors[k]} text-[10px]`}>{v}</Badge>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {members.map((m, i) => (
+                <div key={m.id} className="flex items-center gap-1.5 text-xs">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: MEMBER_COLORS[i % MEMBER_COLORS.length] }} />
+                  <span>{m.name}</span>
+                </div>
               ))}
             </div>
 
