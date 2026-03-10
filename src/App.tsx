@@ -26,46 +26,53 @@ function AppRoutes() {
   useEffect(() => {
     if (!user?.email) { setIsFranqueado(null); return; }
     const checkRole = async () => {
-      // 1. Check if user is in authorized team emails
-      const { data: authorizedTeam } = await supabase
-        .from("authorized_team_emails")
-        .select("id")
-        .ilike("email", user.email!)
-        .limit(1);
+      try {
+        // 1. Check if user is in authorized team emails
+        const { data: authorizedTeam, error: authErr } = await supabase
+          .from("authorized_team_emails")
+          .select("id")
+          .ilike("email", user.email!)
+          .limit(1);
 
-      if (authorizedTeam && authorizedTeam.length > 0) {
+        if (authErr) console.error("authorized_team_emails error:", authErr);
+
+        if (authorizedTeam && authorizedTeam.length > 0) {
+          setIsFranqueado(false);
+          return;
+        }
+
+        // 2. Check if user owns stores or has team data
+        const { data: ownedStores } = await supabase
+          .from("stores")
+          .select("id")
+          .eq("user_id", user.id)
+          .limit(1);
+
+        const { data: teamMembers } = await supabase
+          .from("team_members")
+          .select("id")
+          .eq("user_id", user.id)
+          .limit(1);
+
+        const isTeam = (ownedStores && ownedStores.length > 0) || (teamMembers && teamMembers.length > 0);
+
+        if (isTeam) {
+          setIsFranqueado(false);
+          return;
+        }
+
+        // 3. Check franchisee access
+        const { data: access } = await supabase
+          .from("franchisee_access")
+          .select("id")
+          .ilike("franchisee_email", user.email!)
+          .limit(1);
+
+        setIsFranqueado(access && access.length > 0);
+      } catch (err) {
+        console.error("checkRole error:", err);
         setIsFranqueado(false);
-        return;
       }
-
-      // 2. Check if user owns stores or has team data
-      const { data: ownedStores } = await supabase
-        .from("stores")
-        .select("id")
-        .eq("user_id", user.id)
-        .limit(1);
-
-      const { data: teamMembers } = await supabase
-        .from("team_members")
-        .select("id")
-        .eq("user_id", user.id)
-        .limit(1);
-
-      const isTeam = (ownedStores && ownedStores.length > 0) || (teamMembers && teamMembers.length > 0);
-
-      if (isTeam) {
-        setIsFranqueado(false);
-        return;
-      }
-
-      // 3. Check franchisee access
-      const { data: access } = await supabase
-        .from("franchisee_access")
-        .select("id")
-        .ilike("franchisee_email", user.email!)
-        .limit(1);
-
-      setIsFranqueado(access && access.length > 0);
     };
     checkRole();
   }, [user]);
