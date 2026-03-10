@@ -560,11 +560,22 @@ const Pipeline = () => {
                                 ))}
                               </SelectContent>
                             </Select>
-                            <DeadlinePicker
-                              compact
-                              value={deadline}
-                              onChange={(v) => updateDeadline(store.id, p.deadlineKey, v)}
-                            />
+                            <div>
+                              <p className="text-[9px] text-muted-foreground">Início</p>
+                              <DeadlinePicker
+                                compact
+                                value={(store as any)[p.startKey] || ""}
+                                onChange={(v) => updateDeadline(store.id, p.startKey, v)}
+                              />
+                            </div>
+                            <div>
+                              <p className="text-[9px] text-muted-foreground">Prazo</p>
+                              <DeadlinePicker
+                                compact
+                                value={deadline}
+                                onChange={(v) => updateDeadline(store.id, p.deadlineKey, v)}
+                              />
+                            </div>
                             {isOrcamento && (
                               <div className="space-y-1 pt-1 border-t border-border/30">
                                 <div>
