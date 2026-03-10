@@ -150,7 +150,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   const handleDeleteRound = (index: number) => {
     if (!confirm("Excluir esta conferência?")) return;
     const newRounds = rounds.filter((_, i) => i !== index);
-    onDataChange({ rounds: newRounds });
+    updateRounds(newRounds);
     setActiveRoundIndex(Math.max(0, newRounds.length - 1));
   };
 
