@@ -34,9 +34,7 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center mx-auto mb-3">
-            <ClipboardCheck className="h-6 w-6 text-primary-foreground" />
-          </div>
+          <img src={logoConstance} alt="Constance" className="h-12 mx-auto mb-3" />
           <CardTitle className="text-2xl">{isLogin ? "Entrar" : "Criar Conta"}</CardTitle>
         </CardHeader>
         <CardContent>
