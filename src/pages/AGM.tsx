@@ -548,9 +548,7 @@ const AGM = () => {
                     : "bg-muted text-foreground rounded-bl-md"
                 }`}>
                   {msg.role === "assistant" ? (
-                    <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
-                    </div>
+                    <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1" dangerouslySetInnerHTML={{ __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>').replace(/✅/g, '✅') }} />
                   ) : (
                     <p>{msg.content}</p>
                   )}
