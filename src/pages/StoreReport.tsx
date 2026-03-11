@@ -68,6 +68,7 @@ const secaoLabels: Record<string, string> = {
   diario: "Diário de Obra",
   inauguracao: "Checklist de Inauguração",
   fornecedores: "Fornecedores",
+  "visita-tecnica": "Visita Técnica de Obra",
 };
 
 const StoreReport = () => {
