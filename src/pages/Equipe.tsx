@@ -43,6 +43,9 @@ type TeamEvent = {
   id: string; title: string; event_type: string; event_date: string;
   end_date: string | null; store_name: string | null; team_member_id: string | null; description: string | null; event_time: string | null;
 };
+type TaskComment = {
+  id: string; task_id: string; user_id: string; author_name: string; content: string; created_at: string;
+};
 type FranchiseeAccess = {
   id: string; store_id: string; franchisee_email: string;
   can_view_checklist: boolean; can_edit_checklist: boolean;
