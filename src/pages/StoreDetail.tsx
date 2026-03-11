@@ -13,6 +13,7 @@ import DiarioObra from "@/components/DiarioObra";
 import FornecedoresObra from "@/components/FornecedoresObra";
 import ChecklistInauguracao from "@/components/ChecklistInauguracao";
 import SolicitacoesLoja from "@/components/SolicitacoesLoja";
+import ChecklistVisitaTecnica from "@/components/ChecklistVisitaTecnica";
 import { InaugChecklistData } from "@/data/inauguracaoChecklistData";
 import {
   Select,
