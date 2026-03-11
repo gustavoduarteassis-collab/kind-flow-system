@@ -136,6 +136,14 @@ const Equipe = () => {
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(null);
+  const [taskDetailOpen, setTaskDetailOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskComments, setTaskComments] = useState<TaskComment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [editingTask, setEditingTask] = useState<Partial<Task>>({});
+  const [eventDetailOpen, setEventDetailOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<TeamEvent | null>(null);
+  const [editingEventDesc, setEditingEventDesc] = useState("");
   const [accessForm, setAccessForm] = useState({
     store_id: "", franchisee_email: "",
     can_view_checklist: true, can_edit_checklist: true,
