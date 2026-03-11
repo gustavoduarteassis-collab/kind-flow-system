@@ -547,7 +547,7 @@ const Equipe = () => {
                       return filtered.length === 0 ? (
                         <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">Nenhuma tarefa cadastrada</TableCell></TableRow>
                       ) : filtered.map((task) => (
-                      <TableRow key={task.id}>
+                      <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openTaskDetail(task)}>
                         <TableCell>
                           <p className="font-medium text-sm">{task.title}</p>
                           {task.description && <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>}
@@ -558,7 +558,7 @@ const Equipe = () => {
                         <TableCell>
                           <Badge className={`${priorityColors[task.priority]} text-[10px]`}>{priorityLabels[task.priority]}</Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Select value={task.status} onValueChange={(v) => updateTaskStatus(task.id, v)}>
                             <SelectTrigger className="h-7 text-xs w-[120px]"><SelectValue /></SelectTrigger>
                             <SelectContent>
@@ -566,7 +566,7 @@ const Equipe = () => {
                             </SelectContent>
                           </Select>
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteTask(task.id); }}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
@@ -577,6 +577,80 @@ const Equipe = () => {
                 </Table>
               </div>
             </Card>
+
+            {/* Task Detail Dialog */}
+            <Dialog open={taskDetailOpen} onOpenChange={setTaskDetailOpen}>
+              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                <DialogHeader><DialogTitle>Detalhes da Tarefa</DialogTitle></DialogHeader>
+                {selectedTask && (
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-2"><Label>Título</Label>
+                      <Input value={editingTask.title || ""} onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })} />
+                    </div>
+                    <div className="space-y-2"><Label>Descrição</Label>
+                      <Textarea value={editingTask.description || ""} onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label>Prioridade</Label>
+                        <Select value={editingTask.priority || "media"} onValueChange={(v) => setEditingTask({ ...editingTask, priority: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(priorityLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2"><Label>Status</Label>
+                        <Select value={editingTask.status || "pendente"} onValueChange={(v) => setEditingTask({ ...editingTask, status: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2"><Label>Responsável</Label>
+                      <Select value={editingTask.assigned_to || ""} onValueChange={(v) => setEditingTask({ ...editingTask, assigned_to: v })}>
+                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                        <SelectContent>
+                          {members.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label>Data de Início</Label>
+                        <Input type="date" value={editingTask.start_date || ""} onChange={(e) => setEditingTask({ ...editingTask, start_date: e.target.value })} />
+                      </div>
+                      <div className="space-y-2"><Label>Data Limite</Label>
+                        <Input type="date" value={editingTask.due_date || ""} onChange={(e) => setEditingTask({ ...editingTask, due_date: e.target.value })} />
+                      </div>
+                    </div>
+                    <Button onClick={saveTaskEdits} className="w-full">Salvar Alterações</Button>
+
+                    {/* Comments section */}
+                    <div className="border-t pt-4 mt-4">
+                      <h3 className="text-sm font-semibold mb-3">💬 Comentários</h3>
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto mb-3">
+                        {taskComments.length === 0 ? (
+                          <p className="text-xs text-muted-foreground text-center py-4">Nenhum comentário ainda</p>
+                        ) : taskComments.map((c) => (
+                          <div key={c.id} className="bg-muted/50 rounded-md p-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs font-medium">{c.author_name}</span>
+                              <span className="text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleString("pt-BR")}</span>
+                            </div>
+                            <p className="text-xs">{c.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input placeholder="Escreva um comentário..." value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addComment(); }} />
+                        <Button size="sm" onClick={addComment}>Enviar</Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* === HÁBITOS === */}
