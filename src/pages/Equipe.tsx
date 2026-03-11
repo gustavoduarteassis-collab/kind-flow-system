@@ -379,7 +379,7 @@ const Equipe = () => {
     const end = e.end_date ? new Date(e.end_date + "T00:00:00") : start;
     const days = eachDayOfInterval({ start, end });
     days.forEach((day) => {
-      allCalendarEvents.push({ id: `${e.id}-${day.toISOString()}`, title: e.title, event_type: e.event_type, date: day, deletable: true, originalId: e.id, time: e.event_time, memberId: e.team_member_id });
+      allCalendarEvents.push({ id: `${e.id}-${day.toISOString()}`, title: e.title, event_type: e.event_type, date: day, deletable: true, originalId: e.id, time: e.event_time, memberId: e.team_member_id, originalEvent: e });
     });
   });
 
