@@ -30,6 +30,7 @@ export function useStores() {
         cronograma: row.cronograma || createDefaultCronograma(),
         custos: row.custos || createDefaultCustos(),
         inauguracaoChecklist: row.inauguracao_checklist || {},
+        solicitacoes: row.solicitacoes || {},
       })));
     }
     setLoading(false);
