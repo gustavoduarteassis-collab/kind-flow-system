@@ -42,6 +42,16 @@ const Lojas = () => {
     check();
   }, [user]);
 
+  const openEditStore = (store: typeof stores[0]) => {
+    setEditForm({ id: store.id, nome: store.nome, filial: store.filial, franqueado: store.franqueado, construtor: store.construtor, analistaObra: store.analistaObra, inauguracao: store.inauguracao });
+    setEditOpen(true);
+  };
+
+  const saveEditStore = async () => {
+    await updateStore(editForm.id, { nome: editForm.nome, filial: editForm.filial, franqueado: editForm.franqueado, construtor: editForm.construtor, analistaObra: editForm.analistaObra, inauguracao: editForm.inauguracao });
+    setEditOpen(false);
+  };
+
   const analistas = Array.from(new Set(stores.map((s) => s.analistaObra).filter(Boolean)));
 
   const handleAdd = async () => {
