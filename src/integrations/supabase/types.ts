@@ -614,6 +614,7 @@ export type Database = {
           tipo_loja: string
           updated_at: string
           user_id: string
+          visita_tecnica: Json
         }
         Insert: {
           analista_obra?: string
@@ -632,6 +633,7 @@ export type Database = {
           tipo_loja?: string
           updated_at?: string
           user_id: string
+          visita_tecnica?: Json
         }
         Update: {
           analista_obra?: string
@@ -650,6 +652,7 @@ export type Database = {
           tipo_loja?: string
           updated_at?: string
           user_id?: string
+          visita_tecnica?: Json
         }
         Relationships: []
       }
