@@ -998,10 +998,10 @@ const Equipe = () => {
                           </div>
                           <div className="space-y-0.5">
                              {dayEvents.slice(0, 3).map((ev) => (
-                              <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
+                              <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate cursor-pointer ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
                                 style={{ borderLeft: `3px solid ${getMemberColor(ev.memberId, members)}` }}
                                 title={`${ev.memberId ? getMemberName(ev.memberId) + ": " : ""}${ev.title}${ev.time ? ` às ${ev.time}` : ""}`}
-                                onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
+                                onClick={() => { if (ev.originalEvent) openEventDetail(ev.originalEvent); }}
                               >
                                 {ev.time ? `${ev.time} ` : ""}{ev.title}
                               </div>
