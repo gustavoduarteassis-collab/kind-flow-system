@@ -27,7 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoConstance from "@/assets/logo-constance.svg";
-import ReactMarkdown from "react-markdown";
+
 
 const AGM_PASSWORD = "agm2026";
 
