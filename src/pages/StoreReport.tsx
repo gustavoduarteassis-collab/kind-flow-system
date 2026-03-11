@@ -5,6 +5,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { checklistCategories, StatusType } from "@/data/checklistData";
 import {
+  visitaTecnicaCategories,
+  visitaStatusLabels,
+  VisitaStatusType,
+  VisitaTecnicaData,
+  createDefaultVisitaTecnica,
+} from "@/data/visitaTecnicaData";
+import {
   cronogramaCategorias,
   TOTAL_DAYS,
   CronogramaDayStatus,
