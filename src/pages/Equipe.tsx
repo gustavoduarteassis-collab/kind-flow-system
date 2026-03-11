@@ -284,6 +284,52 @@ const Equipe = () => {
     fetchAll();
   };
 
+  // Task detail / comments
+  const openTaskDetail = async (task: Task) => {
+    setSelectedTask(task);
+    setEditingTask({ title: task.title, description: task.description || "", priority: task.priority, assigned_to: task.assigned_to, due_date: task.due_date, start_date: task.start_date, status: task.status });
+    setTaskDetailOpen(true);
+    const { data } = await supabase.from("task_comments").select("*").eq("task_id", task.id).order("created_at", { ascending: true });
+    if (data) setTaskComments(data as TaskComment[]);
+  };
+
+  const addComment = async () => {
+    if (!user || !selectedTask || !newComment.trim()) return;
+    const authorName = user.email?.split("@")[0] || "Usuário";
+    await supabase.from("task_comments").insert({ task_id: selectedTask.id, user_id: user.id, author_name: authorName, content: newComment.trim() });
+    setNewComment("");
+    const { data } = await supabase.from("task_comments").select("*").eq("task_id", selectedTask.id).order("created_at", { ascending: true });
+    if (data) setTaskComments(data as TaskComment[]);
+  };
+
+  const saveTaskEdits = async () => {
+    if (!selectedTask) return;
+    await supabase.from("tasks").update({
+      title: editingTask.title, description: editingTask.description || null,
+      priority: editingTask.priority as any, assigned_to: editingTask.assigned_to || null,
+      due_date: editingTask.due_date || null, start_date: editingTask.start_date || null,
+      status: editingTask.status as any,
+    }).eq("id", selectedTask.id);
+    toast({ title: "Tarefa atualizada!" });
+    setTaskDetailOpen(false);
+    fetchAll();
+  };
+
+  // Event detail
+  const openEventDetail = (ev: TeamEvent) => {
+    setSelectedEvent(ev);
+    setEditingEventDesc(ev.description || "");
+    setEventDetailOpen(true);
+  };
+
+  const saveEventDescription = async () => {
+    if (!selectedEvent) return;
+    await supabase.from("team_events").update({ description: editingEventDesc }).eq("id", selectedEvent.id);
+    toast({ title: "Evento atualizado!" });
+    setEventDetailOpen(false);
+    fetchAll();
+  };
+
   const getMemberName = (id: string | null) => members.find((m) => m.id === id)?.name || "—";
 
   const addAccess = async () => {
