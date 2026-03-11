@@ -12,6 +12,7 @@ import CustosObra from "@/components/CustosObra";
 import DiarioObra from "@/components/DiarioObra";
 import FornecedoresObra from "@/components/FornecedoresObra";
 import ChecklistInauguracao from "@/components/ChecklistInauguracao";
+import SolicitacoesLoja from "@/components/SolicitacoesLoja";
 import { InaugChecklistData } from "@/data/inauguracaoChecklistData";
 import {
   Select,
@@ -208,6 +209,12 @@ const StoreDetail = () => {
                 🏭 Fornecedores
               </TabsTrigger>
               <TabsTrigger
+                value="solicitacoes"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+              >
+                📋 Solicitações
+              </TabsTrigger>
+              <TabsTrigger
                 value="inauguracao"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
               >
@@ -249,6 +256,13 @@ const StoreDetail = () => {
 
           <TabsContent value="fornecedores" className="mt-4">
             <FornecedoresObra />
+          </TabsContent>
+
+          <TabsContent value="solicitacoes" className="mt-4">
+            <SolicitacoesLoja
+              data={(store as any).solicitacoes || {}}
+              onUpdate={(solicitacoes) => updateStore(store.id, { solicitacoes } as any)}
+            />
           </TabsContent>
 
           <TabsContent value="inauguracao" className="mt-4">

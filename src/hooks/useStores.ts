@@ -30,6 +30,7 @@ export function useStores() {
         cronograma: row.cronograma || createDefaultCronograma(),
         custos: row.custos || createDefaultCustos(),
         inauguracaoChecklist: row.inauguracao_checklist || {},
+        solicitacoes: row.solicitacoes || {},
       })));
     }
     setLoading(false);
@@ -79,6 +80,7 @@ export function useStores() {
     if (updates.cronograma !== undefined) dbUpdates.cronograma = updates.cronograma;
     if ((updates as any).custos !== undefined) dbUpdates.custos = (updates as any).custos;
     if ((updates as any).inauguracaoChecklist !== undefined) dbUpdates.inauguracao_checklist = (updates as any).inauguracaoChecklist;
+    if ((updates as any).solicitacoes !== undefined) dbUpdates.solicitacoes = (updates as any).solicitacoes;
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
   }, []);

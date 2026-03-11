@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useStores } from "@/hooks/useStores";
 import { checklistCategories, StatusType } from "@/data/checklistData";
+import { SOLICITACOES_ITEMS } from "@/data/solicitacoesData";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -255,6 +256,19 @@ const Lojas = () => {
                       <Badge variant="secondary" className="text-xs">○ {counts["NÃO INICIADO"]}</Badge>
                     )}
                   </div>
+                  {/* Solicitations summary */}
+                  {(() => {
+                    const sol = (store as any).solicitacoes || {};
+                    const total = SOLICITACOES_ITEMS.length;
+                    const done = SOLICITACOES_ITEMS.filter((i) => sol[i.id]?.status === "concluido").length;
+                    const pending = SOLICITACOES_ITEMS.filter((i) => sol[i.id]?.status === "solicitado").length;
+                    return (
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>📋 Solicitações: {done}/{total}</span>
+                        {pending > 0 && <Badge className="bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)] text-[10px]">{pending} em andamento</Badge>}
+                      </div>
+                    );
+                  })()}
                   <div className="flex justify-end">
                     <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
