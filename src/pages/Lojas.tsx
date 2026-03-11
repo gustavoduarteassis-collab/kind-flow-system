@@ -21,13 +21,26 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 const Lojas = () => {
-  const { stores, addStore, deleteStore } = useStores();
+  const { stores, addStore, deleteStore, updateStore } = useStores();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterAnalista, setFilterAnalista] = useState(searchParams.get("analista") || "");
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "" as "rua" | "shopping" | "", inauguracaoChecklist: {} as any });
+  const [isTeamMember, setIsTeamMember] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({ id: "", nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
+
+  useEffect(() => {
+    if (!user) return;
+    const check = async () => {
+      const { data } = await supabase.from("authorized_team_emails").select("id").ilike("email", user.email!).limit(1);
+      setIsTeamMember(!!(data && data.length > 0));
+    };
+    check();
+  }, [user]);
 
   const analistas = Array.from(new Set(stores.map((s) => s.analistaObra).filter(Boolean)));
 
