@@ -716,14 +716,12 @@ const StoreReport = () => {
               <h2 className="text-lg font-bold border-b border-black mb-3">
                 CHECKLIST DE VISITA TÉCNICA — {vtProgress}%
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mb-4 border p-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs mb-4 border p-2">
                 <div><strong>Data da Visita:</strong> {formatDate(vtData.dataVisita)}</div>
-                <div><strong>Inauguração Prevista:</strong> {formatDate(vtData.dataInaugPrevista)}</div>
+                <div><strong>Inauguração Prevista:</strong> {formatDate(store.inauguracao)}</div>
                 <div><strong>Inauguração Após Visita:</strong> {formatDate(vtData.dataInaugAposVisita)}</div>
                 <div><strong>Chegada Móveis:</strong> {formatDate(vtData.chegadaMoveis)}</div>
                 <div><strong>Chegada Produtos:</strong> {formatDate(vtData.chegadaProdutos)}</div>
-                <div><strong>Data Skytef:</strong> {formatDate(vtData.dataSkytef)}</div>
-                <div><strong>Data Datasystem:</strong> {formatDate(vtData.dataDatasystem)}</div>
               </div>
               {visitaTecnicaCategories.map((cat) => (
                 <div key={cat.id} className="mb-3 break-inside-avoid">
@@ -732,6 +730,7 @@ const StoreReport = () => {
                     <thead>
                       <tr className="bg-gray-50">
                         <th className="border border-black px-1 py-0.5 text-left">Item</th>
+                        <th className="border border-black px-1 py-0.5 text-left">Orientação</th>
                         <th className="border border-black px-1 py-0.5 w-24">Status</th>
                         <th className="border border-black px-1 py-0.5">Observações</th>
                       </tr>
@@ -742,6 +741,7 @@ const StoreReport = () => {
                         return (
                           <tr key={item.id} className={d.status === "CONCLUIDO" ? "bg-green-50" : d.status === "EM_ANDAMENTO" ? "bg-yellow-50" : ""}>
                             <td className="border border-black px-1 py-0.5">{item.nome}</td>
+                            <td className="border border-black px-1 py-0.5 text-[9px]">{item.orientacao}</td>
                             <td className="border border-black px-1 py-0.5 text-center">{visitaStatusLabels[d.status]}</td>
                             <td className="border border-black px-1 py-0.5">{d.observacoes}</td>
                           </tr>

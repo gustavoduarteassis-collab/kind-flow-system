@@ -42,33 +42,29 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Camera,
-  Eye,
   Trash2,
   ImageIcon,
   FileText,
-  CalendarIcon,
-  Info,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 
 interface Props {
   storeId: string;
+  storeInauguracao: string;
   data: any;
   onDataChange: (data: VisitaTecnicaData) => void;
 }
 
-const ChecklistVisitaTecnica = ({ storeId, data: rawData, onDataChange }: Props) => {
+const ChecklistVisitaTecnica = ({ storeId, storeInauguracao, data: rawData, onDataChange }: Props) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
   const [previewPhotos, setPreviewPhotos] = useState<string[] | null>(null);
-  const [orientacaoItem, setOrientacaoItem] = useState<{ nome: string; orientacao: string } | null>(null);
 
   const vtData: VisitaTecnicaData = {
     ...createDefaultVisitaTecnica(),
@@ -138,6 +134,8 @@ const ChecklistVisitaTecnica = ({ storeId, data: rawData, onDataChange }: Props)
     return Math.round((done / cat.items.length) * 100);
   };
 
+  const formatDateBR = (d: string) => d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—";
+
   return (
     <div className="space-y-4">
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
@@ -146,14 +144,16 @@ const ChecklistVisitaTecnica = ({ storeId, data: rawData, onDataChange }: Props)
       <Card>
         <CardContent className="pt-6 space-y-4">
           <h3 className="font-semibold text-sm">📅 Datas Importantes</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <div className="space-y-1">
               <Label className="text-xs">Data da Visita</Label>
               <Input type="date" className="h-8 text-xs" value={vtData.dataVisita} onChange={(e) => update({ dataVisita: e.target.value })} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Inauguração Prevista</Label>
-              <Input type="date" className="h-8 text-xs" value={vtData.dataInaugPrevista} onChange={(e) => update({ dataInaugPrevista: e.target.value })} />
+              <div className="h-8 flex items-center text-xs px-3 border rounded-md bg-muted/50 text-muted-foreground">
+                {formatDateBR(storeInauguracao)}
+              </div>
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Inauguração Após Visita</Label>
@@ -166,14 +166,6 @@ const ChecklistVisitaTecnica = ({ storeId, data: rawData, onDataChange }: Props)
             <div className="space-y-1">
               <Label className="text-xs">Chegada dos Produtos</Label>
               <Input type="date" className="h-8 text-xs" value={vtData.chegadaProdutos} onChange={(e) => update({ chegadaProdutos: e.target.value })} />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Data Skytef</Label>
-              <Input type="date" className="h-8 text-xs" value={vtData.dataSkytef} onChange={(e) => update({ dataSkytef: e.target.value })} />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs">Data Datasystem</Label>
-              <Input type="date" className="h-8 text-xs" value={vtData.dataDatasystem} onChange={(e) => update({ dataDatasystem: e.target.value })} />
             </div>
           </div>
         </CardContent>
@@ -219,11 +211,11 @@ const ChecklistVisitaTecnica = ({ storeId, data: rawData, onDataChange }: Props)
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-muted/30">
-                        <TableHead className="min-w-[250px]">Item</TableHead>
+                        <TableHead className="min-w-[200px]">Item</TableHead>
+                        <TableHead className="min-w-[250px]">Orientação</TableHead>
                         <TableHead className="w-[150px]">Status</TableHead>
                         <TableHead className="w-[80px]">Fotos</TableHead>
                         <TableHead className="min-w-[180px]">Observações</TableHead>
-                        <TableHead className="w-[50px]">Info</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -241,7 +233,10 @@ const ChecklistVisitaTecnica = ({ storeId, data: rawData, onDataChange }: Props)
                                 : ""
                             }
                           >
-                            <TableCell className="text-sm">{item.nome}</TableCell>
+                            <TableCell className="text-sm font-medium">{item.nome}</TableCell>
+                            <TableCell className="text-xs text-muted-foreground leading-relaxed">
+                              {item.orientacao}
+                            </TableCell>
                             <TableCell>
                               <Select value={itemData.status} onValueChange={(v) => handleStatusChange(item.id, v as VisitaStatusType)}>
                                 <SelectTrigger className="h-8 text-xs">
@@ -273,7 +268,7 @@ const ChecklistVisitaTecnica = ({ storeId, data: rawData, onDataChange }: Props)
                                   <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-7 w-7"
+                                    className="h-7 w-7 relative"
                                     onClick={() => setPreviewPhotos(itemData.photos || [])}
                                   >
                                     <ImageIcon className="h-3.5 w-3.5" />
@@ -291,16 +286,6 @@ const ChecklistVisitaTecnica = ({ storeId, data: rawData, onDataChange }: Props)
                                 value={itemData.observacoes}
                                 onChange={(e) => handleObsChange(item.id, e.target.value)}
                               />
-                            </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={() => setOrientacaoItem({ nome: item.nome, orientacao: item.orientacao })}
-                              >
-                                <Info className="h-3.5 w-3.5 text-muted-foreground" />
-                              </Button>
                             </TableCell>
                           </TableRow>
                         );
@@ -368,7 +353,6 @@ const ChecklistVisitaTecnica = ({ storeId, data: rawData, onDataChange }: Props)
                   size="icon"
                   className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => {
-                    // Find item that has this photo
                     const itemId = Object.keys(vtData.items).find((id) =>
                       vtData.items[id]?.photos?.includes(url)
                     );
@@ -380,18 +364,6 @@ const ChecklistVisitaTecnica = ({ storeId, data: rawData, onDataChange }: Props)
                 </Button>
               </div>
             ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Orientação Dialog */}
-      <Dialog open={!!orientacaoItem} onOpenChange={() => setOrientacaoItem(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{orientacaoItem?.nome}</DialogTitle>
-          </DialogHeader>
-          <div className="text-sm text-muted-foreground leading-relaxed">
-            {orientacaoItem?.orientacao}
           </div>
         </DialogContent>
       </Dialog>

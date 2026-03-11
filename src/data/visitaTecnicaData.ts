@@ -40,24 +40,22 @@ export interface VisitaSignatures {
 
 export interface VisitaTecnicaData {
   dataVisita: string;
-  dataInaugPrevista: string;
   dataInaugAposVisita: string;
   chegadaMoveis: string;
   chegadaProdutos: string;
-  dataSkytef: string;
-  dataDatasystem: string;
   items: Record<string, VisitaItemData>;
   signatures: VisitaSignatures;
+  // legacy fields kept for backwards compat
+  dataInaugPrevista?: string;
+  dataSkytef?: string;
+  dataDatasystem?: string;
 }
 
 export const createDefaultVisitaTecnica = (): VisitaTecnicaData => ({
   dataVisita: "",
-  dataInaugPrevista: "",
   dataInaugAposVisita: "",
   chegadaMoveis: "",
   chegadaProdutos: "",
-  dataSkytef: "",
-  dataDatasystem: "",
   items: {},
   signatures: { construtora: "", analista: "", franqueado: "" },
 });
