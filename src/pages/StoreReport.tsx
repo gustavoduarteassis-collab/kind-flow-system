@@ -730,6 +730,7 @@ const StoreReport = () => {
                     <thead>
                       <tr className="bg-gray-50">
                         <th className="border border-black px-1 py-0.5 text-left">Item</th>
+                        <th className="border border-black px-1 py-0.5 text-left">Orientação</th>
                         <th className="border border-black px-1 py-0.5 w-24">Status</th>
                         <th className="border border-black px-1 py-0.5">Observações</th>
                       </tr>
@@ -740,6 +741,7 @@ const StoreReport = () => {
                         return (
                           <tr key={item.id} className={d.status === "CONCLUIDO" ? "bg-green-50" : d.status === "EM_ANDAMENTO" ? "bg-yellow-50" : ""}>
                             <td className="border border-black px-1 py-0.5">{item.nome}</td>
+                            <td className="border border-black px-1 py-0.5 text-[9px]">{item.orientacao}</td>
                             <td className="border border-black px-1 py-0.5 text-center">{visitaStatusLabels[d.status]}</td>
                             <td className="border border-black px-1 py-0.5">{d.observacoes}</td>
                           </tr>
