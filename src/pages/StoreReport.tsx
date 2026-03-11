@@ -5,6 +5,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { checklistCategories, StatusType } from "@/data/checklistData";
 import {
+  visitaTecnicaCategories,
+  visitaStatusLabels,
+  VisitaStatusType,
+  VisitaTecnicaData,
+  createDefaultVisitaTecnica,
+} from "@/data/visitaTecnicaData";
+import {
   cronogramaCategorias,
   TOTAL_DAYS,
   CronogramaDayStatus,
@@ -68,6 +75,7 @@ const secaoLabels: Record<string, string> = {
   diario: "Diário de Obra",
   inauguracao: "Checklist de Inauguração",
   fornecedores: "Fornecedores",
+  "visita-tecnica": "Visita Técnica de Obra",
 };
 
 const StoreReport = () => {
@@ -687,6 +695,76 @@ const StoreReport = () => {
                   </div>
                 );
               })}
+            </section>
+          );
+        })()}
+
+        {/* ===== VISITA TÉCNICA ===== */}
+        {(!secao || secao === "visita-tecnica") && (() => {
+          const vtData: VisitaTecnicaData = { ...createDefaultVisitaTecnica(), ...((store as any).visitaTecnica || {}) };
+          const allVtItems = visitaTecnicaCategories.flatMap((c) => c.items);
+          const vtTotal = allVtItems.length;
+          const vtDone = allVtItems.filter((i) => {
+            const s = vtData.items[i.id]?.status;
+            return s === "CONCLUIDO" || s === "NAO_SE_APLICA";
+          }).length;
+          const vtProgress = vtTotal > 0 ? Math.round((vtDone / vtTotal) * 100) : 0;
+          const formatDate = (d: string) => d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—";
+
+          return (
+            <section className="mb-6 break-before-page">
+              <h2 className="text-lg font-bold border-b border-black mb-3">
+                CHECKLIST DE VISITA TÉCNICA — {vtProgress}%
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mb-4 border p-2">
+                <div><strong>Data da Visita:</strong> {formatDate(vtData.dataVisita)}</div>
+                <div><strong>Inauguração Prevista:</strong> {formatDate(vtData.dataInaugPrevista)}</div>
+                <div><strong>Inauguração Após Visita:</strong> {formatDate(vtData.dataInaugAposVisita)}</div>
+                <div><strong>Chegada Móveis:</strong> {formatDate(vtData.chegadaMoveis)}</div>
+                <div><strong>Chegada Produtos:</strong> {formatDate(vtData.chegadaProdutos)}</div>
+                <div><strong>Data Skytef:</strong> {formatDate(vtData.dataSkytef)}</div>
+                <div><strong>Data Datasystem:</strong> {formatDate(vtData.dataDatasystem)}</div>
+              </div>
+              {visitaTecnicaCategories.map((cat) => (
+                <div key={cat.id} className="mb-3 break-inside-avoid">
+                  <h3 className="text-sm font-bold bg-gray-100 px-2 py-1 border border-black">{cat.nome}</h3>
+                  <table className="w-full text-[10px] border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="border border-black px-1 py-0.5 text-left">Item</th>
+                        <th className="border border-black px-1 py-0.5 w-24">Status</th>
+                        <th className="border border-black px-1 py-0.5">Observações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cat.items.map((item) => {
+                        const d = vtData.items[item.id] || { status: "NAO_INICIADO" as VisitaStatusType, observacoes: "", photos: [] };
+                        return (
+                          <tr key={item.id} className={d.status === "CONCLUIDO" ? "bg-green-50" : d.status === "EM_ANDAMENTO" ? "bg-yellow-50" : ""}>
+                            <td className="border border-black px-1 py-0.5">{item.nome}</td>
+                            <td className="border border-black px-1 py-0.5 text-center">{visitaStatusLabels[d.status]}</td>
+                            <td className="border border-black px-1 py-0.5">{d.observacoes}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+              <div className="grid grid-cols-3 gap-8 mt-6 pt-4">
+                <div className="text-center text-xs">
+                  <div className="border-b border-black pb-1 mb-1">{vtData.signatures.construtora || " "}</div>
+                  <span>Construtora</span>
+                </div>
+                <div className="text-center text-xs">
+                  <div className="border-b border-black pb-1 mb-1">{vtData.signatures.analista || " "}</div>
+                  <span>Analista</span>
+                </div>
+                <div className="text-center text-xs">
+                  <div className="border-b border-black pb-1 mb-1">{vtData.signatures.franqueado || " "}</div>
+                  <span>Franqueado</span>
+                </div>
+              </div>
             </section>
           );
         })()}

@@ -13,6 +13,7 @@ import DiarioObra from "@/components/DiarioObra";
 import FornecedoresObra from "@/components/FornecedoresObra";
 import ChecklistInauguracao from "@/components/ChecklistInauguracao";
 import SolicitacoesLoja from "@/components/SolicitacoesLoja";
+import ChecklistVisitaTecnica from "@/components/ChecklistVisitaTecnica";
 import { InaugChecklistData } from "@/data/inauguracaoChecklistData";
 import {
   Select,
@@ -209,6 +210,12 @@ const StoreDetail = () => {
                 🏭 Fornecedores
               </TabsTrigger>
               <TabsTrigger
+                value="visita-tecnica"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+              >
+                🔍 Visita Técnica
+              </TabsTrigger>
+              <TabsTrigger
                 value="solicitacoes"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
               >
@@ -256,6 +263,14 @@ const StoreDetail = () => {
 
           <TabsContent value="fornecedores" className="mt-4">
             <FornecedoresObra />
+          </TabsContent>
+
+          <TabsContent value="visita-tecnica" className="mt-4">
+            <ChecklistVisitaTecnica
+              storeId={store.id}
+              data={(store as any).visitaTecnica || {}}
+              onDataChange={(visitaTecnica) => updateStore(store.id, { visitaTecnica } as any)}
+            />
           </TabsContent>
 
           <TabsContent value="solicitacoes" className="mt-4">
