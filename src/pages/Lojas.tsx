@@ -256,16 +256,35 @@ const Lojas = () => {
                       <Badge variant="secondary" className="text-xs">○ {counts["NÃO INICIADO"]}</Badge>
                     )}
                   </div>
-                  {/* Solicitations summary */}
+                  {/* Solicitations summary per item */}
                   {(() => {
                     const sol = (store as any).solicitacoes || {};
                     const total = SOLICITACOES_ITEMS.length;
                     const done = SOLICITACOES_ITEMS.filter((i) => sol[i.id]?.status === "concluido").length;
                     const pending = SOLICITACOES_ITEMS.filter((i) => sol[i.id]?.status === "solicitado").length;
                     return (
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>📋 Solicitações: {done}/{total}</span>
-                        {pending > 0 && <Badge className="bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)] text-[10px]">{pending} em andamento</Badge>}
+                      <div className="space-y-1.5 border-t pt-2">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="font-medium">📋 Solicitações: {done}/{total}</span>
+                          {pending > 0 && <Badge className="bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)] text-[10px]">{pending} em andamento</Badge>}
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
+                          {SOLICITACOES_ITEMS.map((item) => {
+                            const status = sol[item.id]?.status || "pendente";
+                            return (
+                              <div key={item.id} className="flex items-center gap-1.5 text-[10px]">
+                                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                  status === "concluido" ? "bg-[hsl(152,60%,40%)]" :
+                                  status === "solicitado" ? "bg-[hsl(38,90%,55%)]" :
+                                  "bg-muted-foreground/30"
+                                }`} />
+                                <span className={`truncate ${status === "concluido" ? "line-through text-muted-foreground/60" : "text-muted-foreground"}`}>
+                                  {item.label}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })()}
