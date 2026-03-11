@@ -264,6 +264,34 @@ const Lojas = () => {
           })}
         </div>
       </main>
+
+      {/* Edit Store Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Loja</DialogTitle></DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2"><Label>Nome da Loja</Label>
+              <Input value={editForm.nome} onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })} />
+            </div>
+            <div className="space-y-2"><Label>Filial</Label>
+              <Input value={editForm.filial} onChange={(e) => setEditForm({ ...editForm, filial: e.target.value })} />
+            </div>
+            <div className="space-y-2"><Label>Franqueado</Label>
+              <Input value={editForm.franqueado} onChange={(e) => setEditForm({ ...editForm, franqueado: e.target.value })} />
+            </div>
+            <div className="space-y-2"><Label>Construtor</Label>
+              <Input value={editForm.construtor} onChange={(e) => setEditForm({ ...editForm, construtor: e.target.value })} />
+            </div>
+            <div className="space-y-2"><Label>Analista de Obra</Label>
+              <Input value={editForm.analistaObra} onChange={(e) => setEditForm({ ...editForm, analistaObra: e.target.value })} />
+            </div>
+            <div className="space-y-2"><Label>Data de Inauguração</Label>
+              <Input type="date" value={editForm.inauguracao} onChange={(e) => setEditForm({ ...editForm, inauguracao: e.target.value })} />
+            </div>
+            <Button onClick={saveEditStore} className="w-full">Salvar Alterações</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
