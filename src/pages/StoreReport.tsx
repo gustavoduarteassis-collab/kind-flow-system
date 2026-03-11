@@ -716,14 +716,12 @@ const StoreReport = () => {
               <h2 className="text-lg font-bold border-b border-black mb-3">
                 CHECKLIST DE VISITA TÉCNICA — {vtProgress}%
               </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mb-4 border p-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs mb-4 border p-2">
                 <div><strong>Data da Visita:</strong> {formatDate(vtData.dataVisita)}</div>
-                <div><strong>Inauguração Prevista:</strong> {formatDate(vtData.dataInaugPrevista)}</div>
+                <div><strong>Inauguração Prevista:</strong> {formatDate(store.inauguracao)}</div>
                 <div><strong>Inauguração Após Visita:</strong> {formatDate(vtData.dataInaugAposVisita)}</div>
                 <div><strong>Chegada Móveis:</strong> {formatDate(vtData.chegadaMoveis)}</div>
                 <div><strong>Chegada Produtos:</strong> {formatDate(vtData.chegadaProdutos)}</div>
-                <div><strong>Data Skytef:</strong> {formatDate(vtData.dataSkytef)}</div>
-                <div><strong>Data Datasystem:</strong> {formatDate(vtData.dataDatasystem)}</div>
               </div>
               {visitaTecnicaCategories.map((cat) => (
                 <div key={cat.id} className="mb-3 break-inside-avoid">
