@@ -6,6 +6,10 @@ import { createDefaultCronograma } from "@/data/cronogramaData";
 import CronogramaObra from "@/components/CronogramaObra";
 import CustosObra from "@/components/CustosObra";
 import DiarioObra from "@/components/DiarioObra";
+import ChecklistVisitaTecnica from "@/components/ChecklistVisitaTecnica";
+import SolicitacoesLoja from "@/components/SolicitacoesLoja";
+import ChecklistInauguracao from "@/components/ChecklistInauguracao";
+import FornecedoresObra from "@/components/FornecedoresObra";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -32,26 +36,12 @@ const statusColors: Record<StatusType, string> = {
   "EM CONTRATAÇÃO": "bg-[hsl(280,50%,55%)] text-[hsl(0,0%,100%)]",
 };
 
-type Permissions = {
-  can_view_checklist: boolean;
-  can_edit_checklist: boolean;
-  can_view_cronograma: boolean;
-  can_edit_cronograma: boolean;
-  can_view_diario: boolean;
-  can_edit_diario: boolean;
-  can_view_custos: boolean;
-  can_edit_custos: boolean;
-};
+type AccessType = "franqueado" | "construtor";
 
 const FranqueadoPortal = () => {
   const { user, signOut } = useAuth();
   const [store, setStore] = useState<Store | null>(null);
-  const [permissions, setPermissions] = useState<Permissions>({
-    can_view_checklist: true, can_edit_checklist: true,
-    can_view_cronograma: true, can_edit_cronograma: true,
-    can_view_diario: true, can_edit_diario: true,
-    can_view_custos: true, can_edit_custos: true,
-  });
+  const [accessType, setAccessType] = useState<AccessType>("franqueado");
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("");
 
@@ -65,23 +55,15 @@ const FranqueadoPortal = () => {
     if (!access || access.length === 0) { setLoading(false); return; }
     
     const acc = access[0] as any;
-    const perms: Permissions = {
-      can_view_checklist: acc.can_view_checklist ?? true,
-      can_edit_checklist: acc.can_edit_checklist ?? true,
-      can_view_cronograma: acc.can_view_cronograma ?? true,
-      can_edit_cronograma: acc.can_edit_cronograma ?? true,
-      can_view_diario: acc.can_view_diario ?? true,
-      can_edit_diario: acc.can_edit_diario ?? true,
-      can_view_custos: acc.can_view_custos ?? true,
-      can_edit_custos: acc.can_edit_custos ?? true,
-    };
-    setPermissions(perms);
+    const type: AccessType = acc.access_type === "construtor" ? "construtor" : "franqueado";
+    setAccessType(type);
 
-    // Set default active tab based on permissions
-    if (perms.can_view_cronograma) setActiveTab("cronograma");
-    else if (perms.can_view_checklist) setActiveTab(checklistCategories[0]?.id || "");
-    else if (perms.can_view_diario) setActiveTab("diario");
-    else if (perms.can_view_custos) setActiveTab("custos");
+    // Set default tab based on access type
+    if (type === "construtor") {
+      setActiveTab("cronograma");
+    } else {
+      setActiveTab("cronograma");
+    }
 
     const { data: storeData } = await supabase
       .from("stores")
@@ -116,6 +98,10 @@ const FranqueadoPortal = () => {
     if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
     if (updates.cronograma !== undefined) dbUpdates.cronograma = updates.cronograma;
     if ((updates as any).custos !== undefined) dbUpdates.custos = (updates as any).custos;
+    if ((updates as any).visitaTecnica !== undefined) dbUpdates.visita_tecnica = (updates as any).visitaTecnica;
+    if ((updates as any).solicitacoes !== undefined) dbUpdates.solicitacoes = (updates as any).solicitacoes;
+    if ((updates as any).inauguracaoChecklist !== undefined) dbUpdates.inauguracao_checklist = (updates as any).inauguracaoChecklist;
+    if ((updates as any).tipoLoja !== undefined) dbUpdates.tipo_loja = (updates as any).tipoLoja;
     await supabase.from("stores").update(dbUpdates).eq("id", store.id);
     setStore((prev) => prev ? { ...prev, ...updates } : prev);
   };
@@ -133,6 +119,16 @@ const FranqueadoPortal = () => {
     </div>
   );
 
+  const isConstrutor = accessType === "construtor";
+  const isFranqueado = accessType === "franqueado";
+
+  // Franqueado: full access to everything with edit
+  // Construtor: view-only access to cronograma, diário, visita técnica
+  const canEditChecklist = isFranqueado;
+  const canEditCronograma = isFranqueado;
+  const canEditDiario = isFranqueado;
+  const canEditCustos = isFranqueado;
+
   const totalItems = checklistCategories.flatMap((c) => c.items).length;
   const doneItems = Object.values(store.checklist).filter(
     (c) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA"
@@ -140,14 +136,14 @@ const FranqueadoPortal = () => {
   const progress = Math.round((doneItems / totalItems) * 100);
 
   const handleStatusChange = (itemId: number, status: StatusType) => {
-    if (!permissions.can_edit_checklist) return;
+    if (!canEditChecklist) return;
     const newChecklist = { ...store.checklist };
     newChecklist[itemId] = { ...newChecklist[itemId], status };
     updateStore({ checklist: newChecklist });
   };
 
   const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes", value: string) => {
-    if (!permissions.can_edit_checklist) return;
+    if (!canEditChecklist) return;
     const newChecklist = { ...store.checklist };
     newChecklist[itemId] = { ...newChecklist[itemId], [field]: value };
     updateStore({ checklist: newChecklist });
@@ -162,7 +158,7 @@ const FranqueadoPortal = () => {
     return Math.round((done / cat.items.length) * 100);
   };
 
-  const canEdit = permissions.can_edit_checklist;
+  const portalLabel = isConstrutor ? "Portal do Construtor" : "Portal do Franqueado";
 
   return (
     <div className="min-h-screen bg-background">
@@ -174,13 +170,16 @@ const FranqueadoPortal = () => {
             </div>
             <div className="flex-1">
               <h1 className="text-xl font-bold tracking-tight">{store.nome}</h1>
-              <p className="text-sm text-muted-foreground">Portal do Franqueado</p>
+              <p className="text-sm text-muted-foreground">{portalLabel}</p>
             </div>
+            <Badge variant="secondary" className="text-xs">
+              {isConstrutor ? "🏗️ Construtor" : "👤 Franqueado"}
+            </Badge>
             <Button variant="ghost" size="sm" className="gap-2" onClick={() => signOut()}>
               <LogOut className="h-4 w-4" /> Sair
             </Button>
           </div>
-          {permissions.can_view_checklist && (
+          {isFranqueado && (
             <div className="flex items-center gap-4">
               <Progress value={progress} className="h-2.5 flex-1" />
               <span className="font-semibold text-sm">{progress}%</span>
@@ -194,132 +193,157 @@ const FranqueadoPortal = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="overflow-x-auto pb-2 -mx-4 px-4">
             <TabsList className="h-auto flex-wrap gap-1 bg-transparent p-0">
-              {permissions.can_view_cronograma && (
-                <TabsTrigger value="cronograma" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
-                  📊 Cronograma
-                </TabsTrigger>
-              )}
-              {permissions.can_view_checklist && checklistCategories.map((cat) => (
-                <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
-                  {cat.nome}
-                  <span className="ml-1.5 text-[10px] opacity-70">{getCategoryProgress(cat.id)}%</span>
-                </TabsTrigger>
-              ))}
-              {permissions.can_view_diario && (
-                <TabsTrigger value="diario" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
-                  📋 Diário de Obra
-                </TabsTrigger>
-              )}
-              {permissions.can_view_custos && (
-                <TabsTrigger value="custos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
-                  💰 Custos
-                </TabsTrigger>
+              {/* Cronograma - both franqueado and construtor */}
+              <TabsTrigger value="cronograma" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+                📊 Cronograma
+              </TabsTrigger>
+
+              {/* Diário de Obra - both */}
+              <TabsTrigger value="diario" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+                📋 Diário de Obra
+              </TabsTrigger>
+
+              {/* Visita Técnica - both */}
+              <TabsTrigger value="visita-tecnica" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+                🔍 Visita Técnica
+              </TabsTrigger>
+
+              {/* Franqueado-only tabs */}
+              {isFranqueado && (
+                <>
+                  <TabsTrigger value="custos" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+                    💰 Custos
+                  </TabsTrigger>
+                  <TabsTrigger value="solicitacoes" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+                    📋 Solicitações
+                  </TabsTrigger>
+                  <TabsTrigger value="inauguracao" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+                    🎉 Inauguração
+                  </TabsTrigger>
+                  {checklistCategories.map((cat) => (
+                    <TabsTrigger key={cat.id} value={cat.id} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap">
+                      {cat.nome}
+                      <span className="ml-1.5 text-[10px] opacity-70">{getCategoryProgress(cat.id)}%</span>
+                    </TabsTrigger>
+                  ))}
+                </>
               )}
             </TabsList>
           </div>
 
-          {permissions.can_view_cronograma && (
-            <TabsContent value="cronograma" className="mt-4">
-              <CronogramaObra
-                store={store}
-                onUpdate={permissions.can_edit_cronograma ? (cronograma) => updateStore({ cronograma }) : () => {}}
-              />
-            </TabsContent>
-          )}
+          {/* Cronograma */}
+          <TabsContent value="cronograma" className="mt-4">
+            <CronogramaObra
+              store={store}
+              onUpdate={canEditCronograma ? (cronograma) => updateStore({ cronograma }) : () => {}}
+            />
+          </TabsContent>
 
-          {permissions.can_view_checklist && checklistCategories.map((cat) => (
-            <TabsContent key={cat.id} value={cat.id} className="mt-4">
-              <div className="rounded-xl border bg-card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="w-12 text-center">#</TableHead>
-                        <TableHead className="min-w-[280px]">Atividade</TableHead>
-                        <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
-                        <TableHead className="w-[130px]">Prazo Inicial</TableHead>
-                        <TableHead className="w-[130px]">Prazo Final</TableHead>
-                        <TableHead className="w-[170px]">Status</TableHead>
-                        <TableHead className="w-[140px]">Responsável</TableHead>
-                        <TableHead className="min-w-[160px]">Observações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {cat.items.map((item) => {
-                        const data = store.checklist[item.id] || { status: "NÃO INICIADO" as StatusType, prazoInicial: "", prazoFinal: "", observacoes: "" };
-                        const isImpeditivo = item.atividade.includes("IMPEDITIVO");
-                        return (
-                          <TableRow key={item.id} className={
-                            data.status === "ATRASADO" ? "bg-destructive/5" :
-                            data.status === "REALIZADO" ? "bg-[hsl(152,60%,95%)]" :
-                            isImpeditivo ? "bg-[hsl(38,90%,97%)]" : ""
-                          }>
-                            <TableCell className="text-center font-mono text-xs text-muted-foreground">{item.id}</TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                {item.atividade}
-                                {isImpeditivo && <Badge variant="outline" className="ml-2 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">IMPEDITIVO</Badge>}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-xs text-muted-foreground">{item.preRequisito || "—"}</TableCell>
-                            <TableCell>
-                              {canEdit ? (
-                                <Input type="date" className="h-8 text-xs" value={data.prazoInicial} onChange={(e) => handleFieldChange(item.id, "prazoInicial", e.target.value)} />
-                              ) : (
-                                <span className="text-xs">{data.prazoInicial || "—"}</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {canEdit ? (
-                                <Input type="date" className="h-8 text-xs" value={data.prazoFinal} onChange={(e) => handleFieldChange(item.id, "prazoFinal", e.target.value)} />
-                              ) : (
-                                <span className="text-xs">{data.prazoFinal || "—"}</span>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {canEdit ? (
-                                <Select value={data.status} onValueChange={(v) => handleStatusChange(item.id, v as StatusType)}>
-                                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                                  <SelectContent>
-                                    {cat.statusOptions.map((s) => (
-                                      <SelectItem key={s} value={s}>
-                                        <Badge className={`${statusColors[s]} text-[10px]`}>{s}</Badge>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              ) : (
-                                <Badge className={`${statusColors[data.status]} text-[10px]`}>{data.status}</Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-xs">{item.responsavel}</TableCell>
-                            <TableCell>
-                              {canEdit ? (
-                                <Input className="h-8 text-xs" placeholder="Obs..." value={data.observacoes} onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)} />
-                              ) : (
-                                <span className="text-xs">{data.observacoes || "—"}</span>
-                              )}
-                            </TableCell>
+          {/* Diário de Obra */}
+          <TabsContent value="diario" className="mt-4">
+            <DiarioObra storeId={store.id} />
+          </TabsContent>
+
+          {/* Visita Técnica */}
+          <TabsContent value="visita-tecnica" className="mt-4">
+            <ChecklistVisitaTecnica
+              storeId={store.id}
+              storeInauguracao={store.inauguracao || ""}
+              data={(store as any).visitaTecnica || {}}
+              onDataChange={isFranqueado ? (visitaTecnica) => updateStore({ visitaTecnica } as any) : () => {}}
+            />
+          </TabsContent>
+
+          {/* Franqueado-only tabs content */}
+          {isFranqueado && (
+            <>
+              <TabsContent value="custos" className="mt-4">
+                <CustosObra store={store} onUpdate={(custos) => updateStore({ custos } as any)} />
+              </TabsContent>
+
+              <TabsContent value="solicitacoes" className="mt-4">
+                <SolicitacoesLoja
+                  data={(store as any).solicitacoes || {}}
+                  onUpdate={(solicitacoes) => updateStore({ solicitacoes } as any)}
+                />
+              </TabsContent>
+
+              <TabsContent value="inauguracao" className="mt-4">
+                <ChecklistInauguracao
+                  tipoLoja={store.tipoLoja as "rua" | "shopping" | ""}
+                  data={store.inauguracaoChecklist || { rounds: [] }}
+                  onTipoChange={(tipo) => updateStore({ tipoLoja: tipo } as any)}
+                  onDataChange={(inaugData) => updateStore({ inauguracaoChecklist: inaugData } as any)}
+                />
+              </TabsContent>
+
+              {checklistCategories.map((cat) => (
+                <TabsContent key={cat.id} value={cat.id} className="mt-4">
+                  <div className="rounded-xl border bg-card overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="w-12 text-center">#</TableHead>
+                            <TableHead className="min-w-[280px]">Atividade</TableHead>
+                            <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
+                            <TableHead className="w-[130px]">Prazo Inicial</TableHead>
+                            <TableHead className="w-[130px]">Prazo Final</TableHead>
+                            <TableHead className="w-[170px]">Status</TableHead>
+                            <TableHead className="w-[140px]">Responsável</TableHead>
+                            <TableHead className="min-w-[160px]">Observações</TableHead>
                           </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </TabsContent>
-          ))}
-
-          {permissions.can_view_diario && (
-            <TabsContent value="diario" className="mt-4">
-              <DiarioObra storeId={store.id} />
-            </TabsContent>
-          )}
-
-          {permissions.can_view_custos && (
-            <TabsContent value="custos" className="mt-4">
-              <CustosObra store={store} onUpdate={permissions.can_edit_custos ? (custos) => updateStore({ custos } as any) : () => {}} />
-            </TabsContent>
+                        </TableHeader>
+                        <TableBody>
+                          {cat.items.map((item) => {
+                            const data = store.checklist[item.id] || { status: "NÃO INICIADO" as StatusType, prazoInicial: "", prazoFinal: "", observacoes: "" };
+                            const isImpeditivo = item.atividade.includes("IMPEDITIVO");
+                            return (
+                              <TableRow key={item.id} className={
+                                data.status === "ATRASADO" ? "bg-destructive/5" :
+                                data.status === "REALIZADO" ? "bg-[hsl(152,60%,95%)]" :
+                                isImpeditivo ? "bg-[hsl(38,90%,97%)]" : ""
+                              }>
+                                <TableCell className="text-center font-mono text-xs text-muted-foreground">{item.id}</TableCell>
+                                <TableCell>
+                                  <div className="text-sm">
+                                    {item.atividade}
+                                    {isImpeditivo && <Badge variant="outline" className="ml-2 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">IMPEDITIVO</Badge>}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">{item.preRequisito || "—"}</TableCell>
+                                <TableCell>
+                                  <Input type="date" className="h-8 text-xs" value={data.prazoInicial} onChange={(e) => handleFieldChange(item.id, "prazoInicial", e.target.value)} />
+                                </TableCell>
+                                <TableCell>
+                                  <Input type="date" className="h-8 text-xs" value={data.prazoFinal} onChange={(e) => handleFieldChange(item.id, "prazoFinal", e.target.value)} />
+                                </TableCell>
+                                <TableCell>
+                                  <Select value={data.status} onValueChange={(v) => handleStatusChange(item.id, v as StatusType)}>
+                                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      {cat.statusOptions.map((s) => (
+                                        <SelectItem key={s} value={s}>
+                                          <Badge className={`${statusColors[s]} text-[10px]`}>{s}</Badge>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                                <TableCell className="text-xs">{item.responsavel}</TableCell>
+                                <TableCell>
+                                  <Input className="h-8 text-xs" placeholder="Obs..." value={data.observacoes} onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)} />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </TabsContent>
+              ))}
+            </>
           )}
         </Tabs>
       </main>
