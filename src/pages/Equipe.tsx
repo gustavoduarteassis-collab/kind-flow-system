@@ -1062,7 +1062,8 @@ const Equipe = () => {
                   <CardContent>
                     <div className="space-y-2">
                       {monthEvents.map((ev) => (
-                        <div key={ev.originalId || ev.id} className="flex items-center justify-between p-2 rounded-md border">
+                        <div key={ev.originalId || ev.id} className={`flex items-center justify-between p-2 rounded-md border ${ev.originalEvent ? "cursor-pointer hover:bg-muted/50" : ""}`}
+                          onClick={() => { if (ev.originalEvent) openEventDetail(ev.originalEvent); }}>
                           <div className="flex items-center gap-3">
                             <Badge className={`${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"} text-[10px]`}>{eventTypeLabels[ev.event_type] || "Evento"}</Badge>
                             <div>
@@ -1071,7 +1072,7 @@ const Equipe = () => {
                             </div>
                           </div>
                           {ev.deletable && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteEvent(ev.originalId || ev.id); }}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); if (confirm("Excluir?")) deleteEvent(ev.originalId || ev.id); }}>
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />
                             </Button>
                           )}
@@ -1082,6 +1083,35 @@ const Equipe = () => {
                 </Card>
               ) : null;
             })()}
+
+            {/* Event Detail Dialog */}
+            <Dialog open={eventDetailOpen} onOpenChange={setEventDetailOpen}>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Detalhes do Evento</DialogTitle></DialogHeader>
+                {selectedEvent && (
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <p className="text-sm font-semibold">{selectedEvent.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className={`${eventTypeColors[selectedEvent.event_type] || "bg-secondary text-secondary-foreground"} text-[10px]`}>{eventTypeLabels[selectedEvent.event_type] || "Evento"}</Badge>
+                        <span className="text-xs text-muted-foreground">{formatDate(selectedEvent.event_date)}{selectedEvent.end_date ? ` — ${formatDate(selectedEvent.end_date)}` : ""}</span>
+                      </div>
+                      {selectedEvent.team_member_id && <p className="text-xs text-muted-foreground mt-1">Membro: {getMemberName(selectedEvent.team_member_id)}</p>}
+                      {selectedEvent.store_name && <p className="text-xs text-muted-foreground">Loja: {selectedEvent.store_name}</p>}
+                      {selectedEvent.event_time && <p className="text-xs text-muted-foreground">Horário: {selectedEvent.event_time}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Descrição / Observações</Label>
+                      <Textarea rows={4} value={editingEventDesc} onChange={(e) => setEditingEventDesc(e.target.value)} placeholder="Adicione uma descrição ou observação..." />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={saveEventDescription} className="flex-1">Salvar</Button>
+                      <Button variant="destructive" onClick={() => { if (confirm("Excluir este evento?")) { deleteEvent(selectedEvent.id); setEventDetailOpen(false); } }}>Excluir</Button>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* === EQUIPE === */}
