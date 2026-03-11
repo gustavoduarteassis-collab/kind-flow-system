@@ -15,17 +15,42 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
-  Plus, Store, Calendar, User, Search, Trash2, ChevronRight, Building2, ArrowLeft,
+  Plus, Store, Calendar, User, Search, Trash2, ChevronRight, Building2, ArrowLeft, Pencil,
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 const Lojas = () => {
-  const { stores, addStore, deleteStore } = useStores();
+  const { stores, addStore, deleteStore, updateStore } = useStores();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterAnalista, setFilterAnalista] = useState(searchParams.get("analista") || "");
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "" as "rua" | "shopping" | "", inauguracaoChecklist: {} as any });
+  const [isTeamMember, setIsTeamMember] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({ id: "", nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
+
+  useEffect(() => {
+    if (!user) return;
+    const check = async () => {
+      const { data } = await supabase.from("authorized_team_emails").select("id").ilike("email", user.email!).limit(1);
+      setIsTeamMember(!!(data && data.length > 0));
+    };
+    check();
+  }, [user]);
+
+  const openEditStore = (store: typeof stores[0]) => {
+    setEditForm({ id: store.id, nome: store.nome, filial: store.filial, franqueado: store.franqueado, construtor: store.construtor, analistaObra: store.analistaObra, inauguracao: store.inauguracao });
+    setEditOpen(true);
+  };
+
+  const saveEditStore = async () => {
+    await updateStore(editForm.id, { nome: editForm.nome, filial: editForm.filial, franqueado: editForm.franqueado, construtor: editForm.construtor, analistaObra: editForm.analistaObra, inauguracao: editForm.inauguracao });
+    setEditOpen(false);
+  };
 
   const analistas = Array.from(new Set(stores.map((s) => s.analistaObra).filter(Boolean)));
 
@@ -178,13 +203,18 @@ const Lojas = () => {
                         )}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost" size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => { e.stopPropagation(); if (confirm("Excluir esta loja?")) deleteStore(store.id); }}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {isTeamMember && (
+                        <Button variant="ghost" size="icon" className="h-8 w-8"
+                          onClick={(e) => { e.stopPropagation(); openEditStore(store); }}>
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="icon" className="h-8 w-8"
+                        onClick={(e) => { e.stopPropagation(); if (confirm("Excluir esta loja?")) deleteStore(store.id); }}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -234,6 +264,34 @@ const Lojas = () => {
           })}
         </div>
       </main>
+
+      {/* Edit Store Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar Loja</DialogTitle></DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2"><Label>Nome da Loja</Label>
+              <Input value={editForm.nome} onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })} />
+            </div>
+            <div className="space-y-2"><Label>Filial</Label>
+              <Input value={editForm.filial} onChange={(e) => setEditForm({ ...editForm, filial: e.target.value })} />
+            </div>
+            <div className="space-y-2"><Label>Franqueado</Label>
+              <Input value={editForm.franqueado} onChange={(e) => setEditForm({ ...editForm, franqueado: e.target.value })} />
+            </div>
+            <div className="space-y-2"><Label>Construtor</Label>
+              <Input value={editForm.construtor} onChange={(e) => setEditForm({ ...editForm, construtor: e.target.value })} />
+            </div>
+            <div className="space-y-2"><Label>Analista de Obra</Label>
+              <Input value={editForm.analistaObra} onChange={(e) => setEditForm({ ...editForm, analistaObra: e.target.value })} />
+            </div>
+            <div className="space-y-2"><Label>Data de Inauguração</Label>
+              <Input type="date" value={editForm.inauguracao} onChange={(e) => setEditForm({ ...editForm, inauguracao: e.target.value })} />
+            </div>
+            <Button onClick={saveEditStore} className="w-full">Salvar Alterações</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

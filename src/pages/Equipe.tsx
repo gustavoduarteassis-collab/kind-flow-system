@@ -43,6 +43,9 @@ type TeamEvent = {
   id: string; title: string; event_type: string; event_date: string;
   end_date: string | null; store_name: string | null; team_member_id: string | null; description: string | null; event_time: string | null;
 };
+type TaskComment = {
+  id: string; task_id: string; user_id: string; author_name: string; content: string; created_at: string;
+};
 type FranchiseeAccess = {
   id: string; store_id: string; franchisee_email: string;
   can_view_checklist: boolean; can_edit_checklist: boolean;
@@ -133,6 +136,14 @@ const Equipe = () => {
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(null);
+  const [taskDetailOpen, setTaskDetailOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskComments, setTaskComments] = useState<TaskComment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [editingTask, setEditingTask] = useState<Partial<Task>>({});
+  const [eventDetailOpen, setEventDetailOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<TeamEvent | null>(null);
+  const [editingEventDesc, setEditingEventDesc] = useState("");
   const [accessForm, setAccessForm] = useState({
     store_id: "", franchisee_email: "",
     can_view_checklist: true, can_edit_checklist: true,
@@ -273,6 +284,52 @@ const Equipe = () => {
     fetchAll();
   };
 
+  // Task detail / comments
+  const openTaskDetail = async (task: Task) => {
+    setSelectedTask(task);
+    setEditingTask({ title: task.title, description: task.description || "", priority: task.priority, assigned_to: task.assigned_to, due_date: task.due_date, start_date: task.start_date, status: task.status });
+    setTaskDetailOpen(true);
+    const { data } = await supabase.from("task_comments").select("*").eq("task_id", task.id).order("created_at", { ascending: true });
+    if (data) setTaskComments(data as TaskComment[]);
+  };
+
+  const addComment = async () => {
+    if (!user || !selectedTask || !newComment.trim()) return;
+    const authorName = user.email?.split("@")[0] || "Usuário";
+    await supabase.from("task_comments").insert({ task_id: selectedTask.id, user_id: user.id, author_name: authorName, content: newComment.trim() });
+    setNewComment("");
+    const { data } = await supabase.from("task_comments").select("*").eq("task_id", selectedTask.id).order("created_at", { ascending: true });
+    if (data) setTaskComments(data as TaskComment[]);
+  };
+
+  const saveTaskEdits = async () => {
+    if (!selectedTask) return;
+    await supabase.from("tasks").update({
+      title: editingTask.title, description: editingTask.description || null,
+      priority: editingTask.priority as any, assigned_to: editingTask.assigned_to || null,
+      due_date: editingTask.due_date || null, start_date: editingTask.start_date || null,
+      status: editingTask.status as any,
+    }).eq("id", selectedTask.id);
+    toast({ title: "Tarefa atualizada!" });
+    setTaskDetailOpen(false);
+    fetchAll();
+  };
+
+  // Event detail
+  const openEventDetail = (ev: TeamEvent) => {
+    setSelectedEvent(ev);
+    setEditingEventDesc(ev.description || "");
+    setEventDetailOpen(true);
+  };
+
+  const saveEventDescription = async () => {
+    if (!selectedEvent) return;
+    await supabase.from("team_events").update({ description: editingEventDesc }).eq("id", selectedEvent.id);
+    toast({ title: "Evento atualizado!" });
+    setEventDetailOpen(false);
+    fetchAll();
+  };
+
   const getMemberName = (id: string | null) => members.find((m) => m.id === id)?.name || "—";
 
   const addAccess = async () => {
@@ -313,7 +370,7 @@ const Equipe = () => {
   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
   // Build virtual events from all data sources (only scheduled/agendado items)
-  type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean; originalId?: string; time?: string | null; memberId?: string | null };
+  type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean; originalId?: string; time?: string | null; memberId?: string | null; originalEvent?: TeamEvent };
   const allCalendarEvents: CalendarEvent[] = [];
 
   // 1. Team events (manually created in calendar) - expand date ranges
@@ -322,7 +379,7 @@ const Equipe = () => {
     const end = e.end_date ? new Date(e.end_date + "T00:00:00") : start;
     const days = eachDayOfInterval({ start, end });
     days.forEach((day) => {
-      allCalendarEvents.push({ id: `${e.id}-${day.toISOString()}`, title: e.title, event_type: e.event_type, date: day, deletable: true, originalId: e.id, time: e.event_time, memberId: e.team_member_id });
+      allCalendarEvents.push({ id: `${e.id}-${day.toISOString()}`, title: e.title, event_type: e.event_type, date: day, deletable: true, originalId: e.id, time: e.event_time, memberId: e.team_member_id, originalEvent: e });
     });
   });
 
@@ -490,7 +547,7 @@ const Equipe = () => {
                       return filtered.length === 0 ? (
                         <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">Nenhuma tarefa cadastrada</TableCell></TableRow>
                       ) : filtered.map((task) => (
-                      <TableRow key={task.id}>
+                      <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openTaskDetail(task)}>
                         <TableCell>
                           <p className="font-medium text-sm">{task.title}</p>
                           {task.description && <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>}
@@ -501,7 +558,7 @@ const Equipe = () => {
                         <TableCell>
                           <Badge className={`${priorityColors[task.priority]} text-[10px]`}>{priorityLabels[task.priority]}</Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Select value={task.status} onValueChange={(v) => updateTaskStatus(task.id, v)}>
                             <SelectTrigger className="h-7 text-xs w-[120px]"><SelectValue /></SelectTrigger>
                             <SelectContent>
@@ -509,7 +566,7 @@ const Equipe = () => {
                             </SelectContent>
                           </Select>
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteTask(task.id); }}>
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
@@ -520,6 +577,80 @@ const Equipe = () => {
                 </Table>
               </div>
             </Card>
+
+            {/* Task Detail Dialog */}
+            <Dialog open={taskDetailOpen} onOpenChange={setTaskDetailOpen}>
+              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+                <DialogHeader><DialogTitle>Detalhes da Tarefa</DialogTitle></DialogHeader>
+                {selectedTask && (
+                  <div className="space-y-4 pt-2">
+                    <div className="space-y-2"><Label>Título</Label>
+                      <Input value={editingTask.title || ""} onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })} />
+                    </div>
+                    <div className="space-y-2"><Label>Descrição</Label>
+                      <Textarea value={editingTask.description || ""} onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label>Prioridade</Label>
+                        <Select value={editingTask.priority || "media"} onValueChange={(v) => setEditingTask({ ...editingTask, priority: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(priorityLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2"><Label>Status</Label>
+                        <Select value={editingTask.status || "pendente"} onValueChange={(v) => setEditingTask({ ...editingTask, status: v })}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2"><Label>Responsável</Label>
+                      <Select value={editingTask.assigned_to || ""} onValueChange={(v) => setEditingTask({ ...editingTask, assigned_to: v })}>
+                        <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                        <SelectContent>
+                          {members.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2"><Label>Data de Início</Label>
+                        <Input type="date" value={editingTask.start_date || ""} onChange={(e) => setEditingTask({ ...editingTask, start_date: e.target.value })} />
+                      </div>
+                      <div className="space-y-2"><Label>Data Limite</Label>
+                        <Input type="date" value={editingTask.due_date || ""} onChange={(e) => setEditingTask({ ...editingTask, due_date: e.target.value })} />
+                      </div>
+                    </div>
+                    <Button onClick={saveTaskEdits} className="w-full">Salvar Alterações</Button>
+
+                    {/* Comments section */}
+                    <div className="border-t pt-4 mt-4">
+                      <h3 className="text-sm font-semibold mb-3">💬 Comentários</h3>
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto mb-3">
+                        {taskComments.length === 0 ? (
+                          <p className="text-xs text-muted-foreground text-center py-4">Nenhum comentário ainda</p>
+                        ) : taskComments.map((c) => (
+                          <div key={c.id} className="bg-muted/50 rounded-md p-2">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-xs font-medium">{c.author_name}</span>
+                              <span className="text-[10px] text-muted-foreground">{new Date(c.created_at).toLocaleString("pt-BR")}</span>
+                            </div>
+                            <p className="text-xs">{c.content}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input placeholder="Escreva um comentário..." value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addComment(); }} />
+                        <Button size="sm" onClick={addComment}>Enviar</Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* === HÁBITOS === */}
@@ -867,10 +998,10 @@ const Equipe = () => {
                           </div>
                           <div className="space-y-0.5">
                              {dayEvents.slice(0, 3).map((ev) => (
-                              <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
+                              <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate cursor-pointer ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
                                 style={{ borderLeft: `3px solid ${getMemberColor(ev.memberId, members)}` }}
                                 title={`${ev.memberId ? getMemberName(ev.memberId) + ": " : ""}${ev.title}${ev.time ? ` às ${ev.time}` : ""}`}
-                                onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
+                                onClick={() => { if (ev.originalEvent) openEventDetail(ev.originalEvent); }}
                               >
                                 {ev.time ? `${ev.time} ` : ""}{ev.title}
                               </div>
@@ -895,10 +1026,10 @@ const Equipe = () => {
                           </div>
                           <div className="space-y-1">
                             {dayEvents.map((ev) => (
-                              <div key={ev.id} className={`text-[10px] px-1.5 py-1 rounded truncate ${ev.deletable ? "cursor-pointer" : ""} ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
+                              <div key={ev.id} className={`text-[10px] px-1.5 py-1 rounded truncate cursor-pointer ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
                                 style={{ borderLeft: `3px solid ${getMemberColor(ev.memberId, members)}` }}
                                 title={`${ev.memberId ? getMemberName(ev.memberId) + ": " : ""}${ev.title}${ev.time ? ` às ${ev.time}` : ""}`}
-                                onClick={() => { if (ev.deletable && confirm(`Excluir "${ev.title}"?`)) deleteEvent(ev.originalId || ev.id); }}
+                                onClick={() => { if (ev.originalEvent) openEventDetail(ev.originalEvent); }}
                               >
                                 {ev.time ? <span className="font-semibold">{ev.time} </span> : null}{ev.title}
                               </div>
@@ -931,7 +1062,8 @@ const Equipe = () => {
                   <CardContent>
                     <div className="space-y-2">
                       {monthEvents.map((ev) => (
-                        <div key={ev.originalId || ev.id} className="flex items-center justify-between p-2 rounded-md border">
+                        <div key={ev.originalId || ev.id} className={`flex items-center justify-between p-2 rounded-md border ${ev.originalEvent ? "cursor-pointer hover:bg-muted/50" : ""}`}
+                          onClick={() => { if (ev.originalEvent) openEventDetail(ev.originalEvent); }}>
                           <div className="flex items-center gap-3">
                             <Badge className={`${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"} text-[10px]`}>{eventTypeLabels[ev.event_type] || "Evento"}</Badge>
                             <div>
@@ -940,7 +1072,7 @@ const Equipe = () => {
                             </div>
                           </div>
                           {ev.deletable && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteEvent(ev.originalId || ev.id); }}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); if (confirm("Excluir?")) deleteEvent(ev.originalId || ev.id); }}>
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />
                             </Button>
                           )}
@@ -951,6 +1083,35 @@ const Equipe = () => {
                 </Card>
               ) : null;
             })()}
+
+            {/* Event Detail Dialog */}
+            <Dialog open={eventDetailOpen} onOpenChange={setEventDetailOpen}>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Detalhes do Evento</DialogTitle></DialogHeader>
+                {selectedEvent && (
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <p className="text-sm font-semibold">{selectedEvent.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge className={`${eventTypeColors[selectedEvent.event_type] || "bg-secondary text-secondary-foreground"} text-[10px]`}>{eventTypeLabels[selectedEvent.event_type] || "Evento"}</Badge>
+                        <span className="text-xs text-muted-foreground">{formatDate(selectedEvent.event_date)}{selectedEvent.end_date ? ` — ${formatDate(selectedEvent.end_date)}` : ""}</span>
+                      </div>
+                      {selectedEvent.team_member_id && <p className="text-xs text-muted-foreground mt-1">Membro: {getMemberName(selectedEvent.team_member_id)}</p>}
+                      {selectedEvent.store_name && <p className="text-xs text-muted-foreground">Loja: {selectedEvent.store_name}</p>}
+                      {selectedEvent.event_time && <p className="text-xs text-muted-foreground">Horário: {selectedEvent.event_time}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Descrição / Observações</Label>
+                      <Textarea rows={4} value={editingEventDesc} onChange={(e) => setEditingEventDesc(e.target.value)} placeholder="Adicione uma descrição ou observação..." />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button onClick={saveEventDescription} className="flex-1">Salvar</Button>
+                      <Button variant="destructive" onClick={() => { if (confirm("Excluir este evento?")) { deleteEvent(selectedEvent.id); setEventDetailOpen(false); } }}>Excluir</Button>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           {/* === EQUIPE === */}
