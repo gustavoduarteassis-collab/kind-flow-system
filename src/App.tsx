@@ -63,10 +63,10 @@ function AppRoutes() {
           return;
         }
 
-        // 3. Check franchisee access
+        // 3. Check franchisee/construtor access
         const { data: access } = await supabase
           .from("franchisee_access")
-          .select("id")
+          .select("id, access_type")
           .ilike("franchisee_email", user.email!)
           .limit(1);
 
