@@ -31,6 +31,7 @@ export function useStores() {
         custos: row.custos || createDefaultCustos(),
         inauguracaoChecklist: row.inauguracao_checklist || {},
         solicitacoes: row.solicitacoes || {},
+        visitaTecnica: row.visita_tecnica || {},
       })));
     }
     setLoading(false);
