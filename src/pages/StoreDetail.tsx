@@ -258,6 +258,13 @@ const StoreDetail = () => {
             <FornecedoresObra />
           </TabsContent>
 
+          <TabsContent value="solicitacoes" className="mt-4">
+            <SolicitacoesLoja
+              data={(store as any).solicitacoes || {}}
+              onUpdate={(solicitacoes) => updateStore(store.id, { solicitacoes } as any)}
+            />
+          </TabsContent>
+
           <TabsContent value="inauguracao" className="mt-4">
             <ChecklistInauguracao
               tipoLoja={store.tipoLoja as "rua" | "shopping" | ""}
