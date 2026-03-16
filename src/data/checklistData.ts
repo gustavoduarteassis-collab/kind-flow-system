@@ -147,7 +147,7 @@ export const checklistCategories: ChecklistCategory[] = [
   {
     id: "obra-execucao",
     nome: "Processos Obra (Execução)",
-    statusOptions: defaultStatusOptions,
+    statusOptions: obraExecucaoStatusOptions,
     items: [
       { id: 61, atividade: "Demolição", responsavel: "Construtora" },
       { id: 62, atividade: "Execução da estrutura do mezanino", responsavel: "Construtora" },
