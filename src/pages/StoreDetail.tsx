@@ -402,7 +402,11 @@ const StoreDetail = () => {
                               data.status === "ATRASADO"
                                 ? "bg-destructive/5"
                                 : data.status === "REALIZADO"
-                                ? "bg-[hsl(152,60%,95%)]"
+                                ? "bg-[hsl(142,60%,95%)]"
+                                : data.status === "REALIZANDO"
+                                ? "bg-[hsl(152,40%,92%)]"
+                                : data.status === "EM ANDAMENTO"
+                                ? "bg-[hsl(45,90%,95%)]"
                                 : isImpeditivo
                                 ? "bg-[hsl(38,90%,97%)]"
                                 : ""
