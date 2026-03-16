@@ -238,6 +238,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 125, atividade: "E-Commerce: Contrato Correios - IMPEDITIVO (30 dias antes)", responsavel: "Franqueado" },
       { id: 126, atividade: "Preencher e assinar termo CTC Performance", responsavel: "Franqueado" },
       { id: 127, atividade: "Comercial: Parceria com sapateiro local para assistência técnica", responsavel: "Franqueado" },
+      { id: 139, atividade: "Comprar sacolas interna Trapezio, para os clientes colocarem os produtos. (20 unidades) - Fornecedor Exclusivo - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado" },
     ],
   },
   {
