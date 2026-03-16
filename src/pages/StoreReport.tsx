@@ -53,6 +53,36 @@ const statusLabels: Record<StatusType, string> = {
   "EM ANDAMENTO": "🟡 Em Andamento",
 };
 
+const statusPrintColors: Record<StatusType, string> = {
+  "NÃO INICIADO": "bg-gray-100",
+  "EM COTAÇÃO": "bg-[hsl(38,90%,85%)]",
+  "EM TRANSPORTE": "bg-[hsl(210,80%,88%)]",
+  "REALIZADO": "bg-[hsl(142,60%,88%)]",
+  "REALIZANDO": "bg-[hsl(152,40%,85%)]",
+  "ATRASADO": "bg-[hsl(0,72%,90%)]",
+  "NÃO SE APLICA": "bg-gray-50",
+  "CONSTRUTORA": "bg-[hsl(270,50%,90%)]",
+  "EM ELABORAÇÃO": "bg-[hsl(38,70%,88%)]",
+  "EM ANÁLISE": "bg-[hsl(200,60%,88%)]",
+  "EM CONTRATAÇÃO": "bg-[hsl(280,50%,88%)]",
+  "EM ANDAMENTO": "bg-[hsl(45,90%,85%)]",
+};
+
+const statusTextColors: Record<StatusType, string> = {
+  "NÃO INICIADO": "text-gray-600",
+  "EM COTAÇÃO": "text-[hsl(38,90%,30%)]",
+  "EM TRANSPORTE": "text-[hsl(210,80%,35%)]",
+  "REALIZADO": "text-[hsl(142,60%,25%)]",
+  "REALIZANDO": "text-[hsl(152,50%,20%)]",
+  "ATRASADO": "text-[hsl(0,72%,35%)]",
+  "NÃO SE APLICA": "text-gray-400",
+  "CONSTRUTORA": "text-[hsl(270,50%,35%)]",
+  "EM ELABORAÇÃO": "text-[hsl(38,70%,30%)]",
+  "EM ANÁLISE": "text-[hsl(200,60%,30%)]",
+  "EM CONTRATAÇÃO": "text-[hsl(280,50%,30%)]",
+  "EM ANDAMENTO": "text-[hsl(45,90%,25%)]",
+};
+
 const formatCurrency = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
