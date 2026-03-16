@@ -26,15 +26,16 @@ import { LogOut, ClipboardCheck } from "lucide-react";
 const statusColors: Record<StatusType, string> = {
   "NÃO INICIADO": "bg-secondary text-secondary-foreground",
   "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM TRANSPORTE": "bg-[hsl(200,70%,50%)] text-[hsl(0,0%,100%)]",
-  "REALIZADO": "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
+  "EM TRANSPORTE": "bg-[hsl(210,80%,55%)] text-[hsl(0,0%,100%)]",
+  "REALIZADO": "bg-[hsl(142,60%,45%)] text-[hsl(0,0%,100%)]",
+  "REALIZANDO": "bg-[hsl(152,50%,28%)] text-[hsl(0,0%,100%)]",
   "ATRASADO": "bg-destructive text-destructive-foreground",
   "NÃO SE APLICA": "bg-muted text-muted-foreground",
   "CONSTRUTORA": "bg-[hsl(270,50%,50%)] text-[hsl(0,0%,100%)]",
   "EM ELABORAÇÃO": "bg-[hsl(38,70%,60%)] text-[hsl(38,90%,15%)]",
   "EM ANÁLISE": "bg-[hsl(200,60%,55%)] text-[hsl(0,0%,100%)]",
   "EM CONTRATAÇÃO": "bg-[hsl(280,50%,55%)] text-[hsl(0,0%,100%)]",
-  "EM ANDAMENTO": "bg-[hsl(210,70%,50%)] text-[hsl(0,0%,100%)]",
+  "EM ANDAMENTO": "bg-[hsl(45,90%,55%)] text-[hsl(45,90%,15%)]",
 };
 
 type AccessType = "franqueado" | "construtor";

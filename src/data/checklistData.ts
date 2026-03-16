@@ -3,6 +3,7 @@ export type StatusType =
   | "EM COTAÇÃO"
   | "EM TRANSPORTE"
   | "REALIZADO"
+  | "REALIZANDO"
   | "ATRASADO"
   | "NÃO SE APLICA"
   | "CONSTRUTORA"
