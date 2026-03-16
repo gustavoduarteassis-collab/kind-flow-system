@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { useStores } from "@/hooks/useStores";
 import { checklistCategories, StatusType } from "@/data/checklistData";
 import { Button } from "@/components/ui/button";
@@ -63,6 +65,17 @@ const StoreDetail = () => {
   const store = getStore(id || "");
 
   const [activeTab, setActiveTab] = useState("cronograma");
+  const { user } = useAuth();
+  const [isTeamMember, setIsTeamMember] = useState(false);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    const check = async () => {
+      const { data } = await supabase.from("authorized_team_emails").select("id").ilike("email", user.email!).limit(1);
+      setIsTeamMember(!!(data && data.length > 0));
+    };
+    check();
+  }, [user]);
 
   if (!store) {
     return (
@@ -407,6 +420,7 @@ const StoreDetail = () => {
                                 onChange={(e) =>
                                   handleFieldChange(item.id, "descricao", e.target.value)
                                 }
+                                disabled={!isTeamMember}
                               />
                             </TableCell>
                           </TableRow>
