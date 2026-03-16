@@ -97,7 +97,7 @@ export const checklistCategories: ChecklistCategory[] = [
   {
     id: "projetos",
     nome: "Projetos",
-    statusOptions: ["NÃO INICIADO", "EM ELABORAÇÃO", "EM ANÁLISE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"],
+    statusOptions: ["NÃO INICIADO", "EM ELABORAÇÃO", "EM ANÁLISE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"],
     items: [
       { id: 23, atividade: "Solicitar ao shopping/proprietário a planta da loja e caderno técnico", responsavel: "Supervisor de Projetos" },
       { id: 24, atividade: "Medição da Loja in-loco", responsavel: "Supervisor de Projetos" },
