@@ -349,7 +349,17 @@ const StoreDetail = () => {
                             </TableCell>
                             <TableCell>
                               <div className="text-sm">
-                                {item.atividade}
+                                {isTeamMember ? (
+                                  <Input
+                                    className="h-8 text-xs font-medium"
+                                    value={data.atividade || item.atividade}
+                                    onChange={(e) =>
+                                      handleFieldChange(item.id, "atividade", e.target.value)
+                                    }
+                                  />
+                                ) : (
+                                  <span>{data.atividade || item.atividade}</span>
+                                )}
                                 {isImpeditivo && (
                                   <Badge variant="outline" className="ml-2 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">
                                     IMPEDITIVO
