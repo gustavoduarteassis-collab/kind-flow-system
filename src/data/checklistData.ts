@@ -268,7 +268,7 @@ export const checklistCategories: ChecklistCategory[] = [
   {
     id: "contratacao-pessoal",
     nome: "Contratação Pessoal",
-    statusOptions: ["NÃO INICIADO", "EM CONTRATAÇÃO", "REALIZADO", "ATRASADO", "NÃO SE APLICA"],
+    statusOptions: ["NÃO INICIADO", "EM CONTRATAÇÃO", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA"],
     items: [
       { id: 128, atividade: "Verificar convenção coletiva da cidade", responsavel: "Franqueado" },
       { id: 129, atividade: "Recrutar e admitir equipe da loja - IMPEDITIVO", responsavel: "Franqueado" },
