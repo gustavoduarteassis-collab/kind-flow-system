@@ -189,7 +189,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 91, atividade: "Contratar técnico em informática para instalar equipamentos", responsavel: "Franqueado" },
       { id: 92, atividade: "Comprar armário do rack de servidor e materiais - IMPEDITIVO", responsavel: "Franqueado", observacoes: "Agopal ou fornecedor local" },
       { id: 93, atividade: "Sistema de circuito interno (câmeras)", responsavel: "Franqueado", observacoes: "Agopal ou fornecedor local" },
-      { id: 94, atividade: "Som amplificador", responsavel: "Franqueado", observacoes: "Agopal ou fornecedor local" },
+      { id: 94, atividade: "Som amplificador e caixas de som", responsavel: "Franqueado", observacoes: "Agopal ou fornecedor local" },
       { id: 95, atividade: "Switch Gigabit", responsavel: "Franqueado" },
       { id: 96, atividade: "Computador padrão SFF (I3 10ª geração, 8GB, SSD 256, Windows Pro 64bits)", responsavel: "Franqueado" },
       { id: 97, atividade: "Monitor 19'' furação padrão vesa e fonte interna", responsavel: "Franqueado" },
