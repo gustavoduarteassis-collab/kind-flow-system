@@ -8,7 +8,8 @@ export type StatusType =
   | "CONSTRUTORA"
   | "EM ELABORAÇÃO"
   | "EM ANÁLISE"
-  | "EM CONTRATAÇÃO";
+  | "EM CONTRATAÇÃO"
+  | "EM ANDAMENTO";
 
 export interface ChecklistItem {
   id: number;
