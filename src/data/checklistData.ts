@@ -53,15 +53,15 @@ export interface Store {
 }
 
 const defaultStatusOptions: StatusType[] = [
-  "NÃO INICIADO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+  "NÃO INICIADO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
 ];
 
 const burocraticStatusOptions: StatusType[] = [
-  "NÃO INICIADO", "EM ANDAMENTO", "EM TRANSPORTE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+  "NÃO INICIADO", "EM ANDAMENTO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
 ];
 
 const obraExecucaoStatusOptions: StatusType[] = [
-  "NÃO INICIADO", "EM ANDAMENTO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+  "NÃO INICIADO", "EM ANDAMENTO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
 ];
 
 export const checklistCategories: ChecklistCategory[] = [

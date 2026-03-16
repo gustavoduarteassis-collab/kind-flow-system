@@ -43,13 +43,14 @@ const statusLabels: Record<StatusType, string> = {
   "EM COTAÇÃO": "🟡 Em Cotação",
   "EM TRANSPORTE": "🔵 Em Transporte",
   "REALIZADO": "✅ Realizado",
+  "REALIZANDO": "🟢 Realizando",
   "ATRASADO": "🔴 Atrasado",
   "NÃO SE APLICA": "⚪ N/A",
   "CONSTRUTORA": "🟣 Construtora",
   "EM ELABORAÇÃO": "🟠 Em Elaboração",
   "EM ANÁLISE": "🔵 Em Análise",
   "EM CONTRATAÇÃO": "🟣 Em Contratação",
-  "EM ANDAMENTO": "🔵 Em Andamento",
+  "EM ANDAMENTO": "🟡 Em Andamento",
 };
 
 const formatCurrency = (v: number) =>
