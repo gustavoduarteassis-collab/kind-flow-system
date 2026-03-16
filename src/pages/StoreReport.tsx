@@ -447,7 +447,6 @@ const StoreReport = () => {
                           <td className={`border border-black px-1 py-0.5 text-center font-semibold ${statusTextColors[data.status] || ""}`}>
                             {statusLabels[data.status] || data.status}
                           </td>
-                          </td>
                           <td className="border border-black px-1 py-0.5 text-center">
                             {data.prazoInicial
                               ? new Date(data.prazoInicial + "T00:00:00").toLocaleDateString("pt-BR")
