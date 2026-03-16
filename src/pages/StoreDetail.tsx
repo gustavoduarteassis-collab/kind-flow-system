@@ -101,7 +101,7 @@ const StoreDetail = () => {
     updateStore(store.id, { checklist: newChecklist });
   };
 
-  const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes" | "descricao", value: string) => {
+  const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes" | "descricao" | "atividade", value: string) => {
     const newChecklist = { ...store.checklist };
     newChecklist[itemId] = { ...newChecklist[itemId], [field]: value };
     updateStore(store.id, { checklist: newChecklist });
@@ -349,7 +349,17 @@ const StoreDetail = () => {
                             </TableCell>
                             <TableCell>
                               <div className="text-sm">
-                                {item.atividade}
+                                {isTeamMember ? (
+                                  <Input
+                                    className="h-8 text-xs font-medium"
+                                    value={data.atividade || item.atividade}
+                                    onChange={(e) =>
+                                      handleFieldChange(item.id, "atividade", e.target.value)
+                                    }
+                                  />
+                                ) : (
+                                  <span>{data.atividade || item.atividade}</span>
+                                )}
                                 {isImpeditivo && (
                                   <Badge variant="outline" className="ml-2 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">
                                     IMPEDITIVO
