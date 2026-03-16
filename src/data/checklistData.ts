@@ -199,6 +199,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 101, atividade: "Impressora de etiquetas marca Zebra modelo ZD230", responsavel: "Franqueado" },
       { id: 102, atividade: "Impressora Térmica não fiscal Bematech MP 4200", responsavel: "Franqueado" },
       { id: 103, atividade: "Impressora laser Multifuncional HP modelo 127FN", responsavel: "Franqueado" },
+      { id: 138, atividade: "TV 65''", responsavel: "Franqueado" },
       { id: 104, atividade: "Coletor de Dados - C3tech leitor wireless - IMPEDITIVO", responsavel: "Franqueado" },
       { id: 105, atividade: "Configuração da rede de internet e montagem do rack", responsavel: "Franqueado" },
       { id: 106, atividade: "Configuração do sistema USE pela Data System", responsavel: "Implantadoras" },
