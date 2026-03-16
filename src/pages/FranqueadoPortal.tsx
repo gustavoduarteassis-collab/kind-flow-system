@@ -34,6 +34,7 @@ const statusColors: Record<StatusType, string> = {
   "EM ELABORAÇÃO": "bg-[hsl(38,70%,60%)] text-[hsl(38,90%,15%)]",
   "EM ANÁLISE": "bg-[hsl(200,60%,55%)] text-[hsl(0,0%,100%)]",
   "EM CONTRATAÇÃO": "bg-[hsl(280,50%,55%)] text-[hsl(0,0%,100%)]",
+  "EM ANDAMENTO": "bg-[hsl(210,70%,50%)] text-[hsl(0,0%,100%)]",
 };
 
 type AccessType = "franqueado" | "construtor";
