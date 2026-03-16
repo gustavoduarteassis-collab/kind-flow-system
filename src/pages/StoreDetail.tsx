@@ -83,6 +83,54 @@ const StoreDetail = () => {
     check();
   }, [user]);
 
+  // Category name editing with sync-to-all dialog
+  const [pendingCatRename, setPendingCatRename] = useState<{ catId: string; newName: string } | null>(null);
+
+  const getCategoryName = (catId: string, defaultName: string) => {
+    const customNames = (store?.checklist as any)?._categoryNames as Record<string, string> | undefined;
+    return customNames?.[catId] || defaultName;
+  };
+
+  const handleCategoryNameChange = (catId: string, newName: string) => {
+    if (!store || !isTeamMember) return;
+    // Save locally first
+    const newChecklist = { ...store.checklist, _categoryNames: { ...((store.checklist as any)._categoryNames || {}), [catId]: newName } } as any;
+    updateStore(store.id, { checklist: newChecklist });
+  };
+
+  const handleCategoryNameBlur = (catId: string, newName: string) => {
+    if (!store || !isTeamMember) return;
+    const originalName = checklistCategories.find(c => c.id === catId)?.nome || "";
+    const currentCustom = ((store.checklist as any)?._categoryNames as Record<string, string>)?.[catId];
+    // Only prompt if name actually changed from original
+    if (newName && newName !== originalName && newName !== currentCustom) {
+      setPendingCatRename({ catId, newName });
+    }
+  };
+
+  const applyCatRenameToAll = useCallback(async () => {
+    if (!pendingCatRename) return;
+    const { data: allStores } = await supabase.from("stores").select("id, checklist");
+    if (allStores) {
+      for (const s of allStores) {
+        if (s.id === store?.id) continue;
+        const existingChecklist = (s.checklist as any) || {};
+        const updated = {
+          ...existingChecklist,
+          _categoryNames: { ...(existingChecklist._categoryNames || {}), [pendingCatRename.catId]: pendingCatRename.newName },
+        };
+        await supabase.from("stores").update({ checklist: updated }).eq("id", s.id);
+      }
+      toast.success("Nome da categoria atualizado em todas as lojas!");
+    }
+    setPendingCatRename(null);
+  }, [pendingCatRename, store]);
+
+  const applyCatRenameOnlyHere = () => {
+    toast.success("Nome alterado apenas nesta loja.");
+    setPendingCatRename(null);
+  };
+
   if (!store) {
     return (
       <div className="min-h-screen flex items-center justify-center">
