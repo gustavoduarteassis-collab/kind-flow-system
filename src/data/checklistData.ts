@@ -66,7 +66,7 @@ export const checklistCategories: ChecklistCategory[] = [
   {
     id: "documental-fiscal",
     nome: "Processos Documental e Fiscal",
-    statusOptions: defaultStatusOptions,
+    statusOptions: burocraticStatusOptions,
     items: [
       { id: 1, atividade: "Contratar a contabilidade que prestará serviços para a loja", responsavel: "Franqueado" },
       { id: 2, atividade: "Providenciar abertura da empresa - Contrato Social e CNPJ", preRequisito: "60 dias mínimo para início da obra", responsavel: "Franqueado" },
