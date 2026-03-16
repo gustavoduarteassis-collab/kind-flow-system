@@ -436,22 +436,17 @@ const StoreReport = () => {
                       return (
                         <tr
                           key={item.id}
-                          className={
-                            data.status === "ATRASADO"
-                              ? "bg-red-50"
-                              : data.status === "REALIZADO"
-                              ? "bg-green-50"
-                              : ""
-                          }
+                          className={statusPrintColors[data.status] || ""}
                         >
                           <td className="border border-black px-1 py-0.5 text-center">
                             {item.id}
                           </td>
                           <td className="border border-black px-1 py-0.5">
-                            {item.atividade}
+                            {data.atividade || item.atividade}
                           </td>
-                          <td className="border border-black px-1 py-0.5 text-center">
-                            {data.status}
+                          <td className={`border border-black px-1 py-0.5 text-center font-semibold ${statusTextColors[data.status] || ""}`}>
+                            {statusLabels[data.status] || data.status}
+                          </td>
                           </td>
                           <td className="border border-black px-1 py-0.5 text-center">
                             {data.prazoInicial
