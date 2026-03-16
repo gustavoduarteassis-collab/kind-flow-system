@@ -49,6 +49,7 @@ const statusLabels: Record<StatusType, string> = {
   "EM ELABORAÇÃO": "🟠 Em Elaboração",
   "EM ANÁLISE": "🔵 Em Análise",
   "EM CONTRATAÇÃO": "🟣 Em Contratação",
+  "EM ANDAMENTO": "🔵 Em Andamento",
 };
 
 const formatCurrency = (v: number) =>

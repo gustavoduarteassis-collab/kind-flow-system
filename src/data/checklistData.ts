@@ -8,7 +8,8 @@ export type StatusType =
   | "CONSTRUTORA"
   | "EM ELABORAÇÃO"
   | "EM ANÁLISE"
-  | "EM CONTRATAÇÃO";
+  | "EM CONTRATAÇÃO"
+  | "EM ANDAMENTO";
 
 export interface ChecklistItem {
   id: number;
@@ -53,11 +54,19 @@ const defaultStatusOptions: StatusType[] = [
   "NÃO INICIADO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
 ];
 
+const burocraticStatusOptions: StatusType[] = [
+  "NÃO INICIADO", "EM ANDAMENTO", "EM TRANSPORTE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+];
+
+const obraExecucaoStatusOptions: StatusType[] = [
+  "NÃO INICIADO", "EM ANDAMENTO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+];
+
 export const checklistCategories: ChecklistCategory[] = [
   {
     id: "documental-fiscal",
     nome: "Processos Documental e Fiscal",
-    statusOptions: defaultStatusOptions,
+    statusOptions: burocraticStatusOptions,
     items: [
       { id: 1, atividade: "Contratar a contabilidade que prestará serviços para a loja", responsavel: "Franqueado" },
       { id: 2, atividade: "Providenciar abertura da empresa - Contrato Social e CNPJ", preRequisito: "60 dias mínimo para início da obra", responsavel: "Franqueado" },
@@ -138,7 +147,7 @@ export const checklistCategories: ChecklistCategory[] = [
   {
     id: "obra-execucao",
     nome: "Processos Obra (Execução)",
-    statusOptions: defaultStatusOptions,
+    statusOptions: obraExecucaoStatusOptions,
     items: [
       { id: 61, atividade: "Demolição", responsavel: "Construtora" },
       { id: 62, atividade: "Execução da estrutura do mezanino", responsavel: "Construtora" },
@@ -180,7 +189,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 91, atividade: "Contratar técnico em informática para instalar equipamentos", responsavel: "Franqueado" },
       { id: 92, atividade: "Comprar armário do rack de servidor e materiais - IMPEDITIVO", responsavel: "Franqueado", observacoes: "Agopal ou fornecedor local" },
       { id: 93, atividade: "Sistema de circuito interno (câmeras)", responsavel: "Franqueado", observacoes: "Agopal ou fornecedor local" },
-      { id: 94, atividade: "Som amplificador", responsavel: "Franqueado", observacoes: "Agopal ou fornecedor local" },
+      { id: 94, atividade: "Som amplificador e caixas de som", responsavel: "Franqueado", observacoes: "Agopal ou fornecedor local" },
       { id: 95, atividade: "Switch Gigabit", responsavel: "Franqueado" },
       { id: 96, atividade: "Computador padrão SFF (I3 10ª geração, 8GB, SSD 256, Windows Pro 64bits)", responsavel: "Franqueado" },
       { id: 97, atividade: "Monitor 19'' furação padrão vesa e fonte interna", responsavel: "Franqueado" },
@@ -190,6 +199,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 101, atividade: "Impressora de etiquetas marca Zebra modelo ZD230", responsavel: "Franqueado" },
       { id: 102, atividade: "Impressora Térmica não fiscal Bematech MP 4200", responsavel: "Franqueado" },
       { id: 103, atividade: "Impressora laser Multifuncional HP modelo 127FN", responsavel: "Franqueado" },
+      { id: 138, atividade: "TV 65''", responsavel: "Franqueado" },
       { id: 104, atividade: "Coletor de Dados - C3tech leitor wireless - IMPEDITIVO", responsavel: "Franqueado" },
       { id: 105, atividade: "Configuração da rede de internet e montagem do rack", responsavel: "Franqueado" },
       { id: 106, atividade: "Configuração do sistema USE pela Data System", responsavel: "Implantadoras" },
@@ -228,6 +238,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 125, atividade: "E-Commerce: Contrato Correios - IMPEDITIVO (30 dias antes)", responsavel: "Franqueado" },
       { id: 126, atividade: "Preencher e assinar termo CTC Performance", responsavel: "Franqueado" },
       { id: 127, atividade: "Comercial: Parceria com sapateiro local para assistência técnica", responsavel: "Franqueado" },
+      { id: 139, atividade: "Comprar sacolas interna Trapezio, para os clientes colocarem os produtos. (20 unidades) - Fornecedor Exclusivo - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado" },
     ],
   },
   {
