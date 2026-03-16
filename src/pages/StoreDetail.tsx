@@ -360,6 +360,16 @@ const StoreDetail = () => {
 
           {checklistCategories.map((cat) => (
             <TabsContent key={cat.id} value={cat.id} className="mt-4">
+              {isTeamMember && (
+                <div className="mb-3">
+                  <Input
+                    className="h-9 text-sm font-semibold max-w-md"
+                    value={getCategoryName(cat.id, cat.nome)}
+                    onChange={(e) => handleCategoryNameChange(cat.id, e.target.value)}
+                    onBlur={(e) => handleCategoryNameBlur(cat.id, e.target.value)}
+                  />
+                </div>
+              )}
               <div className="rounded-xl border bg-card overflow-hidden">
                 <div className="overflow-x-auto">
                   <Table>
