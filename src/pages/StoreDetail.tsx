@@ -65,6 +65,17 @@ const StoreDetail = () => {
   const store = getStore(id || "");
 
   const [activeTab, setActiveTab] = useState("cronograma");
+  const { user } = useAuth();
+  const [isTeamMember, setIsTeamMember] = useState(false);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    const check = async () => {
+      const { data } = await supabase.from("authorized_team_emails").select("id").ilike("email", user.email!).limit(1);
+      setIsTeamMember(!!(data && data.length > 0));
+    };
+    check();
+  }, [user]);
 
   if (!store) {
     return (
