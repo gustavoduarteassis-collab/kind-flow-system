@@ -507,6 +507,23 @@ const StoreDetail = () => {
             </TabsContent>
           ))}
         </Tabs>
+
+        {/* Dialog for syncing category name to all stores */}
+        <AlertDialog open={!!pendingCatRename} onOpenChange={(open) => !open && setPendingCatRename(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Alterar nome em todas as lojas?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Você alterou o nome da categoria para "<strong>{pendingCatRename?.newName}</strong>". 
+                Deseja aplicar esta alteração em todas as lojas ou apenas nesta?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={applyCatRenameOnlyHere}>Apenas nesta loja</AlertDialogCancel>
+              <AlertDialogAction onClick={applyCatRenameToAll}>Aplicar em todas</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );
