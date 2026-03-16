@@ -74,7 +74,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 4, atividade: "Inscrição Estadual", preRequisito: "Item 2", responsavel: "Franqueado" },
       { id: 5, atividade: "Criação da filial no Sankya", preRequisito: "Itens 2, 3 e 4", responsavel: "Mariana Coutinho / Implantadoras" },
       { id: 6, atividade: "Criação da filial no USE na Data System", preRequisito: "Itens 2 e 4", responsavel: "Mariana Coutinho / Implantadoras" },
-      { id: 7, atividade: "Cadastro do franqueado ao portal EAD da Data System / Instalação da USE", responsavel: "Implantadoras" },
+      { id: 7, atividade: "Cadastro do franqueado ao portal EAD da Data System / Instalação do USE", responsavel: "Implantadoras" },
       { id: 8, atividade: "Certificado Digital (A1) em formato .pxf com senha", preRequisito: "Itens 2 e 4", responsavel: "Franqueado" },
       { id: 9, atividade: "Solicitar credenciamento junto a SEFAZ para emissão da NFE e enviar Código CSC", preRequisito: "Item 8", responsavel: "Franqueado" },
       { id: 10, atividade: "Inscrição municipal", preRequisito: "Item 2", responsavel: "Franqueado" },
