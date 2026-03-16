@@ -1,5 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { useStores } from "@/hooks/useStores";
 import { checklistCategories, StatusType } from "@/data/checklistData";
 import { Button } from "@/components/ui/button";
