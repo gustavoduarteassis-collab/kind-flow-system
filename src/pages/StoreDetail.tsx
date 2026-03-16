@@ -420,6 +420,7 @@ const StoreDetail = () => {
                                 onChange={(e) =>
                                   handleFieldChange(item.id, "descricao", e.target.value)
                                 }
+                                disabled={!isTeamMember}
                               />
                             </TableCell>
                           </TableRow>
