@@ -3,6 +3,7 @@ export type StatusType =
   | "EM COTAÇÃO"
   | "EM TRANSPORTE"
   | "REALIZADO"
+  | "REALIZANDO"
   | "ATRASADO"
   | "NÃO SE APLICA"
   | "CONSTRUTORA"
@@ -52,15 +53,15 @@ export interface Store {
 }
 
 const defaultStatusOptions: StatusType[] = [
-  "NÃO INICIADO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+  "NÃO INICIADO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
 ];
 
 const burocraticStatusOptions: StatusType[] = [
-  "NÃO INICIADO", "EM ANDAMENTO", "EM TRANSPORTE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+  "NÃO INICIADO", "EM ANDAMENTO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
 ];
 
 const obraExecucaoStatusOptions: StatusType[] = [
-  "NÃO INICIADO", "EM ANDAMENTO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+  "NÃO INICIADO", "EM ANDAMENTO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
 ];
 
 export const checklistCategories: ChecklistCategory[] = [
@@ -96,7 +97,7 @@ export const checklistCategories: ChecklistCategory[] = [
   {
     id: "projetos",
     nome: "Projetos",
-    statusOptions: ["NÃO INICIADO", "EM ELABORAÇÃO", "EM ANÁLISE", "REALIZADO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"],
+    statusOptions: ["NÃO INICIADO", "EM ELABORAÇÃO", "EM ANÁLISE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"],
     items: [
       { id: 23, atividade: "Solicitar ao shopping/proprietário a planta da loja e caderno técnico", responsavel: "Supervisor de Projetos" },
       { id: 24, atividade: "Medição da Loja in-loco", responsavel: "Supervisor de Projetos" },
@@ -267,7 +268,7 @@ export const checklistCategories: ChecklistCategory[] = [
   {
     id: "contratacao-pessoal",
     nome: "Contratação Pessoal",
-    statusOptions: ["NÃO INICIADO", "EM CONTRATAÇÃO", "REALIZADO", "ATRASADO", "NÃO SE APLICA"],
+    statusOptions: ["NÃO INICIADO", "EM CONTRATAÇÃO", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA"],
     items: [
       { id: 128, atividade: "Verificar convenção coletiva da cidade", responsavel: "Franqueado" },
       { id: 129, atividade: "Recrutar e admitir equipe da loja - IMPEDITIVO", responsavel: "Franqueado" },

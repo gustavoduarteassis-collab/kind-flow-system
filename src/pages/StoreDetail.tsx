@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useStores } from "@/hooks/useStores";
@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import CronogramaObra from "@/components/CronogramaObra";
 import CustosObra from "@/components/CustosObra";
@@ -47,15 +52,16 @@ import {
 const statusColors: Record<StatusType, string> = {
   "NÃO INICIADO": "bg-secondary text-secondary-foreground",
   "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM TRANSPORTE": "bg-[hsl(200,70%,50%)] text-[hsl(0,0%,100%)]",
-  "REALIZADO": "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
+  "EM TRANSPORTE": "bg-[hsl(210,80%,55%)] text-[hsl(0,0%,100%)]",
+  "REALIZADO": "bg-[hsl(142,60%,45%)] text-[hsl(0,0%,100%)]",
+  "REALIZANDO": "bg-[hsl(152,50%,28%)] text-[hsl(0,0%,100%)]",
   "ATRASADO": "bg-destructive text-destructive-foreground",
   "NÃO SE APLICA": "bg-muted text-muted-foreground",
   "CONSTRUTORA": "bg-[hsl(270,50%,50%)] text-[hsl(0,0%,100%)]",
   "EM ELABORAÇÃO": "bg-[hsl(38,70%,60%)] text-[hsl(38,90%,15%)]",
   "EM ANÁLISE": "bg-[hsl(200,60%,55%)] text-[hsl(0,0%,100%)]",
   "EM CONTRATAÇÃO": "bg-[hsl(280,50%,55%)] text-[hsl(0,0%,100%)]",
-  "EM ANDAMENTO": "bg-[hsl(210,70%,50%)] text-[hsl(0,0%,100%)]",
+  "EM ANDAMENTO": "bg-[hsl(45,90%,55%)] text-[hsl(45,90%,15%)]",
 };
 
 const StoreDetail = () => {
@@ -76,6 +82,54 @@ const StoreDetail = () => {
     };
     check();
   }, [user]);
+
+  // Category name editing with sync-to-all dialog
+  const [pendingCatRename, setPendingCatRename] = useState<{ catId: string; newName: string } | null>(null);
+
+  const getCategoryName = (catId: string, defaultName: string) => {
+    const customNames = (store?.checklist as any)?._categoryNames as Record<string, string> | undefined;
+    return customNames?.[catId] || defaultName;
+  };
+
+  const handleCategoryNameChange = (catId: string, newName: string) => {
+    if (!store || !isTeamMember) return;
+    // Save locally first
+    const newChecklist = { ...store.checklist, _categoryNames: { ...((store.checklist as any)._categoryNames || {}), [catId]: newName } } as any;
+    updateStore(store.id, { checklist: newChecklist });
+  };
+
+  const handleCategoryNameBlur = (catId: string, newName: string) => {
+    if (!store || !isTeamMember) return;
+    const originalName = checklistCategories.find(c => c.id === catId)?.nome || "";
+    const currentCustom = ((store.checklist as any)?._categoryNames as Record<string, string>)?.[catId];
+    // Only prompt if name actually changed from original
+    if (newName && newName !== originalName && newName !== currentCustom) {
+      setPendingCatRename({ catId, newName });
+    }
+  };
+
+  const applyCatRenameToAll = useCallback(async () => {
+    if (!pendingCatRename) return;
+    const { data: allStores } = await supabase.from("stores").select("id, checklist");
+    if (allStores) {
+      for (const s of allStores) {
+        if (s.id === store?.id) continue;
+        const existingChecklist = (s.checklist as any) || {};
+        const updated = {
+          ...existingChecklist,
+          _categoryNames: { ...(existingChecklist._categoryNames || {}), [pendingCatRename.catId]: pendingCatRename.newName },
+        };
+        await supabase.from("stores").update({ checklist: updated }).eq("id", s.id);
+      }
+      toast.success("Nome da categoria atualizado em todas as lojas!");
+    }
+    setPendingCatRename(null);
+  }, [pendingCatRename, store]);
+
+  const applyCatRenameOnlyHere = () => {
+    toast.success("Nome alterado apenas nesta loja.");
+    setPendingCatRename(null);
+  };
 
   if (!store) {
     return (
@@ -249,7 +303,7 @@ const StoreDetail = () => {
                     value={cat.id}
                     className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
                   >
-                    {cat.nome}
+                    {getCategoryName(cat.id, cat.nome)}
                     <span className="ml-1.5 text-[10px] opacity-70">{catProgress}%</span>
                   </TabsTrigger>
                 );
@@ -306,6 +360,16 @@ const StoreDetail = () => {
 
           {checklistCategories.map((cat) => (
             <TabsContent key={cat.id} value={cat.id} className="mt-4">
+              {isTeamMember && (
+                <div className="mb-3">
+                  <Input
+                    className="h-9 text-sm font-semibold max-w-md"
+                    value={getCategoryName(cat.id, cat.nome)}
+                    onChange={(e) => handleCategoryNameChange(cat.id, e.target.value)}
+                    onBlur={(e) => handleCategoryNameBlur(cat.id, e.target.value)}
+                  />
+                </div>
+              )}
               <div className="rounded-xl border bg-card overflow-hidden">
                 <div className="overflow-x-auto">
                   <Table>
@@ -338,7 +402,11 @@ const StoreDetail = () => {
                               data.status === "ATRASADO"
                                 ? "bg-destructive/5"
                                 : data.status === "REALIZADO"
-                                ? "bg-[hsl(152,60%,95%)]"
+                                ? "bg-[hsl(142,60%,95%)]"
+                                : data.status === "REALIZANDO"
+                                ? "bg-[hsl(152,40%,92%)]"
+                                : data.status === "EM ANDAMENTO"
+                                ? "bg-[hsl(45,90%,95%)]"
                                 : isImpeditivo
                                 ? "bg-[hsl(38,90%,97%)]"
                                 : ""
@@ -443,6 +511,23 @@ const StoreDetail = () => {
             </TabsContent>
           ))}
         </Tabs>
+
+        {/* Dialog for syncing category name to all stores */}
+        <AlertDialog open={!!pendingCatRename} onOpenChange={(open) => !open && setPendingCatRename(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Alterar nome em todas as lojas?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Você alterou o nome da categoria para "<strong>{pendingCatRename?.newName}</strong>". 
+                Deseja aplicar esta alteração em todas as lojas ou apenas nesta?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={applyCatRenameOnlyHere}>Apenas nesta loja</AlertDialogCancel>
+              <AlertDialogAction onClick={applyCatRenameToAll}>Aplicar em todas</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );
