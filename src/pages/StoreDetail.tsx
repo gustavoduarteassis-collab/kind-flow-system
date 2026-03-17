@@ -258,15 +258,21 @@ const StoreDetail = () => {
     // Empty row
     ws.addRow([]);
 
-    const headers = ["#", "Atividade", "Responsável", "Status", "Prazo Inicial", "Prazo Final", "Descrição", "Observações"];
-    const colWidths = [6, 55, 22, 18, 14, 14, 30, 30];
+    const obraIds = ["obra-aquisicao", "obra-execucao"];
+    const headersWithPrazoInicial = ["#", "Atividade", "Responsável", "Status", "Prazo Inicial", "Prazo Final", "Descrição", "Observações"];
+    const headersWithoutPrazoInicial = ["#", "Atividade", "Responsável", "Status", "Prazo Final", "Descrição", "Observações"];
+    const colWidthsWithPrazo = [6, 55, 22, 18, 14, 14, 30, 30];
+    const colWidthsWithoutPrazo = [6, 55, 22, 18, 14, 30, 30];
 
     checklistCategories.forEach((cat) => {
       const catName = categoryNames[cat.id] || cat.nome;
+      const isObra = obraIds.includes(cat.id);
+      const catHeaders = isObra ? headersWithPrazoInicial : headersWithoutPrazoInicial;
+      const numCols = catHeaders.length;
 
       // Category header row
       const catRow = ws.addRow([catName]);
-      ws.mergeCells(catRow.number, 1, catRow.number, 8);
+      ws.mergeCells(catRow.number, 1, catRow.number, numCols);
       const catCell = catRow.getCell(1);
       catCell.font = { bold: true, size: 12, color: { argb: "FFFFFFFF" } };
       catCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1A1A2E" } };
@@ -274,7 +280,7 @@ const StoreDetail = () => {
       catRow.height = 24;
 
       // Column headers
-      const headerRow = ws.addRow(headers);
+      const headerRow = ws.addRow(catHeaders);
       headerRow.eachCell((cell) => {
         cell.font = { bold: true, size: 10, color: { argb: "FFFFFFFF" } };
         cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF3949AB" } };
@@ -292,17 +298,12 @@ const StoreDetail = () => {
       cat.items.forEach((item, idx) => {
         const data = store.checklist[item.id] || {} as any;
         const status = data.status || "NÃO INICIADO";
-        const row = ws.addRow([
-          item.id,
-          data.atividade || item.atividade,
-          item.responsavel,
-          status,
-          data.prazoInicial || "",
-          data.prazoFinal || "",
-          data.descricao || "",
-          data.observacoes || "",
-        ]);
+        const rowData = isObra
+          ? [item.id, data.atividade || item.atividade, item.responsavel, status, data.prazoInicial || "", data.prazoFinal || "", data.descricao || "", data.observacoes || ""]
+          : [item.id, data.atividade || item.atividade, item.responsavel, status, data.prazoFinal || "", data.descricao || "", data.observacoes || ""];
+        const row = ws.addRow(rowData);
 
+        const statusColNum = 4;
         const stripeBg = idx % 2 === 0 ? "FFFFFFFF" : "FFF8F9FA";
         row.eachCell((cell, colNum) => {
           cell.font = { size: 10 };
@@ -314,8 +315,7 @@ const StoreDetail = () => {
             right: { style: "thin", color: { argb: "FFE0E0E0" } },
           };
 
-          if (colNum === 4) {
-            // Status column with color
+          if (colNum === statusColNum) {
             const colors = statusExcelColors[status] || { bg: "FFE0E0E0", font: "FF555555" };
             cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: colors.bg } };
             cell.font = { size: 10, bold: true, color: { argb: colors.font } };
@@ -332,8 +332,8 @@ const StoreDetail = () => {
       ws.addRow([]);
     });
 
-    // Set column widths
-    colWidths.forEach((w, i) => {
+    // Set column widths (use the wider set)
+    colWidthsWithPrazo.forEach((w, i) => {
       ws.getColumn(i + 1).width = w;
     });
 
@@ -609,7 +609,9 @@ const StoreDetail = () => {
                         <TableHead className="w-12 text-center">#</TableHead>
                         <TableHead className="min-w-[280px]">Atividade</TableHead>
                         <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
-                        <TableHead className="w-[130px]">Prazo Inicial</TableHead>
+                        {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
+                          <TableHead className="w-[130px]">Prazo Inicial</TableHead>
+                        )}
                         <TableHead className="w-[130px]">Prazo Final</TableHead>
                         <TableHead className="w-[170px]">Status</TableHead>
                         <TableHead className="w-[140px]">Responsável</TableHead>
@@ -669,16 +671,18 @@ const StoreDetail = () => {
                             <TableCell className="text-xs text-muted-foreground">
                               {item.preRequisito || "—"}
                             </TableCell>
-                            <TableCell>
-                              <Input
-                                type="date"
-                                className="h-8 text-xs"
-                                value={data.prazoInicial}
-                                onChange={(e) =>
-                                  handleFieldChange(item.id, "prazoInicial", e.target.value)
-                                }
-                              />
-                            </TableCell>
+                            {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
+                              <TableCell>
+                                <Input
+                                  type="date"
+                                  className="h-8 text-xs"
+                                  value={data.prazoInicial}
+                                  onChange={(e) =>
+                                    handleFieldChange(item.id, "prazoInicial", e.target.value)
+                                  }
+                                />
+                              </TableCell>
+                            )}
                             <TableCell>
                               <Input
                                 type="date"
