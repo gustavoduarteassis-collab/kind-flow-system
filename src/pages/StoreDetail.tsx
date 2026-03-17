@@ -76,7 +76,13 @@ const StoreDetail = () => {
   const [activeTab, setActiveTab] = useState("cronograma");
   const { user } = useAuth();
   const [isTeamMember, setIsTeamMember] = useState(false);
-
+  const [editingHeader, setEditingHeader] = useState(false);
+  const [headerFields, setHeaderFields] = useState({
+    franqueado: "",
+    construtor: "",
+    analistaObra: "",
+    inauguracao: "",
+  });
   useEffect(() => {
     if (!user?.email) return;
     const check = async () => {
