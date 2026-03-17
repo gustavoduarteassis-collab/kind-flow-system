@@ -50,7 +50,9 @@ import {
   Pencil,
   Check,
   X,
+  FileSpreadsheet,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 
 const statusColors: Record<StatusType, string> = {
   "NÃO INICIADO": "bg-secondary text-secondary-foreground",
@@ -181,6 +183,43 @@ const StoreDetail = () => {
     return Math.round((done / cat.items.length) * 100);
   };
 
+  const exportChecklistToExcel = () => {
+    if (!store) return;
+    const categoryNames = (store.checklist as any)?._categoryNames || {};
+    const rows: any[] = [];
+
+    checklistCategories.forEach((cat) => {
+      const catName = categoryNames[cat.id] || cat.nome;
+      cat.items.forEach((item) => {
+        const data = store.checklist[item.id] || {} as any;
+        rows.push({
+          "Categoria": catName,
+          "ID": item.id,
+          "Atividade": data.atividade || item.atividade,
+          "Responsável": item.responsavel,
+          "Status": data.status || "NÃO INICIADO",
+          "Prazo Inicial": data.prazoInicial || "",
+          "Prazo Final": data.prazoFinal || "",
+          "Observações": data.observacoes || "",
+          "Descrição": data.descricao || "",
+        });
+      });
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Checklist");
+
+    const colWidths = Object.keys(rows[0] || {}).map((key) => ({
+      wch: Math.max(key.length + 2, ...rows.map((r) => Math.min(String(r[key] || "").length + 2, 40)))
+    }));
+    ws["!cols"] = colWidths;
+
+    XLSX.writeFile(wb, `Checklist_${store.nome.replace(/\s+/g, "_")}.xlsx`);
+    toast.success("Excel exportado com sucesso!");
+  };
+
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -288,6 +327,14 @@ const StoreDetail = () => {
                 onClick={() => navigate(`/loja/${store.id}/relatorio?secao=${activeTab}`)}
               >
                 <Printer className="h-4 w-4" /> PDF da Aba
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={exportChecklistToExcel}
+              >
+                <FileSpreadsheet className="h-4 w-4" /> Excel Checklist
               </Button>
             </div>
           </div>
