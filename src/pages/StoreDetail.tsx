@@ -227,7 +227,7 @@ const StoreDetail = () => {
     // Empty row
     ws.addRow([]);
 
-    const headers = ["#", "Atividade", "Responsável", "Status", "Prazo Inicial", "Prazo Final", "Observações", "Descrição"];
+    const headers = ["#", "Atividade", "Responsável", "Status", "Prazo Inicial", "Prazo Final", "Descrição", "Observações"];
     const colWidths = [6, 55, 22, 18, 14, 14, 30, 30];
 
     checklistCategories.forEach((cat) => {
