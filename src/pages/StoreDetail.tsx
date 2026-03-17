@@ -183,7 +183,7 @@ const StoreDetail = () => {
     return Math.round((done / cat.items.length) * 100);
   };
 
-  const exportChecklistToExcel = useCallback(() => {
+  const exportChecklistToExcel = () => {
     if (!store) return;
     const categoryNames = (store.checklist as any)?._categoryNames || {};
     const rows: any[] = [];
@@ -217,7 +217,7 @@ const StoreDetail = () => {
 
     XLSX.writeFile(wb, `Checklist_${store.nome.replace(/\s+/g, "_")}.xlsx`);
     toast.success("Excel exportado com sucesso!");
-  }, [store]);
+  };
 
 
   return (
