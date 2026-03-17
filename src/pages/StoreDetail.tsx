@@ -335,8 +335,8 @@ const StoreDetail = () => {
       ws.addRow([]);
     });
 
-    // Set column widths
-    colWidths.forEach((w, i) => {
+    // Set column widths (use the wider set)
+    colWidthsWithPrazo.forEach((w, i) => {
       ws.getColumn(i + 1).width = w;
     });
 
