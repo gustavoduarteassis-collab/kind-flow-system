@@ -184,39 +184,131 @@ const StoreDetail = () => {
     return Math.round((done / cat.items.length) * 100);
   };
 
-  const exportChecklistToExcel = () => {
+  const exportChecklistToExcel = async () => {
     if (!store) return;
     const categoryNames = (store.checklist as any)?._categoryNames || {};
-    const rows: any[] = [];
+
+    const statusExcelColors: Record<string, { bg: string; font: string }> = {
+      "REALIZADO": { bg: "FF4CAF50", font: "FFFFFFFF" },
+      "REALIZANDO": { bg: "FF2E7D47", font: "FFFFFFFF" },
+      "EM ANDAMENTO": { bg: "FFFFC107", font: "FF333333" },
+      "ATRASADO": { bg: "FFF44336", font: "FFFFFFFF" },
+      "EM TRANSPORTE": { bg: "FF2196F3", font: "FFFFFFFF" },
+      "EM COTAÇÃO": { bg: "FFFF9800", font: "FF333333" },
+      "NÃO INICIADO": { bg: "FFE0E0E0", font: "FF555555" },
+      "NÃO SE APLICA": { bg: "FF9E9E9E", font: "FFFFFFFF" },
+      "CONSTRUTORA": { bg: "FF7E57C2", font: "FFFFFFFF" },
+      "EM ELABORAÇÃO": { bg: "FFFFB74D", font: "FF333333" },
+      "EM ANÁLISE": { bg: "FF42A5F5", font: "FFFFFFFF" },
+      "EM CONTRATAÇÃO": { bg: "FFAB47BC", font: "FFFFFFFF" },
+    };
+
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "Constance";
+    const ws = wb.addWorksheet("Checklist");
+
+    // Title row
+    ws.mergeCells("A1:H1");
+    const titleCell = ws.getCell("A1");
+    titleCell.value = `Checklist — ${store.nome}`;
+    titleCell.font = { bold: true, size: 16, color: { argb: "FF1A1A2E" } };
+    titleCell.alignment = { horizontal: "center", vertical: "middle" };
+    titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF5F5F5" } };
+    ws.getRow(1).height = 32;
+
+    // Store info row
+    ws.mergeCells("A2:H2");
+    const infoCell = ws.getCell("A2");
+    infoCell.value = `Franqueado: ${store.franqueado || "—"}  |  Construtor: ${store.construtor || "—"}  |  Analista: ${store.analistaObra || "—"}  |  Inauguração: ${store.inauguracao ? new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR") : "—"}`;
+    infoCell.font = { size: 10, color: { argb: "FF666666" } };
+    infoCell.alignment = { horizontal: "center", vertical: "middle" };
+    ws.getRow(2).height = 22;
+
+    // Empty row
+    ws.addRow([]);
+
+    const headers = ["#", "Atividade", "Responsável", "Status", "Prazo Inicial", "Prazo Final", "Observações", "Descrição"];
+    const colWidths = [6, 55, 22, 18, 14, 14, 30, 30];
 
     checklistCategories.forEach((cat) => {
       const catName = categoryNames[cat.id] || cat.nome;
-      cat.items.forEach((item) => {
+
+      // Category header row
+      const catRow = ws.addRow([catName]);
+      ws.mergeCells(catRow.number, 1, catRow.number, 8);
+      const catCell = catRow.getCell(1);
+      catCell.font = { bold: true, size: 12, color: { argb: "FFFFFFFF" } };
+      catCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1A1A2E" } };
+      catCell.alignment = { horizontal: "left", vertical: "middle" };
+      catRow.height = 24;
+
+      // Column headers
+      const headerRow = ws.addRow(headers);
+      headerRow.eachCell((cell) => {
+        cell.font = { bold: true, size: 10, color: { argb: "FFFFFFFF" } };
+        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF3949AB" } };
+        cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+        cell.border = {
+          top: { style: "thin", color: { argb: "FFCCCCCC" } },
+          bottom: { style: "thin", color: { argb: "FFCCCCCC" } },
+          left: { style: "thin", color: { argb: "FFCCCCCC" } },
+          right: { style: "thin", color: { argb: "FFCCCCCC" } },
+        };
+      });
+      headerRow.height = 20;
+
+      // Data rows
+      cat.items.forEach((item, idx) => {
         const data = store.checklist[item.id] || {} as any;
-        rows.push({
-          "Categoria": catName,
-          "ID": item.id,
-          "Atividade": data.atividade || item.atividade,
-          "Responsável": item.responsavel,
-          "Status": data.status || "NÃO INICIADO",
-          "Prazo Inicial": data.prazoInicial || "",
-          "Prazo Final": data.prazoFinal || "",
-          "Observações": data.observacoes || "",
-          "Descrição": data.descricao || "",
+        const status = data.status || "NÃO INICIADO";
+        const row = ws.addRow([
+          item.id,
+          data.atividade || item.atividade,
+          item.responsavel,
+          status,
+          data.prazoInicial || "",
+          data.prazoFinal || "",
+          data.observacoes || "",
+          data.descricao || "",
+        ]);
+
+        const stripeBg = idx % 2 === 0 ? "FFFFFFFF" : "FFF8F9FA";
+        row.eachCell((cell, colNum) => {
+          cell.font = { size: 10 };
+          cell.alignment = { vertical: "middle", wrapText: true };
+          cell.border = {
+            top: { style: "thin", color: { argb: "FFE0E0E0" } },
+            bottom: { style: "thin", color: { argb: "FFE0E0E0" } },
+            left: { style: "thin", color: { argb: "FFE0E0E0" } },
+            right: { style: "thin", color: { argb: "FFE0E0E0" } },
+          };
+
+          if (colNum === 4) {
+            // Status column with color
+            const colors = statusExcelColors[status] || { bg: "FFE0E0E0", font: "FF555555" };
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: colors.bg } };
+            cell.font = { size: 10, bold: true, color: { argb: colors.font } };
+            cell.alignment = { horizontal: "center", vertical: "middle" };
+          } else {
+            cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: stripeBg } };
+          }
+
+          if (colNum === 1) cell.alignment = { horizontal: "center", vertical: "middle" };
         });
       });
+
+      // Spacer row between categories
+      ws.addRow([]);
     });
 
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Checklist");
+    // Set column widths
+    colWidths.forEach((w, i) => {
+      ws.getColumn(i + 1).width = w;
+    });
 
-    const colWidths = Object.keys(rows[0] || {}).map((key) => ({
-      wch: Math.max(key.length + 2, ...rows.map((r) => Math.min(String(r[key] || "").length + 2, 40)))
-    }));
-    ws["!cols"] = colWidths;
-
-    XLSX.writeFile(wb, `Checklist_${store.nome.replace(/\s+/g, "_")}.xlsx`);
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    saveAs(blob, `Checklist_${store.nome.replace(/\s+/g, "_")}.xlsx`);
     toast.success("Excel exportado com sucesso!");
   };
 
