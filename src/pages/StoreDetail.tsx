@@ -266,10 +266,13 @@ const StoreDetail = () => {
 
     checklistCategories.forEach((cat) => {
       const catName = categoryNames[cat.id] || cat.nome;
+      const isObra = obraIds.includes(cat.id);
+      const catHeaders = isObra ? headersWithPrazoInicial : headersWithoutPrazoInicial;
+      const numCols = catHeaders.length;
 
       // Category header row
       const catRow = ws.addRow([catName]);
-      ws.mergeCells(catRow.number, 1, catRow.number, 8);
+      ws.mergeCells(catRow.number, 1, catRow.number, numCols);
       const catCell = catRow.getCell(1);
       catCell.font = { bold: true, size: 12, color: { argb: "FFFFFFFF" } };
       catCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1A1A2E" } };
@@ -277,7 +280,7 @@ const StoreDetail = () => {
       catRow.height = 24;
 
       // Column headers
-      const headerRow = ws.addRow(headers);
+      const headerRow = ws.addRow(catHeaders);
       headerRow.eachCell((cell) => {
         cell.font = { bold: true, size: 10, color: { argb: "FFFFFFFF" } };
         cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF3949AB" } };
@@ -295,17 +298,12 @@ const StoreDetail = () => {
       cat.items.forEach((item, idx) => {
         const data = store.checklist[item.id] || {} as any;
         const status = data.status || "NÃO INICIADO";
-        const row = ws.addRow([
-          item.id,
-          data.atividade || item.atividade,
-          item.responsavel,
-          status,
-          data.prazoInicial || "",
-          data.prazoFinal || "",
-          data.descricao || "",
-          data.observacoes || "",
-        ]);
+        const rowData = isObra
+          ? [item.id, data.atividade || item.atividade, item.responsavel, status, data.prazoInicial || "", data.prazoFinal || "", data.descricao || "", data.observacoes || ""]
+          : [item.id, data.atividade || item.atividade, item.responsavel, status, data.prazoFinal || "", data.descricao || "", data.observacoes || ""];
+        const row = ws.addRow(rowData);
 
+        const statusColNum = 4;
         const stripeBg = idx % 2 === 0 ? "FFFFFFFF" : "FFF8F9FA";
         row.eachCell((cell, colNum) => {
           cell.font = { size: 10 };
@@ -317,8 +315,7 @@ const StoreDetail = () => {
             right: { style: "thin", color: { argb: "FFE0E0E0" } },
           };
 
-          if (colNum === 4) {
-            // Status column with color
+          if (colNum === statusColNum) {
             const colors = statusExcelColors[status] || { bg: "FFE0E0E0", font: "FF555555" };
             cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: colors.bg } };
             cell.font = { size: 10, bold: true, color: { argb: colors.font } };
