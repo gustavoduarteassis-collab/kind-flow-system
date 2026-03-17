@@ -54,6 +54,7 @@ import {
 } from "lucide-react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import logoConstanceSvg from "@/assets/logo-constance.svg";
 
 const statusColors: Record<StatusType, string> = {
   "NÃO INICIADO": "bg-secondary text-secondary-foreground",
@@ -203,26 +204,56 @@ const StoreDetail = () => {
       "EM CONTRATAÇÃO": { bg: "FFAB47BC", font: "FFFFFFFF" },
     };
 
+    // Convert SVG logo to PNG base64
+    const svgToBase64Png = (): Promise<string> => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = 300;
+          canvas.height = 48;
+          const ctx = canvas.getContext("2d")!;
+          ctx.drawImage(img, 0, 0, 300, 48);
+          resolve(canvas.toDataURL("image/png").split(",")[1]);
+        };
+        img.onerror = () => resolve("");
+        img.src = logoConstanceSvg;
+      });
+    };
+
     const wb = new ExcelJS.Workbook();
     wb.creator = "Constance";
     const ws = wb.addWorksheet("Checklist");
 
-    // Title row
-    ws.mergeCells("A1:H1");
-    const titleCell = ws.getCell("A1");
+    // Add logo
+    const logoBase64 = await svgToBase64Png();
+    if (logoBase64) {
+      const logoId = wb.addImage({ base64: logoBase64, extension: "png" });
+      ws.addImage(logoId, {
+        tl: { col: 0, row: 0 },
+        ext: { width: 220, height: 35 },
+      });
+    }
+
+    // Logo row height
+    ws.getRow(1).height = 40;
+
+    // Title row (row 2)
+    ws.mergeCells("A2:H2");
+    const titleCell = ws.getCell("A2");
     titleCell.value = `Checklist — ${store.nome}`;
     titleCell.font = { bold: true, size: 16, color: { argb: "FF1A1A2E" } };
     titleCell.alignment = { horizontal: "center", vertical: "middle" };
     titleCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF5F5F5" } };
-    ws.getRow(1).height = 32;
+    ws.getRow(2).height = 32;
 
-    // Store info row
-    ws.mergeCells("A2:H2");
-    const infoCell = ws.getCell("A2");
+    // Store info row (row 3)
+    ws.mergeCells("A3:H3");
+    const infoCell = ws.getCell("A3");
     infoCell.value = `Franqueado: ${store.franqueado || "—"}  |  Construtor: ${store.construtor || "—"}  |  Analista: ${store.analistaObra || "—"}  |  Inauguração: ${store.inauguracao ? new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR") : "—"}`;
     infoCell.font = { size: 10, color: { argb: "FF666666" } };
     infoCell.alignment = { horizontal: "center", vertical: "middle" };
-    ws.getRow(2).height = 22;
+    ws.getRow(3).height = 22;
 
     // Empty row
     ws.addRow([]);
