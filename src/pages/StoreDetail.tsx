@@ -612,7 +612,9 @@ const StoreDetail = () => {
                         <TableHead className="w-12 text-center">#</TableHead>
                         <TableHead className="min-w-[280px]">Atividade</TableHead>
                         <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
-                        <TableHead className="w-[130px]">Prazo Inicial</TableHead>
+                        {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
+                          <TableHead className="w-[130px]">Prazo Inicial</TableHead>
+                        )}
                         <TableHead className="w-[130px]">Prazo Final</TableHead>
                         <TableHead className="w-[170px]">Status</TableHead>
                         <TableHead className="w-[140px]">Responsável</TableHead>
