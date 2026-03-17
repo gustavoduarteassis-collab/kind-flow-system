@@ -674,16 +674,18 @@ const StoreDetail = () => {
                             <TableCell className="text-xs text-muted-foreground">
                               {item.preRequisito || "—"}
                             </TableCell>
-                            <TableCell>
-                              <Input
-                                type="date"
-                                className="h-8 text-xs"
-                                value={data.prazoInicial}
-                                onChange={(e) =>
-                                  handleFieldChange(item.id, "prazoInicial", e.target.value)
-                                }
-                              />
-                            </TableCell>
+                            {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
+                              <TableCell>
+                                <Input
+                                  type="date"
+                                  className="h-8 text-xs"
+                                  value={data.prazoInicial}
+                                  onChange={(e) =>
+                                    handleFieldChange(item.id, "prazoInicial", e.target.value)
+                                  }
+                                />
+                              </TableCell>
+                            )}
                             <TableCell>
                               <Input
                                 type="date"
