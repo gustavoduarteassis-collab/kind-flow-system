@@ -181,6 +181,7 @@ const StoreDetail = () => {
         store.checklist[item.id]?.status === "NÃO SE APLICA"
     ).length;
     return Math.round((done / cat.items.length) * 100);
+  };
 
   const exportChecklistToExcel = useCallback(() => {
     if (!store) return;
