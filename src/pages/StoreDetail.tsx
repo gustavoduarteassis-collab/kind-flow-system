@@ -47,6 +47,9 @@ import {
   FileText,
   DollarSign,
   Printer,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 
 const statusColors: Record<StatusType, string> = {
@@ -73,7 +76,13 @@ const StoreDetail = () => {
   const [activeTab, setActiveTab] = useState("cronograma");
   const { user } = useAuth();
   const [isTeamMember, setIsTeamMember] = useState(false);
-
+  const [editingHeader, setEditingHeader] = useState(false);
+  const [headerFields, setHeaderFields] = useState({
+    franqueado: "",
+    construtor: "",
+    analistaObra: "",
+    inauguracao: "",
+  });
   useEffect(() => {
     if (!user?.email) return;
     const check = async () => {
@@ -189,26 +198,77 @@ const StoreDetail = () => {
                     <Store className="h-3.5 w-3.5" /> Filial: {store.filial}
                   </span>
                 )}
-                {store.franqueado && (
-                  <span className="flex items-center gap-1">
-                    <User className="h-3.5 w-3.5" /> {store.franqueado}
-                  </span>
-                )}
-                {store.construtor && (
-                  <span className="flex items-center gap-1">
-                    🏗️ {store.construtor}
-                  </span>
-                )}
-                {store.analistaObra && (
-                  <span className="flex items-center gap-1">
-                    📋 {store.analistaObra}
-                  </span>
-                )}
-                {store.inauguracao && (
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5" />
-                    {new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR")}
-                  </span>
+                {editingHeader && isTeamMember ? (
+                  <>
+                    <div className="flex items-center gap-1">
+                      <User className="h-3.5 w-3.5" />
+                      <Input className="h-7 text-xs w-36" placeholder="Franqueado" value={headerFields.franqueado} onChange={(e) => setHeaderFields(p => ({ ...p, franqueado: e.target.value }))} />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>🏗️</span>
+                      <Input className="h-7 text-xs w-36" placeholder="Construtor" value={headerFields.construtor} onChange={(e) => setHeaderFields(p => ({ ...p, construtor: e.target.value }))} />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>📋</span>
+                      <Input className="h-7 text-xs w-36" placeholder="Analista" value={headerFields.analistaObra} onChange={(e) => setHeaderFields(p => ({ ...p, analistaObra: e.target.value }))} />
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <Input type="date" className="h-7 text-xs w-36" value={headerFields.inauguracao} onChange={(e) => setHeaderFields(p => ({ ...p, inauguracao: e.target.value }))} />
+                    </div>
+                    <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => {
+                      updateStore(store.id, {
+                        franqueado: headerFields.franqueado,
+                        construtor: headerFields.construtor,
+                        analistaObra: headerFields.analistaObra,
+                        inauguracao: headerFields.inauguracao,
+                      });
+                      setEditingHeader(false);
+                      toast.success("Dados atualizados!");
+                    }}>
+                      <Check className="h-3.5 w-3.5 text-[hsl(142,60%,45%)]" />
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => setEditingHeader(false)}>
+                      <X className="h-3.5 w-3.5 text-destructive" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {store.franqueado && (
+                      <span className="flex items-center gap-1">
+                        <User className="h-3.5 w-3.5" /> {store.franqueado}
+                      </span>
+                    )}
+                    {store.construtor && (
+                      <span className="flex items-center gap-1">
+                        🏗️ {store.construtor}
+                      </span>
+                    )}
+                    {store.analistaObra && (
+                      <span className="flex items-center gap-1">
+                        📋 {store.analistaObra}
+                      </span>
+                    )}
+                    {store.inauguracao && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5" />
+                        {new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR")}
+                      </span>
+                    )}
+                    {isTeamMember && (
+                      <Button size="sm" variant="ghost" className="h-6 px-1.5" onClick={() => {
+                        setHeaderFields({
+                          franqueado: store.franqueado || "",
+                          construtor: store.construtor || "",
+                          analistaObra: store.analistaObra || "",
+                          inauguracao: store.inauguracao || "",
+                        });
+                        setEditingHeader(true);
+                      }}>
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
