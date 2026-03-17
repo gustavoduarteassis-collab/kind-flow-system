@@ -207,7 +207,6 @@ const StoreDetail = () => {
     // Convert SVG logo to PNG base64
     const svgToBase64Png = (): Promise<string> => {
       return new Promise((resolve) => {
-        const { default: logoSvg } = require("@/assets/logo-constance.svg") as { default: string };
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement("canvas");
@@ -218,7 +217,7 @@ const StoreDetail = () => {
           resolve(canvas.toDataURL("image/png").split(",")[1]);
         };
         img.onerror = () => resolve("");
-        img.src = logoSvg;
+        img.src = logoConstanceSvg;
       });
     };
 
