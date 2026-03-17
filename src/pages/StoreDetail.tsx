@@ -181,7 +181,43 @@ const StoreDetail = () => {
         store.checklist[item.id]?.status === "NÃO SE APLICA"
     ).length;
     return Math.round((done / cat.items.length) * 100);
-  };
+
+  const exportChecklistToExcel = useCallback(() => {
+    if (!store) return;
+    const categoryNames = (store.checklist as any)?._categoryNames || {};
+    const rows: any[] = [];
+
+    checklistCategories.forEach((cat) => {
+      const catName = categoryNames[cat.id] || cat.nome;
+      cat.items.forEach((item) => {
+        const data = store.checklist[item.id] || {} as any;
+        rows.push({
+          "Categoria": catName,
+          "ID": item.id,
+          "Atividade": data.atividade || item.atividade,
+          "Responsável": item.responsavel,
+          "Status": data.status || "NÃO INICIADO",
+          "Prazo Inicial": data.prazoInicial || "",
+          "Prazo Final": data.prazoFinal || "",
+          "Observações": data.observacoes || "",
+          "Descrição": data.descricao || "",
+        });
+      });
+    });
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Checklist");
+
+    const colWidths = Object.keys(rows[0] || {}).map((key) => ({
+      wch: Math.max(key.length + 2, ...rows.map((r) => Math.min(String(r[key] || "").length + 2, 40)))
+    }));
+    ws["!cols"] = colWidths;
+
+    XLSX.writeFile(wb, `Checklist_${store.nome.replace(/\s+/g, "_")}.xlsx`);
+    toast.success("Excel exportado com sucesso!");
+  }, [store]);
+
 
   return (
     <div className="min-h-screen bg-background">
