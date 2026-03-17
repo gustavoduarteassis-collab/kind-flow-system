@@ -47,6 +47,9 @@ import {
   FileText,
   DollarSign,
   Printer,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 
 const statusColors: Record<StatusType, string> = {
