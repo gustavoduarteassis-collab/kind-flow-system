@@ -50,7 +50,9 @@ import {
   Pencil,
   Check,
   X,
+  FileSpreadsheet,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 
 const statusColors: Record<StatusType, string> = {
   "NÃO INICIADO": "bg-secondary text-secondary-foreground",
