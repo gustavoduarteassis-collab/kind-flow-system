@@ -3,7 +3,7 @@ export type InaugStatusType = "NAO_ATENDIDO" | "EM_ANDAMENTO" | "TOTALMENTE_ATEN
 export const inaugStatusLabels: Record<InaugStatusType, string> = {
   NAO_ATENDIDO: "Não Atendido",
   EM_ANDAMENTO: "Em Andamento",
-  TOTALMENTE_ATENDIDO: "Totalmente Atendido",
+  TOTALMENTE_ATENDIDO: "Realizado",
   NAO_SE_APLICA: "Não se Aplica",
 };
 

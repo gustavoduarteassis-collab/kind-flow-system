@@ -252,13 +252,29 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   // Progress calculations
   const allItems = checklist.categories.flatMap((c) => c.items);
   const totalItems = allItems.length;
+  const getStatusScore = (status?: InaugStatusType) => {
+    switch (status) {
+      case "TOTALMENTE_ATENDIDO":
+        return 100;
+      case "EM_ANDAMENTO":
+        return 50;
+      case "NAO_SE_APLICA":
+        return 100;
+      default:
+        return 0;
+    }
+  };
   const doneItems = currentRound
     ? allItems.filter((item) => {
         const s = currentRound.items[item.id]?.status;
         return s === "TOTALMENTE_ATENDIDO" || s === "NAO_SE_APLICA";
       }).length
     : 0;
-  const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+  const totalScore = currentRound
+    ? allItems.reduce((acc, item) => acc + getStatusScore(currentRound.items[item.id]?.status), 0)
+    : 0;
+  const maxScore = totalItems * 100;
+  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
   const impeditivos = allItems.filter((i) => i.impeditivo);
   const impeditivosPendentes = currentRound
     ? impeditivos.filter((i) => {
@@ -271,11 +287,9 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
 
   const getCatProgress = (cat: InaugCategory) => {
     if (!currentRound) return 0;
-    const done = cat.items.filter((i) => {
-      const s = currentRound.items[i.id]?.status;
-      return s === "TOTALMENTE_ATENDIDO" || s === "NAO_SE_APLICA";
-    }).length;
-    return Math.round((done / cat.items.length) * 100);
+    const total = cat.items.reduce((acc, i) => acc + getStatusScore(currentRound.items[i.id]?.status), 0);
+    const max = cat.items.length * 100;
+    return max > 0 ? Math.round((total / max) * 100) : 0;
   };
 
   const roundDate = currentRound?.date ? new Date(currentRound.date + "T00:00:00") : undefined;
@@ -504,7 +518,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                         <CheckCircle2 className="h-8 w-8 text-[hsl(152,60%,40%)]" />
                         <div className="text-center">
                           <h3 className="text-lg font-bold text-[hsl(152,60%,30%)]">✅ LIBERADO PARA INAUGURAÇÃO</h3>
-                          <p className="text-sm text-[hsl(152,60%,30%)]">{progress}% dos itens atendidos</p>
+                          <p className="text-sm text-[hsl(152,60%,30%)]">{progress}% do checklist</p>
                         </div>
                       </>
                     ) : isLiberadoComRessalvas ? (
@@ -512,7 +526,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                         <CheckCircle2 className="h-8 w-8 text-[hsl(38,90%,45%)]" />
                         <div className="text-center">
                           <h3 className="text-lg font-bold text-[hsl(38,90%,35%)]">⚠️ LIBERADO COM RESSALVAS</h3>
-                          <p className="text-sm text-[hsl(38,90%,35%)]">{progress}% dos itens atendidos — itens pendentes devem ser resolvidos após inauguração</p>
+                          <p className="text-sm text-[hsl(38,90%,35%)]">{progress}% do checklist — itens pendentes devem ser resolvidos após inauguração</p>
                         </div>
                       </>
                     ) : (
@@ -520,7 +534,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                         <XCircle className="h-8 w-8 text-destructive" />
                         <div className="text-center">
                           <h3 className="text-lg font-bold text-destructive">❌ NÃO LIBERADO PARA INAUGURAÇÃO</h3>
-                          <p className="text-sm text-destructive">{progress}% dos itens atendidos — mínimo necessário: 85%</p>
+                          <p className="text-sm text-destructive">{progress}% do checklist — mínimo necessário: 85%</p>
                           {impeditivosPendentes > 0 && (
                             <p className="text-xs text-destructive mt-1">⚠ {impeditivosPendentes} itens impeditivos pendentes</p>
                           )}
