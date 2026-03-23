@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Printer } from "lucide-react";
 import { addDays, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import logoConstance from "@/assets/logo-constance.svg";
 
 type WorkerEntry = { type: string; count: number };
 type DiaryEntryReport = {
@@ -205,6 +206,13 @@ const StoreReport = () => {
       <div className="max-w-[210mm] mx-auto px-6 py-8 print:px-0 print:py-4 print:max-w-full">
         {/* ===== HEADER ===== */}
         <div className="text-center mb-6 border-b-2 border-black pb-4">
+          <div className="flex justify-center mb-3">
+            <img
+              src={logoConstance}
+              alt="Constance"
+              className="h-10 object-contain"
+            />
+          </div>
           <h1 className="text-2xl font-bold">
             {secao ? `RELATÓRIO — ${(secaoLabels[secao] || secao).toUpperCase()}` : "RELATÓRIO DIÁRIO DE OBRA"}
           </h1>
@@ -482,7 +490,7 @@ const StoreReport = () => {
           const grandPrev = custos.categorias.reduce((s, cat) => s + cat.items.reduce((ss, it) => ss + (it.valorPrevisto || 0), 0), 0);
           const grandReal = custos.categorias.reduce((s, cat) => s + cat.items.reduce((ss, it) => ss + (it.valorRealizado || 0), 0), 0);
           return (
-            <section className="mb-6 break-before-page">
+            <section className={`mb-6 ${secao ? "" : "break-before-page"}`}>
               <h2 className="text-lg font-bold border-b border-black mb-3">4. CUSTOS DA OBRA</h2>
               <div className="grid grid-cols-3 gap-4 text-center mb-4">
                 <div className="border rounded p-3">
@@ -568,7 +576,7 @@ const StoreReport = () => {
 
         {/* ===== DIÁRIO DE OBRA ===== */}
         {(!secao || secao === "diario") && diaryEntries.length > 0 && (
-          <section className="mb-6 break-before-page">
+          <section className={`mb-6 ${secao ? "" : "break-before-page"}`}>
             <h2 className="text-lg font-bold border-b border-black mb-3">5. DIÁRIO DE OBRA</h2>
             <p className="text-xs mb-3 text-gray-600">
               Total de registros: {diaryEntries.length} | Total de fotos: {Object.values(diaryPhotos).reduce((s, arr) => s + arr.length, 0)}
@@ -622,7 +630,7 @@ const StoreReport = () => {
           if (inaugData.rounds.length === 0) return null;
           const inaugChecklist = getInaugChecklist(tipoLoja);
           return (
-            <section className="mb-6 break-before-page">
+            <section className={`mb-6 ${secao ? "" : "break-before-page"}`}>
               <h2 className="text-lg font-bold border-b border-black mb-3">
                 {secao ? "" : "6. "}CHECKLIST DE INAUGURAÇÃO — {tipoLoja === "rua" ? "Loja de Rua" : "Loja de Shopping"}
               </h2>
@@ -738,7 +746,7 @@ const StoreReport = () => {
           const formatDate = (d: string) => d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—";
 
           return (
-            <section className="mb-6 break-before-page">
+            <section className={`mb-6 ${secao ? "" : "break-before-page"}`}>
               <h2 className="text-lg font-bold border-b border-black mb-3">
                 CHECKLIST DE VISITA TÉCNICA — {vtProgress}%
               </h2>
