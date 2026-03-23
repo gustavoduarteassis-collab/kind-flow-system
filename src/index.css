@@ -118,6 +118,12 @@
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+  #root {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+  }
   .print\:hidden,
   header,
   [role="tablist"] {
@@ -135,5 +141,23 @@
   }
   .grid {
     break-inside: avoid;
+  }
+  table {
+    width: 100% !important;
+    table-layout: fixed;
+    border-collapse: collapse;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+  tr,
+  td,
+  th {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    word-break: break-word;
   }
 }
