@@ -417,7 +417,7 @@ const StoreReport = () => {
             const catPct = Math.round((catDone / cat.items.length) * 100);
 
             return (
-              <div key={cat.id} className="mb-4 break-inside-avoid">
+              <div key={cat.id} className="mb-4 break-inside-avoid print:break-inside-auto">
                 <h3 className="text-sm font-bold bg-gray-100 px-2 py-1 border border-black">
                   {cat.nome} — {catPct}% concluído
                 </h3>
