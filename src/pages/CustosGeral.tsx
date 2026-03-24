@@ -118,6 +118,9 @@ const CustosGeral = () => {
   const [filterAno, setFilterAno] = useState<string>("todos");
   const [filterTipo, setFilterTipo] = useState<string>("todos");
   const [dashboardAno, setDashboardAno] = useState<string>("2025");
+  const [planilhaTipo, setPlanilhaTipo] = useState<StoreCostEntry["tipo"]>("TRADICIONAL");
+  const [planilhaArea, setPlanilhaArea] = useState<string>("");
+  const [planilhaLoja, setPlanilhaLoja] = useState<string>("");
   const [dbEntries, setDbEntries] = useState<DbEntry[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -213,6 +216,22 @@ const CustosGeral = () => {
       return { ...d, avgPerM2: adjustedPerM2, avgTotalPerM2: d.meta };
     });
   }, []);
+
+  const planilhaRegua = useMemo(() => {
+    return projections2026.find((d) => d.tipo === planilhaTipo) || projections2026[0];
+  }, [planilhaTipo, projections2026]);
+
+  const planilhaAreaNum = Number(planilhaArea) || 0;
+  const planilhaRows = useMemo(() => {
+    if (!planilhaRegua) return [] as { key: CatKey; label: string; valM2: number; total: number }[];
+    return CATEGORIAS.map(({ key, label }) => {
+      const valM2 = planilhaRegua.avgPerM2[key] || 0;
+      return { key, label, valM2, total: valM2 * planilhaAreaNum };
+    });
+  }, [planilhaRegua, planilhaAreaNum]);
+
+  const planilhaTotal = planilhaRows.reduce((s, r) => s + r.total, 0);
+  const planilhaTotalM2 = planilhaAreaNum > 0 ? planilhaTotal / planilhaAreaNum : 0;
 
   // Report data
   const reportData = useMemo(() => {
@@ -334,9 +353,10 @@ const CustosGeral = () => {
 
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <Tabs defaultValue="dashboard" className="space-y-6">
-          <TabsList className="grid w-full max-w-2xl grid-cols-5">
+          <TabsList className="grid w-full max-w-3xl grid-cols-6">
             <TabsTrigger value="dashboard" className="gap-1.5 text-xs"><BarChart3 className="h-3.5 w-3.5" />Dashboard</TabsTrigger>
             <TabsTrigger value="projecao" className="gap-1.5 text-xs"><Calculator className="h-3.5 w-3.5" />Meta 2026</TabsTrigger>
+            <TabsTrigger value="planilha" className="gap-1.5 text-xs"><FileText className="h-3.5 w-3.5" />Planilha</TabsTrigger>
             <TabsTrigger value="lancamento" className="gap-1.5 text-xs"><Plus className="h-3.5 w-3.5" />2026</TabsTrigger>
             <TabsTrigger value="relatorio" className="gap-1.5 text-xs"><FileText className="h-3.5 w-3.5" />Relatório</TabsTrigger>
             <TabsTrigger value="tabela" className="gap-1.5 text-xs"><Building2 className="h-3.5 w-3.5" />Tabela</TabsTrigger>
@@ -449,6 +469,83 @@ const CustosGeral = () => {
                 );
               })}
             </div>
+          </TabsContent>
+
+          {/* ===== PLANILHA TAB ===== */}
+          <TabsContent value="planilha" className="space-y-6">
+            <div className="flex flex-wrap gap-3 items-center print:hidden">
+              <div className="w-full max-w-xs">
+                <Label>Nome da Loja</Label>
+                <Input value={planilhaLoja} onChange={(e) => setPlanilhaLoja(e.target.value)} placeholder="Ex: SHOPPING EXEMPLO" />
+              </div>
+              <div className="w-full max-w-[200px]">
+                <Label>Tipo de Loja</Label>
+                <Select value={planilhaTipo} onValueChange={(v) => setPlanilhaTipo(v as StoreCostEntry["tipo"])}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>{TIPOS.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+                </Select>
+              </div>
+              <div className="w-full max-w-[160px]">
+                <Label>Área da Loja (m²)</Label>
+                <Input type="number" value={planilhaArea} onChange={(e) => setPlanilhaArea(e.target.value)} placeholder="0" />
+              </div>
+              <Button variant="outline" className="ml-auto gap-2" onClick={() => window.print()}>
+                <Printer className="h-4 w-4" />Gerar PDF / Imprimir
+              </Button>
+            </div>
+
+            {/* Print header */}
+            <div className="hidden print:block mb-6">
+              <div className="flex items-center gap-3 mb-2">
+                <img src={logoConstance} alt="Logo" className="h-10 w-auto" />
+                <div>
+                  <h1 className="text-xl font-bold">Planilha de Custo por m²</h1>
+                  <p className="text-sm text-muted-foreground">
+                    {planilhaLoja ? `Loja: ${planilhaLoja} | ` : ""}Tipo: {planilhaTipo} | Área: {planilhaAreaNum > 0 ? planilhaAreaNum.toFixed(1) : "0"} m²
+                    {` | Gerado em: ${new Date().toLocaleDateString("pt-BR")}`}
+                  </p>
+                </div>
+              </div>
+              <hr />
+            </div>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Régua por m² — {planilhaTipo}</CardTitle>
+                <p className="text-xs text-muted-foreground">Valores calculados com base na régua por m² do tipo selecionado.</p>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead>Categoria</TableHead>
+                        <TableHead className="text-right">Valor / m²</TableHead>
+                        <TableHead className="text-right">Total ({planilhaAreaNum > 0 ? `${planilhaAreaNum.toFixed(1)} m²` : "m²"})</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {planilhaRows.map((row) => (
+                        <TableRow key={row.key}>
+                          <TableCell className="font-medium">{row.label}</TableCell>
+                          <TableCell className="text-right font-mono text-sm">{fmtM2(row.valM2)}</TableCell>
+                          <TableCell className="text-right font-mono text-sm font-semibold">{fmt(row.total)}</TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow className="bg-muted/30 font-bold">
+                        <TableCell>TOTAL</TableCell>
+                        <TableCell className="text-right font-mono">{fmtM2(planilhaTotalM2)}</TableCell>
+                        <TableCell className="text-right font-mono text-base text-[hsl(152,60%,40%)]">{fmt(planilhaTotal)}</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-foreground">
+                  <span>Meta do tipo: {planilhaRegua ? fmtM2(planilhaRegua.meta) : "—"}/m²</span>
+                  <span>Régua aplicada: média ajustada 2026 por categoria</span>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* ===== LANÇAMENTO 2026 TAB ===== */}
