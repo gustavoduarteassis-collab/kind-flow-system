@@ -407,22 +407,29 @@ const Equipe = () => {
     const num = Number(value);
     return Number.isFinite(num) && num > 0 ? num : 0;
   };
+  const getImplantationEndDate = (implantDate?: string | null, implantDays?: any) => {
+    const start = parseDateValue(implantDate || "");
+    const days = toPositiveNumber(implantDays || 0);
+    if (!start || days <= 0) return "";
+    return format(addDays(start, days - 1), "yyyy-MM-dd");
+  };
 
   const addScheduleStore = async () => {
     if (!scheduleForm.nome) return;
+    const inauguracaoDate = getImplantationEndDate(scheduleForm.dataImplantacao, scheduleForm.duracaoImplantacaoDias);
     const newId = await addStore({
       nome: scheduleForm.nome,
       filial: "",
       franqueado: "",
       construtor: "",
       analistaObra: scheduleForm.analistaObra,
-      inauguracao: scheduleForm.inauguracao,
+      inauguracao: inauguracaoDate,
       tipoLoja: "",
       inauguracaoChecklist: {} as any,
     } as any);
     if (newId) {
       await updateStore(newId, {
-        inauguracao: scheduleForm.inauguracao,
+        inauguracao: inauguracaoDate,
         analistaObra: scheduleForm.analistaObra,
         visitaTecnica: {
           cidade: scheduleForm.cidade,
@@ -468,7 +475,12 @@ const Equipe = () => {
     const memberKey = normalizeName(memberLabel);
     const hasMember = Boolean(memberKey);
     const city = (visita.cidade || "").toString().trim();
-    const inaug = parseDateValue(s.inauguracao || null);
+    const implantStart = parseDateValue(visita.dataImplantacao);
+    const implantDays = toPositiveNumber(visita.duracaoImplantacaoDias || 0);
+    const derivedInaug = implantStart && implantDays > 0
+      ? addDays(implantStart, implantDays - 1)
+      : parseDateValue(s.inauguracao || null);
+    const inaug = derivedInaug;
     if (inaug && hasMember) {
       scheduleBlocks.push({
         storeId: s.id,
@@ -495,8 +507,6 @@ const Equipe = () => {
         end: addDays(visitaStart, visitaDays - 1),
       });
     }
-    const implantStart = parseDateValue(visita.dataImplantacao);
-    const implantDays = toPositiveNumber(visita.duracaoImplantacaoDias || 0);
     if (implantStart && implantDays > 0 && hasMember) {
       scheduleBlocks.push({
         storeId: s.id,
@@ -552,10 +562,12 @@ const Equipe = () => {
     });
   });
 
-  // 2. Store inaugurations
+  // 2. Store inaugurations (last day of implantation)
   stores.forEach((s) => {
-    if (s.inauguracao) {
-      allCalendarEvents.push({ id: `inaug-${s.id}`, title: `Inauguração: ${s.nome}`, event_type: "implantacao", date: new Date(s.inauguracao + "T00:00:00"), deletable: false });
+    const visita = (s.visitaTecnica as any) || {};
+    const derivedInaug = getImplantationEndDate(visita.dataImplantacao, visita.duracaoImplantacaoDias) || s.inauguracao || "";
+    if (derivedInaug) {
+      allCalendarEvents.push({ id: `inaug-${s.id}`, title: `Inauguração: ${s.nome}`, event_type: "implantacao", date: new Date(derivedInaug + "T00:00:00"), deletable: false });
     }
   });
 
@@ -971,6 +983,7 @@ const Equipe = () => {
                         <div className="space-y-3">
                           {stores.map((store) => {
                             const visita = (store.visitaTecnica as any) || {};
+                            const derivedInaug = getImplantationEndDate(visita.dataImplantacao, visita.duracaoImplantacaoDias) || store.inauguracao || "";
                             return (
                               <div key={store.id} className="border border-border/60 rounded-md p-3 text-sm">
                                 <div className="flex items-start justify-between gap-3">
@@ -989,7 +1002,7 @@ const Equipe = () => {
                                   </Button>
                                 </div>
                                 <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                                  <div><span className="text-muted-foreground">Inauguração:</span> {formatDate(store.inauguracao || "")}</div>
+                                  <div><span className="text-muted-foreground">Inauguração:</span> {formatDate(derivedInaug)}</div>
                                   <div><span className="text-muted-foreground">VT data:</span> {formatDate(visita.dataVisita || "")}</div>
                                   <div><span className="text-muted-foreground">VT dias:</span> {visita.duracaoVisitaDias || "—"}</div>
                                   <div><span className="text-muted-foreground">VI data:</span> {formatDate(visita.dataImplantacao || "")}</div>
@@ -1037,7 +1050,12 @@ const Equipe = () => {
                           <Input className="h-8 text-xs" value={scheduleForm.cidade} onChange={(e) => setScheduleForm({ ...scheduleForm, cidade: e.target.value })} />
                         </td>
                         <td className="px-3 py-2">
-                          <Input type="date" className="h-8 text-xs" value={scheduleForm.inauguracao} onChange={(e) => setScheduleForm({ ...scheduleForm, inauguracao: e.target.value })} />
+                          <Input
+                            type="date"
+                            className="h-8 text-xs"
+                            value={getImplantationEndDate(scheduleForm.dataImplantacao, scheduleForm.duracaoImplantacaoDias)}
+                            readOnly
+                          />
                         </td>
                         <td className="px-3 py-2">
                           <Input type="date" className="h-8 text-xs" value={scheduleForm.dataVisita} onChange={(e) => setScheduleForm({ ...scheduleForm, dataVisita: e.target.value })} />
@@ -1046,10 +1064,35 @@ const Equipe = () => {
                           <Input type="number" min={1} className="h-8 text-xs" value={scheduleForm.duracaoVisitaDias} onChange={(e) => setScheduleForm({ ...scheduleForm, duracaoVisitaDias: e.target.value })} />
                         </td>
                         <td className="px-3 py-2">
-                          <Input type="date" className="h-8 text-xs" value={scheduleForm.dataImplantacao} onChange={(e) => setScheduleForm({ ...scheduleForm, dataImplantacao: e.target.value })} />
+                          <Input
+                            type="date"
+                            className="h-8 text-xs"
+                            value={scheduleForm.dataImplantacao}
+                            onChange={(e) => {
+                              const dataImplantacao = e.target.value;
+                              setScheduleForm({
+                                ...scheduleForm,
+                                dataImplantacao,
+                                inauguracao: getImplantationEndDate(dataImplantacao, scheduleForm.duracaoImplantacaoDias),
+                              });
+                            }}
+                          />
                         </td>
                         <td className="px-3 py-2">
-                          <Input type="number" min={1} className="h-8 text-xs" value={scheduleForm.duracaoImplantacaoDias} onChange={(e) => setScheduleForm({ ...scheduleForm, duracaoImplantacaoDias: e.target.value })} />
+                          <Input
+                            type="number"
+                            min={1}
+                            className="h-8 text-xs"
+                            value={scheduleForm.duracaoImplantacaoDias}
+                            onChange={(e) => {
+                              const duracaoImplantacaoDias = e.target.value;
+                              setScheduleForm({
+                                ...scheduleForm,
+                                duracaoImplantacaoDias,
+                                inauguracao: getImplantationEndDate(scheduleForm.dataImplantacao, duracaoImplantacaoDias),
+                              });
+                            }}
+                          />
                         </td>
                         <td className="px-3 py-2">
                           <Button size="sm" className="h-8" onClick={addScheduleStore}>Adicionar</Button>
@@ -1061,6 +1104,7 @@ const Equipe = () => {
                         </tr>
                       ) : stores.map((store) => {
                         const visita = (store.visitaTecnica as any) || {};
+                        const derivedInaug = getImplantationEndDate(visita.dataImplantacao, visita.duracaoImplantacaoDias) || store.inauguracao || "";
                         return (
                           <tr key={store.id} className="border-b border-border/50">
                             <td className="px-3 py-2 font-medium">{store.nome}</td>
@@ -1076,7 +1120,7 @@ const Equipe = () => {
                               <Input className="h-8 text-xs" value={(visita.cidade || "").toString()} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, cidade: e.target.value } } as any)} />
                             </td>
                             <td className="px-3 py-2">
-                              <Input type="date" className="h-8 text-xs" value={store.inauguracao || ""} onChange={(e) => updateStore(store.id, { inauguracao: e.target.value } as any)} />
+                              <Input type="date" className="h-8 text-xs" value={derivedInaug} readOnly />
                             </td>
                             <td className="px-3 py-2">
                               <Input type="date" className="h-8 text-xs" value={visita.dataVisita || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataVisita: e.target.value } } as any)} />
@@ -1085,10 +1129,33 @@ const Equipe = () => {
                               <Input type="number" min={1} className="h-8 text-xs" value={visita.duracaoVisitaDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoVisitaDias: e.target.value } } as any)} />
                             </td>
                             <td className="px-3 py-2">
-                              <Input type="date" className="h-8 text-xs" value={visita.dataImplantacao || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataImplantacao: e.target.value } } as any)} />
+                              <Input
+                                type="date"
+                                className="h-8 text-xs"
+                                value={visita.dataImplantacao || ""}
+                                onChange={(e) => {
+                                  const dataImplantacao = e.target.value;
+                                  updateStore(store.id, {
+                                    inauguracao: getImplantationEndDate(dataImplantacao, visita.duracaoImplantacaoDias),
+                                    visitaTecnica: { ...visita, dataImplantacao },
+                                  } as any);
+                                }}
+                              />
                             </td>
                             <td className="px-3 py-2">
-                              <Input type="number" min={1} className="h-8 text-xs" value={visita.duracaoImplantacaoDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoImplantacaoDias: e.target.value } } as any)} />
+                              <Input
+                                type="number"
+                                min={1}
+                                className="h-8 text-xs"
+                                value={visita.duracaoImplantacaoDias || ""}
+                                onChange={(e) => {
+                                  const duracaoImplantacaoDias = e.target.value;
+                                  updateStore(store.id, {
+                                    inauguracao: getImplantationEndDate(visita.dataImplantacao, duracaoImplantacaoDias),
+                                    visitaTecnica: { ...visita, duracaoImplantacaoDias },
+                                  } as any);
+                                }}
+                              />
                             </td>
                             <td className="px-3 py-2">
                               <Button
