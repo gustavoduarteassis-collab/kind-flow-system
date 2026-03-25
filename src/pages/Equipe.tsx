@@ -516,6 +516,7 @@ const Equipe = () => {
     });
     return acc;
   }, {});
+  const scheduleDays = eachDayOfInterval({ start: startOfMonth(scheduleMonth), end: endOfMonth(scheduleMonth) });
   const scheduleMembers = Object.values(
     scheduleBlocks.reduce<Record<string, { key: string; label: string }>>((acc, block) => {
       if (!acc[block.memberKey]) acc[block.memberKey] = { key: block.memberKey, label: block.memberLabel };
@@ -868,9 +869,20 @@ const Equipe = () => {
                     </div>
                     <table className="w-full text-xs border-collapse">
                       <thead>
+                        <tr className="border-b border-border/60">
+                          <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[180px]"></th>
+                          <th className="text-center px-2 py-2" colSpan={scheduleDays.length}>
+                            <span
+                              className="text-sm font-semibold uppercase tracking-[0.2em] text-primary"
+                              style={{ textShadow: "0 1px 6px hsl(var(--primary) / 0.45)" }}
+                            >
+                              {format(scheduleMonth, "MMMM yyyy", { locale: ptBR })}
+                            </span>
+                          </th>
+                        </tr>
                         <tr className="border-b border-border">
                           <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[180px]">Analista</th>
-                          {eachDayOfInterval({ start: startOfMonth(scheduleMonth), end: endOfMonth(scheduleMonth) }).map((day) => {
+                          {scheduleDays.map((day) => {
                             const isToday = isSameDay(day, new Date());
                             return (
                               <th key={day.toISOString()} className={`text-center px-0 py-1 min-w-[28px] ${isToday ? "text-primary" : "text-muted-foreground"}`}>
@@ -889,7 +901,7 @@ const Equipe = () => {
                             <td className="sticky left-0 z-10 bg-card px-3 py-2">
                               <div className="font-semibold">{member.label || "Equipe"}</div>
                             </td>
-                            {eachDayOfInterval({ start: startOfMonth(scheduleMonth), end: endOfMonth(scheduleMonth) }).map((day) => {
+                            {scheduleDays.map((day) => {
                               const dayKey = format(day, "yyyy-MM-dd");
                               const blocks = getBlocksForMemberDay(member.key, day);
                               const hasConflict = (scheduleConflictMap[member.key]?.[dayKey] || 0) > 1;
