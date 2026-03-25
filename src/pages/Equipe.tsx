@@ -516,6 +516,22 @@ const Equipe = () => {
     });
     return acc;
   }, {});
+  const scheduleMembers = Object.values(
+    scheduleBlocks.reduce<Record<string, { key: string; label: string }>>((acc, block) => {
+      if (!acc[block.memberKey]) acc[block.memberKey] = { key: block.memberKey, label: block.memberLabel };
+      return acc;
+    }, {})
+  ).sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
+  const getBlocksForMemberDay = (memberKey: string, day: Date) => {
+    return scheduleBlocks.filter((b) => b.memberKey === memberKey && isWithinInterval(day, { start: b.start, end: b.end }));
+  };
+  const getStoreShort = (name: string) => {
+    const clean = (name || "").trim();
+    if (!clean) return "—";
+    const parts = clean.split(" ").filter(Boolean);
+    const initials = parts.map((p) => p[0]).join("");
+    return (initials || clean).slice(0, 3).toUpperCase();
+  };
 
   // Build virtual events from all data sources (only scheduled/agendado items)
   type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean; originalId?: string; time?: string | null; memberId?: string | null; originalEvent?: TeamEvent };
@@ -842,6 +858,69 @@ const Equipe = () => {
                 </Button>
               </div>
             </div>
+
+            <Card className="mb-4">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Quadro geral do mês</CardTitle>
+                <p className="text-xs text-muted-foreground">Visão consolidada por analista com visitas e implantação.</p>
+              </CardHeader>
+              <CardContent className="p-0">
+                {scheduleBlocks.length === 0 ? (
+                  <div className="py-10 text-center text-sm text-muted-foreground">Nenhuma programação cadastrada</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b border-border">
+                          <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[180px]">Analista</th>
+                          {eachDayOfInterval({ start: startOfMonth(scheduleMonth), end: endOfMonth(scheduleMonth) }).map((day) => {
+                            const isToday = isSameDay(day, new Date());
+                            return (
+                              <th key={day.toISOString()} className={`text-center px-0 py-1 min-w-[28px] ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                                <div className="text-[10px]">{["D", "S", "T", "Q", "Q", "S", "S"][day.getDay()]}</div>
+                                <div className={`text-xs font-medium ${isToday ? "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center mx-auto" : ""}`}>
+                                  {format(day, "d")}
+                                </div>
+                              </th>
+                            );
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {scheduleMembers.map((member) => (
+                          <tr key={member.key} className="border-b border-border/50">
+                            <td className="sticky left-0 z-10 bg-card px-3 py-2">
+                              <div className="font-semibold">{member.label || "Equipe"}</div>
+                            </td>
+                            {eachDayOfInterval({ start: startOfMonth(scheduleMonth), end: endOfMonth(scheduleMonth) }).map((day) => {
+                              const dayKey = format(day, "yyyy-MM-dd");
+                              const blocks = getBlocksForMemberDay(member.key, day);
+                              const hasConflict = (scheduleConflictMap[member.key]?.[dayKey] || 0) > 1;
+                              return (
+                                <td key={`${member.key}-${dayKey}`} className={`text-center px-0 py-1 ${hasConflict ? "ring-2 ring-destructive/60" : ""}`}>
+                                  <div className="flex items-center justify-center gap-0.5">
+                                    {blocks.slice(0, 2).map((b) => (
+                                      <div
+                                        key={`${b.storeId}-${b.type}`}
+                                        className={`h-4 min-w-[20px] px-1 rounded-sm text-[9px] font-medium text-center ${b.type === "visita" ? "bg-[hsl(190,70%,45%)] text-[hsl(0,0%,100%)]" : "bg-[hsl(28,85%,55%)] text-[hsl(25,20%,15%)]"}`}
+                                        title={`${b.storeName} • ${b.type === "visita" ? "Visita Técnica" : "Implantação"} • ${format(b.start, "dd/MM")} - ${format(b.end, "dd/MM")}`}
+                                      >
+                                        {getStoreShort(b.storeName)}
+                                      </div>
+                                    ))}
+                                    {blocks.length > 2 && <span className="text-[9px] text-muted-foreground">+{blocks.length - 2}</span>}
+                                  </div>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             <Card className="mb-4">
               <CardHeader className="pb-2">
