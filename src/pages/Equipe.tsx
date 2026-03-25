@@ -95,6 +95,8 @@ const eventTypeColors: Record<string, string> = {
   outro: "bg-secondary text-secondary-foreground",
 };
 
+const ANALYST_OPTIONS = ["Thainara", "Deise", "Gizelia", "Gustavo"];
+
 // Fixed member colors for calendar visualization
 const MEMBER_COLORS = [
   "hsl(25, 45%, 35%)",   // Coffee brown (Gustavo)
@@ -462,17 +464,18 @@ const Equipe = () => {
   const scheduleBlocks: ScheduleBlock[] = [];
   stores.forEach((s) => {
     const visita = (s.visitaTecnica as any) || {};
-    const memberLabel = s.analistaObra || "Equipe";
-    const memberKey = normalizeName(memberLabel || "Equipe");
+    const memberLabel = (s.analistaObra || "").toString().trim();
+    const memberKey = normalizeName(memberLabel);
+    const hasMember = Boolean(memberKey);
     const city = (visita.cidade || "").toString().trim();
     const inaug = parseDateValue(s.inauguracao || null);
-    if (inaug) {
+    if (inaug && hasMember) {
       scheduleBlocks.push({
         storeId: s.id,
         storeName: s.nome,
         type: "inauguracao",
-        memberKey: "inauguracao",
-        memberLabel: "Inauguração",
+        memberKey,
+        memberLabel,
         city,
         start: inaug,
         end: inaug,
@@ -480,7 +483,7 @@ const Equipe = () => {
     }
     const visitaStart = parseDateValue(visita.dataVisita);
     const visitaDays = toPositiveNumber(visita.duracaoVisitaDias || 0);
-    if (visitaStart && visitaDays > 0) {
+    if (visitaStart && visitaDays > 0 && hasMember) {
       scheduleBlocks.push({
         storeId: s.id,
         storeName: s.nome,
@@ -494,7 +497,7 @@ const Equipe = () => {
     }
     const implantStart = parseDateValue(visita.dataImplantacao);
     const implantDays = toPositiveNumber(visita.duracaoImplantacaoDias || 0);
-    if (implantStart && implantDays > 0) {
+    if (implantStart && implantDays > 0 && hasMember) {
       scheduleBlocks.push({
         storeId: s.id,
         storeName: s.nome,
@@ -517,12 +520,21 @@ const Equipe = () => {
     return acc;
   }, {});
   const scheduleDays = eachDayOfInterval({ start: startOfMonth(scheduleMonth), end: endOfMonth(scheduleMonth) });
+  const analystOrder = ANALYST_OPTIONS.map((name) => normalizeName(name));
   const scheduleMembers = Object.values(
     scheduleBlocks.reduce<Record<string, { key: string; label: string }>>((acc, block) => {
+      if (!block.memberKey) return acc;
       if (!acc[block.memberKey]) acc[block.memberKey] = { key: block.memberKey, label: block.memberLabel };
       return acc;
     }, {})
-  ).sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
+  ).sort((a, b) => {
+    const aIdx = analystOrder.indexOf(a.key);
+    const bIdx = analystOrder.indexOf(b.key);
+    if (aIdx !== -1 || bIdx !== -1) {
+      return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+    }
+    return a.label.localeCompare(b.label, "pt-BR");
+  });
   const getBlocksForMemberDay = (memberKey: string, day: Date) => {
     return scheduleBlocks.filter((b) => b.memberKey === memberKey && isWithinInterval(day, { start: b.start, end: b.end }));
   };
@@ -855,7 +867,7 @@ const Equipe = () => {
             <Card className="mb-4">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">Quadro geral do mês</CardTitle>
-                <p className="text-xs text-muted-foreground">Visão consolidada por analista e inauguração.</p>
+                <p className="text-xs text-muted-foreground">Visão consolidada por analista.</p>
               </CardHeader>
               <CardContent className="p-0">
                 {scheduleBlocks.length === 0 ? (
@@ -1014,7 +1026,12 @@ const Equipe = () => {
                           <Input className="h-8 text-xs" value={scheduleForm.nome} onChange={(e) => setScheduleForm({ ...scheduleForm, nome: e.target.value })} />
                         </td>
                         <td className="px-3 py-2">
-                          <Input className="h-8 text-xs" value={scheduleForm.analistaObra} onChange={(e) => setScheduleForm({ ...scheduleForm, analistaObra: e.target.value })} />
+                          <Input
+                            list="analistas-list"
+                            className="h-8 text-xs"
+                            value={scheduleForm.analistaObra}
+                            onChange={(e) => setScheduleForm({ ...scheduleForm, analistaObra: e.target.value })}
+                          />
                         </td>
                         <td className="px-3 py-2">
                           <Input className="h-8 text-xs" value={scheduleForm.cidade} onChange={(e) => setScheduleForm({ ...scheduleForm, cidade: e.target.value })} />
@@ -1048,7 +1065,12 @@ const Equipe = () => {
                           <tr key={store.id} className="border-b border-border/50">
                             <td className="px-3 py-2 font-medium">{store.nome}</td>
                             <td className="px-3 py-2">
-                              <Input className="h-8 text-xs" value={store.analistaObra || ""} onChange={(e) => updateStore(store.id, { analistaObra: e.target.value } as any)} />
+                              <Input
+                                list="analistas-list"
+                                className="h-8 text-xs"
+                                value={store.analistaObra || ""}
+                                onChange={(e) => updateStore(store.id, { analistaObra: e.target.value } as any)}
+                              />
                             </td>
                             <td className="px-3 py-2">
                               <Input className="h-8 text-xs" value={(visita.cidade || "").toString()} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, cidade: e.target.value } } as any)} />
@@ -1083,6 +1105,11 @@ const Equipe = () => {
                       })}
                     </tbody>
                   </table>
+                  <datalist id="analistas-list">
+                    {ANALYST_OPTIONS.map((name) => (
+                      <option key={name} value={name} />
+                    ))}
+                  </datalist>
                 </div>
               </CardContent>
             </Card>
