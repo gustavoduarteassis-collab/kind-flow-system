@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
-import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay } from "date-fns";
+import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 type TeamMember = {
@@ -117,7 +117,7 @@ const formatDate = (d: string | null) => {
 
 const Equipe = () => {
   const { user, signOut } = useAuth();
-  const { stores } = useStores();
+  const { stores, updateStore } = useStores();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -131,6 +131,7 @@ const Equipe = () => {
   const [habitMonth, setHabitMonth] = useState(new Date());
   const [habitMemberFilter, setHabitMemberFilter] = useState<string | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
+  const [scheduleMonth, setScheduleMonth] = useState(new Date());
 
   // Dialogs
   const [memberOpen, setMemberOpen] = useState(false);
@@ -388,10 +389,68 @@ const Equipe = () => {
 
   const getStoreName = (storeId: string) => stores.find((s) => s.id === storeId)?.nome || storeId;
 
+  const parseDateValue = (value?: string | null) => (value ? new Date(value + "T00:00:00") : null);
+  const toPositiveNumber = (value: any) => {
+    const num = Number(value);
+    return Number.isFinite(num) && num > 0 ? num : 0;
+  };
+
   // Calendar helpers
   const monthDays = eachDayOfInterval({ start: startOfMonth(calendarMonth), end: endOfMonth(calendarMonth) });
   const firstDayOfWeek = getDay(startOfMonth(calendarMonth));
   const paddingDays = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
+
+  // Schedule (visita/implantação) helpers
+  type ScheduleBlock = {
+    storeId: string;
+    storeName: string;
+    type: "visita" | "implantacao";
+    memberKey: string;
+    memberLabel: string;
+    start: Date;
+    end: Date;
+  };
+  const scheduleBlocks: ScheduleBlock[] = [];
+  stores.forEach((s) => {
+    const visita = (s.visitaTecnica as any) || {};
+    const memberLabel = s.analistaObra || "Equipe";
+    const memberKey = normalizeName(memberLabel || "Equipe");
+    const visitaStart = parseDateValue(visita.dataVisita);
+    const visitaDays = toPositiveNumber(visita.duracaoVisitaDias || 0);
+    if (visitaStart && visitaDays > 0) {
+      scheduleBlocks.push({
+        storeId: s.id,
+        storeName: s.nome,
+        type: "visita",
+        memberKey,
+        memberLabel,
+        start: visitaStart,
+        end: addDays(visitaStart, visitaDays - 1),
+      });
+    }
+    const implantStart = parseDateValue(visita.dataImplantacao);
+    const implantDays = toPositiveNumber(visita.duracaoImplantacaoDias || 0);
+    if (implantStart && implantDays > 0) {
+      scheduleBlocks.push({
+        storeId: s.id,
+        storeName: s.nome,
+        type: "implantacao",
+        memberKey,
+        memberLabel,
+        start: implantStart,
+        end: addDays(implantStart, implantDays - 1),
+      });
+    }
+  });
+
+  const scheduleConflictMap = scheduleBlocks.reduce<Record<string, Record<string, number>>>((acc, block) => {
+    if (!acc[block.memberKey]) acc[block.memberKey] = {};
+    eachDayOfInterval({ start: block.start, end: block.end }).forEach((day) => {
+      const key = format(day, "yyyy-MM-dd");
+      acc[block.memberKey][key] = (acc[block.memberKey][key] || 0) + 1;
+    });
+    return acc;
+  }, {});
 
   // Build virtual events from all data sources (only scheduled/agendado items)
   type CalendarEvent = { id: string; title: string; event_type: string; date: Date; deletable: boolean; originalId?: string; time?: string | null; memberId?: string | null; originalEvent?: TeamEvent };
@@ -499,6 +558,7 @@ const Equipe = () => {
           <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="tarefas" className="gap-2"><ListTodo className="h-4 w-4" /> Tarefas</TabsTrigger>
             <TabsTrigger value="habitos" className="gap-2"><Target className="h-4 w-4" /> Hábitos</TabsTrigger>
+            <TabsTrigger value="programacao" className="gap-2"><Calendar className="h-4 w-4" /> Programação</TabsTrigger>
             <TabsTrigger value="calendario" className="gap-2"><Calendar className="h-4 w-4" /> Calendário</TabsTrigger>
             <TabsTrigger value="equipe" className="gap-2"><Users className="h-4 w-4" /> Equipe</TabsTrigger>
           </TabsList>
@@ -699,6 +759,163 @@ const Equipe = () => {
                 )}
               </DialogContent>
             </Dialog>
+          </TabsContent>
+
+          {/* === PROGRAMAÇÃO === */}
+          <TabsContent value="programacao">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Programação de Visitas e Implantação</h2>
+              <div className="flex items-center gap-3">
+                <Button variant="outline" size="icon" onClick={() => setScheduleMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-semibold capitalize">
+                  {format(scheduleMonth, "MMMM 'de' yyyy", { locale: ptBR })}
+                </span>
+                <Button variant="outline" size="icon" onClick={() => setScheduleMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {stores.length === 0 ? (
+              <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhuma loja cadastrada</CardContent></Card>
+            ) : (
+              <div className="space-y-4">
+                {stores.map((store) => {
+                  const visita = (store.visitaTecnica as any) || {};
+                  const visitaStart = parseDateValue(visita.dataVisita);
+                  const visitaDays = toPositiveNumber(visita.duracaoVisitaDias || 0);
+                  const visitaEnd = visitaStart && visitaDays > 0 ? addDays(visitaStart, visitaDays - 1) : null;
+                  const implantStart = parseDateValue(visita.dataImplantacao);
+                  const implantDays = toPositiveNumber(visita.duracaoImplantacaoDias || 0);
+                  const implantEnd = implantStart && implantDays > 0 ? addDays(implantStart, implantDays - 1) : null;
+                  const memberLabel = store.analistaObra || "Equipe";
+                  const memberKey = normalizeName(memberLabel || "Equipe");
+                  const monthDaysSchedule = eachDayOfInterval({ start: startOfMonth(scheduleMonth), end: endOfMonth(scheduleMonth) });
+                  const dayLabels = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+                  const isConflictForDay = (day: Date) => {
+                    const key = format(day, "yyyy-MM-dd");
+                    return (scheduleConflictMap[memberKey]?.[key] || 0) > 1;
+                  };
+
+                  return (
+                    <Card key={store.id}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base">{store.nome}</CardTitle>
+                        <p className="text-xs text-muted-foreground">Responsável: {memberLabel}</p>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs border-collapse">
+                            <thead>
+                              <tr className="border-b border-border">
+                                <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[220px]">Linha</th>
+                                {monthDaysSchedule.map((day) => {
+                                  const isToday = isSameDay(day, new Date());
+                                  return (
+                                    <th key={day.toISOString()} className={`text-center px-0 py-1 min-w-[28px] ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                                      <div className="text-[10px]">{dayLabels[day.getDay()]}</div>
+                                      <div className={`text-xs font-medium ${isToday ? "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center mx-auto" : ""}`}>
+                                        {format(day, "d")}
+                                      </div>
+                                    </th>
+                                  );
+                                })}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="border-b border-border/50">
+                                <td className="sticky left-0 z-10 bg-card px-3 py-2 align-top">
+                                  <div className="font-semibold">Inauguração</div>
+                                  <div className="mt-2">
+                                    <Input
+                                      type="date"
+                                      className="h-7 text-xs"
+                                      value={store.inauguracao || ""}
+                                      onChange={(e) => updateStore(store.id, { inauguracao: e.target.value } as any)}
+                                    />
+                                  </div>
+                                </td>
+                                {monthDaysSchedule.map((day) => {
+                                  const isInaug = store.inauguracao && isSameDay(day, new Date(store.inauguracao + "T00:00:00"));
+                                  return (
+                                    <td key={day.toISOString()} className="text-center px-0 py-1">
+                                      {isInaug ? (
+                                        <div className="mx-auto w-5 h-5 rounded-full bg-[hsl(152,60%,40%)]" title="Inauguração" />
+                                      ) : null}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                              <tr className="border-b border-border/50">
+                                <td className="sticky left-0 z-10 bg-card px-3 py-2 align-top">
+                                  <div className="font-semibold">{memberLabel}</div>
+                                  <div className="mt-2 space-y-2">
+                                    <div className="space-y-1">
+                                      <Label className="text-[10px]">Visita Técnica</Label>
+                                      <div className="flex gap-2">
+                                        <Input
+                                          type="date"
+                                          className="h-7 text-xs"
+                                          value={visita.dataVisita || ""}
+                                          onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataVisita: e.target.value } } as any)}
+                                        />
+                                        <Input
+                                          type="number"
+                                          min={1}
+                                          className="h-7 text-xs w-20"
+                                          placeholder="Dias"
+                                          value={visita.duracaoVisitaDias || ""}
+                                          onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoVisitaDias: e.target.value } } as any)}
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-[10px]">Implantação</Label>
+                                      <div className="flex gap-2">
+                                        <Input
+                                          type="date"
+                                          className="h-7 text-xs"
+                                          value={visita.dataImplantacao || ""}
+                                          onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataImplantacao: e.target.value } } as any)}
+                                        />
+                                        <Input
+                                          type="number"
+                                          min={1}
+                                          className="h-7 text-xs w-20"
+                                          placeholder="Dias"
+                                          value={visita.duracaoImplantacaoDias || ""}
+                                          onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoImplantacaoDias: e.target.value } } as any)}
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                                {monthDaysSchedule.map((day) => {
+                                  const isVisita = visitaStart && visitaEnd ? isWithinInterval(day, { start: visitaStart, end: visitaEnd }) : false;
+                                  const isImplant = implantStart && implantEnd ? isWithinInterval(day, { start: implantStart, end: implantEnd }) : false;
+                                  const hasConflict = isConflictForDay(day) && (isVisita || isImplant);
+                                  return (
+                                    <td key={day.toISOString()} className={`text-center px-0 py-1 ${hasConflict ? "ring-2 ring-destructive/60" : ""}`}>
+                                      <div className="flex flex-col items-center gap-1">
+                                        {isVisita && <div className="h-2 w-5 rounded-full bg-[hsl(190,70%,45%)]" title="Visita Técnica" />}
+                                        {isImplant && <div className="h-2 w-5 rounded-full bg-[hsl(28,85%,55%)]" title="Implantação" />}
+                                      </div>
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
 
           {/* === HÁBITOS === */}
