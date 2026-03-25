@@ -117,7 +117,7 @@ const formatDate = (d: string | null) => {
 
 const Equipe = () => {
   const { user, signOut } = useAuth();
-  const { stores, updateStore, addStore } = useStores();
+  const { stores, updateStore, addStore, deleteStore } = useStores();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -132,6 +132,7 @@ const Equipe = () => {
   const [habitMemberFilter, setHabitMemberFilter] = useState<string | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [scheduleMonth, setScheduleMonth] = useState(new Date());
+  const [scheduleAllOpen, setScheduleAllOpen] = useState(false);
 
   // Dialogs
   const [memberOpen, setMemberOpen] = useState(false);
@@ -929,8 +930,55 @@ const Equipe = () => {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Resumo por loja</CardTitle>
-                <p className="text-xs text-muted-foreground">Cadastro simples para alimentar o quadro geral.</p>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="text-base">Resumo por loja</CardTitle>
+                    <p className="text-xs text-muted-foreground">Cadastro simples para alimentar o quadro geral.</p>
+                  </div>
+                  <Dialog open={scheduleAllOpen} onOpenChange={setScheduleAllOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">Mostrar tudo</Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+                      <DialogHeader><DialogTitle>Resumo completo por loja</DialogTitle></DialogHeader>
+                      {stores.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-6">Nenhuma loja cadastrada</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {stores.map((store) => {
+                            const visita = (store.visitaTecnica as any) || {};
+                            return (
+                              <div key={store.id} className="border border-border/60 rounded-md p-3 text-sm">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div>
+                                    <div className="font-semibold">{store.nome}</div>
+                                    <div className="text-xs text-muted-foreground">Analista: {store.analistaObra || "—"}</div>
+                                    <div className="text-xs text-muted-foreground">Cidade: {visita.cidade || "—"}</div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => { if (confirm("Excluir esta loja?")) deleteStore(store.id); }}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </div>
+                                <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                                  <div><span className="text-muted-foreground">Inauguração:</span> {formatDate(store.inauguracao || "")}</div>
+                                  <div><span className="text-muted-foreground">VT data:</span> {formatDate(visita.dataVisita || "")}</div>
+                                  <div><span className="text-muted-foreground">VT dias:</span> {visita.duracaoVisitaDias || "—"}</div>
+                                  <div><span className="text-muted-foreground">VI data:</span> {formatDate(visita.dataImplantacao || "")}</div>
+                                  <div><span className="text-muted-foreground">VI dias:</span> {visita.duracaoImplantacaoDias || "—"}</div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -945,7 +993,7 @@ const Equipe = () => {
                         <th className="text-left px-3 py-2 min-w-[90px]">VT (dias)</th>
                         <th className="text-left px-3 py-2 min-w-[160px]">VI (data)</th>
                         <th className="text-left px-3 py-2 min-w-[90px]">VI (dias)</th>
-                        <th className="text-left px-3 py-2 min-w-[120px]"></th>
+                        <th className="text-left px-3 py-2 min-w-[120px]">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1008,7 +1056,16 @@ const Equipe = () => {
                             <td className="px-3 py-2">
                               <Input type="number" min={1} className="h-8 text-xs" value={visita.duracaoImplantacaoDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoImplantacaoDias: e.target.value } } as any)} />
                             </td>
-                            <td className="px-3 py-2"></td>
+                            <td className="px-3 py-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => { if (confirm("Excluir esta loja?")) deleteStore(store.id); }}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </td>
                           </tr>
                         );
                       })}
