@@ -413,10 +413,15 @@ const Equipe = () => {
     if (!start || days <= 0) return "";
     return format(addDays(start, days - 1), "yyyy-MM-dd");
   };
+  const getEffectiveInaugurationValue = (storeInaug?: string | null, implantDate?: string | null, implantDays?: any) => {
+    const manual = (storeInaug || "").toString().trim();
+    if (manual) return manual;
+    return getImplantationEndDate(implantDate, implantDays);
+  };
 
   const addScheduleStore = async () => {
     if (!scheduleForm.nome) return;
-    const inauguracaoDate = getImplantationEndDate(scheduleForm.dataImplantacao, scheduleForm.duracaoImplantacaoDias);
+    const inauguracaoDate = scheduleForm.inauguracao || getImplantationEndDate(scheduleForm.dataImplantacao, scheduleForm.duracaoImplantacaoDias);
     const newId = await addStore({
       nome: scheduleForm.nome,
       filial: "",
@@ -477,10 +482,8 @@ const Equipe = () => {
     const city = (visita.cidade || "").toString().trim();
     const implantStart = parseDateValue(visita.dataImplantacao);
     const implantDays = toPositiveNumber(visita.duracaoImplantacaoDias || 0);
-    const derivedInaug = implantStart && implantDays > 0
-      ? addDays(implantStart, implantDays - 1)
-      : parseDateValue(s.inauguracao || null);
-    const inaug = derivedInaug;
+    const inaugValue = getEffectiveInaugurationValue(s.inauguracao || null, visita.dataImplantacao, visita.duracaoImplantacaoDias);
+    const inaug = parseDateValue(inaugValue);
     if (inaug && hasMember) {
       scheduleBlocks.push({
         storeId: s.id,
@@ -565,9 +568,9 @@ const Equipe = () => {
   // 2. Store inaugurations (last day of implantation)
   stores.forEach((s) => {
     const visita = (s.visitaTecnica as any) || {};
-    const derivedInaug = getImplantationEndDate(visita.dataImplantacao, visita.duracaoImplantacaoDias) || s.inauguracao || "";
-    if (derivedInaug) {
-      allCalendarEvents.push({ id: `inaug-${s.id}`, title: `Inauguração: ${s.nome}`, event_type: "implantacao", date: new Date(derivedInaug + "T00:00:00"), deletable: false });
+    const inaugValue = getEffectiveInaugurationValue(s.inauguracao || null, visita.dataImplantacao, visita.duracaoImplantacaoDias);
+    if (inaugValue) {
+      allCalendarEvents.push({ id: `inaug-${s.id}`, title: `Inauguração: ${s.nome}`, event_type: "implantacao", date: new Date(inaugValue + "T00:00:00"), deletable: false });
     }
   });
 
@@ -983,7 +986,7 @@ const Equipe = () => {
                         <div className="space-y-3">
                           {stores.map((store) => {
                             const visita = (store.visitaTecnica as any) || {};
-                            const derivedInaug = getImplantationEndDate(visita.dataImplantacao, visita.duracaoImplantacaoDias) || store.inauguracao || "";
+                            const derivedInaug = getEffectiveInaugurationValue(store.inauguracao || null, visita.dataImplantacao, visita.duracaoImplantacaoDias);
                             return (
                               <div key={store.id} className="border border-border/60 rounded-md p-3 text-sm">
                                 <div className="flex items-start justify-between gap-3">
@@ -1053,8 +1056,8 @@ const Equipe = () => {
                           <Input
                             type="date"
                             className="h-8 text-xs"
-                            value={getImplantationEndDate(scheduleForm.dataImplantacao, scheduleForm.duracaoImplantacaoDias)}
-                            readOnly
+                            value={getEffectiveInaugurationValue(scheduleForm.inauguracao, scheduleForm.dataImplantacao, scheduleForm.duracaoImplantacaoDias)}
+                            onChange={(e) => setScheduleForm({ ...scheduleForm, inauguracao: e.target.value })}
                           />
                         </td>
                         <td className="px-3 py-2">
@@ -1070,10 +1073,13 @@ const Equipe = () => {
                             value={scheduleForm.dataImplantacao}
                             onChange={(e) => {
                               const dataImplantacao = e.target.value;
+                              const currentDerived = getImplantationEndDate(scheduleForm.dataImplantacao, scheduleForm.duracaoImplantacaoDias);
+                              const nextDerived = getImplantationEndDate(dataImplantacao, scheduleForm.duracaoImplantacaoDias);
+                              const shouldUpdateInaug = !scheduleForm.inauguracao || scheduleForm.inauguracao === currentDerived;
                               setScheduleForm({
                                 ...scheduleForm,
                                 dataImplantacao,
-                                inauguracao: getImplantationEndDate(dataImplantacao, scheduleForm.duracaoImplantacaoDias),
+                                inauguracao: shouldUpdateInaug ? nextDerived : scheduleForm.inauguracao,
                               });
                             }}
                           />
@@ -1086,10 +1092,13 @@ const Equipe = () => {
                             value={scheduleForm.duracaoImplantacaoDias}
                             onChange={(e) => {
                               const duracaoImplantacaoDias = e.target.value;
+                              const currentDerived = getImplantationEndDate(scheduleForm.dataImplantacao, scheduleForm.duracaoImplantacaoDias);
+                              const nextDerived = getImplantationEndDate(scheduleForm.dataImplantacao, duracaoImplantacaoDias);
+                              const shouldUpdateInaug = !scheduleForm.inauguracao || scheduleForm.inauguracao === currentDerived;
                               setScheduleForm({
                                 ...scheduleForm,
                                 duracaoImplantacaoDias,
-                                inauguracao: getImplantationEndDate(scheduleForm.dataImplantacao, duracaoImplantacaoDias),
+                                inauguracao: shouldUpdateInaug ? nextDerived : scheduleForm.inauguracao,
                               });
                             }}
                           />
@@ -1104,7 +1113,7 @@ const Equipe = () => {
                         </tr>
                       ) : stores.map((store) => {
                         const visita = (store.visitaTecnica as any) || {};
-                        const derivedInaug = getImplantationEndDate(visita.dataImplantacao, visita.duracaoImplantacaoDias) || store.inauguracao || "";
+                        const derivedInaug = getEffectiveInaugurationValue(store.inauguracao || null, visita.dataImplantacao, visita.duracaoImplantacaoDias);
                         return (
                           <tr key={store.id} className="border-b border-border/50">
                             <td className="px-3 py-2 font-medium">{store.nome}</td>
@@ -1120,7 +1129,12 @@ const Equipe = () => {
                               <Input className="h-8 text-xs" value={(visita.cidade || "").toString()} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, cidade: e.target.value } } as any)} />
                             </td>
                             <td className="px-3 py-2">
-                              <Input type="date" className="h-8 text-xs" value={derivedInaug} readOnly />
+                              <Input
+                                type="date"
+                                className="h-8 text-xs"
+                                value={derivedInaug}
+                                onChange={(e) => updateStore(store.id, { inauguracao: e.target.value } as any)}
+                              />
                             </td>
                             <td className="px-3 py-2">
                               <Input type="date" className="h-8 text-xs" value={visita.dataVisita || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataVisita: e.target.value } } as any)} />
@@ -1135,10 +1149,12 @@ const Equipe = () => {
                                 value={visita.dataImplantacao || ""}
                                 onChange={(e) => {
                                   const dataImplantacao = e.target.value;
-                                  updateStore(store.id, {
-                                    inauguracao: getImplantationEndDate(dataImplantacao, visita.duracaoImplantacaoDias),
-                                    visitaTecnica: { ...visita, dataImplantacao },
-                                  } as any);
+                                  const currentDerived = getImplantationEndDate(visita.dataImplantacao, visita.duracaoImplantacaoDias);
+                                  const nextDerived = getImplantationEndDate(dataImplantacao, visita.duracaoImplantacaoDias);
+                                  const shouldUpdateInaug = !store.inauguracao || store.inauguracao === currentDerived;
+                                  const payload: any = { visitaTecnica: { ...visita, dataImplantacao } };
+                                  if (shouldUpdateInaug) payload.inauguracao = nextDerived;
+                                  updateStore(store.id, payload as any);
                                 }}
                               />
                             </td>
@@ -1150,10 +1166,12 @@ const Equipe = () => {
                                 value={visita.duracaoImplantacaoDias || ""}
                                 onChange={(e) => {
                                   const duracaoImplantacaoDias = e.target.value;
-                                  updateStore(store.id, {
-                                    inauguracao: getImplantationEndDate(visita.dataImplantacao, duracaoImplantacaoDias),
-                                    visitaTecnica: { ...visita, duracaoImplantacaoDias },
-                                  } as any);
+                                  const currentDerived = getImplantationEndDate(visita.dataImplantacao, visita.duracaoImplantacaoDias);
+                                  const nextDerived = getImplantationEndDate(visita.dataImplantacao, duracaoImplantacaoDias);
+                                  const shouldUpdateInaug = !store.inauguracao || store.inauguracao === currentDerived;
+                                  const payload: any = { visitaTecnica: { ...visita, duracaoImplantacaoDias } };
+                                  if (shouldUpdateInaug) payload.inauguracao = nextDerived;
+                                  updateStore(store.id, payload as any);
                                 }}
                               />
                             </td>
