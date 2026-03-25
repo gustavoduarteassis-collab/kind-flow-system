@@ -73,12 +73,22 @@ const priorityColors: Record<string, string> = {
 };
 
 const eventTypeLabels: Record<string, string> = {
-  checklist: "Checklist", folga: "Folga", ferias: "Férias", implantacao: "Implantação", agm: "AGM", reuniao: "Reunião Semanal", outro: "Outro",
+  checklist: "Checklist",
+  folga: "Folga",
+  ferias: "Férias",
+  visita_tecnica: "Visita Técnica",
+  visita_implantacao: "Visita Implantação",
+  implantacao: "Implantação",
+  agm: "AGM",
+  reuniao: "Reunião Semanal",
+  outro: "Outro",
 };
 const eventTypeColors: Record<string, string> = {
   checklist: "bg-primary text-primary-foreground",
   folga: "bg-muted text-muted-foreground",
   ferias: "bg-[hsl(200,70%,50%)] text-[hsl(0,0%,100%)]",
+  visita_tecnica: "bg-[hsl(190,70%,45%)] text-[hsl(0,0%,100%)]",
+  visita_implantacao: "bg-[hsl(28,85%,55%)] text-[hsl(25,20%,15%)]",
   implantacao: "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
   agm: "bg-destructive text-destructive-foreground",
   reuniao: "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]",
@@ -331,6 +341,13 @@ const Equipe = () => {
   };
 
   const getMemberName = (id: string | null) => members.find((m) => m.id === id)?.name || "—";
+  const normalizeName = (value?: string | null) => (value || "").toLowerCase().replace(/\s+/g, " ").trim();
+  const getMemberIdByName = (name?: string | null) => {
+    if (!name) return null;
+    const normalized = normalizeName(name);
+    const found = members.find((m) => normalizeName(m.name) === normalized);
+    return found?.id || null;
+  };
 
   const addAccess = async () => {
     if (!user || !accessForm.store_id || !accessForm.franchisee_email) return;
@@ -397,6 +414,21 @@ const Equipe = () => {
     }
   });
 
+  // 2b. Store technical visit dates
+  stores.forEach((s) => {
+    const visita = (s.visita_tecnica as any) || {};
+    if (visita?.dataVisita) {
+      allCalendarEvents.push({
+        id: `vt-${s.id}`,
+        title: `Visita Técnica: ${s.nome}`,
+        event_type: "visita_tecnica",
+        date: new Date(visita.dataVisita + "T00:00:00"),
+        deletable: false,
+        memberId: getMemberIdByName(s.analistaObra),
+      });
+    }
+  });
+
   // 3. Cronograma dates from stores
   stores.forEach((s) => {
     const cron = s.cronograma as any;
@@ -427,10 +459,19 @@ const Equipe = () => {
     }
   });
 
+  const getAllEventsForDate = (date: Date) => allCalendarEvents.filter((e) => isSameDay(e.date, date));
   const filteredCalendarEvents = calendarMemberFilter
     ? allCalendarEvents.filter((e) => e.memberId === calendarMemberFilter || !e.memberId)
     : allCalendarEvents;
   const getEventsForDate = (date: Date) => filteredCalendarEvents.filter((e) => isSameDay(e.date, date));
+  const getConflictInfoForDate = (date: Date) => {
+    const eventsForDay = getAllEventsForDate(date);
+    const memberEvents = eventsForDay.filter((e) => e.memberId);
+    return {
+      hasConflict: memberEvents.length > 1,
+      memberEvents,
+    };
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -889,6 +930,28 @@ const Equipe = () => {
                         <Input type="date" value={eventForm.end_date} onChange={(e) => setEventForm({ ...eventForm, end_date: e.target.value })} />
                       </div>
                     </div>
+                    {eventForm.event_date && (() => {
+                      const formDate = new Date(eventForm.event_date + "T00:00:00");
+                      const conflictInfo = getConflictInfoForDate(formDate);
+                      const otherEvents = conflictInfo.memberEvents;
+                      return conflictInfo.hasConflict ? (
+                        <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs">
+                          <p className="font-semibold text-destructive">Conflito no dia</p>
+                          <div className="mt-1 space-y-1">
+                            {otherEvents.map((ev) => (
+                              <div key={ev.id} className="flex items-center justify-between">
+                                <span className="truncate">
+                                  {ev.time ? `${ev.time} ` : ""}{ev.title}
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {ev.memberId ? getMemberName(ev.memberId) : "Equipe"}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null;
+                    })()}
                     <div className="space-y-2"><Label>Loja (opcional)</Label>
                       <Input value={eventForm.store_name} onChange={(e) => setEventForm({ ...eventForm, store_name: e.target.value })} placeholder="Nome da loja" />
                     </div>
@@ -998,14 +1061,20 @@ const Equipe = () => {
                     {monthDays.map((day) => {
                       const dayEvents = getEventsForDate(day);
                       const isToday = isSameDay(day, new Date());
+                      const conflictInfo = getConflictInfoForDate(day);
                       return (
                         <div key={day.toISOString()} className={`min-h-[80px] border rounded-md p-1 ${isToday ? "border-primary bg-primary/5" : "border-border"}`}>
-                          <div className={`text-xs font-medium mb-1 ${isToday ? "text-primary" : "text-muted-foreground"}`}>
-                            {format(day, "d")}
+                          <div className="flex items-center justify-between mb-1">
+                            <div className={`text-xs font-medium ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                              {format(day, "d")}
+                            </div>
+                            {conflictInfo.hasConflict && (
+                              <Badge variant="destructive" className="text-[9px] h-4 px-1">Conflito</Badge>
+                            )}
                           </div>
                           <div className="space-y-0.5">
                              {dayEvents.slice(0, 3).map((ev) => (
-                              <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate cursor-pointer ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
+                              <div key={ev.id} className={`text-[9px] px-1 py-0.5 rounded truncate cursor-pointer ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"} ${conflictInfo.hasConflict && ev.memberId ? "ring-1 ring-destructive/50" : ""}`}
                                 style={{ borderLeft: `3px solid ${getMemberColor(ev.memberId, members)}` }}
                                 title={`${ev.memberId ? getMemberName(ev.memberId) + ": " : ""}${ev.title}${ev.time ? ` às ${ev.time}` : ""}`}
                                 onClick={() => { if (ev.originalEvent) openEventDetail(ev.originalEvent); }}
@@ -1025,15 +1094,17 @@ const Equipe = () => {
                     {eachDayOfInterval({ start: calendarWeekStart, end: addDays(calendarWeekStart, 6) }).map((day) => {
                       const dayEvents = getEventsForDate(day);
                       const isToday = isSameDay(day, new Date());
+                      const conflictInfo = getConflictInfoForDate(day);
                       return (
                         <div key={day.toISOString()} className={`min-h-[200px] border rounded-md p-1.5 ${isToday ? "border-primary bg-primary/5" : "border-border"}`}>
                           <div className={`text-xs font-medium mb-2 text-center ${isToday ? "text-primary" : "text-muted-foreground"}`}>
                             <div className="capitalize">{format(day, "EEE", { locale: ptBR })}</div>
                             <div className="text-lg">{format(day, "d")}</div>
+                            {conflictInfo.hasConflict && <div className="mt-1"><Badge variant="destructive" className="text-[9px] h-4 px-1">Conflito</Badge></div>}
                           </div>
                           <div className="space-y-1">
                             {dayEvents.map((ev) => (
-                              <div key={ev.id} className={`text-[10px] px-1.5 py-1 rounded truncate cursor-pointer ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"}`}
+                              <div key={ev.id} className={`text-[10px] px-1.5 py-1 rounded truncate cursor-pointer ${eventTypeColors[ev.event_type] || "bg-secondary text-secondary-foreground"} ${conflictInfo.hasConflict && ev.memberId ? "ring-1 ring-destructive/50" : ""}`}
                                 style={{ borderLeft: `3px solid ${getMemberColor(ev.memberId, members)}` }}
                                 title={`${ev.memberId ? getMemberName(ev.memberId) + ": " : ""}${ev.title}${ev.time ? ` às ${ev.time}` : ""}`}
                                 onClick={() => { if (ev.originalEvent) openEventDetail(ev.originalEvent); }}
