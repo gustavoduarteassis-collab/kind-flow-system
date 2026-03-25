@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
-import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
+import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval, differenceInCalendarDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 type TeamMember = {
@@ -117,7 +117,7 @@ const formatDate = (d: string | null) => {
 
 const Equipe = () => {
   const { user, signOut } = useAuth();
-  const { stores, updateStore } = useStores();
+  const { stores, updateStore, addStore } = useStores();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -143,6 +143,16 @@ const Equipe = () => {
   const [taskForm, setTaskForm] = useState({ title: "", description: "", priority: "media", assigned_to: "", due_date: "", start_date: "" });
   const [habitForm, setHabitForm] = useState({ name: "", description: "", assigned_to_members: [] as string[] });
   const [eventForm, setEventForm] = useState({ title: "", event_type: "outro", event_date: "", end_date: "", store_name: "", team_member_id: "", description: "", event_time: "" });
+  const [scheduleForm, setScheduleForm] = useState({
+    nome: "",
+    analistaObra: "",
+    cidade: "",
+    inauguracao: "",
+    dataVisita: "",
+    duracaoVisitaDias: "",
+    dataImplantacao: "",
+    duracaoImplantacaoDias: "",
+  });
   const [calendarView, setCalendarView] = useState<"month" | "week">("month");
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
@@ -395,6 +405,43 @@ const Equipe = () => {
     return Number.isFinite(num) && num > 0 ? num : 0;
   };
 
+  const addScheduleStore = async () => {
+    if (!scheduleForm.nome) return;
+    const newId = await addStore({
+      nome: scheduleForm.nome,
+      filial: "",
+      franqueado: "",
+      construtor: "",
+      analistaObra: scheduleForm.analistaObra,
+      inauguracao: scheduleForm.inauguracao,
+      tipoLoja: "",
+      inauguracaoChecklist: {} as any,
+    } as any);
+    if (newId) {
+      await updateStore(newId, {
+        inauguracao: scheduleForm.inauguracao,
+        analistaObra: scheduleForm.analistaObra,
+        visitaTecnica: {
+          cidade: scheduleForm.cidade,
+          dataVisita: scheduleForm.dataVisita,
+          duracaoVisitaDias: scheduleForm.duracaoVisitaDias,
+          dataImplantacao: scheduleForm.dataImplantacao,
+          duracaoImplantacaoDias: scheduleForm.duracaoImplantacaoDias,
+        } as any,
+      } as any);
+    }
+    setScheduleForm({
+      nome: "",
+      analistaObra: "",
+      cidade: "",
+      inauguracao: "",
+      dataVisita: "",
+      duracaoVisitaDias: "",
+      dataImplantacao: "",
+      duracaoImplantacaoDias: "",
+    });
+  };
+
   // Calendar helpers
   const monthDays = eachDayOfInterval({ start: startOfMonth(calendarMonth), end: endOfMonth(calendarMonth) });
   const firstDayOfWeek = getDay(startOfMonth(calendarMonth));
@@ -407,6 +454,7 @@ const Equipe = () => {
     type: "visita" | "implantacao";
     memberKey: string;
     memberLabel: string;
+    city: string;
     start: Date;
     end: Date;
   };
@@ -415,6 +463,7 @@ const Equipe = () => {
     const visita = (s.visitaTecnica as any) || {};
     const memberLabel = s.analistaObra || "Equipe";
     const memberKey = normalizeName(memberLabel || "Equipe");
+    const city = (visita.cidade || "").toString().trim();
     const visitaStart = parseDateValue(visita.dataVisita);
     const visitaDays = toPositiveNumber(visita.duracaoVisitaDias || 0);
     if (visitaStart && visitaDays > 0) {
@@ -424,6 +473,7 @@ const Equipe = () => {
         type: "visita",
         memberKey,
         memberLabel,
+        city,
         start: visitaStart,
         end: addDays(visitaStart, visitaDays - 1),
       });
@@ -437,11 +487,26 @@ const Equipe = () => {
         type: "implantacao",
         memberKey,
         memberLabel,
+        city,
         start: implantStart,
         end: addDays(implantStart, implantDays - 1),
       });
     }
   });
+
+  const NEARBY_DAYS = 3;
+  const visitBlocks = scheduleBlocks.filter((b) => b.type === "visita" && b.city);
+  const normalizeCity = (value: string) => normalizeName(value);
+  const getNearbyVisits = (block: ScheduleBlock) => {
+    if (!block.city) return [] as ScheduleBlock[];
+    const cityKey = normalizeCity(block.city);
+    return visitBlocks.filter((other) => {
+      if (other.storeId === block.storeId) return false;
+      if (normalizeCity(other.city) !== cityKey) return false;
+      const diff = Math.abs(differenceInCalendarDays(block.start, other.start));
+      return diff <= NEARBY_DAYS;
+    });
+  };
 
   const scheduleConflictMap = scheduleBlocks.reduce<Record<string, Record<string, number>>>((acc, block) => {
     if (!acc[block.memberKey]) acc[block.memberKey] = {};
@@ -778,12 +843,57 @@ const Equipe = () => {
               </div>
             </div>
 
+            <Card className="mb-4">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Cadastro rápido de programação</CardTitle>
+                <p className="text-xs text-muted-foreground">Cadastre loja, analista, datas e duração das visitas.</p>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-3 md:grid-cols-4">
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Nome da loja *</Label>
+                    <Input className="h-8 text-xs" value={scheduleForm.nome} onChange={(e) => setScheduleForm({ ...scheduleForm, nome: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Analista</Label>
+                    <Input className="h-8 text-xs" value={scheduleForm.analistaObra} onChange={(e) => setScheduleForm({ ...scheduleForm, analistaObra: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Cidade</Label>
+                    <Input className="h-8 text-xs" value={scheduleForm.cidade} onChange={(e) => setScheduleForm({ ...scheduleForm, cidade: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Inauguração</Label>
+                    <Input type="date" className="h-8 text-xs" value={scheduleForm.inauguracao} onChange={(e) => setScheduleForm({ ...scheduleForm, inauguracao: e.target.value })} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Visita Técnica</Label>
+                    <div className="flex gap-2">
+                      <Input type="date" className="h-8 text-xs" value={scheduleForm.dataVisita} onChange={(e) => setScheduleForm({ ...scheduleForm, dataVisita: e.target.value })} />
+                      <Input type="number" min={1} className="h-8 text-xs w-20" placeholder="Dias" value={scheduleForm.duracaoVisitaDias} onChange={(e) => setScheduleForm({ ...scheduleForm, duracaoVisitaDias: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px]">Implantação</Label>
+                    <div className="flex gap-2">
+                      <Input type="date" className="h-8 text-xs" value={scheduleForm.dataImplantacao} onChange={(e) => setScheduleForm({ ...scheduleForm, dataImplantacao: e.target.value })} />
+                      <Input type="number" min={1} className="h-8 text-xs w-20" placeholder="Dias" value={scheduleForm.duracaoImplantacaoDias} onChange={(e) => setScheduleForm({ ...scheduleForm, duracaoImplantacaoDias: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 flex items-end">
+                    <Button onClick={addScheduleStore} className="w-full">Adicionar programação</Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {stores.length === 0 ? (
               <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhuma loja cadastrada</CardContent></Card>
             ) : (
               <div className="space-y-4">
                 {stores.map((store) => {
                   const visita = (store.visitaTecnica as any) || {};
+                  const cidade = (visita.cidade || "").toString();
                   const visitaStart = parseDateValue(visita.dataVisita);
                   const visitaDays = toPositiveNumber(visita.duracaoVisitaDias || 0);
                   const visitaEnd = visitaStart && visitaDays > 0 ? addDays(visitaStart, visitaDays - 1) : null;
@@ -795,16 +905,48 @@ const Equipe = () => {
                   const monthDaysSchedule = eachDayOfInterval({ start: startOfMonth(scheduleMonth), end: endOfMonth(scheduleMonth) });
                   const dayLabels = ["D", "S", "T", "Q", "Q", "S", "S"];
 
+                  const visitBlock = visitaStart && visitaDays > 0 ? {
+                    storeId: store.id,
+                    storeName: store.nome,
+                    type: "visita" as const,
+                    memberKey,
+                    memberLabel,
+                    city: cidade,
+                    start: visitaStart,
+                    end: visitaEnd || visitaStart,
+                  } : null;
+                  const nearbyVisits = visitBlock ? getNearbyVisits(visitBlock) : [];
+
                   const isConflictForDay = (day: Date) => {
                     const key = format(day, "yyyy-MM-dd");
                     return (scheduleConflictMap[memberKey]?.[key] || 0) > 1;
                   };
 
+                  const hasConflict = monthDaysSchedule.some((day) => {
+                    const isVisita = visitaStart && visitaEnd ? isWithinInterval(day, { start: visitaStart, end: visitaEnd }) : false;
+                    const isImplant = implantStart && implantEnd ? isWithinInterval(day, { start: implantStart, end: implantEnd }) : false;
+                    return (isVisita || isImplant) && isConflictForDay(day);
+                  });
+
                   return (
                     <Card key={store.id}>
                       <CardHeader className="pb-2">
-                        <CardTitle className="text-base">{store.nome}</CardTitle>
-                        <p className="text-xs text-muted-foreground">Responsável: {memberLabel}</p>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <CardTitle className="text-base">{store.nome}</CardTitle>
+                            <p className="text-xs text-muted-foreground">Responsável: {memberLabel}{cidade ? ` • ${cidade}` : ""}</p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            {hasConflict && (
+                              <Badge variant="destructive" className="text-[10px]">Conflito: trocar analista/supervisor</Badge>
+                            )}
+                            {nearbyVisits.length > 0 && (
+                              <Badge className="bg-[hsl(190,70%,45%)] text-[hsl(0,0%,100%)] text-[10px]">
+                                Visita técnica próxima na mesma cidade
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </CardHeader>
                       <CardContent className="p-0">
                         <div className="overflow-x-auto">
@@ -854,6 +996,22 @@ const Equipe = () => {
                                   <div className="font-semibold">{memberLabel}</div>
                                   <div className="mt-2 space-y-2">
                                     <div className="space-y-1">
+                                      <Label className="text-[10px]">Analista</Label>
+                                      <Input
+                                        className="h-7 text-xs"
+                                        value={store.analistaObra || ""}
+                                        onChange={(e) => updateStore(store.id, { analistaObra: e.target.value } as any)}
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <Label className="text-[10px]">Cidade</Label>
+                                      <Input
+                                        className="h-7 text-xs"
+                                        value={cidade}
+                                        onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, cidade: e.target.value } } as any)}
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
                                       <Label className="text-[10px]">Visita Técnica</Label>
                                       <div className="flex gap-2">
                                         <Input
@@ -891,6 +1049,16 @@ const Equipe = () => {
                                         />
                                       </div>
                                     </div>
+                                    {nearbyVisits.length > 0 && (
+                                      <div className="text-[10px] text-muted-foreground">
+                                        <div className="font-medium text-foreground">Sugestão na mesma cidade</div>
+                                        {nearbyVisits.slice(0, 3).map((n) => (
+                                          <div key={`${n.storeId}-${n.start.toISOString()}`}>
+                                            {n.storeName} • {format(n.start, "dd/MM")}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 </td>
                                 {monthDaysSchedule.map((day) => {
