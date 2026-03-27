@@ -146,14 +146,7 @@ const Index = () => {
       can_edit_custos: accessForm.can_edit_custos,
     });
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
-    // Send invitation email
-    const storeName = stores.find(s => s.id === accessForm.store_id)?.nome || "";
-    supabase.functions.invoke("send-invite-email", {
-      body: { email: accessForm.franchisee_email.toLowerCase(), storeName, accessType: accessForm.access_type },
-    }).then(({ error: inviteErr }) => {
-      if (inviteErr) console.error("Erro ao enviar convite:", inviteErr);
-    });
-    toast({ title: "Acesso liberado!", description: `Convite enviado para ${accessForm.franchisee_email}.` });
+    toast({ title: "Acesso liberado!", description: `O e-mail ${accessForm.franchisee_email} já pode criar uma conta e acessar o portal.` });
     setAccessForm({
       store_id: "", franchisee_email: "", access_type: "franqueado",
       can_view_checklist: true, can_edit_checklist: true,
