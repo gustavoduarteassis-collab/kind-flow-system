@@ -160,6 +160,7 @@ const Equipe = () => {
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(null);
+  const [taskViewTab, setTaskViewTab] = useState<"ativas" | "concluidas">("ativas");
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskComments, setTaskComments] = useState<TaskComment[]>([]);
@@ -690,6 +691,16 @@ const Equipe = () => {
               ))}
             </div>
 
+            {/* Sub-tabs: Ativas / Concluídas */}
+            <div className="flex gap-2 mb-4">
+              <Button variant={taskViewTab === "ativas" ? "default" : "outline"} size="sm" onClick={() => setTaskViewTab("ativas")}>
+                Ativas
+              </Button>
+              <Button variant={taskViewTab === "concluidas" ? "default" : "outline"} size="sm" onClick={() => setTaskViewTab("concluidas")}>
+                Concluídas
+              </Button>
+            </div>
+
             <Card>
               <div className="overflow-x-auto">
                 <Table>
@@ -700,17 +711,24 @@ const Equipe = () => {
                       <TableHead>Início</TableHead>
                       <TableHead>Prazo</TableHead>
                       <TableHead>Prioridade</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead>{taskViewTab === "concluidas" ? "Concluída em" : "Status"}</TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {(() => {
-                      const filtered = taskMemberFilter
+                      let filtered = taskMemberFilter
                         ? tasks.filter((t) => t.assigned_to === taskMemberFilter)
                         : tasks;
+                      if (taskViewTab === "ativas") {
+                        filtered = filtered.filter((t) => t.status !== "concluida");
+                      } else {
+                        filtered = filtered.filter((t) => t.status === "concluida");
+                      }
                       return filtered.length === 0 ? (
-                        <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">Nenhuma tarefa cadastrada</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                          {taskViewTab === "concluidas" ? "Nenhuma tarefa concluída" : "Nenhuma tarefa cadastrada"}
+                        </TableCell></TableRow>
                       ) : filtered.map((task) => (
                       <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openTaskDetail(task)}>
                         <TableCell>
@@ -724,12 +742,16 @@ const Equipe = () => {
                           <Badge className={`${priorityColors[task.priority]} text-[10px]`}>{priorityLabels[task.priority]}</Badge>
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Select value={task.status} onValueChange={(v) => updateTaskStatus(task.id, v)}>
-                            <SelectTrigger className="h-7 text-xs w-[120px]"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                            </SelectContent>
-                          </Select>
+                          {taskViewTab === "concluidas" ? (
+                            <span className="text-xs text-muted-foreground">{formatDate(task.updated_at)}</span>
+                          ) : (
+                            <Select value={task.status} onValueChange={(v) => updateTaskStatus(task.id, v)}>
+                              <SelectTrigger className="h-7 text-xs w-[120px]"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                          )}
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
                           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteTask(task.id); }}>
