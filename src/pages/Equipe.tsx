@@ -568,9 +568,15 @@ const Equipe = () => {
   const getConflictInfoForDate = (date: Date) => {
     const eventsForDay = getAllEventsForDate(date);
     const memberEvents = eventsForDay.filter((e) => e.memberId);
+    // Only flag conflict when the SAME member has multiple events on the same day
+    const memberCounts: Record<string, number> = {};
+    memberEvents.forEach((e) => {
+      if (e.memberId) memberCounts[e.memberId] = (memberCounts[e.memberId] || 0) + 1;
+    });
+    const hasConflict = Object.values(memberCounts).some((count) => count > 1);
     return {
-      hasConflict: memberEvents.length > 1,
-      memberEvents,
+      hasConflict,
+      memberEvents: hasConflict ? memberEvents.filter((e) => e.memberId && memberCounts[e.memberId!] > 1) : [],
     };
   };
 
