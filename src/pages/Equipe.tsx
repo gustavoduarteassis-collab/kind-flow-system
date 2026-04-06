@@ -867,7 +867,7 @@ const Equipe = () => {
           {/* === PROGRAMAÇÃO === */}
           <TabsContent value="programacao">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Programação de Visitas e Implantação</h2>
+              <h2 className="text-lg font-semibold">Programação</h2>
               <div className="flex items-center gap-3">
                 <Button variant="outline" size="icon" onClick={() => setScheduleMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}>
                   <ChevronLeft className="h-4 w-4" />
@@ -881,228 +881,381 @@ const Equipe = () => {
               </div>
             </div>
 
-            <Card className="mb-4">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Quadro geral do mês</CardTitle>
-                <p className="text-xs text-muted-foreground">Visão consolidada por analista.</p>
-              </CardHeader>
-              <CardContent className="p-0">
-                {scheduleBlocks.length === 0 ? (
-                  <div className="py-10 text-center text-sm text-muted-foreground">Nenhuma programação cadastrada</div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <div className="flex items-center gap-3 px-3 py-2 text-[10px] text-muted-foreground flex-wrap">
-                      <span className="inline-flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[hsl(30,80%,50%)]" /> M Marcenaria</span>
-                      <span className="inline-flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[hsl(190,70%,45%)]" /> VT Visita Técnica</span>
-                      <span className="inline-flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[hsl(152,60%,40%)]" /> I Implantação</span>
-                    </div>
-                    <table className="w-full text-xs border-collapse">
-                      <thead>
-                        <tr className="border-b border-border/60">
-                          <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[180px]"></th>
-                          <th className="text-center px-2 py-2" colSpan={scheduleDays.length}>
-                            <span
-                              className="text-sm font-semibold uppercase tracking-[0.2em] text-primary"
-                              style={{ textShadow: "0 1px 6px hsl(var(--primary) / 0.45)" }}
-                            >
-                              {format(scheduleMonth, "MMMM yyyy", { locale: ptBR })}
-                            </span>
-                          </th>
-                        </tr>
-                        <tr className="border-b border-border">
-                          <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[180px]">Analista</th>
-                          {scheduleDays.map((day) => {
-                            const isToday = isSameDay(day, new Date());
-                            return (
-                              <th key={day.toISOString()} className={`text-center px-0 py-1 min-w-[28px] ${isToday ? "text-primary" : "text-muted-foreground"}`}>
-                                <div className="text-[10px]">{["D", "S", "T", "Q", "Q", "S", "S"][day.getDay()]}</div>
-                                <div className={`text-xs font-medium ${isToday ? "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center mx-auto" : ""}`}>
-                                  {format(day, "d")}
-                                </div>
-                              </th>
-                            );
-                          })}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {scheduleMembers.map((member) => (
-                          <tr key={member.key} className="border-b border-border/50">
-                            <td className="sticky left-0 z-10 bg-card px-3 py-2">
-                              <div className="font-semibold">{member.label || "Equipe"}</div>
-                            </td>
-                            {scheduleDays.map((day) => {
-                              const dayKey = format(day, "yyyy-MM-dd");
-                              const blocks = getBlocksForMemberDay(member.key, day);
-                              const hasConflict = (scheduleConflictMap[member.key]?.[dayKey] || 0) > 1;
-                              return (
-                                <td key={`${member.key}-${dayKey}`} className={`text-center px-0 py-1 ${hasConflict ? "ring-2 ring-destructive/60" : ""}`}>
-                                  <div className="flex items-center justify-center gap-0.5">
-                                    {blocks.slice(0, 3).map((b) => {
-                                      const label = b.type === "marcenaria" ? "M" : b.type === "visita" ? "VT" : b.type === "implantacao" ? "I" : "🎉";
-                                      const color = b.type === "marcenaria"
-                                        ? "bg-[hsl(30,80%,50%)] text-[hsl(0,0%,100%)]"
-                                        : b.type === "visita"
-                                          ? "bg-[hsl(190,70%,45%)] text-[hsl(0,0%,100%)]"
-                                          : b.type === "implantacao"
-                                            ? "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]"
-                                            : "bg-[hsl(45,90%,50%)] text-[hsl(0,0%,15%)]";
-                                      const typeLabel = b.type === "marcenaria" ? "Marcenaria" : b.type === "visita" ? "Visita Técnica" : b.type === "implantacao" ? "Implantação" : "Inauguração";
-                                      return (
-                                        <div
-                                          key={`${b.storeId}-${b.type}`}
-                                          className={`h-4 min-w-[20px] px-1 rounded-sm text-[9px] font-medium text-center ${color}`}
-                                          title={`${b.storeName} • ${typeLabel} • ${format(b.start, "dd/MM")} - ${format(b.end, "dd/MM")}`}
-                                        >
-                                          {label}
-                                        </div>
-                                      );
-                                    })}
-                                    {blocks.length > 3 && <span className="text-[9px] text-muted-foreground">+{blocks.length - 3}</span>}
-                                  </div>
-                                </td>
-                              );
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            {/* Sub-tabs: Equipe / Mobiliário */}
+            <div className="flex gap-2 mb-4">
+              <Button
+                variant={scheduleSubTab === "equipe" ? "default" : "outline"}
+                size="sm"
+                className="gap-2"
+                onClick={() => setScheduleSubTab("equipe")}
+              >
+                <Users className="h-4 w-4" /> Equipe (VT + Implantação)
+              </Button>
+              <Button
+                variant={scheduleSubTab === "mobiliario" ? "default" : "outline"}
+                size="sm"
+                className="gap-2"
+                onClick={() => setScheduleSubTab("mobiliario")}
+              >
+                🪑 Mobiliário (Marcenaria)
+              </Button>
+            </div>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <CardTitle className="text-base">Resumo por loja</CardTitle>
-                    <p className="text-xs text-muted-foreground">Cadastro simples para alimentar o quadro geral.</p>
-                  </div>
-                  <Dialog open={scheduleAllOpen} onOpenChange={setScheduleAllOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm">Mostrar tudo</Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-                      <DialogHeader><DialogTitle>Resumo completo por loja</DialogTitle></DialogHeader>
-                      {stores.length === 0 ? (
-                        <p className="text-sm text-muted-foreground text-center py-6">Nenhuma loja cadastrada</p>
-                      ) : (
-                        <div className="space-y-3">
-                          {stores.map((store) => {
+            {/* ---- SUB-TAB: EQUIPE ---- */}
+            {scheduleSubTab === "equipe" && (
+              <>
+                {/* Gantt - only VT + Implantação */}
+                <Card className="mb-4">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Quadro Equipe — VT & Implantação</CardTitle>
+                    <p className="text-xs text-muted-foreground">Visão consolidada por responsável.</p>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {(() => {
+                      const equipeBlocks = scheduleBlocks.filter((b) => b.type === "visita" || b.type === "implantacao" || b.type === "inauguracao");
+                      if (equipeBlocks.length === 0) return <div className="py-10 text-center text-sm text-muted-foreground">Nenhuma programação de equipe cadastrada</div>;
+                      const equipeConflictMap = equipeBlocks.reduce<Record<string, Record<string, number>>>((acc, block) => {
+                        if (!acc[block.memberKey]) acc[block.memberKey] = {};
+                        eachDayOfInterval({ start: block.start, end: block.end }).forEach((day) => {
+                          const key = format(day, "yyyy-MM-dd");
+                          acc[block.memberKey][key] = (acc[block.memberKey][key] || 0) + 1;
+                        });
+                        return acc;
+                      }, {});
+                      const equipeMembers = Object.values(
+                        equipeBlocks.reduce<Record<string, { key: string; label: string }>>((acc, block) => {
+                          if (!block.memberKey) return acc;
+                          if (!acc[block.memberKey]) acc[block.memberKey] = { key: block.memberKey, label: block.memberLabel };
+                          return acc;
+                        }, {})
+                      ).sort((a, b) => {
+                        const aIdx = analystOrder.indexOf(a.key);
+                        const bIdx = analystOrder.indexOf(b.key);
+                        if (aIdx !== -1 || bIdx !== -1) return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+                        return a.label.localeCompare(b.label, "pt-BR");
+                      });
+                      return (
+                        <div className="overflow-x-auto">
+                          <div className="flex items-center gap-4 px-3 py-2 text-[10px] text-muted-foreground flex-wrap">
+                            <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-[hsl(190,70%,45%)]" /> VT Visita Técnica</span>
+                            <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-[hsl(152,60%,40%)]" /> I Implantação</span>
+                            <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-[hsl(45,90%,50%)]" /> 🎉 Inauguração</span>
+                          </div>
+                          <table className="w-full text-xs border-collapse">
+                            <thead>
+                              <tr className="border-b border-border/60">
+                                <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[180px]"></th>
+                                <th className="text-center px-2 py-2" colSpan={scheduleDays.length}>
+                                  <span className="text-sm font-semibold uppercase tracking-[0.2em] text-primary" style={{ textShadow: "0 1px 6px hsl(var(--primary) / 0.45)" }}>
+                                    {format(scheduleMonth, "MMMM yyyy", { locale: ptBR })}
+                                  </span>
+                                </th>
+                              </tr>
+                              <tr className="border-b border-border">
+                                <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[180px]">Responsável</th>
+                                {scheduleDays.map((day) => {
+                                  const isToday = isSameDay(day, new Date());
+                                  return (
+                                    <th key={day.toISOString()} className={`text-center px-0 py-1 min-w-[32px] ${isToday ? "text-primary" : "text-muted-foreground"}`}>
+                                      <div className="text-[10px]">{["D", "S", "T", "Q", "Q", "S", "S"][day.getDay()]}</div>
+                                      <div className={`text-xs font-medium ${isToday ? "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center mx-auto" : ""}`}>
+                                        {format(day, "d")}
+                                      </div>
+                                    </th>
+                                  );
+                                })}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {equipeMembers.map((member) => (
+                                <tr key={member.key} className="border-b border-border/50 hover:bg-muted/30">
+                                  <td className="sticky left-0 z-10 bg-card px-3 py-2">
+                                    <div className="font-semibold text-sm">{member.label}</div>
+                                  </td>
+                                  {scheduleDays.map((day) => {
+                                    const dayKey = format(day, "yyyy-MM-dd");
+                                    const blocks = equipeBlocks.filter((b) => b.memberKey === member.key && isWithinInterval(day, { start: b.start, end: b.end }));
+                                    const hasConflict = (equipeConflictMap[member.key]?.[dayKey] || 0) > 1;
+                                    const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                                    return (
+                                      <td key={`${member.key}-${dayKey}`} className={`text-center px-0 py-1 ${hasConflict ? "ring-2 ring-destructive/60 bg-destructive/10" : ""} ${isWeekend ? "bg-muted/20" : ""}`}>
+                                        <div className="flex flex-col items-center gap-0.5">
+                                          {blocks.map((b) => {
+                                            const label = b.type === "visita" ? "VT" : b.type === "implantacao" ? "I" : "🎉";
+                                            const color = b.type === "visita"
+                                              ? "bg-[hsl(190,70%,45%)] text-[hsl(0,0%,100%)]"
+                                              : b.type === "implantacao"
+                                                ? "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]"
+                                                : "bg-[hsl(45,90%,50%)] text-[hsl(0,0%,15%)]";
+                                            return (
+                                              <div key={`${b.storeId}-${b.type}`} className={`h-5 min-w-[24px] px-1 rounded text-[10px] font-bold flex items-center justify-center ${color}`}
+                                                title={`${b.storeName} (${b.city}) • ${b.type === "visita" ? "Visita Técnica" : b.type === "implantacao" ? "Implantação" : "Inauguração"} • ${format(b.start, "dd/MM")} - ${format(b.end, "dd/MM")}`}>
+                                                {label}
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+
+                {/* Table: VT + Implantação data per store */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Dados por loja — Equipe</CardTitle>
+                    <p className="text-xs text-muted-foreground">VT e Implantação com responsáveis.</p>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-border">
+                            <th className="text-left px-3 py-2.5 min-w-[160px] font-semibold">Loja</th>
+                            <th className="text-left px-3 py-2.5 min-w-[100px] font-semibold">Cidade</th>
+                            <th className="text-left px-3 py-2.5 min-w-[110px] bg-[hsl(190,70%,45%)/0.08] font-semibold text-[hsl(190,70%,35%)]">VT (data)</th>
+                            <th className="text-left px-3 py-2.5 min-w-[60px] bg-[hsl(190,70%,45%)/0.08] font-semibold text-[hsl(190,70%,35%)]">Dias</th>
+                            <th className="text-left px-3 py-2.5 min-w-[110px] bg-[hsl(190,70%,45%)/0.08] font-semibold text-[hsl(190,70%,35%)]">Resp. VT</th>
+                            <th className="text-left px-3 py-2.5 min-w-[110px] bg-[hsl(152,60%,40%)/0.08] font-semibold text-[hsl(152,60%,30%)]">Impl. (data)</th>
+                            <th className="text-left px-3 py-2.5 min-w-[60px] bg-[hsl(152,60%,40%)/0.08] font-semibold text-[hsl(152,60%,30%)]">Dias</th>
+                            <th className="text-left px-3 py-2.5 min-w-[110px] bg-[hsl(152,60%,40%)/0.08] font-semibold text-[hsl(152,60%,30%)]">Resp. Impl.</th>
+                            <th className="text-left px-3 py-2.5 min-w-[60px]"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {/* New row */}
+                          <tr className="border-b border-border/50 bg-muted/30">
+                            <td className="px-3 py-2">
+                              <Input className="h-8 text-xs" placeholder="Nome da loja" value={scheduleForm.nome} onChange={(e) => setScheduleForm({ ...scheduleForm, nome: e.target.value })} />
+                            </td>
+                            <td className="px-3 py-2">
+                              <Input className="h-8 text-xs" value={scheduleForm.cidade} onChange={(e) => setScheduleForm({ ...scheduleForm, cidade: e.target.value })} />
+                            </td>
+                            <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={scheduleForm.dataVisita} onChange={(e) => setScheduleForm({ ...scheduleForm, dataVisita: e.target.value })} /></td>
+                            <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs w-16" value={scheduleForm.duracaoVisitaDias} onChange={(e) => setScheduleForm({ ...scheduleForm, duracaoVisitaDias: e.target.value })} /></td>
+                            <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={scheduleForm.responsavelVisita} onChange={(e) => setScheduleForm({ ...scheduleForm, responsavelVisita: e.target.value })} /></td>
+                            <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={scheduleForm.dataImplantacao} onChange={(e) => setScheduleForm({ ...scheduleForm, dataImplantacao: e.target.value })} /></td>
+                            <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs w-16" value={scheduleForm.duracaoImplantacaoDias} onChange={(e) => setScheduleForm({ ...scheduleForm, duracaoImplantacaoDias: e.target.value })} /></td>
+                            <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={scheduleForm.responsavelImplantacao} onChange={(e) => setScheduleForm({ ...scheduleForm, responsavelImplantacao: e.target.value })} /></td>
+                            <td className="px-3 py-2">
+                              <Button size="sm" className="h-8 text-xs" onClick={addScheduleStore}>Adicionar</Button>
+                            </td>
+                          </tr>
+                          {stores.length === 0 ? (
+                            <tr><td colSpan={9} className="text-center py-10 text-muted-foreground">Nenhuma loja cadastrada</td></tr>
+                          ) : stores.map((store) => {
                             const visita = (store.visitaTecnica as any) || {};
-                            const derivedInaug = getEffectiveInaugurationValue(store.inauguracao || null, visita.dataImplantacao, visita.duracaoImplantacaoDias);
                             return (
-                              <div key={store.id} className="border border-border/60 rounded-md p-3 text-sm">
-                                <div className="flex items-start justify-between gap-3">
-                                  <div>
-                                    <div className="font-semibold">{store.nome}</div>
-                                    <div className="text-xs text-muted-foreground">Analista: {store.analistaObra || "—"}</div>
-                                    <div className="text-xs text-muted-foreground">Cidade: {visita.cidade || "—"}</div>
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={() => { if (confirm("Excluir esta loja?")) deleteStore(store.id); }}
-                                  >
+                              <tr key={store.id} className="border-b border-border/50 hover:bg-muted/20">
+                                <td className="px-3 py-2 font-medium">{store.nome}</td>
+                                <td className="px-3 py-2">
+                                  <Input className="h-8 text-xs" value={(visita.cidade || "").toString()} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, cidade: e.target.value } } as any)} />
+                                </td>
+                                <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={visita.dataVisita || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataVisita: e.target.value } } as any)} /></td>
+                                <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs w-16" value={visita.duracaoVisitaDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoVisitaDias: e.target.value } } as any)} /></td>
+                                <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={visita.responsavelVisita || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, responsavelVisita: e.target.value } } as any)} /></td>
+                                <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={visita.dataImplantacao || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataImplantacao: e.target.value } } as any)} /></td>
+                                <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs w-16" value={visita.duracaoImplantacaoDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoImplantacaoDias: e.target.value } } as any)} /></td>
+                                <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={visita.responsavelImplantacao || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, responsavelImplantacao: e.target.value } } as any)} /></td>
+                                <td className="px-3 py-2">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir esta loja?")) deleteStore(store.id); }}>
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                   </Button>
-                                </div>
-                                <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                                  <div><span className="text-muted-foreground">Inauguração:</span> {formatDate(derivedInaug)}</div>
-                                  <div><span className="text-muted-foreground">VT data:</span> {formatDate(visita.dataVisita || "")}</div>
-                                  <div><span className="text-muted-foreground">VT dias:</span> {visita.duracaoVisitaDias || "—"}</div>
-                                  <div><span className="text-muted-foreground">VI data:</span> {formatDate(visita.dataImplantacao || "")}</div>
-                                  <div><span className="text-muted-foreground">VI dias:</span> {visita.duracaoImplantacaoDias || "—"}</div>
-                                </div>
-                              </div>
+                                </td>
+                              </tr>
                             );
                           })}
+                        </tbody>
+                      </table>
+                      <datalist id="analistas-list">
+                        {ANALYST_OPTIONS.map((name) => <option key={name} value={name} />)}
+                      </datalist>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {/* ---- SUB-TAB: MOBILIÁRIO ---- */}
+            {scheduleSubTab === "mobiliario" && (
+              <>
+                {/* Gantt - only Marcenaria */}
+                <Card className="mb-4">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Quadro Mobiliário — Marcenaria</CardTitle>
+                    <p className="text-xs text-muted-foreground">Visão consolidada por fornecedor/responsável.</p>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {(() => {
+                      const marcBlocks = scheduleBlocks.filter((b) => b.type === "marcenaria");
+                      if (marcBlocks.length === 0) return <div className="py-10 text-center text-sm text-muted-foreground">Nenhuma programação de marcenaria cadastrada</div>;
+                      const marcConflictMap = marcBlocks.reduce<Record<string, Record<string, number>>>((acc, block) => {
+                        if (!acc[block.memberKey]) acc[block.memberKey] = {};
+                        eachDayOfInterval({ start: block.start, end: block.end }).forEach((day) => {
+                          const key = format(day, "yyyy-MM-dd");
+                          acc[block.memberKey][key] = (acc[block.memberKey][key] || 0) + 1;
+                        });
+                        return acc;
+                      }, {});
+                      const marcMembers = Object.values(
+                        marcBlocks.reduce<Record<string, { key: string; label: string }>>((acc, block) => {
+                          if (!block.memberKey) return acc;
+                          if (!acc[block.memberKey]) acc[block.memberKey] = { key: block.memberKey, label: block.memberLabel };
+                          return acc;
+                        }, {})
+                      ).sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
+                      return (
+                        <div className="overflow-x-auto">
+                          <div className="flex items-center gap-4 px-3 py-2 text-[10px] text-muted-foreground flex-wrap">
+                            <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-[hsl(30,80%,50%)]" /> M Marcenaria</span>
+                          </div>
+                          <table className="w-full text-xs border-collapse">
+                            <thead>
+                              <tr className="border-b border-border/60">
+                                <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[180px]"></th>
+                                <th className="text-center px-2 py-2" colSpan={scheduleDays.length}>
+                                  <span className="text-sm font-semibold uppercase tracking-[0.2em] text-[hsl(30,80%,50%)]">
+                                    {format(scheduleMonth, "MMMM yyyy", { locale: ptBR })}
+                                  </span>
+                                </th>
+                              </tr>
+                              <tr className="border-b border-border">
+                                <th className="sticky left-0 z-10 bg-card text-left px-3 py-2 min-w-[180px]">Fornecedor</th>
+                                {scheduleDays.map((day) => {
+                                  const isToday = isSameDay(day, new Date());
+                                  return (
+                                    <th key={day.toISOString()} className={`text-center px-0 py-1 min-w-[32px] ${isToday ? "text-[hsl(30,80%,50%)]" : "text-muted-foreground"}`}>
+                                      <div className="text-[10px]">{["D", "S", "T", "Q", "Q", "S", "S"][day.getDay()]}</div>
+                                      <div className={`text-xs font-medium ${isToday ? "bg-[hsl(30,80%,50%)] text-[hsl(0,0%,100%)] rounded-full w-6 h-6 flex items-center justify-center mx-auto" : ""}`}>
+                                        {format(day, "d")}
+                                      </div>
+                                    </th>
+                                  );
+                                })}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {marcMembers.map((member) => (
+                                <tr key={member.key} className="border-b border-border/50 hover:bg-muted/30">
+                                  <td className="sticky left-0 z-10 bg-card px-3 py-2">
+                                    <div className="font-semibold text-sm">{member.label}</div>
+                                    {/* Show stores under this member */}
+                                    <div className="text-[10px] text-muted-foreground mt-0.5">
+                                      {marcBlocks.filter((b) => b.memberKey === member.key).map((b) => b.storeName).filter((v, i, a) => a.indexOf(v) === i).join(", ")}
+                                    </div>
+                                  </td>
+                                  {scheduleDays.map((day) => {
+                                    const dayKey = format(day, "yyyy-MM-dd");
+                                    const blocks = marcBlocks.filter((b) => b.memberKey === member.key && isWithinInterval(day, { start: b.start, end: b.end }));
+                                    const hasConflict = (marcConflictMap[member.key]?.[dayKey] || 0) > 1;
+                                    const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                                    return (
+                                      <td key={`${member.key}-${dayKey}`} className={`text-center px-0 py-1 ${hasConflict ? "ring-2 ring-destructive/60 bg-destructive/10" : ""} ${isWeekend ? "bg-muted/20" : ""}`}>
+                                        <div className="flex flex-col items-center gap-0.5">
+                                          {blocks.map((b) => (
+                                            <div key={`${b.storeId}-${b.type}`} className="h-5 min-w-[24px] px-1 rounded text-[10px] font-bold flex items-center justify-center bg-[hsl(30,80%,50%)] text-[hsl(0,0%,100%)]"
+                                              title={`${b.storeName} (${b.city}) • Marcenaria • ${format(b.start, "dd/MM")} - ${format(b.end, "dd/MM")}`}>
+                                              M
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
-                      )}
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs border-collapse">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left px-3 py-2 min-w-[160px]">Loja</th>
-                        <th className="text-left px-3 py-2 min-w-[120px]">Cidade</th>
-                        <th className="text-left px-3 py-2 min-w-[120px] bg-[hsl(30,80%,50%)/0.1]">Marc. (data)</th>
-                        <th className="text-left px-3 py-2 min-w-[70px] bg-[hsl(30,80%,50%)/0.1]">Dias</th>
-                        <th className="text-left px-3 py-2 min-w-[110px] bg-[hsl(30,80%,50%)/0.1]">Resp. Marc.</th>
-                        <th className="text-left px-3 py-2 min-w-[120px] bg-[hsl(190,70%,45%)/0.1]">VT (data)</th>
-                        <th className="text-left px-3 py-2 min-w-[70px] bg-[hsl(190,70%,45%)/0.1]">Dias</th>
-                        <th className="text-left px-3 py-2 min-w-[110px] bg-[hsl(190,70%,45%)/0.1]">Resp. VT</th>
-                        <th className="text-left px-3 py-2 min-w-[120px] bg-[hsl(152,60%,40%)/0.1]">Impl. (data)</th>
-                        <th className="text-left px-3 py-2 min-w-[70px] bg-[hsl(152,60%,40%)/0.1]">Dias</th>
-                        <th className="text-left px-3 py-2 min-w-[110px] bg-[hsl(152,60%,40%)/0.1]">Resp. Impl.</th>
-                        <th className="text-left px-3 py-2 min-w-[80px]">Ações</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b border-border/50 bg-muted/20">
-                        <td className="px-3 py-2">
-                          <Input className="h-8 text-xs" placeholder="Nome da loja" value={scheduleForm.nome} onChange={(e) => setScheduleForm({ ...scheduleForm, nome: e.target.value })} />
-                        </td>
-                        <td className="px-3 py-2">
-                          <Input className="h-8 text-xs" value={scheduleForm.cidade} onChange={(e) => setScheduleForm({ ...scheduleForm, cidade: e.target.value })} />
-                        </td>
-                        <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={scheduleForm.dataMarcenaria} onChange={(e) => setScheduleForm({ ...scheduleForm, dataMarcenaria: e.target.value })} /></td>
-                        <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs" value={scheduleForm.duracaoMarcenariaDias} onChange={(e) => setScheduleForm({ ...scheduleForm, duracaoMarcenariaDias: e.target.value })} /></td>
-                        <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={scheduleForm.responsavelMarcenaria} onChange={(e) => setScheduleForm({ ...scheduleForm, responsavelMarcenaria: e.target.value })} /></td>
-                        <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={scheduleForm.dataVisita} onChange={(e) => setScheduleForm({ ...scheduleForm, dataVisita: e.target.value })} /></td>
-                        <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs" value={scheduleForm.duracaoVisitaDias} onChange={(e) => setScheduleForm({ ...scheduleForm, duracaoVisitaDias: e.target.value })} /></td>
-                        <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={scheduleForm.responsavelVisita} onChange={(e) => setScheduleForm({ ...scheduleForm, responsavelVisita: e.target.value })} /></td>
-                        <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={scheduleForm.dataImplantacao} onChange={(e) => setScheduleForm({ ...scheduleForm, dataImplantacao: e.target.value })} /></td>
-                        <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs" value={scheduleForm.duracaoImplantacaoDias} onChange={(e) => setScheduleForm({ ...scheduleForm, duracaoImplantacaoDias: e.target.value })} /></td>
-                        <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={scheduleForm.responsavelImplantacao} onChange={(e) => setScheduleForm({ ...scheduleForm, responsavelImplantacao: e.target.value })} /></td>
-                        <td className="px-3 py-2">
-                          <Button size="sm" className="h-8" onClick={addScheduleStore}>Adicionar</Button>
-                        </td>
-                      </tr>
-                      {stores.length === 0 ? (
-                        <tr>
-                          <td colSpan={12} className="text-center py-10 text-muted-foreground">Nenhuma loja cadastrada</td>
-                        </tr>
-                      ) : stores.map((store) => {
-                        const visita = (store.visitaTecnica as any) || {};
-                        return (
-                          <tr key={store.id} className="border-b border-border/50">
-                            <td className="px-3 py-2 font-medium">{store.nome}</td>
+                      );
+                    })()}
+                  </CardContent>
+                </Card>
+
+                {/* Table: Marcenaria data per store */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Dados por loja — Mobiliário</CardTitle>
+                    <p className="text-xs text-muted-foreground">Datas e fornecedores de marcenaria.</p>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-border">
+                            <th className="text-left px-3 py-2.5 min-w-[160px] font-semibold">Loja</th>
+                            <th className="text-left px-3 py-2.5 min-w-[100px] font-semibold">Cidade</th>
+                            <th className="text-left px-3 py-2.5 min-w-[110px] bg-[hsl(30,80%,50%)/0.08] font-semibold text-[hsl(30,80%,40%)]">Data Início</th>
+                            <th className="text-left px-3 py-2.5 min-w-[60px] bg-[hsl(30,80%,50%)/0.08] font-semibold text-[hsl(30,80%,40%)]">Dias</th>
+                            <th className="text-left px-3 py-2.5 min-w-[110px] bg-[hsl(30,80%,50%)/0.08] font-semibold text-[hsl(30,80%,40%)]">Fornecedor</th>
+                            <th className="text-left px-3 py-2.5 min-w-[100px] bg-[hsl(30,80%,50%)/0.08] font-semibold text-[hsl(30,80%,40%)]">Término</th>
+                            <th className="text-left px-3 py-2.5 min-w-[60px]"></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {/* New row */}
+                          <tr className="border-b border-border/50 bg-muted/30">
                             <td className="px-3 py-2">
-                              <Input className="h-8 text-xs" value={(visita.cidade || "").toString()} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, cidade: e.target.value } } as any)} />
+                              <Input className="h-8 text-xs" placeholder="Nome da loja" value={scheduleForm.nome} onChange={(e) => setScheduleForm({ ...scheduleForm, nome: e.target.value })} />
                             </td>
-                            <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={visita.dataMarcenaria || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataMarcenaria: e.target.value } } as any)} /></td>
-                            <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs" value={visita.duracaoMarcenariaDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoMarcenariaDias: e.target.value } } as any)} /></td>
-                            <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={visita.responsavelMarcenaria || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, responsavelMarcenaria: e.target.value } } as any)} /></td>
-                            <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={visita.dataVisita || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataVisita: e.target.value } } as any)} /></td>
-                            <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs" value={visita.duracaoVisitaDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoVisitaDias: e.target.value } } as any)} /></td>
-                            <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={visita.responsavelVisita || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, responsavelVisita: e.target.value } } as any)} /></td>
-                            <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={visita.dataImplantacao || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataImplantacao: e.target.value } } as any)} /></td>
-                            <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs" value={visita.duracaoImplantacaoDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoImplantacaoDias: e.target.value } } as any)} /></td>
-                            <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={visita.responsavelImplantacao || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, responsavelImplantacao: e.target.value } } as any)} /></td>
                             <td className="px-3 py-2">
-                              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir esta loja?")) deleteStore(store.id); }}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
+                              <Input className="h-8 text-xs" value={scheduleForm.cidade} onChange={(e) => setScheduleForm({ ...scheduleForm, cidade: e.target.value })} />
+                            </td>
+                            <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={scheduleForm.dataMarcenaria} onChange={(e) => setScheduleForm({ ...scheduleForm, dataMarcenaria: e.target.value })} /></td>
+                            <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs w-16" value={scheduleForm.duracaoMarcenariaDias} onChange={(e) => setScheduleForm({ ...scheduleForm, duracaoMarcenariaDias: e.target.value })} /></td>
+                            <td className="px-3 py-2"><Input list="analistas-marc-list" className="h-8 text-xs" value={scheduleForm.responsavelMarcenaria} onChange={(e) => setScheduleForm({ ...scheduleForm, responsavelMarcenaria: e.target.value })} /></td>
+                            <td className="px-3 py-2 text-muted-foreground">
+                              {scheduleForm.dataMarcenaria && scheduleForm.duracaoMarcenariaDias
+                                ? formatDate(format(addDays(new Date(scheduleForm.dataMarcenaria + "T00:00:00"), Number(scheduleForm.duracaoMarcenariaDias) - 1), "yyyy-MM-dd"))
+                                : "—"}
+                            </td>
+                            <td className="px-3 py-2">
+                              <Button size="sm" className="h-8 text-xs" onClick={addScheduleStore}>Adicionar</Button>
                             </td>
                           </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                  <datalist id="analistas-list">
-                    {ANALYST_OPTIONS.map((name) => (
-                      <option key={name} value={name} />
-                    ))}
-                  </datalist>
-                </div>
-              </CardContent>
-            </Card>
+                          {stores.length === 0 ? (
+                            <tr><td colSpan={7} className="text-center py-10 text-muted-foreground">Nenhuma loja cadastrada</td></tr>
+                          ) : stores.map((store) => {
+                            const visita = (store.visitaTecnica as any) || {};
+                            const marcEnd = visita.dataMarcenaria && visita.duracaoMarcenariaDias
+                              ? format(addDays(new Date(visita.dataMarcenaria + "T00:00:00"), Number(visita.duracaoMarcenariaDias) - 1), "yyyy-MM-dd")
+                              : "";
+                            return (
+                              <tr key={store.id} className="border-b border-border/50 hover:bg-muted/20">
+                                <td className="px-3 py-2 font-medium">{store.nome}</td>
+                                <td className="px-3 py-2">
+                                  <Input className="h-8 text-xs" value={(visita.cidade || "").toString()} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, cidade: e.target.value } } as any)} />
+                                </td>
+                                <td className="px-3 py-2"><Input type="date" className="h-8 text-xs" value={visita.dataMarcenaria || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, dataMarcenaria: e.target.value } } as any)} /></td>
+                                <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs w-16" value={visita.duracaoMarcenariaDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoMarcenariaDias: e.target.value } } as any)} /></td>
+                                <td className="px-3 py-2"><Input list="analistas-marc-list" className="h-8 text-xs" value={visita.responsavelMarcenaria || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, responsavelMarcenaria: e.target.value } } as any)} /></td>
+                                <td className="px-3 py-2 text-muted-foreground">{formatDate(marcEnd)}</td>
+                                <td className="px-3 py-2">
+                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir esta loja?")) deleteStore(store.id); }}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                      <datalist id="analistas-marc-list">
+                        {ANALYST_OPTIONS.map((name) => <option key={name} value={name} />)}
+                      </datalist>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </TabsContent>
 
           {/* === HÁBITOS === */}
