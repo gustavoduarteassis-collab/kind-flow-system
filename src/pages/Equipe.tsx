@@ -558,59 +558,7 @@ const Equipe = () => {
     });
   });
 
-  // 2. Store inaugurations (last day of implantation)
-  stores.forEach((s) => {
-    const visita = (s.visitaTecnica as any) || {};
-    const inaugValue = getEffectiveInaugurationValue(s.inauguracao || null, visita.dataImplantacao, visita.duracaoImplantacaoDias);
-    if (inaugValue) {
-      allCalendarEvents.push({ id: `inaug-${s.id}`, title: `Inauguração: ${s.nome}`, event_type: "implantacao", date: new Date(inaugValue + "T00:00:00"), deletable: false });
-    }
-  });
-
-  // 2b. Store technical visit dates
-  stores.forEach((s) => {
-    const visita = (s.visitaTecnica as any) || {};
-    if (visita?.dataVisita) {
-      allCalendarEvents.push({
-        id: `vt-${s.id}`,
-        title: `Visita Técnica: ${s.nome}`,
-        event_type: "visita_tecnica",
-        date: new Date(visita.dataVisita + "T00:00:00"),
-        deletable: false,
-        memberId: getMemberIdByName(s.analistaObra),
-      });
-    }
-  });
-
-  // 3. Cronograma dates from stores
-  stores.forEach((s) => {
-    const cron = s.cronograma as any;
-    if (cron?.itemDates) {
-      Object.entries(cron.itemDates as Record<string, { inicio: string; fim: string }>).forEach(([itemId, dates]) => {
-        if (dates.inicio) {
-          allCalendarEvents.push({ id: `cron-ini-${s.id}-${itemId}`, title: `${s.nome} - ${itemId} início`, event_type: "checklist", date: new Date(dates.inicio + "T00:00:00"), deletable: false });
-        }
-        if (dates.fim) {
-          allCalendarEvents.push({ id: `cron-fim-${s.id}-${itemId}`, title: `${s.nome} - ${itemId} término`, event_type: "checklist", date: new Date(dates.fim + "T00:00:00"), deletable: false });
-        }
-      });
-    }
-  });
-
-  // 4. Checklist dates from stores (only items with dates filled)
-  stores.forEach((s) => {
-    const cl = s.checklist as any;
-    if (cl) {
-      Object.entries(cl).forEach(([itemId, data]: [string, any]) => {
-        if (data?.prazoInicial) {
-          allCalendarEvents.push({ id: `cl-ini-${s.id}-${itemId}`, title: `${s.nome} - Item ${itemId} início`, event_type: "checklist", date: new Date(data.prazoInicial + "T00:00:00"), deletable: false });
-        }
-        if (data?.prazoFinal) {
-          allCalendarEvents.push({ id: `cl-fim-${s.id}-${itemId}`, title: `${s.nome} - Item ${itemId} prazo`, event_type: "checklist", date: new Date(data.prazoFinal + "T00:00:00"), deletable: false });
-        }
-      });
-    }
-  });
+  // Calendar is now manually filled only - no automatic data from stores
 
   const getAllEventsForDate = (date: Date) => allCalendarEvents.filter((e) => isSameDay(e.date, date));
   const filteredCalendarEvents = calendarMemberFilter
