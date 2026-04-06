@@ -431,7 +431,7 @@ const Equipe = () => {
 
   const addScheduleStore = async () => {
     if (!scheduleForm.nome) return;
-    const inauguracaoDate = scheduleForm.inauguracao || getImplantationEndDate(scheduleForm.dataImplantacao, scheduleForm.duracaoImplantacaoDias);
+    const inauguracaoDate = "";
     const newId = await addStore({
       nome: scheduleForm.nome,
       filial: "",
@@ -536,17 +536,6 @@ const Equipe = () => {
         storeId: s.id, storeName: s.nome, type: "implantacao",
         memberKey: implKey, memberLabel: implLabel, city,
         start: implantStart, end: addDays(implantStart, implantDays - 1),
-      });
-    }
-
-    // Inauguração
-    const inaugValue = getEffectiveInaugurationValue(s.inauguracao || null, visita.dataImplantacao, visita.duracaoImplantacaoDias);
-    const inaug = parseDateValue(inaugValue);
-    if (inaug && defaultKey) {
-      scheduleBlocks.push({
-        storeId: s.id, storeName: s.nome, type: "inauguracao",
-        memberKey: defaultKey, memberLabel: defaultLabel, city,
-        start: inaug, end: inaug,
       });
     }
   });
@@ -912,7 +901,7 @@ const Equipe = () => {
                   </CardHeader>
                   <CardContent className="p-0">
                     {(() => {
-                      const equipeBlocks = scheduleBlocks.filter((b) => b.type === "visita" || b.type === "implantacao" || b.type === "inauguracao");
+                      const equipeBlocks = scheduleBlocks.filter((b) => b.type === "visita" || b.type === "implantacao");
                       if (equipeBlocks.length === 0) return <div className="py-10 text-center text-sm text-muted-foreground">Nenhuma programação de equipe cadastrada</div>;
                       const equipeConflictMap = equipeBlocks.reduce<Record<string, Record<string, number>>>((acc, block) => {
                         if (!acc[block.memberKey]) acc[block.memberKey] = {};
@@ -939,7 +928,6 @@ const Equipe = () => {
                           <div className="flex items-center gap-4 px-3 py-2 text-[10px] text-muted-foreground flex-wrap">
                             <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-[hsl(190,70%,45%)]" /> VT Visita Técnica</span>
                             <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-[hsl(152,60%,40%)]" /> I Implantação</span>
-                            <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-[hsl(45,90%,50%)]" /> 🎉 Inauguração</span>
                           </div>
                           <table className="w-full text-xs border-collapse">
                             <thead>
@@ -981,15 +969,13 @@ const Equipe = () => {
                                       <td key={`${member.key}-${dayKey}`} className={`text-center px-0 py-1 ${hasConflict ? "ring-2 ring-destructive/60 bg-destructive/10" : ""} ${isWeekend ? "bg-muted/20" : ""}`}>
                                         <div className="flex flex-col items-center gap-0.5">
                                           {blocks.map((b) => {
-                                            const label = b.type === "visita" ? "VT" : b.type === "implantacao" ? "I" : "🎉";
+                                            const label = b.type === "visita" ? "VT" : "I";
                                             const color = b.type === "visita"
                                               ? "bg-[hsl(190,70%,45%)] text-[hsl(0,0%,100%)]"
-                                              : b.type === "implantacao"
-                                                ? "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]"
-                                                : "bg-[hsl(45,90%,50%)] text-[hsl(0,0%,15%)]";
+                                              : "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]";
                                             return (
                                               <div key={`${b.storeId}-${b.type}`} className={`h-5 min-w-[24px] px-1 rounded text-[10px] font-bold flex items-center justify-center ${color}`}
-                                                title={`${b.storeName} (${b.city}) • ${b.type === "visita" ? "Visita Técnica" : b.type === "implantacao" ? "Implantação" : "Inauguração"} • ${format(b.start, "dd/MM")} - ${format(b.end, "dd/MM")}`}>
+                                                title={`${b.storeName} (${b.city}) • ${b.type === "visita" ? "Visita Técnica" : "Implantação"} • ${format(b.start, "dd/MM")} - ${format(b.end, "dd/MM")}`}>
                                                 {label}
                                               </div>
                                             );
