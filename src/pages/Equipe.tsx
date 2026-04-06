@@ -431,7 +431,7 @@ const Equipe = () => {
 
   const addScheduleStore = async () => {
     if (!scheduleForm.nome) return;
-    const inauguracaoDate = scheduleForm.inauguracao || getImplantationEndDate(scheduleForm.dataImplantacao, scheduleForm.duracaoImplantacaoDias);
+    const inauguracaoDate = "";
     const newId = await addStore({
       nome: scheduleForm.nome,
       filial: "",
@@ -901,7 +901,7 @@ const Equipe = () => {
                   </CardHeader>
                   <CardContent className="p-0">
                     {(() => {
-                      const equipeBlocks = scheduleBlocks.filter((b) => b.type === "visita" || b.type === "implantacao" || b.type === "inauguracao");
+                      const equipeBlocks = scheduleBlocks.filter((b) => b.type === "visita" || b.type === "implantacao");
                       if (equipeBlocks.length === 0) return <div className="py-10 text-center text-sm text-muted-foreground">Nenhuma programação de equipe cadastrada</div>;
                       const equipeConflictMap = equipeBlocks.reduce<Record<string, Record<string, number>>>((acc, block) => {
                         if (!acc[block.memberKey]) acc[block.memberKey] = {};
@@ -928,7 +928,6 @@ const Equipe = () => {
                           <div className="flex items-center gap-4 px-3 py-2 text-[10px] text-muted-foreground flex-wrap">
                             <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-[hsl(190,70%,45%)]" /> VT Visita Técnica</span>
                             <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-[hsl(152,60%,40%)]" /> I Implantação</span>
-                            <span className="inline-flex items-center gap-1"><span className="inline-block h-3 w-3 rounded-sm bg-[hsl(45,90%,50%)]" /> 🎉 Inauguração</span>
                           </div>
                           <table className="w-full text-xs border-collapse">
                             <thead>
