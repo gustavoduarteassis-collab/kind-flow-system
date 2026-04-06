@@ -270,6 +270,45 @@ export type Database = {
           },
         ]
       }
+      fornecedores_homologados: {
+        Row: {
+          contato: string
+          created_at: string
+          email: string
+          empresa: string
+          id: string
+          produto: string
+          telefone: string
+          updated_at: string
+          user_id: string
+          whatsapp: string
+        }
+        Insert: {
+          contato?: string
+          created_at?: string
+          email?: string
+          empresa?: string
+          id?: string
+          produto?: string
+          telefone?: string
+          updated_at?: string
+          user_id: string
+          whatsapp?: string
+        }
+        Update: {
+          contato?: string
+          created_at?: string
+          email?: string
+          empresa?: string
+          id?: string
+          produto?: string
+          telefone?: string
+          updated_at?: string
+          user_id?: string
+          whatsapp?: string
+        }
+        Relationships: []
+      }
       fornecedores_prospeccao: {
         Row: {
           analista_responsavel: string
