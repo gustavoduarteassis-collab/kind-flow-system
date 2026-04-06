@@ -136,6 +136,7 @@ const Equipe = () => {
   const [calendarMonth, setCalendarMonth] = useState(new Date());
   const [scheduleMonth, setScheduleMonth] = useState(new Date());
   const [scheduleAllOpen, setScheduleAllOpen] = useState(false);
+  const [scheduleSubTab, setScheduleSubTab] = useState<"equipe" | "mobiliario">("equipe");
 
   // Dialogs
   const [memberOpen, setMemberOpen] = useState(false);
