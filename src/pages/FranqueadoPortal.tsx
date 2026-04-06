@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Store, checklistCategories, StatusType, createDefaultChecklist } from "@/data/checklistData";
@@ -334,7 +335,7 @@ const FranqueadoPortal = () => {
                                 </TableCell>
                                 <TableCell className="text-xs">{item.responsavel}</TableCell>
                                 <TableCell>
-                                  <Input className="h-8 text-xs" placeholder="Obs..." value={data.observacoes} onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)} />
+                                  <Textarea className="min-h-[36px] text-xs resize-none overflow-hidden" rows={2} placeholder="Obs..." value={data.observacoes} onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)} />
                                 </TableCell>
                               </TableRow>
                             );
