@@ -538,17 +538,6 @@ const Equipe = () => {
         start: implantStart, end: addDays(implantStart, implantDays - 1),
       });
     }
-
-    // Inauguração
-    const inaugValue = getEffectiveInaugurationValue(s.inauguracao || null, visita.dataImplantacao, visita.duracaoImplantacaoDias);
-    const inaug = parseDateValue(inaugValue);
-    if (inaug && defaultKey) {
-      scheduleBlocks.push({
-        storeId: s.id, storeName: s.nome, type: "inauguracao",
-        memberKey: defaultKey, memberLabel: defaultLabel, city,
-        start: inaug, end: inaug,
-      });
-    }
   });
 
   const scheduleConflictMap = scheduleBlocks.reduce<Record<string, Record<string, number>>>((acc, block) => {
