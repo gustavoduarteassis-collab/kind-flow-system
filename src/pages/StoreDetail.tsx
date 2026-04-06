@@ -607,7 +607,7 @@ const StoreDetail = () => {
                     <TableHeader>
                       <TableRow className="bg-muted/50">
                         <TableHead className="w-12 text-center">#</TableHead>
-                        <TableHead className="min-w-[280px]">Atividade</TableHead>
+                        <TableHead className="min-w-[350px]">Atividade</TableHead>
                         <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
                         {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
                           <TableHead className="w-[130px]">Prazo Inicial</TableHead>
@@ -649,7 +649,7 @@ const StoreDetail = () => {
                               {item.id}
                             </TableCell>
                             <TableCell>
-                              <div className="text-sm">
+                              <div className="text-sm break-words whitespace-normal">
                                 {isTeamMember ? (
                                   <Input
                                     className="h-8 text-xs font-medium"
