@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -651,18 +652,19 @@ const StoreDetail = () => {
                             <TableCell>
                               <div className="text-sm break-words whitespace-normal">
                                 {isTeamMember ? (
-                                  <Input
-                                    className="h-8 text-xs font-medium"
+                                  <Textarea
+                                    className="min-h-[36px] text-xs font-medium resize-none overflow-hidden"
+                                    rows={2}
                                     value={data.atividade || item.atividade}
                                     onChange={(e) =>
                                       handleFieldChange(item.id, "atividade", e.target.value)
                                     }
                                   />
                                 ) : (
-                                  <span>{data.atividade || item.atividade}</span>
+                                  <span className="whitespace-pre-line">{data.atividade || item.atividade}</span>
                                 )}
                                 {isImpeditivo && (
-                                  <Badge variant="outline" className="ml-2 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">
+                                  <Badge variant="outline" className="ml-2 mt-1 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">
                                     IMPEDITIVO
                                   </Badge>
                                 )}
@@ -716,8 +718,9 @@ const StoreDetail = () => {
                             </TableCell>
                             <TableCell className="text-xs">{item.responsavel}</TableCell>
                             <TableCell>
-                              <Input
-                                className="h-8 text-xs"
+                              <Textarea
+                                className="min-h-[36px] text-xs resize-none overflow-hidden"
+                                rows={2}
                                 placeholder="Obs..."
                                 value={data.observacoes}
                                 onChange={(e) =>
@@ -726,8 +729,9 @@ const StoreDetail = () => {
                               />
                             </TableCell>
                             <TableCell>
-                              <Input
-                                className="h-8 text-xs"
+                              <Textarea
+                                className="min-h-[36px] text-xs resize-none overflow-hidden"
+                                rows={2}
                                 placeholder="Instruções detalhadas..."
                                 value={data.descricao || ""}
                                 onChange={(e) =>

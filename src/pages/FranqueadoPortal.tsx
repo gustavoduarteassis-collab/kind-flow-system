@@ -287,7 +287,7 @@ const FranqueadoPortal = () => {
                         <TableHeader>
                           <TableRow className="bg-muted/50">
                             <TableHead className="w-12 text-center">#</TableHead>
-                            <TableHead className="min-w-[280px]">Atividade</TableHead>
+                            <TableHead className="min-w-[350px]">Atividade</TableHead>
                             <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
                             <TableHead className="w-[130px]">Prazo Inicial</TableHead>
                             <TableHead className="w-[130px]">Prazo Final</TableHead>
