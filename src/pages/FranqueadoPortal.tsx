@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Store, checklistCategories, StatusType, createDefaultChecklist } from "@/data/checklistData";
@@ -287,7 +288,7 @@ const FranqueadoPortal = () => {
                         <TableHeader>
                           <TableRow className="bg-muted/50">
                             <TableHead className="w-12 text-center">#</TableHead>
-                            <TableHead className="min-w-[280px]">Atividade</TableHead>
+                            <TableHead className="min-w-[350px]">Atividade</TableHead>
                             <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
                             <TableHead className="w-[130px]">Prazo Inicial</TableHead>
                             <TableHead className="w-[130px]">Prazo Final</TableHead>
@@ -334,7 +335,7 @@ const FranqueadoPortal = () => {
                                 </TableCell>
                                 <TableCell className="text-xs">{item.responsavel}</TableCell>
                                 <TableCell>
-                                  <Input className="h-8 text-xs" placeholder="Obs..." value={data.observacoes} onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)} />
+                                  <Textarea className="min-h-[36px] text-xs resize-none overflow-hidden" rows={2} placeholder="Obs..." value={data.observacoes} onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)} />
                                 </TableCell>
                               </TableRow>
                             );
