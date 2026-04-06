@@ -34,6 +34,7 @@ type TeamMember = {
 type Task = {
   id: string; title: string; description: string | null; status: string;
   priority: string; assigned_to: string | null; due_date: string | null; start_date: string | null;
+  updated_at: string;
 };
 type Habit = { id: string; name: string; description: string | null; assigned_to_members: string[] };
 type HabitCompletion = {
