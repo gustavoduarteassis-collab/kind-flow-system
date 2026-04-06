@@ -890,10 +890,10 @@ const Equipe = () => {
                   <div className="py-10 text-center text-sm text-muted-foreground">Nenhuma programação cadastrada</div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <div className="flex items-center gap-3 px-3 py-2 text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-3 px-3 py-2 text-[10px] text-muted-foreground flex-wrap">
+                      <span className="inline-flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[hsl(30,80%,50%)]" /> M Marcenaria</span>
                       <span className="inline-flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[hsl(190,70%,45%)]" /> VT Visita Técnica</span>
-                      <span className="inline-flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[hsl(28,85%,55%)]" /> VI Visita de Implantação</span>
-                      <span className="inline-flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[hsl(152,60%,40%)]" /> I Inauguração</span>
+                      <span className="inline-flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-sm bg-[hsl(152,60%,40%)]" /> I Implantação</span>
                     </div>
                     <table className="w-full text-xs border-collapse">
                       <thead>
@@ -936,14 +936,16 @@ const Equipe = () => {
                               return (
                                 <td key={`${member.key}-${dayKey}`} className={`text-center px-0 py-1 ${hasConflict ? "ring-2 ring-destructive/60" : ""}`}>
                                   <div className="flex items-center justify-center gap-0.5">
-                                    {blocks.slice(0, 2).map((b) => {
-                                      const label = b.type === "visita" ? "VT" : b.type === "implantacao" ? "VI" : "I";
-                                      const color = b.type === "visita"
-                                        ? "bg-[hsl(190,70%,45%)] text-[hsl(0,0%,100%)]"
-                                        : b.type === "implantacao"
-                                          ? "bg-[hsl(28,85%,55%)] text-[hsl(25,20%,15%)]"
-                                          : "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]";
-                                      const typeLabel = b.type === "visita" ? "Visita Técnica" : b.type === "implantacao" ? "Visita de Implantação" : "Inauguração";
+                                    {blocks.slice(0, 3).map((b) => {
+                                      const label = b.type === "marcenaria" ? "M" : b.type === "visita" ? "VT" : b.type === "implantacao" ? "I" : "🎉";
+                                      const color = b.type === "marcenaria"
+                                        ? "bg-[hsl(30,80%,50%)] text-[hsl(0,0%,100%)]"
+                                        : b.type === "visita"
+                                          ? "bg-[hsl(190,70%,45%)] text-[hsl(0,0%,100%)]"
+                                          : b.type === "implantacao"
+                                            ? "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]"
+                                            : "bg-[hsl(45,90%,50%)] text-[hsl(0,0%,15%)]";
+                                      const typeLabel = b.type === "marcenaria" ? "Marcenaria" : b.type === "visita" ? "Visita Técnica" : b.type === "implantacao" ? "Implantação" : "Inauguração";
                                       return (
                                         <div
                                           key={`${b.storeId}-${b.type}`}
