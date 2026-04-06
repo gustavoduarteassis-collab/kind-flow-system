@@ -956,7 +956,7 @@ const Equipe = () => {
                                         </div>
                                       );
                                     })}
-                                    {blocks.length > 2 && <span className="text-[9px] text-muted-foreground">+{blocks.length - 2}</span>}
+                                    {blocks.length > 3 && <span className="text-[9px] text-muted-foreground">+{blocks.length - 3}</span>}
                                   </div>
                                 </td>
                               );
