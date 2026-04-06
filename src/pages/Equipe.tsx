@@ -569,7 +569,7 @@ const Equipe = () => {
 
   // 2b. Store technical visit dates
   stores.forEach((s) => {
-    const visita = (s.visita_tecnica as any) || {};
+    const visita = (s.visitaTecnica as any) || {};
     if (visita?.dataVisita) {
       allCalendarEvents.push({
         id: `vt-${s.id}`,

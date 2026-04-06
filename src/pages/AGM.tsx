@@ -29,7 +29,7 @@ import { format, addDays, differenceInDays, parse, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoConstance from "@/assets/logo-constance.svg";
 
-const AGM_PASSWORD = "agm2026";
+const AGM_PASSWORD = "constance2026";
 
 const METAS_CUSTO: Record<string, number> = {
   TRADICIONAL: 3250,

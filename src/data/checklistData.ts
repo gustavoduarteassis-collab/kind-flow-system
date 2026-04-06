@@ -50,6 +50,9 @@ export interface Store {
   }>;
   cronograma: CronogramaStore;
   inauguracaoChecklist: InaugChecklistData;
+  custos?: any;
+  solicitacoes?: any;
+  visitaTecnica?: any;
 }
 
 const defaultStatusOptions: StatusType[] = [
