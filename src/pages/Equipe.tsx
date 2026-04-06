@@ -485,7 +485,7 @@ const Equipe = () => {
   type ScheduleBlock = {
     storeId: string;
     storeName: string;
-    type: "visita" | "implantacao" | "inauguracao";
+    type: "visita" | "implantacao" | "inauguracao" | "marcenaria";
     memberKey: string;
     memberLabel: string;
     city: string;
@@ -495,50 +495,57 @@ const Equipe = () => {
   const scheduleBlocks: ScheduleBlock[] = [];
   stores.forEach((s) => {
     const visita = (s.visitaTecnica as any) || {};
-    const memberLabel = (s.analistaObra || "").toString().trim();
-    const memberKey = normalizeName(memberLabel);
-    const hasMember = Boolean(memberKey);
+    const defaultLabel = (s.analistaObra || "").toString().trim();
+    const defaultKey = normalizeName(defaultLabel);
     const city = (visita.cidade || "").toString().trim();
-    const implantStart = parseDateValue(visita.dataImplantacao);
-    const implantDays = toPositiveNumber(visita.duracaoImplantacaoDias || 0);
-    const inaugValue = getEffectiveInaugurationValue(s.inauguracao || null, visita.dataImplantacao, visita.duracaoImplantacaoDias);
-    const inaug = parseDateValue(inaugValue);
-    if (inaug && hasMember) {
+
+    // Marcenaria
+    const marcStart = parseDateValue(visita.dataMarcenaria);
+    const marcDays = toPositiveNumber(visita.duracaoMarcenariaDias || 0);
+    const marcLabel = (visita.responsavelMarcenaria || defaultLabel).toString().trim();
+    const marcKey = normalizeName(marcLabel);
+    if (marcStart && marcDays > 0 && marcKey) {
       scheduleBlocks.push({
-        storeId: s.id,
-        storeName: s.nome,
-        type: "inauguracao",
-        memberKey,
-        memberLabel,
-        city,
-        start: inaug,
-        end: inaug,
+        storeId: s.id, storeName: s.nome, type: "marcenaria",
+        memberKey: marcKey, memberLabel: marcLabel, city,
+        start: marcStart, end: addDays(marcStart, marcDays - 1),
       });
     }
+
+    // Visita Técnica
     const visitaStart = parseDateValue(visita.dataVisita);
     const visitaDays = toPositiveNumber(visita.duracaoVisitaDias || 0);
-    if (visitaStart && visitaDays > 0 && hasMember) {
+    const vtLabel = (visita.responsavelVisita || defaultLabel).toString().trim();
+    const vtKey = normalizeName(vtLabel);
+    if (visitaStart && visitaDays > 0 && vtKey) {
       scheduleBlocks.push({
-        storeId: s.id,
-        storeName: s.nome,
-        type: "visita",
-        memberKey,
-        memberLabel,
-        city,
-        start: visitaStart,
-        end: addDays(visitaStart, visitaDays - 1),
+        storeId: s.id, storeName: s.nome, type: "visita",
+        memberKey: vtKey, memberLabel: vtLabel, city,
+        start: visitaStart, end: addDays(visitaStart, visitaDays - 1),
       });
     }
-    if (implantStart && implantDays > 0 && hasMember) {
+
+    // Implantação
+    const implantStart = parseDateValue(visita.dataImplantacao);
+    const implantDays = toPositiveNumber(visita.duracaoImplantacaoDias || 0);
+    const implLabel = (visita.responsavelImplantacao || defaultLabel).toString().trim();
+    const implKey = normalizeName(implLabel);
+    if (implantStart && implantDays > 0 && implKey) {
       scheduleBlocks.push({
-        storeId: s.id,
-        storeName: s.nome,
-        type: "implantacao",
-        memberKey,
-        memberLabel,
-        city,
-        start: implantStart,
-        end: addDays(implantStart, implantDays - 1),
+        storeId: s.id, storeName: s.nome, type: "implantacao",
+        memberKey: implKey, memberLabel: implLabel, city,
+        start: implantStart, end: addDays(implantStart, implantDays - 1),
+      });
+    }
+
+    // Inauguração
+    const inaugValue = getEffectiveInaugurationValue(s.inauguracao || null, visita.dataImplantacao, visita.duracaoImplantacaoDias);
+    const inaug = parseDateValue(inaugValue);
+    if (inaug && defaultKey) {
+      scheduleBlocks.push({
+        storeId: s.id, storeName: s.nome, type: "inauguracao",
+        memberKey: defaultKey, memberLabel: defaultLabel, city,
+        start: inaug, end: inaug,
       });
     }
   });
