@@ -168,6 +168,8 @@ const Equipe = () => {
   const [eventDetailOpen, setEventDetailOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<TeamEvent | null>(null);
   const [editingEventDesc, setEditingEventDesc] = useState("");
+  const [editingEventDate, setEditingEventDate] = useState("");
+  const [editingEventEndDate, setEditingEventEndDate] = useState("");
   const [accessForm, setAccessForm] = useState({
     store_id: "", franchisee_email: "",
     can_view_checklist: true, can_edit_checklist: true,
@@ -343,12 +345,19 @@ const Equipe = () => {
   const openEventDetail = (ev: TeamEvent) => {
     setSelectedEvent(ev);
     setEditingEventDesc(ev.description || "");
+    setEditingEventDate(ev.event_date);
+    setEditingEventEndDate(ev.end_date || "");
     setEventDetailOpen(true);
   };
 
   const saveEventDescription = async () => {
     if (!selectedEvent) return;
-    await supabase.from("team_events").update({ description: editingEventDesc }).eq("id", selectedEvent.id);
+    const updateData: Record<string, string | null> = { 
+      description: editingEventDesc,
+      event_date: editingEventDate,
+      end_date: editingEventEndDate || null,
+    };
+    await supabase.from("team_events").update(updateData).eq("id", selectedEvent.id);
     toast({ title: "Evento atualizado!" });
     setEventDetailOpen(false);
     fetchAll();
@@ -1623,6 +1632,16 @@ const Equipe = () => {
                       {selectedEvent.team_member_id && <p className="text-xs text-muted-foreground mt-1">Membro: {getMemberName(selectedEvent.team_member_id)}</p>}
                       {selectedEvent.store_name && <p className="text-xs text-muted-foreground">Loja: {selectedEvent.store_name}</p>}
                       {selectedEvent.event_time && <p className="text-xs text-muted-foreground">Horário: {selectedEvent.event_time}</p>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label>Data Início</Label>
+                        <Input type="date" value={editingEventDate} onChange={(e) => setEditingEventDate(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Data Fim (opcional)</Label>
+                        <Input type="date" value={editingEventEndDate} onChange={(e) => setEditingEventEndDate(e.target.value)} />
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <Label>Descrição / Observações</Label>
