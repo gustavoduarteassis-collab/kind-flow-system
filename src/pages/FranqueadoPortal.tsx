@@ -308,7 +308,7 @@ const FranqueadoPortal = () => {
                               }>
                                 <TableCell className="text-center font-mono text-xs text-muted-foreground">{item.id}</TableCell>
                                 <TableCell>
-                                  <div className="text-sm">
+                                  <div className="text-sm break-words whitespace-normal">
                                     {item.atividade}
                                     {isImpeditivo && <Badge variant="outline" className="ml-2 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">IMPEDITIVO</Badge>}
                                   </div>
