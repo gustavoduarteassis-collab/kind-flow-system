@@ -108,7 +108,41 @@ const CronogramaObra = ({ store, onUpdate }: CronogramaObraProps) => {
     const newReal = { ...cronograma.itemDatesReal };
     const current = newReal[itemId] || { inicioReal: "", fimReal: "" };
     newReal[itemId] = { ...current, [field]: value };
-    onUpdate({ ...cronograma, itemDatesReal: newReal });
+
+    const newCells = { ...cronograma.cells };
+    const inicioReal = field === "inicioReal" ? value : current.inicioReal;
+    const fimReal = field === "fimReal" ? value : current.fimReal;
+
+    // Clear old "done" and "delayed" cells for this item
+    for (let d = 1; d <= TOTAL_DAYS; d++) {
+      const key = `${itemId}-${d}`;
+      if (newCells[key] === "done" || newCells[key] === "delayed") delete newCells[key];
+    }
+
+    // Paint real date range
+    if (inicioReal && fimReal && cronograma.startDate) {
+      const obraStart = new Date(cronograma.startDate + "T00:00:00");
+      const realStart = new Date(inicioReal + "T00:00:00");
+      const realEnd = new Date(fimReal + "T00:00:00");
+      const planned = cronograma.itemDates[itemId];
+      const plannedEnd = planned?.fim ? new Date(planned.fim + "T00:00:00") : null;
+
+      const startDay = differenceInCalendarDays(realStart, obraStart) + 1;
+      const endDay = differenceInCalendarDays(realEnd, obraStart) + 1;
+
+      for (let d = Math.max(1, startDay); d <= Math.min(TOTAL_DAYS, endDay); d++) {
+        const key = `${itemId}-${d}`;
+        const cellDate = addDays(obraStart, d - 1);
+        // If there's a planned end and this cell is after it → red (delayed)
+        if (plannedEnd && differenceInCalendarDays(cellDate, plannedEnd) > 0) {
+          newCells[key] = "delayed";
+        } else {
+          newCells[key] = "done";
+        }
+      }
+    }
+
+    onUpdate({ ...cronograma, cells: newCells, itemDatesReal: newReal });
   };
 
   const handleActionPlanChange = (itemId: string, value: string) => {
