@@ -96,7 +96,7 @@ const eventTypeColors: Record<string, string> = {
   outro: "bg-secondary text-secondary-foreground",
 };
 
-const ANALYST_OPTIONS = ["Thainara", "Deise", "Gizelia", "Gustavo"];
+const ANALYST_OPTIONS = ["Thainara", "Deise", "Gizelia", "Gustavo", "Thiago", "Ieda", "Agopal"];
 
 // Fixed member colors for calendar visualization
 const MEMBER_COLORS = [
@@ -156,6 +156,11 @@ const Equipe = () => {
     duracaoVisitaDias: "",
     dataImplantacao: "",
     duracaoImplantacaoDias: "",
+    dataMarcenaria: "",
+    duracaoMarcenariaDias: "",
+    responsavelMarcenaria: "",
+    responsavelVisita: "",
+    responsavelImplantacao: "",
   });
   const [calendarView, setCalendarView] = useState<"month" | "week">("month");
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -446,6 +451,11 @@ const Equipe = () => {
           duracaoVisitaDias: scheduleForm.duracaoVisitaDias,
           dataImplantacao: scheduleForm.dataImplantacao,
           duracaoImplantacaoDias: scheduleForm.duracaoImplantacaoDias,
+          dataMarcenaria: scheduleForm.dataMarcenaria,
+          duracaoMarcenariaDias: scheduleForm.duracaoMarcenariaDias,
+          responsavelMarcenaria: scheduleForm.responsavelMarcenaria,
+          responsavelVisita: scheduleForm.responsavelVisita,
+          responsavelImplantacao: scheduleForm.responsavelImplantacao,
         } as any,
       } as any);
     }
@@ -458,6 +468,11 @@ const Equipe = () => {
       duracaoVisitaDias: "",
       dataImplantacao: "",
       duracaoImplantacaoDias: "",
+      dataMarcenaria: "",
+      duracaoMarcenariaDias: "",
+      responsavelMarcenaria: "",
+      responsavelVisita: "",
+      responsavelImplantacao: "",
     });
   };
 
