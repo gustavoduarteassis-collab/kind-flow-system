@@ -566,6 +566,7 @@ const AGM = () => {
         <Tabs defaultValue="lojas" className="space-y-6">
           <TabsList>
             <TabsTrigger value="lojas">Lojas do Mês</TabsTrigger>
+            <TabsTrigger value="matriz">Matriz de Resultados</TabsTrigger>
             <TabsTrigger value="indicadores">Indicadores Extras</TabsTrigger>
             <TabsTrigger value="planos">Planos de Ação ({plans.length})</TabsTrigger>
           </TabsList>
