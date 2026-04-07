@@ -29,6 +29,7 @@ import { format, addDays, differenceInDays, parse, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoConstance from "@/assets/logo-constance.svg";
 import { generateAGMPptx } from "@/utils/generateAGMPptx";
+import { MatrizResultados } from "@/components/MatrizResultados";
 
 const AGM_PASSWORD = "constance2026";
 
@@ -565,6 +566,7 @@ const AGM = () => {
         <Tabs defaultValue="lojas" className="space-y-6">
           <TabsList>
             <TabsTrigger value="lojas">Lojas do Mês</TabsTrigger>
+            <TabsTrigger value="matriz">Matriz de Resultados</TabsTrigger>
             <TabsTrigger value="indicadores">Indicadores Extras</TabsTrigger>
             <TabsTrigger value="planos">Planos de Ação ({plans.length})</TabsTrigger>
           </TabsList>
@@ -647,6 +649,11 @@ const AGM = () => {
                 </CardContent>
               </Card>
             ))}
+          </TabsContent>
+
+          {/* MATRIZ DE RESULTADOS TAB */}
+          <TabsContent value="matriz">
+            <MatrizResultados year={parseInt(mesRef.split("-")[0])} />
           </TabsContent>
 
           {/* INDICADORES EXTRAS TAB - for manual overrides */}
