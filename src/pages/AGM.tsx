@@ -30,6 +30,7 @@ import { ptBR } from "date-fns/locale";
 import logoConstance from "@/assets/logo-constance.svg";
 import { generateAGMPptx } from "@/utils/generateAGMPptx";
 import { MatrizResultados } from "@/components/MatrizResultados";
+import { MatrizAnalistas } from "@/components/MatrizAnalistas";
 
 
 
@@ -574,6 +575,7 @@ const AGM = () => {
           <TabsList>
             <TabsTrigger value="lojas">Lojas do Mês</TabsTrigger>
             <TabsTrigger value="matriz">Matriz de Resultados</TabsTrigger>
+            <TabsTrigger value="analistas">Metas Analistas</TabsTrigger>
             <TabsTrigger value="indicadores">Indicadores Extras</TabsTrigger>
             <TabsTrigger value="planos">Planos de Ação ({plans.length})</TabsTrigger>
           </TabsList>
