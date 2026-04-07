@@ -31,7 +31,7 @@ import logoConstance from "@/assets/logo-constance.svg";
 import { generateAGMPptx } from "@/utils/generateAGMPptx";
 import { MatrizResultados } from "@/components/MatrizResultados";
 
-const AGM_PASSWORD = "constance2026";
+
 
 const METAS_CUSTO: Record<string, number> = {
   TRADICIONAL: 3250,
@@ -123,7 +123,7 @@ const AGM = () => {
   const { toast } = useToast();
 
   const [authenticated, setAuthenticated] = useState(false);
-  const [password, setPassword] = useState("");
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [mesRef, setMesRef] = useState(getCurrentMonth());
   const [entries, setEntries] = useState<AgmEntry[]>([]);
   const [plans, setPlans] = useState<ActionPlan[]>([]);
@@ -255,6 +255,17 @@ const AGM = () => {
     if (p.data) setPlans(p.data as ActionPlan[]);
   }, [user, mesRef]);
 
+  // Check if user is authorized team member
+  useEffect(() => {
+    if (!user) { setCheckingAuth(false); return; }
+    const checkTeamAccess = async () => {
+      const { data } = await supabase.rpc("is_authorized_team", { check_user_id: user.id });
+      setAuthenticated(!!data);
+      setCheckingAuth(false);
+    };
+    checkTeamAccess();
+  }, [user]);
+
   useEffect(() => {
     if (authenticated) {
       fetchAutoData();
@@ -264,10 +275,6 @@ const AGM = () => {
   
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatMessages]);
 
-  const handleLogin = () => {
-    if (password === AGM_PASSWORD) setAuthenticated(true);
-    else toast({ title: "Senha incorreta", variant: "destructive" });
-  };
 
   // Computed summaries
   const summary = useMemo(() => {
@@ -456,7 +463,15 @@ const AGM = () => {
 
   const hasRootCause = chatMessages.some((m) => m.role === "assistant" && m.content.includes("✅"));
 
-  // Password screen
+  // Loading / Access denied screen
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   if (!authenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -466,17 +481,9 @@ const AGM = () => {
               <Lock className="h-6 w-6 text-primary" />
             </div>
             <CardTitle>AGM — Acesso Restrito</CardTitle>
-            <p className="text-sm text-muted-foreground">Análise Gerencial Mensal</p>
+            <p className="text-sm text-muted-foreground">Acesso permitido somente para membros da equipe.</p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label>Senha de Acesso</Label>
-              <Input type="password" value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleLogin()}
-                placeholder="Digite a senha..." />
-            </div>
-            <Button onClick={handleLogin} className="w-full">Acessar</Button>
+          <CardContent>
             <Button variant="ghost" className="w-full" onClick={() => navigate("/")}>
               <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
             </Button>
