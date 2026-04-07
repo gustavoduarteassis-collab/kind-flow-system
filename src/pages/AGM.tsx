@@ -29,6 +29,7 @@ import { format, addDays, differenceInDays, parse, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoConstance from "@/assets/logo-constance.svg";
 import { generateAGMPptx } from "@/utils/generateAGMPptx";
+import { MatrizResultados } from "@/components/MatrizResultados";
 
 const AGM_PASSWORD = "constance2026";
 
