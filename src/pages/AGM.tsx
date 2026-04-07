@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format, addDays, differenceInDays, parse, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import logoConstance from "@/assets/logo-constance.svg";
+import { generateAGMPptx } from "@/utils/generateAGMPptx";
 
 const AGM_PASSWORD = "constance2026";
 
@@ -505,6 +506,9 @@ const AGM = () => {
             </Button>
             <Button variant="outline" className="gap-2" onClick={generatePDF}>
               <Download className="h-4 w-4" /> PDF
+            </Button>
+            <Button variant="default" className="gap-2" onClick={() => generateAGMPptx(mesRef, storesData, plans, fornecedoresCount, summary)}>
+              <Download className="h-4 w-4" /> PPTX
             </Button>
           </div>
         </div>
