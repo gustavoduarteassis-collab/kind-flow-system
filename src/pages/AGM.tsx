@@ -651,6 +651,11 @@ const AGM = () => {
             ))}
           </TabsContent>
 
+          {/* MATRIZ DE RESULTADOS TAB */}
+          <TabsContent value="matriz">
+            <MatrizResultados year={parseInt(mesRef.split("-")[0])} />
+          </TabsContent>
+
           {/* INDICADORES EXTRAS TAB - for manual overrides */}
           <TabsContent value="indicadores" className="space-y-4">
             <Card>
