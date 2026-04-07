@@ -12,37 +12,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Validate caller is authenticated and authorized
-    const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user: caller } } = await supabaseClient.auth.getUser();
-    if (!caller) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { data: isTeam } = await supabaseClient.rpc("is_authorized_team", { check_user_id: caller.id });
-    if (!isTeam) {
-      return new Response(JSON.stringify({ error: "Sem permissão" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -55,7 +24,6 @@ Deno.serve(async (req) => {
     const results: Array<{email: string, status: string}> = [];
 
     for (const user of unconfirmed) {
-      // Check if this user has franchisee access
       const { data: access } = await supabaseAdmin
         .from("franchisee_access")
         .select("id")
