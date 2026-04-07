@@ -507,6 +507,9 @@ const AGM = () => {
             <Button variant="outline" className="gap-2" onClick={generatePDF}>
               <Download className="h-4 w-4" /> PDF
             </Button>
+            <Button variant="default" className="gap-2" onClick={() => generateAGMPptx(mesRef, storesData, plans, fornecedoresCount, summary)}>
+              <Download className="h-4 w-4" /> PPTX
+            </Button>
           </div>
         </div>
       </header>
