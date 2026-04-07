@@ -107,6 +107,48 @@ export type Database = {
         }
         Relationships: []
       }
+      analyst_goals: {
+        Row: {
+          analyst_name: string
+          created_at: string
+          id: string
+          indicador: string
+          metas_mensais: Json
+          peso: number
+          polaridade: string
+          realizados_mensais: Json
+          updated_at: string
+          user_id: string
+          valor_ano: string
+        }
+        Insert: {
+          analyst_name: string
+          created_at?: string
+          id?: string
+          indicador: string
+          metas_mensais?: Json
+          peso?: number
+          polaridade?: string
+          realizados_mensais?: Json
+          updated_at?: string
+          user_id: string
+          valor_ano?: string
+        }
+        Update: {
+          analyst_name?: string
+          created_at?: string
+          id?: string
+          indicador?: string
+          metas_mensais?: Json
+          peso?: number
+          polaridade?: string
+          realizados_mensais?: Json
+          updated_at?: string
+          user_id?: string
+          valor_ano?: string
+        }
+        Relationships: []
+      }
       authorized_team_emails: {
         Row: {
           created_at: string
