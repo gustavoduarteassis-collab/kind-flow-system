@@ -12,6 +12,38 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Validate caller is authenticated
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user: caller }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !caller) {
+      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check if caller is authorized team
+    const { data: isTeam } = await supabaseClient.rpc("is_authorized_team", { check_user_id: caller.id });
+    if (!isTeam) {
+      return new Response(JSON.stringify({ error: "Sem permissão" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { email, storeName, accessType } = await req.json();
 
     if (!email) {
@@ -26,7 +58,30 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Try to invite the user - if they already exist, this will fail gracefully
+    // Check if user already exists
+    const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
+    const existingUser = existingUsers?.users?.find(
+      (u) => u.email?.toLowerCase() === email.toLowerCase()
+    );
+
+    if (existingUser) {
+      // If user exists but email not confirmed, confirm it
+      if (!existingUser.email_confirmed_at) {
+        await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+          email_confirm: true,
+        });
+        return new Response(
+          JSON.stringify({ success: true, message: "E-mail confirmado! O usuário já pode fazer login." }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      return new Response(
+        JSON.stringify({ success: true, message: "Usuário já cadastrado e confirmado." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // New user - invite
     const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
       data: {
         access_type: accessType || "franqueado",
@@ -37,13 +92,6 @@ Deno.serve(async (req) => {
     });
 
     if (error) {
-      // User might already exist - that's OK
-      if (error.message?.includes("already been registered") || error.message?.includes("already exists")) {
-        return new Response(
-          JSON.stringify({ success: true, message: "Usuário já cadastrado, acesso liberado." }),
-          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
       throw error;
     }
 
