@@ -58,7 +58,8 @@ type PipelineStore = {
   id: string; filial: string; local: string; inicio_obra: string;
   data_inauguracao: string; previsao_inauguracao: string;
   data_liberacao_orcamento: string; prazo_conclusao_orcamento: string;
-  padrao: string; estado: string; cidade: string;
+  padrao: string; estado: string; cidade: string; status_geral: string;
+  analista_obra: string; franqueado: string;
 };
 
 type StoreRow = {
@@ -77,6 +78,13 @@ type StoreAGMData = {
   prazoDias: number;
   dataLiberacaoOrcamento: string;
   prazoConclusaoOrcamento: string;
+  origem: "inaugurada" | "funil";
+  statusGeral?: string;
+  analistaObra?: string;
+  franqueado?: string;
+  previsaoInauguracao?: string;
+  cidade?: string;
+  estado?: string;
 };
 
 type AgmEntry = {
@@ -152,7 +160,7 @@ const AGM = () => {
     try {
       const [storesRes, pipelineRes, custosRes, fornecedoresRes] = await Promise.all([
         supabase.from("stores").select("id, nome, inauguracao, tipo_loja"),
-        supabase.from("pipeline_stores").select("id, filial, local, inicio_obra, data_inauguracao, previsao_inauguracao, data_liberacao_orcamento, prazo_conclusao_orcamento, padrao, estado, cidade"),
+        supabase.from("pipeline_stores").select("id, filial, local, inicio_obra, data_inauguracao, previsao_inauguracao, data_liberacao_orcamento, prazo_conclusao_orcamento, padrao, estado, cidade, status_geral, analista_obra, franqueado"),
         supabase.from("custos_geral_entries").select("id, nome, tipo, area_loja, area_total, mao_de_obra, moveis, piso, iluminacao, informatica, demais_itens"),
         supabase.from("fornecedores_prospeccao").select("id, created_at, mes_referencia"),
       ]);
@@ -162,63 +170,72 @@ const AGM = () => {
       const custos = (custosRes.data || []) as CustoEntry[];
       const fornecedores = fornecedoresRes.data || [];
 
-      // Find stores inaugurated in mesRef
-      const inauguratedStoreNames = new Set<string>();
-      
-      // Check stores table
+      const storeDataList: StoreAGMData[] = [];
+      const processedNames = new Set<string>();
+
+      // 1. Inaugurated stores for this month (from stores table)
       stores.forEach((s) => {
         if (matchesMonth(s.inauguracao, mesRef)) {
-          inauguratedStoreNames.add(s.nome.toUpperCase().trim());
+          const nome = s.nome.toUpperCase().trim();
+          if (processedNames.has(nome)) return;
+          processedNames.add(nome);
+
+          const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === nome);
+          const pipeMatch = pipeline.find((p) => (p.filial || p.local || "").toUpperCase().trim() === nome);
+
+          const tipo = custoMatch?.tipo || pipeMatch?.padrao?.toUpperCase() || s.tipo_loja?.toUpperCase() || "TRADICIONAL";
+          const tipoKey = tipo.includes("LIGHT") ? "LIGHT" : tipo.includes("OUTLET") ? "OUTLET" : "TRADICIONAL";
+          const custoTotal = custoMatch ? (custoMatch.mao_de_obra + custoMatch.moveis + custoMatch.piso + custoMatch.iluminacao + custoMatch.informatica + custoMatch.demais_itens) : 0;
+          const areaLoja = custoMatch?.area_loja || 0;
+          const inicioObra = pipeMatch?.inicio_obra || "";
+          const dataInauguracao = pipeMatch?.data_inauguracao || s.inauguracao || "";
+          const inicioDate = parseDate(inicioObra);
+          const inaugDate = parseDate(dataInauguracao);
+
+          storeDataList.push({
+            nome, tipo: tipoKey, custoTotal, areaLoja,
+            custoM2: areaLoja > 0 ? Math.round(custoTotal / areaLoja) : 0,
+            metaCustoM2: METAS_CUSTO[tipoKey] || 3250,
+            inicioObra, dataInauguracao,
+            prazoDias: inicioDate && inaugDate ? differenceInDays(inaugDate, inicioDate) : 0,
+            dataLiberacaoOrcamento: pipeMatch?.data_liberacao_orcamento || "",
+            prazoConclusaoOrcamento: pipeMatch?.prazo_conclusao_orcamento || "",
+            origem: "inaugurada",
+          });
         }
       });
 
-      // Check pipeline table
+      // 2. ALL pipeline stores (funil) - include all, mark inaugurated ones
       pipeline.forEach((p) => {
-        if (matchesMonth(p.data_inauguracao, mesRef)) {
-          const name = (p.filial || p.local || "").toUpperCase().trim();
-          if (name) inauguratedStoreNames.add(name);
-        }
-      });
+        const nome = (p.filial || p.local || "").toUpperCase().trim();
+        if (!nome || processedNames.has(nome)) return;
+        processedNames.add(nome);
 
-      // Build per-store data
-      const storeDataList: StoreAGMData[] = [];
-
-      inauguratedStoreNames.forEach((storeName) => {
-        // Find cost data
-        const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === storeName);
-        const pipeMatch = pipeline.find((p) => 
-          (p.filial || p.local || "").toUpperCase().trim() === storeName
-        );
-        const storeMatch = stores.find((s) => s.nome.toUpperCase().trim() === storeName);
-
-        const tipo = custoMatch?.tipo || pipeMatch?.padrao?.toUpperCase() || storeMatch?.tipo_loja?.toUpperCase() || "TRADICIONAL";
+        const isInaugurated = matchesMonth(p.data_inauguracao, mesRef);
+        const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === nome);
+        const tipo = custoMatch?.tipo || p.padrao?.toUpperCase() || "TRADICIONAL";
         const tipoKey = tipo.includes("LIGHT") ? "LIGHT" : tipo.includes("OUTLET") ? "OUTLET" : "TRADICIONAL";
-
-        const custoTotal = custoMatch
-          ? (custoMatch.mao_de_obra + custoMatch.moveis + custoMatch.piso + custoMatch.iluminacao + custoMatch.informatica + custoMatch.demais_itens)
-          : 0;
+        const custoTotal = custoMatch ? (custoMatch.mao_de_obra + custoMatch.moveis + custoMatch.piso + custoMatch.iluminacao + custoMatch.informatica + custoMatch.demais_itens) : 0;
         const areaLoja = custoMatch?.area_loja || 0;
-        const custoM2 = areaLoja > 0 ? custoTotal / areaLoja : 0;
-
-        const inicioObra = pipeMatch?.inicio_obra || "";
-        const dataInauguracao = pipeMatch?.data_inauguracao || storeMatch?.inauguracao || "";
-        
-        const inicioDate = parseDate(inicioObra);
-        const inaugDate = parseDate(dataInauguracao);
-        const prazoDias = inicioDate && inaugDate ? differenceInDays(inaugDate, inicioDate) : 0;
+        const inicioDate = parseDate(p.inicio_obra);
+        const inaugDate = parseDate(p.data_inauguracao);
 
         storeDataList.push({
-          nome: storeName,
-          tipo: tipoKey,
-          custoTotal,
-          areaLoja,
-          custoM2: Math.round(custoM2),
+          nome, tipo: tipoKey, custoTotal, areaLoja,
+          custoM2: areaLoja > 0 ? Math.round(custoTotal / areaLoja) : 0,
           metaCustoM2: METAS_CUSTO[tipoKey] || 3250,
-          inicioObra,
-          dataInauguracao,
-          prazoDias,
-          dataLiberacaoOrcamento: pipeMatch?.data_liberacao_orcamento || "",
-          prazoConclusaoOrcamento: pipeMatch?.prazo_conclusao_orcamento || "",
+          inicioObra: p.inicio_obra || "",
+          dataInauguracao: p.data_inauguracao || "",
+          prazoDias: inicioDate && inaugDate ? differenceInDays(inaugDate, inicioDate) : 0,
+          dataLiberacaoOrcamento: p.data_liberacao_orcamento || "",
+          prazoConclusaoOrcamento: p.prazo_conclusao_orcamento || "",
+          origem: isInaugurated ? "inaugurada" : "funil",
+          statusGeral: p.status_geral,
+          analistaObra: p.analista_obra,
+          franqueado: p.franqueado,
+          previsaoInauguracao: p.previsao_inauguracao,
+          cidade: p.cidade,
+          estado: p.estado,
         });
       });
 
@@ -278,10 +295,13 @@ const AGM = () => {
 
 
   // Computed summaries
+  const inauguradas = useMemo(() => storesData.filter((s) => s.origem === "inaugurada"), [storesData]);
+  const funilStores = useMemo(() => storesData.filter((s) => s.origem === "funil"), [storesData]);
+
   const summary = useMemo(() => {
-    const totalLojas = storesData.length;
+    const totalLojas = inauguradas.length;
     const byTipo: Record<string, StoreAGMData[]> = {};
-    storesData.forEach((s) => {
+    inauguradas.forEach((s) => {
       if (!byTipo[s.tipo]) byTipo[s.tipo] = [];
       byTipo[s.tipo].push(s);
     });
@@ -294,13 +314,13 @@ const AGM = () => {
         : 0;
     });
 
-    const withPrazo = storesData.filter((s) => s.prazoDias > 0);
+    const withPrazo = inauguradas.filter((s) => s.prazoDias > 0);
     const prazoMedio = withPrazo.length > 0
       ? Math.round(withPrazo.reduce((a, s) => a + s.prazoDias, 0) / withPrazo.length)
       : 0;
 
     return { totalLojas, byTipo, custoMediaByTipo, prazoMedio };
-  }, [storesData]);
+  }, [inauguradas]);
 
   const saveEntry = async (indicadorId: string) => {
     if (!user) return;
@@ -533,6 +553,7 @@ const AGM = () => {
                 <span className="text-xs font-medium text-muted-foreground">Lojas Inauguradas</span>
               </div>
               <p className="text-2xl font-bold">{summary.totalLojas}</p>
+              <p className="text-[10px] text-muted-foreground">No funil: {funilStores.length}</p>
             </CardContent>
           </Card>
           <Card>
@@ -580,23 +601,20 @@ const AGM = () => {
             <TabsTrigger value="planos">Planos de Ação ({plans.length})</TabsTrigger>
           </TabsList>
 
-          {/* LOJAS TAB */}
           <TabsContent value="lojas" className="space-y-4">
             {loading && (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             )}
-            {!loading && storesData.length === 0 && (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
-                  <Store className="h-8 w-8 mx-auto mb-3 opacity-30" />
-                  <p>Nenhuma loja inaugurada em {format(new Date(mesRef + "-01"), "MMMM yyyy", { locale: ptBR })}.</p>
-                  <p className="text-xs mt-1">Verifique se as datas de inauguração estão cadastradas nas lojas ou no funil.</p>
-                </CardContent>
-              </Card>
+
+            {/* Inaugurated stores */}
+            {!loading && inauguradas.length > 0 && (
+              <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" /> Lojas Inauguradas ({inauguradas.length})
+              </h3>
             )}
-            {storesData.map((store) => (
+            {inauguradas.map((store) => (
               <Card key={store.nome}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
@@ -604,14 +622,10 @@ const AGM = () => {
                       <Store className="h-4 w-4 text-primary" />
                       {store.nome}
                       <Badge variant="secondary" className="text-[10px]">{store.tipo}</Badge>
+                      <Badge className="text-[10px] bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]">Inaugurada</Badge>
                     </CardTitle>
                     <Button size="sm" variant="outline" className="gap-1.5"
-                      onClick={() => startFiveWhys(
-                        `loja_${store.nome}`,
-                        store.nome,
-                        `Meta custo/m²: R$ ${store.metaCustoM2}`,
-                        `Realizado: R$ ${store.custoM2}/m², Prazo: ${store.prazoDias} dias`
-                      )}>
+                      onClick={() => startFiveWhys(`loja_${store.nome}`, store.nome, `Meta custo/m²: R$ ${store.metaCustoM2}`, `Realizado: R$ ${store.custoM2}/m², Prazo: ${store.prazoDias} dias`)}>
                       <MessageCircle className="h-3.5 w-3.5" /> 5 Porquês
                     </Button>
                   </div>
@@ -639,25 +653,59 @@ const AGM = () => {
                       {store.inicioObra && <p className="text-[10px] text-muted-foreground">Início: {store.inicioObra}</p>}
                     </div>
                   </div>
-                  {(store.dataLiberacaoOrcamento || store.prazoConclusaoOrcamento) && (
-                    <div className="mt-3 grid grid-cols-2 gap-3">
-                      {store.dataLiberacaoOrcamento && (
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <p className="text-[10px] uppercase text-muted-foreground font-medium">Liberação Orçamento</p>
-                          <p className="text-sm font-semibold">{store.dataLiberacaoOrcamento}</p>
-                        </div>
-                      )}
-                      {store.prazoConclusaoOrcamento && (
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <p className="text-[10px] uppercase text-muted-foreground font-medium">Conclusão Orçamento</p>
-                          <p className="text-sm font-semibold">{store.prazoConclusaoOrcamento}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             ))}
+
+            {/* Pipeline (funil) stores */}
+            {!loading && funilStores.length > 0 && (
+              <>
+                <h3 className="text-sm font-semibold text-primary flex items-center gap-2 mt-6">
+                  <Building2 className="h-4 w-4" /> Lojas no Funil ({funilStores.length})
+                </h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Loja</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Cidade/UF</TableHead>
+                        <TableHead>Franqueado</TableHead>
+                        <TableHead>Analista</TableHead>
+                        <TableHead>Início Obra</TableHead>
+                        <TableHead>Prev. Inauguração</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {funilStores.map((store) => (
+                        <TableRow key={store.nome}>
+                          <TableCell className="font-medium text-xs">{store.nome}</TableCell>
+                          <TableCell><Badge variant="outline" className="text-[10px]">{store.tipo}</Badge></TableCell>
+                          <TableCell className="text-xs">{[store.cidade, store.estado].filter(Boolean).join("/") || "-"}</TableCell>
+                          <TableCell className="text-xs">{store.franqueado || "-"}</TableCell>
+                          <TableCell className="text-xs">{store.analistaObra || "-"}</TableCell>
+                          <TableCell className="text-xs">{store.inicioObra || "-"}</TableCell>
+                          <TableCell className="text-xs">{store.previsaoInauguracao || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="text-[10px]">{store.statusGeral || "Em andamento"}</Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            )}
+
+            {!loading && storesData.length === 0 && (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  <Store className="h-8 w-8 mx-auto mb-3 opacity-30" />
+                  <p>Nenhuma loja encontrada.</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* MATRIZ DE RESULTADOS TAB */}
