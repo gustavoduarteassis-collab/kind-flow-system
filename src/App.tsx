@@ -56,7 +56,7 @@ function AppRoutes() {
           .eq("user_id", user.id)
           .limit(1);
 
-        const isTeam = (ownedStores && ownedStores.length > 0) || (teamMembers && teamMembers.length > 0);
+        const hasOwnData = (ownedStores && ownedStores.length > 0) || (teamMembers && teamMembers.length > 0);
 
         if (isTeam) {
           setIsFranqueado(false);
