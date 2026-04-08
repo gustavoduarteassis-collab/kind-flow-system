@@ -31,6 +31,7 @@ import logoConstance from "@/assets/logo-constance.svg";
 import { generateAGMPptx } from "@/utils/generateAGMPptx";
 import { MatrizResultados } from "@/components/MatrizResultados";
 import { MatrizAnalistas } from "@/components/MatrizAnalistas";
+import { isStoreLiberated } from "@/utils/inaugurationStatus";
 
 
 
@@ -64,6 +65,7 @@ type PipelineStore = {
 
 type StoreRow = {
   id: string; nome: string; inauguracao: string; tipo_loja: string;
+  inauguracao_checklist: any;
 };
 
 type StoreAGMData = {
@@ -159,7 +161,7 @@ const AGM = () => {
 
     try {
       const [storesRes, pipelineRes, custosRes, fornecedoresRes] = await Promise.all([
-        supabase.from("stores").select("id, nome, inauguracao, tipo_loja"),
+        supabase.from("stores").select("id, nome, inauguracao, tipo_loja, inauguracao_checklist"),
         supabase.from("pipeline_stores").select("id, filial, local, inicio_obra, data_inauguracao, previsao_inauguracao, data_liberacao_orcamento, prazo_conclusao_orcamento, padrao, estado, cidade, status_geral, analista_obra, franqueado"),
         supabase.from("custos_geral_entries").select("id, nome, tipo, area_loja, area_total, mao_de_obra, moveis, piso, iluminacao, informatica, demais_itens"),
         supabase.from("fornecedores_prospeccao").select("id, created_at, mes_referencia"),
