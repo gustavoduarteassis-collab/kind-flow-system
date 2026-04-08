@@ -31,6 +31,7 @@ import logoConstance from "@/assets/logo-constance.svg";
 import { generateAGMPptx } from "@/utils/generateAGMPptx";
 import { MatrizResultados } from "@/components/MatrizResultados";
 import { MatrizAnalistas } from "@/components/MatrizAnalistas";
+import { isStoreLiberated } from "@/utils/inaugurationStatus";
 
 
 
@@ -64,6 +65,7 @@ type PipelineStore = {
 
 type StoreRow = {
   id: string; nome: string; inauguracao: string; tipo_loja: string;
+  inauguracao_checklist: any;
 };
 
 type StoreAGMData = {
@@ -159,7 +161,7 @@ const AGM = () => {
 
     try {
       const [storesRes, pipelineRes, custosRes, fornecedoresRes] = await Promise.all([
-        supabase.from("stores").select("id, nome, inauguracao, tipo_loja"),
+        supabase.from("stores").select("id, nome, inauguracao, tipo_loja, inauguracao_checklist"),
         supabase.from("pipeline_stores").select("id, filial, local, inicio_obra, data_inauguracao, previsao_inauguracao, data_liberacao_orcamento, prazo_conclusao_orcamento, padrao, estado, cidade, status_geral, analista_obra, franqueado"),
         supabase.from("custos_geral_entries").select("id, nome, tipo, area_loja, area_total, mao_de_obra, moveis, piso, iluminacao, informatica, demais_itens"),
         supabase.from("fornecedores_prospeccao").select("id, created_at, mes_referencia"),
@@ -175,34 +177,36 @@ const AGM = () => {
 
       // 1. Inaugurated stores for this month (from stores table)
       stores.forEach((s) => {
-        if (matchesMonth(s.inauguracao, mesRef)) {
-          const nome = s.nome.toUpperCase().trim();
-          if (processedNames.has(nome)) return;
-          processedNames.add(nome);
+        if (!matchesMonth(s.inauguracao, mesRef)) return;
+        // Only consider inaugurated if checklist is LIBERADO or LIBERADO COM RESSALVAS
+        if (!isStoreLiberated(s.inauguracao_checklist, s.tipo_loja)) return;
 
-          const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === nome);
-          const pipeMatch = pipeline.find((p) => (p.local || p.filial || "").toUpperCase().trim() === nome);
+        const nome = s.nome.toUpperCase().trim();
+        if (processedNames.has(nome)) return;
+        processedNames.add(nome);
 
-          const tipo = custoMatch?.tipo || pipeMatch?.padrao?.toUpperCase() || s.tipo_loja?.toUpperCase() || "TRADICIONAL";
-          const tipoKey = tipo.includes("LIGHT") ? "LIGHT" : tipo.includes("OUTLET") ? "OUTLET" : "TRADICIONAL";
-          const custoTotal = custoMatch ? (custoMatch.mao_de_obra + custoMatch.moveis + custoMatch.piso + custoMatch.iluminacao + custoMatch.informatica + custoMatch.demais_itens) : 0;
-          const areaLoja = custoMatch?.area_loja || 0;
-          const inicioObra = pipeMatch?.inicio_obra || "";
-          const dataInauguracao = pipeMatch?.data_inauguracao || s.inauguracao || "";
-          const inicioDate = parseDate(inicioObra);
-          const inaugDate = parseDate(dataInauguracao);
+        const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === nome);
+        const pipeMatch = pipeline.find((p) => (p.local || p.filial || "").toUpperCase().trim() === nome);
 
-          storeDataList.push({
-            nome, tipo: tipoKey, custoTotal, areaLoja,
-            custoM2: areaLoja > 0 ? Math.round(custoTotal / areaLoja) : 0,
-            metaCustoM2: METAS_CUSTO[tipoKey] || 3250,
-            inicioObra, dataInauguracao,
-            prazoDias: inicioDate && inaugDate ? differenceInDays(inaugDate, inicioDate) : 0,
-            dataLiberacaoOrcamento: pipeMatch?.data_liberacao_orcamento || "",
-            prazoConclusaoOrcamento: pipeMatch?.prazo_conclusao_orcamento || "",
-            origem: "inaugurada",
-          });
-        }
+        const tipo = custoMatch?.tipo || pipeMatch?.padrao?.toUpperCase() || s.tipo_loja?.toUpperCase() || "TRADICIONAL";
+        const tipoKey = tipo.includes("LIGHT") ? "LIGHT" : tipo.includes("OUTLET") ? "OUTLET" : "TRADICIONAL";
+        const custoTotal = custoMatch ? (custoMatch.mao_de_obra + custoMatch.moveis + custoMatch.piso + custoMatch.iluminacao + custoMatch.informatica + custoMatch.demais_itens) : 0;
+        const areaLoja = custoMatch?.area_loja || 0;
+        const inicioObra = pipeMatch?.inicio_obra || "";
+        const dataInauguracao = pipeMatch?.data_inauguracao || s.inauguracao || "";
+        const inicioDate = parseDate(inicioObra);
+        const inaugDate = parseDate(dataInauguracao);
+
+        storeDataList.push({
+          nome, tipo: tipoKey, custoTotal, areaLoja,
+          custoM2: areaLoja > 0 ? Math.round(custoTotal / areaLoja) : 0,
+          metaCustoM2: METAS_CUSTO[tipoKey] || 3250,
+          inicioObra, dataInauguracao,
+          prazoDias: inicioDate && inaugDate ? differenceInDays(inaugDate, inicioDate) : 0,
+          dataLiberacaoOrcamento: pipeMatch?.data_liberacao_orcamento || "",
+          prazoConclusaoOrcamento: pipeMatch?.prazo_conclusao_orcamento || "",
+          origem: "inaugurada",
+        });
       });
 
       // 2. ALL pipeline stores (funil) - include all, mark inaugurated ones
@@ -211,7 +215,10 @@ const AGM = () => {
         if (!nome || processedNames.has(nome)) return;
         processedNames.add(nome);
 
-        const isInaugurated = matchesMonth(p.data_inauguracao, mesRef);
+        // Check if pipeline store has a matching store with liberated checklist
+        const matchingStore = stores.find((s) => s.nome.toUpperCase().trim() === nome);
+        const isInaugurated = matchesMonth(p.data_inauguracao, mesRef) && 
+          matchingStore ? isStoreLiberated(matchingStore.inauguracao_checklist, matchingStore.tipo_loja) : false;
         const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === nome);
         const tipo = custoMatch?.tipo || p.padrao?.toUpperCase() || "TRADICIONAL";
         const tipoKey = tipo.includes("LIGHT") ? "LIGHT" : tipo.includes("OUTLET") ? "OUTLET" : "TRADICIONAL";
