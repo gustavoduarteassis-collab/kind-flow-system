@@ -135,7 +135,7 @@ export function MatrizResultados({ year }: { year: number }) {
 
         // Find prazo data
         const pipeMatch = pipeline.find((p: any) => {
-          const pName = ((p as any).filial || (p as any).local || "").toUpperCase().trim();
+          const pName = ((p as any).local || (p as any).filial || "").toUpperCase().trim();
           return pName === nome;
         });
         if (pipeMatch) {
@@ -158,7 +158,7 @@ export function MatrizResultados({ year }: { year: number }) {
       pipeline.forEach((p: any) => {
         const d = parseDate(p.data_inauguracao);
         if (!d || d.getFullYear() !== year) return;
-        const nome = ((p as any).filial || (p as any).local || "").toUpperCase().trim();
+        const nome = ((p as any).local || (p as any).filial || "").toUpperCase().trim();
         if (!nome || processedNames.has(nome)) return;
         processedNames.add(nome);
         const mi = d.getMonth();

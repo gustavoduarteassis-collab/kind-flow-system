@@ -181,7 +181,7 @@ const AGM = () => {
           processedNames.add(nome);
 
           const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === nome);
-          const pipeMatch = pipeline.find((p) => (p.filial || p.local || "").toUpperCase().trim() === nome);
+          const pipeMatch = pipeline.find((p) => (p.local || p.filial || "").toUpperCase().trim() === nome);
 
           const tipo = custoMatch?.tipo || pipeMatch?.padrao?.toUpperCase() || s.tipo_loja?.toUpperCase() || "TRADICIONAL";
           const tipoKey = tipo.includes("LIGHT") ? "LIGHT" : tipo.includes("OUTLET") ? "OUTLET" : "TRADICIONAL";
@@ -207,7 +207,7 @@ const AGM = () => {
 
       // 2. ALL pipeline stores (funil) - include all, mark inaugurated ones
       pipeline.forEach((p) => {
-        const nome = (p.filial || p.local || "").toUpperCase().trim();
+        const nome = (p.local || p.filial || "").toUpperCase().trim();
         if (!nome || processedNames.has(nome)) return;
         processedNames.add(nome);
 
