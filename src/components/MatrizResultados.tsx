@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isStoreLiberated } from "@/utils/inaugurationStatus";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +94,7 @@ export function MatrizResultados({ year }: { year: number }) {
     setLoading(true);
     try {
       const [storesRes, pipelineRes, custosRes, fornecRes] = await Promise.all([
-        supabase.from("stores").select("id, nome, inauguracao, tipo_loja"),
+        supabase.from("stores").select("id, nome, inauguracao, tipo_loja, inauguracao_checklist"),
         supabase.from("pipeline_stores").select("id, filial, local, inicio_obra, data_inauguracao, previsao_inauguracao, data_liberacao_orcamento, padrao"),
         supabase.from("custos_geral_entries").select("id, nome, tipo, area_loja, mao_de_obra, moveis, piso, iluminacao, informatica, demais_itens"),
         supabase.from("fornecedores_prospeccao").select("id, created_at, mes_referencia"),
@@ -112,6 +113,8 @@ export function MatrizResultados({ year }: { year: number }) {
       stores.forEach((s: any) => {
         const d = parseDate(s.inauguracao);
         if (!d || d.getFullYear() !== year) return;
+        // Only count as inaugurated if checklist is liberated
+        if (!isStoreLiberated(s.inauguracao_checklist, s.tipo_loja)) return;
         const mi = d.getMonth();
         const nome = (s.nome || "").toUpperCase().trim();
         if (processedNames.has(nome)) return;
