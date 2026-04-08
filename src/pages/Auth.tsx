@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -69,7 +68,7 @@ const Auth = () => {
           description: mode === "invite" ? "Seu acesso foi liberado. Faça login para entrar." : "Agora você já pode entrar com a nova senha.",
         });
 
-        window.location.hash = "";
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
         setPassword("");
         setConfirmPassword("");
         setMode("login");
