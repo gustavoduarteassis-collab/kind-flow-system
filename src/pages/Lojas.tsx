@@ -37,8 +37,8 @@ const Lojas = () => {
   useEffect(() => {
     if (!user) return;
     const check = async () => {
-      const { data } = await supabase.from("authorized_team_emails").select("id").ilike("email", user.email!).limit(1);
-      setIsTeamMember(!!(data && data.length > 0));
+      const { data } = await supabase.rpc("is_authorized_team", { check_user_id: user.id });
+      setIsTeamMember(!!data);
     };
     check();
   }, [user]);
