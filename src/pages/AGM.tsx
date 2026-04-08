@@ -295,10 +295,13 @@ const AGM = () => {
 
 
   // Computed summaries
+  const inauguradas = useMemo(() => storesData.filter((s) => s.origem === "inaugurada"), [storesData]);
+  const funilStores = useMemo(() => storesData.filter((s) => s.origem === "funil"), [storesData]);
+
   const summary = useMemo(() => {
-    const totalLojas = storesData.length;
+    const totalLojas = inauguradas.length;
     const byTipo: Record<string, StoreAGMData[]> = {};
-    storesData.forEach((s) => {
+    inauguradas.forEach((s) => {
       if (!byTipo[s.tipo]) byTipo[s.tipo] = [];
       byTipo[s.tipo].push(s);
     });
@@ -311,13 +314,13 @@ const AGM = () => {
         : 0;
     });
 
-    const withPrazo = storesData.filter((s) => s.prazoDias > 0);
+    const withPrazo = inauguradas.filter((s) => s.prazoDias > 0);
     const prazoMedio = withPrazo.length > 0
       ? Math.round(withPrazo.reduce((a, s) => a + s.prazoDias, 0) / withPrazo.length)
       : 0;
 
     return { totalLojas, byTipo, custoMediaByTipo, prazoMedio };
-  }, [storesData]);
+  }, [inauguradas]);
 
   const saveEntry = async (indicadorId: string) => {
     if (!user) return;
