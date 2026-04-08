@@ -58,7 +58,7 @@ function AppRoutes() {
 
         const hasOwnData = (ownedStores && ownedStores.length > 0) || (teamMembers && teamMembers.length > 0);
 
-        if (isTeam) {
+        if (hasOwnData) {
           setIsFranqueado(false);
           return;
         }
