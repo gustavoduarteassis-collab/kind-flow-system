@@ -636,11 +636,17 @@ const StoreReport = () => {
               </h2>
               {inaugData.rounds.map((round) => {
                 const allItems = inaugChecklist.categories.flatMap(c => c.items);
-                const doneCount = allItems.filter(i => {
-                  const s = round.items[i.id]?.status;
-                  return s === "TOTALMENTE_ATENDIDO" || s === "NAO_SE_APLICA";
-                }).length;
-                const roundProg = Math.round((doneCount / allItems.length) * 100);
+                const getStatusScore = (status?: string): number => {
+                  switch (status) {
+                    case "TOTALMENTE_ATENDIDO": return 100;
+                    case "EM_ANDAMENTO": return 50;
+                    case "NAO_SE_APLICA": return 100;
+                    default: return 0;
+                  }
+                };
+                const totalScore = allItems.reduce((acc, i) => acc + getStatusScore(round.items[i.id]?.status), 0);
+                const maxScore = allItems.length * 100;
+                const roundProg = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
                 const impItems = allItems.filter(i => i.impeditivo);
                 const impPendentes = impItems.filter(i => {
                   const s = round.items[i.id]?.status;
