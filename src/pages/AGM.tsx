@@ -553,6 +553,7 @@ const AGM = () => {
                 <span className="text-xs font-medium text-muted-foreground">Lojas Inauguradas</span>
               </div>
               <p className="text-2xl font-bold">{summary.totalLojas}</p>
+              <p className="text-[10px] text-muted-foreground">No funil: {funilStores.length}</p>
             </CardContent>
           </Card>
           <Card>
