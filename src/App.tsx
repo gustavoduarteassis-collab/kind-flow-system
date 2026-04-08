@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Index from "./pages/Index";
 import Lojas from "./pages/Lojas";
 import StoreDetail from "./pages/StoreDetail";
@@ -23,7 +23,11 @@ const queryClient = new QueryClient();
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const [isFranqueado, setIsFranqueado] = useState<boolean | null>(null);
+  const authHashParams = new URLSearchParams(location.hash.replace(/^#/, ""));
+  const authFlowType = authHashParams.get("type");
+  const isPasswordSetupFlow = authFlowType === "invite" || authFlowType === "recovery";
 
   useEffect(() => {
     if (!user?.email) { setIsFranqueado(null); return; }
@@ -83,7 +87,7 @@ function AppRoutes() {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
   }
 
-  if (!user) {
+  if (!user || isPasswordSetupFlow) {
     return (
       <Routes>
         <Route path="*" element={<Auth />} />
