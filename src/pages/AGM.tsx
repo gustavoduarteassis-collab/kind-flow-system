@@ -682,6 +682,7 @@ const AGM = () => {
                         <TableHead>Início Obra</TableHead>
                         <TableHead>Prev. Inauguração</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
