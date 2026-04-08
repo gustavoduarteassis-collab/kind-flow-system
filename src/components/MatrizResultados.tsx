@@ -163,6 +163,9 @@ export function MatrizResultados({ year }: { year: number }) {
         if (!d || d.getFullYear() !== year) return;
         const nome = ((p as any).local || (p as any).filial || "").toUpperCase().trim();
         if (!nome || processedNames.has(nome)) return;
+        // Only count if matching store has liberated checklist
+        const matchingStore = stores.find((s: any) => (s.nome || "").toUpperCase().trim() === nome);
+        if (!matchingStore || !isStoreLiberated(matchingStore.inauguracao_checklist, matchingStore.tipo_loja)) return;
         processedNames.add(nome);
         const mi = d.getMonth();
         const tipo = ((p as any).padrao || "").toUpperCase();
