@@ -215,7 +215,10 @@ const AGM = () => {
         if (!nome || processedNames.has(nome)) return;
         processedNames.add(nome);
 
-        const isInaugurated = matchesMonth(p.data_inauguracao, mesRef);
+        // Check if pipeline store has a matching store with liberated checklist
+        const matchingStore = stores.find((s) => s.nome.toUpperCase().trim() === nome);
+        const isInaugurated = matchesMonth(p.data_inauguracao, mesRef) && 
+          matchingStore ? isStoreLiberated(matchingStore.inauguracao_checklist, matchingStore.tipo_loja) : false;
         const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === nome);
         const tipo = custoMatch?.tipo || p.padrao?.toUpperCase() || "TRADICIONAL";
         const tipoKey = tipo.includes("LIGHT") ? "LIGHT" : tipo.includes("OUTLET") ? "OUTLET" : "TRADICIONAL";
