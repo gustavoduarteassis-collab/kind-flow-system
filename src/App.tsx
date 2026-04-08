@@ -33,16 +33,12 @@ function AppRoutes() {
     if (!user?.email) { setIsFranqueado(null); return; }
     const checkRole = async () => {
       try {
-        // 1. Check if user is in authorized team emails
-        const { data: authorizedTeam, error: authErr } = await supabase
-          .from("authorized_team_emails")
-          .select("id")
-          .ilike("email", user.email!)
-          .limit(1);
+        // 1. Check if user is in authorized team via RPC
+        const { data: isTeam, error: authErr } = await supabase.rpc("is_authorized_team", { check_user_id: user.id });
 
-        if (authErr) console.error("authorized_team_emails error:", authErr);
+        if (authErr) console.error("is_authorized_team error:", authErr);
 
-        if (authorizedTeam && authorizedTeam.length > 0) {
+        if (isTeam) {
           setIsFranqueado(false);
           return;
         }
