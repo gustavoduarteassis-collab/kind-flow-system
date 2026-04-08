@@ -601,23 +601,20 @@ const AGM = () => {
             <TabsTrigger value="planos">Planos de Ação ({plans.length})</TabsTrigger>
           </TabsList>
 
-          {/* LOJAS TAB */}
           <TabsContent value="lojas" className="space-y-4">
             {loading && (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             )}
-            {!loading && storesData.length === 0 && (
-              <Card>
-                <CardContent className="py-12 text-center text-muted-foreground">
-                  <Store className="h-8 w-8 mx-auto mb-3 opacity-30" />
-                  <p>Nenhuma loja inaugurada em {format(new Date(mesRef + "-01"), "MMMM yyyy", { locale: ptBR })}.</p>
-                  <p className="text-xs mt-1">Verifique se as datas de inauguração estão cadastradas nas lojas ou no funil.</p>
-                </CardContent>
-              </Card>
+
+            {/* Inaugurated stores */}
+            {!loading && inauguradas.length > 0 && (
+              <h3 className="text-sm font-semibold text-primary flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" /> Lojas Inauguradas ({inauguradas.length})
+              </h3>
             )}
-            {storesData.map((store) => (
+            {inauguradas.map((store) => (
               <Card key={store.nome}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
@@ -625,14 +622,10 @@ const AGM = () => {
                       <Store className="h-4 w-4 text-primary" />
                       {store.nome}
                       <Badge variant="secondary" className="text-[10px]">{store.tipo}</Badge>
+                      <Badge className="text-[10px] bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]">Inaugurada</Badge>
                     </CardTitle>
                     <Button size="sm" variant="outline" className="gap-1.5"
-                      onClick={() => startFiveWhys(
-                        `loja_${store.nome}`,
-                        store.nome,
-                        `Meta custo/m²: R$ ${store.metaCustoM2}`,
-                        `Realizado: R$ ${store.custoM2}/m², Prazo: ${store.prazoDias} dias`
-                      )}>
+                      onClick={() => startFiveWhys(`loja_${store.nome}`, store.nome, `Meta custo/m²: R$ ${store.metaCustoM2}`, `Realizado: R$ ${store.custoM2}/m², Prazo: ${store.prazoDias} dias`)}>
                       <MessageCircle className="h-3.5 w-3.5" /> 5 Porquês
                     </Button>
                   </div>
@@ -660,25 +653,59 @@ const AGM = () => {
                       {store.inicioObra && <p className="text-[10px] text-muted-foreground">Início: {store.inicioObra}</p>}
                     </div>
                   </div>
-                  {(store.dataLiberacaoOrcamento || store.prazoConclusaoOrcamento) && (
-                    <div className="mt-3 grid grid-cols-2 gap-3">
-                      {store.dataLiberacaoOrcamento && (
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <p className="text-[10px] uppercase text-muted-foreground font-medium">Liberação Orçamento</p>
-                          <p className="text-sm font-semibold">{store.dataLiberacaoOrcamento}</p>
-                        </div>
-                      )}
-                      {store.prazoConclusaoOrcamento && (
-                        <div className="bg-muted/50 rounded-lg p-3">
-                          <p className="text-[10px] uppercase text-muted-foreground font-medium">Conclusão Orçamento</p>
-                          <p className="text-sm font-semibold">{store.prazoConclusaoOrcamento}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             ))}
+
+            {/* Pipeline (funil) stores */}
+            {!loading && funilStores.length > 0 && (
+              <>
+                <h3 className="text-sm font-semibold text-primary flex items-center gap-2 mt-6">
+                  <Building2 className="h-4 w-4" /> Lojas no Funil ({funilStores.length})
+                </h3>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Loja</TableHead>
+                        <TableHead>Tipo</TableHead>
+                        <TableHead>Cidade/UF</TableHead>
+                        <TableHead>Franqueado</TableHead>
+                        <TableHead>Analista</TableHead>
+                        <TableHead>Início Obra</TableHead>
+                        <TableHead>Prev. Inauguração</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {funilStores.map((store) => (
+                        <TableRow key={store.nome}>
+                          <TableCell className="font-medium text-xs">{store.nome}</TableCell>
+                          <TableCell><Badge variant="outline" className="text-[10px]">{store.tipo}</Badge></TableCell>
+                          <TableCell className="text-xs">{[store.cidade, store.estado].filter(Boolean).join("/") || "-"}</TableCell>
+                          <TableCell className="text-xs">{store.franqueado || "-"}</TableCell>
+                          <TableCell className="text-xs">{store.analistaObra || "-"}</TableCell>
+                          <TableCell className="text-xs">{store.inicioObra || "-"}</TableCell>
+                          <TableCell className="text-xs">{store.previsaoInauguracao || "-"}</TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="text-[10px]">{store.statusGeral || "Em andamento"}</Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            )}
+
+            {!loading && storesData.length === 0 && (
+              <Card>
+                <CardContent className="py-12 text-center text-muted-foreground">
+                  <Store className="h-8 w-8 mx-auto mb-3 opacity-30" />
+                  <p>Nenhuma loja encontrada.</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* MATRIZ DE RESULTADOS TAB */}
