@@ -697,6 +697,12 @@ const AGM = () => {
                           <TableCell>
                             <Badge variant="secondary" className="text-[10px]">{store.statusGeral || "Em andamento"}</Badge>
                           </TableCell>
+                          <TableCell>
+                            <Button size="sm" variant="outline" className="gap-1.5 h-7 text-xs"
+                              onClick={() => startFiveWhys(`loja_${store.nome}`, store.nome, "Loja em andamento", `Status: ${store.statusGeral || "Em andamento"}, Prev: ${store.previsaoInauguracao || "N/A"}`)}>
+                              <MessageCircle className="h-3 w-3" /> 5 Porquês
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
