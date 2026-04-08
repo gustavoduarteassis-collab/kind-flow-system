@@ -21,6 +21,11 @@ const Auth = () => {
     const hash = window.location.hash.replace(/^#/, "");
     const params = new URLSearchParams(hash);
     const type = params.get("type");
+    const invitedEmail = params.get("email") || params.get("invite_email") || "";
+
+    if (invitedEmail) {
+      setEmail(decodeURIComponent(invitedEmail).toLowerCase());
+    }
 
     if (type === "recovery") {
       setMode("recovery");
