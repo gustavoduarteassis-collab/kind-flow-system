@@ -160,7 +160,7 @@ const AGM = () => {
     try {
       const [storesRes, pipelineRes, custosRes, fornecedoresRes] = await Promise.all([
         supabase.from("stores").select("id, nome, inauguracao, tipo_loja"),
-        supabase.from("pipeline_stores").select("id, filial, local, inicio_obra, data_inauguracao, previsao_inauguracao, data_liberacao_orcamento, prazo_conclusao_orcamento, padrao, estado, cidade"),
+        supabase.from("pipeline_stores").select("id, filial, local, inicio_obra, data_inauguracao, previsao_inauguracao, data_liberacao_orcamento, prazo_conclusao_orcamento, padrao, estado, cidade, status_geral, analista_obra, franqueado"),
         supabase.from("custos_geral_entries").select("id, nome, tipo, area_loja, area_total, mao_de_obra, moveis, piso, iluminacao, informatica, demais_itens"),
         supabase.from("fornecedores_prospeccao").select("id, created_at, mes_referencia"),
       ]);
@@ -170,63 +170,72 @@ const AGM = () => {
       const custos = (custosRes.data || []) as CustoEntry[];
       const fornecedores = fornecedoresRes.data || [];
 
-      // Find stores inaugurated in mesRef
-      const inauguratedStoreNames = new Set<string>();
-      
-      // Check stores table
+      const storeDataList: StoreAGMData[] = [];
+      const processedNames = new Set<string>();
+
+      // 1. Inaugurated stores for this month (from stores table)
       stores.forEach((s) => {
         if (matchesMonth(s.inauguracao, mesRef)) {
-          inauguratedStoreNames.add(s.nome.toUpperCase().trim());
+          const nome = s.nome.toUpperCase().trim();
+          if (processedNames.has(nome)) return;
+          processedNames.add(nome);
+
+          const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === nome);
+          const pipeMatch = pipeline.find((p) => (p.filial || p.local || "").toUpperCase().trim() === nome);
+
+          const tipo = custoMatch?.tipo || pipeMatch?.padrao?.toUpperCase() || s.tipo_loja?.toUpperCase() || "TRADICIONAL";
+          const tipoKey = tipo.includes("LIGHT") ? "LIGHT" : tipo.includes("OUTLET") ? "OUTLET" : "TRADICIONAL";
+          const custoTotal = custoMatch ? (custoMatch.mao_de_obra + custoMatch.moveis + custoMatch.piso + custoMatch.iluminacao + custoMatch.informatica + custoMatch.demais_itens) : 0;
+          const areaLoja = custoMatch?.area_loja || 0;
+          const inicioObra = pipeMatch?.inicio_obra || "";
+          const dataInauguracao = pipeMatch?.data_inauguracao || s.inauguracao || "";
+          const inicioDate = parseDate(inicioObra);
+          const inaugDate = parseDate(dataInauguracao);
+
+          storeDataList.push({
+            nome, tipo: tipoKey, custoTotal, areaLoja,
+            custoM2: areaLoja > 0 ? Math.round(custoTotal / areaLoja) : 0,
+            metaCustoM2: METAS_CUSTO[tipoKey] || 3250,
+            inicioObra, dataInauguracao,
+            prazoDias: inicioDate && inaugDate ? differenceInDays(inaugDate, inicioDate) : 0,
+            dataLiberacaoOrcamento: pipeMatch?.data_liberacao_orcamento || "",
+            prazoConclusaoOrcamento: pipeMatch?.prazo_conclusao_orcamento || "",
+            origem: "inaugurada",
+          });
         }
       });
 
-      // Check pipeline table
+      // 2. ALL pipeline stores (funil) - include all, mark inaugurated ones
       pipeline.forEach((p) => {
-        if (matchesMonth(p.data_inauguracao, mesRef)) {
-          const name = (p.filial || p.local || "").toUpperCase().trim();
-          if (name) inauguratedStoreNames.add(name);
-        }
-      });
+        const nome = (p.filial || p.local || "").toUpperCase().trim();
+        if (!nome || processedNames.has(nome)) return;
+        processedNames.add(nome);
 
-      // Build per-store data
-      const storeDataList: StoreAGMData[] = [];
-
-      inauguratedStoreNames.forEach((storeName) => {
-        // Find cost data
-        const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === storeName);
-        const pipeMatch = pipeline.find((p) => 
-          (p.filial || p.local || "").toUpperCase().trim() === storeName
-        );
-        const storeMatch = stores.find((s) => s.nome.toUpperCase().trim() === storeName);
-
-        const tipo = custoMatch?.tipo || pipeMatch?.padrao?.toUpperCase() || storeMatch?.tipo_loja?.toUpperCase() || "TRADICIONAL";
+        const isInaugurated = matchesMonth(p.data_inauguracao, mesRef);
+        const custoMatch = custos.find((c) => c.nome.toUpperCase().trim() === nome);
+        const tipo = custoMatch?.tipo || p.padrao?.toUpperCase() || "TRADICIONAL";
         const tipoKey = tipo.includes("LIGHT") ? "LIGHT" : tipo.includes("OUTLET") ? "OUTLET" : "TRADICIONAL";
-
-        const custoTotal = custoMatch
-          ? (custoMatch.mao_de_obra + custoMatch.moveis + custoMatch.piso + custoMatch.iluminacao + custoMatch.informatica + custoMatch.demais_itens)
-          : 0;
+        const custoTotal = custoMatch ? (custoMatch.mao_de_obra + custoMatch.moveis + custoMatch.piso + custoMatch.iluminacao + custoMatch.informatica + custoMatch.demais_itens) : 0;
         const areaLoja = custoMatch?.area_loja || 0;
-        const custoM2 = areaLoja > 0 ? custoTotal / areaLoja : 0;
-
-        const inicioObra = pipeMatch?.inicio_obra || "";
-        const dataInauguracao = pipeMatch?.data_inauguracao || storeMatch?.inauguracao || "";
-        
-        const inicioDate = parseDate(inicioObra);
-        const inaugDate = parseDate(dataInauguracao);
-        const prazoDias = inicioDate && inaugDate ? differenceInDays(inaugDate, inicioDate) : 0;
+        const inicioDate = parseDate(p.inicio_obra);
+        const inaugDate = parseDate(p.data_inauguracao);
 
         storeDataList.push({
-          nome: storeName,
-          tipo: tipoKey,
-          custoTotal,
-          areaLoja,
-          custoM2: Math.round(custoM2),
+          nome, tipo: tipoKey, custoTotal, areaLoja,
+          custoM2: areaLoja > 0 ? Math.round(custoTotal / areaLoja) : 0,
           metaCustoM2: METAS_CUSTO[tipoKey] || 3250,
-          inicioObra,
-          dataInauguracao,
-          prazoDias,
-          dataLiberacaoOrcamento: pipeMatch?.data_liberacao_orcamento || "",
-          prazoConclusaoOrcamento: pipeMatch?.prazo_conclusao_orcamento || "",
+          inicioObra: p.inicio_obra || "",
+          dataInauguracao: p.data_inauguracao || "",
+          prazoDias: inicioDate && inaugDate ? differenceInDays(inaugDate, inicioDate) : 0,
+          dataLiberacaoOrcamento: p.data_liberacao_orcamento || "",
+          prazoConclusaoOrcamento: p.prazo_conclusao_orcamento || "",
+          origem: isInaugurated ? "inaugurada" : "funil",
+          statusGeral: p.status_geral,
+          analistaObra: p.analista_obra,
+          franqueado: p.franqueado,
+          previsaoInauguracao: p.previsao_inauguracao,
+          cidade: p.cidade,
+          estado: p.estado,
         });
       });
 
