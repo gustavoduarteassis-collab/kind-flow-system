@@ -58,7 +58,8 @@ type PipelineStore = {
   id: string; filial: string; local: string; inicio_obra: string;
   data_inauguracao: string; previsao_inauguracao: string;
   data_liberacao_orcamento: string; prazo_conclusao_orcamento: string;
-  padrao: string; estado: string; cidade: string;
+  padrao: string; estado: string; cidade: string; status_geral: string;
+  analista_obra: string; franqueado: string;
 };
 
 type StoreRow = {
@@ -77,6 +78,13 @@ type StoreAGMData = {
   prazoDias: number;
   dataLiberacaoOrcamento: string;
   prazoConclusaoOrcamento: string;
+  origem: "inaugurada" | "funil";
+  statusGeral?: string;
+  analistaObra?: string;
+  franqueado?: string;
+  previsaoInauguracao?: string;
+  cidade?: string;
+  estado?: string;
 };
 
 type AgmEntry = {
