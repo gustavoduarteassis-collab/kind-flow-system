@@ -140,7 +140,7 @@ export async function exportCustosGeralExcel(
   const kpiHeader = wsResumo.addRow(["Indicador", "Valor", "", "Indicador", "Valor"]);
   styleHeaderRow(kpiHeader);
 
-  const kpis: Array<[string, string | number, string, string | number, string]> = [
+  const kpis: Array<[string, string | number, string, string, string | number]> = [
     ["Total de Lojas", reportData.totalLojas, INT, "", ""],
     ["Total Investido", reportData.totalInvestido, CURRENCY, "Lojas na Meta", reportData.ok],
     ["Área Total (m²)", reportData.totalArea, NUMBER, "Lojas Estouradas", reportData.over],
