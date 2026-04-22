@@ -839,6 +839,92 @@ const CustosGeral = () => {
               </CardContent>
             </Card>
 
+            {/* Média Mensal por Tipo de Loja */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Média Mensal por Tipo de Loja — Acompanhamento Anual</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Custo médio por m² em cada mês (baseado nos lançamentos do período).{" "}
+                  <span className="text-[hsl(152,60%,40%)] font-semibold">verde</span> = dentro da meta ·{" "}
+                  <span className="text-destructive font-semibold">vermelho</span> = acima da meta · meses sem lançamento ficam em branco.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {reportData.mensalPorTipo.map((t) => (
+                  <div key={t.tipo} className="space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <h4 className="text-sm font-bold uppercase tracking-wide">{t.tipo}</h4>
+                      <span className="text-xs text-muted-foreground">
+                        {t.countTotal} loja{t.countTotal !== 1 ? "s" : ""} no ano · Meta: {fmtM2(t.meta)}/m² ·
+                        {" "}Média anual: <span className={`font-mono font-bold ${t.countTotal === 0 ? "text-muted-foreground" : t.bateuAnual ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>{t.countTotal === 0 ? "—" : `${fmtM2(t.mediaAnualM2)}/m²`}</span>
+                      </span>
+                    </div>
+                    <div className="overflow-x-auto rounded-lg border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="text-xs">Indicador</TableHead>
+                            {t.meses.map((m) => (
+                              <TableHead key={m.mes} className="text-right text-xs">{m.mes}</TableHead>
+                            ))}
+                            <TableHead className="text-right text-xs font-bold">ANO</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          <TableRow>
+                            <TableCell className="text-xs font-medium text-muted-foreground">Lojas</TableCell>
+                            {t.meses.map((m) => (
+                              <TableCell key={m.mes} className="text-right font-mono text-xs">{m.count || "—"}</TableCell>
+                            ))}
+                            <TableCell className="text-right font-mono text-xs font-bold">{t.countTotal || "—"}</TableCell>
+                          </TableRow>
+                          <TableRow>
+                            <TableCell className="text-xs font-medium text-muted-foreground">Investido</TableCell>
+                            {t.meses.map((m) => (
+                              <TableCell key={m.mes} className="text-right font-mono text-[10px]">
+                                {m.investido > 0 ? fmt(m.investido) : "—"}
+                              </TableCell>
+                            ))}
+                            <TableCell className="text-right font-mono text-[10px] font-bold">
+                              {t.totalInv > 0 ? fmt(t.totalInv) : "—"}
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className="bg-muted/20">
+                            <TableCell className="text-xs font-medium">Média R$/m²</TableCell>
+                            {t.meses.map((m) => (
+                              <TableCell
+                                key={m.mes}
+                                className={`text-right font-mono text-xs font-bold ${
+                                  m.avgM2 === 0
+                                    ? "text-muted-foreground"
+                                    : m.bateu
+                                    ? "text-[hsl(152,60%,40%)]"
+                                    : "text-destructive"
+                                }`}
+                              >
+                                {m.avgM2 > 0 ? fmtM2(m.avgM2) : "—"}
+                              </TableCell>
+                            ))}
+                            <TableCell
+                              className={`text-right font-mono text-xs font-bold ${
+                                t.mediaAnualM2 === 0
+                                  ? "text-muted-foreground"
+                                  : t.bateuAnual
+                                  ? "text-[hsl(152,60%,40%)]"
+                                  : "text-destructive"
+                              }`}
+                            >
+                              {t.mediaAnualM2 > 0 ? fmtM2(t.mediaAnualM2) : "—"}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
               {/* By Category pie */}
