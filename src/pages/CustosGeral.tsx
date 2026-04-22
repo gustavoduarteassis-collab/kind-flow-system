@@ -96,13 +96,14 @@ interface DbEntry {
   demais_itens: number;
 }
 
-function dbToStore(d: DbEntry): StoreCostEntry {
+function dbToStore(d: DbEntry & { created_at?: string }): StoreCostEntry & { createdAt?: string } {
   return {
     nome: d.nome, ano: d.ano, tipo: d.tipo as StoreCostEntry["tipo"],
     local: d.local as StoreCostEntry["local"], estado: d.estado, regional: d.regional,
     areaTotal: Number(d.area_total), areaLoja: Number(d.area_loja), prazo: d.prazo,
     maoDeObra: Number(d.mao_de_obra), moveis: Number(d.moveis), piso: Number(d.piso),
     iluminacao: Number(d.iluminacao), informatica: Number(d.informatica), demaisItens: Number(d.demais_itens),
+    createdAt: d.created_at,
   };
 }
 
