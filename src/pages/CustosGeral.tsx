@@ -245,12 +245,37 @@ const CustosGeral = () => {
     const totalArea = data.reduce((s, e) => s + e.areaTotal, 0);
     const avgM2 = totalArea > 0 ? totalInvestido / totalArea : 0;
 
-    // By type
+    // Régua de previsto por m² (por tipo) — usa a projeção 2026 (meta dividida proporcionalmente entre categorias)
+    const reguaPorTipo: Record<string, Record<CatKey, number>> = {} as any;
+    projections2026.forEach((p) => {
+      reguaPorTipo[p.tipo] = p.avgPerM2 as Record<CatKey, number>;
+    });
+
+    // By type — agora com previsto x realizado por categoria
     const byTipo = TIPOS.map((t) => {
       const td = data.filter((e) => e.tipo === t);
       const inv = td.reduce((s, e) => s + getStoreCostTotal(e), 0);
       const area = td.reduce((s, e) => s + e.areaTotal, 0);
-      return { tipo: t, count: td.length, investido: inv, area, avgM2: area > 0 ? inv / area : 0 };
+      const meta = META_POR_M2[t] || 3250;
+      const regua = reguaPorTipo[t] || ({} as Record<CatKey, number>);
+      const categorias = CATEGORIAS.map(({ key, label }) => {
+        const realizadoTotal = td.reduce((s, e) => s + e[key], 0);
+        const realizadoM2 = area > 0 ? realizadoTotal / area : 0;
+        const previstoM2 = regua[key] || 0;
+        const previstoTotal = previstoM2 * area;
+        const bateu = realizadoM2 <= previstoM2;
+        return { key, label, previstoM2, realizadoM2, previstoTotal, realizadoTotal, bateu };
+      });
+      return {
+        tipo: t,
+        count: td.length,
+        investido: inv,
+        area,
+        avgM2: area > 0 ? inv / area : 0,
+        meta,
+        bateuTotal: (area > 0 ? inv / area : 0) <= meta,
+        categorias,
+      };
     }).filter((d) => d.count > 0);
 
     // By regional
