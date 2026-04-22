@@ -245,12 +245,37 @@ const CustosGeral = () => {
     const totalArea = data.reduce((s, e) => s + e.areaTotal, 0);
     const avgM2 = totalArea > 0 ? totalInvestido / totalArea : 0;
 
-    // By type
+    // Régua de previsto por m² (por tipo) — usa a projeção 2026 (meta dividida proporcionalmente entre categorias)
+    const reguaPorTipo: Record<string, Record<CatKey, number>> = {} as any;
+    projections2026.forEach((p) => {
+      reguaPorTipo[p.tipo] = p.avgPerM2 as Record<CatKey, number>;
+    });
+
+    // By type — agora com previsto x realizado por categoria
     const byTipo = TIPOS.map((t) => {
       const td = data.filter((e) => e.tipo === t);
       const inv = td.reduce((s, e) => s + getStoreCostTotal(e), 0);
       const area = td.reduce((s, e) => s + e.areaTotal, 0);
-      return { tipo: t, count: td.length, investido: inv, area, avgM2: area > 0 ? inv / area : 0 };
+      const meta = META_POR_M2[t] || 3250;
+      const regua = reguaPorTipo[t] || ({} as Record<CatKey, number>);
+      const categorias = CATEGORIAS.map(({ key, label }) => {
+        const realizadoTotal = td.reduce((s, e) => s + e[key], 0);
+        const realizadoM2 = area > 0 ? realizadoTotal / area : 0;
+        const previstoM2 = regua[key] || 0;
+        const previstoTotal = previstoM2 * area;
+        const bateu = realizadoM2 <= previstoM2;
+        return { key, label, previstoM2, realizadoM2, previstoTotal, realizadoTotal, bateu };
+      });
+      return {
+        tipo: t,
+        count: td.length,
+        investido: inv,
+        area,
+        avgM2: area > 0 ? inv / area : 0,
+        meta,
+        bateuTotal: (area > 0 ? inv / area : 0) <= meta,
+        categorias,
+      };
     }).filter((d) => d.count > 0);
 
     // By regional
@@ -282,7 +307,7 @@ const CustosGeral = () => {
     });
 
     return { totalLojas: data.length, totalInvestido, totalArea, avgM2, ok, over, byTipo, byRegional, byCat, byEstado };
-  }, [allEntries, filterAno, filterTipo]);
+  }, [allEntries, filterAno, filterTipo, projections2026]);
 
   const getStatusInfo = (entry: StoreCostEntry) => {
     const custoM2 = getStoreCostPerM2(entry);
@@ -698,27 +723,56 @@ const CustosGeral = () => {
               <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Estourou</p><p className="text-2xl font-bold text-destructive">{reportData.over}</p></CardContent></Card>
             </div>
 
+            {/* Previsto x Realizado por Tipo de Loja e Categoria */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Previsto x Realizado — Meta vs Realizado por Categoria</CardTitle>
+                <p className="text-xs text-muted-foreground">Cores: <span className="text-[hsl(152,60%,40%)] font-semibold">verde</span> = bateu a meta · <span className="text-destructive font-semibold">vermelho</span> = estourou</p>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {reportData.byTipo.map((d) => (
+                  <div key={d.tipo} className="space-y-2">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <h4 className="text-sm font-bold uppercase tracking-wide">{d.tipo}</h4>
+                      <span className="text-xs text-muted-foreground">{d.count} loja{d.count > 1 ? "s" : ""} · Área {d.area.toFixed(0)} m² · Meta total: {fmtM2(d.meta)}/m²</span>
+                    </div>
+                    <div className="overflow-x-auto rounded-lg border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="text-xs">Categoria</TableHead>
+                            <TableHead className="text-right text-xs">Previsto R$/m²</TableHead>
+                            <TableHead className="text-right text-xs">Realizado R$/m²</TableHead>
+                            <TableHead className="text-right text-xs">Previsto Total</TableHead>
+                            <TableHead className="text-right text-xs">Realizado Total</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {d.categorias.map((c) => (
+                            <TableRow key={c.key}>
+                              <TableCell className="text-xs font-medium">{c.label}</TableCell>
+                              <TableCell className="text-right font-mono text-xs">{fmtM2(c.previstoM2)}</TableCell>
+                              <TableCell className={`text-right font-mono text-xs font-bold ${c.bateu ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>{fmtM2(c.realizadoM2)}</TableCell>
+                              <TableCell className="text-right font-mono text-xs">{fmt(c.previstoTotal)}</TableCell>
+                              <TableCell className={`text-right font-mono text-xs font-bold ${c.bateu ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>{fmt(c.realizadoTotal)}</TableCell>
+                            </TableRow>
+                          ))}
+                          <TableRow className="bg-muted/30 font-bold">
+                            <TableCell className="text-xs">TOTAL</TableCell>
+                            <TableCell className="text-right font-mono text-xs">{fmtM2(d.meta)}</TableCell>
+                            <TableCell className={`text-right font-mono text-sm font-bold ${d.bateuTotal ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>{fmtM2(d.avgM2)}</TableCell>
+                            <TableCell className="text-right font-mono text-xs">{fmt(d.meta * d.area)}</TableCell>
+                            <TableCell className={`text-right font-mono text-sm font-bold ${d.bateuTotal ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>{fmt(d.investido)}</TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* By Type */}
-              <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Por Tipo de Loja</CardTitle></CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader><TableRow><TableHead>Tipo</TableHead><TableHead className="text-center">Qtd</TableHead><TableHead className="text-right">Investido</TableHead><TableHead className="text-right">Área m²</TableHead><TableHead className="text-right">R$/m²</TableHead></TableRow></TableHeader>
-                    <TableBody>
-                      {reportData.byTipo.map((d) => (
-                        <TableRow key={d.tipo}>
-                          <TableCell className="font-medium">{d.tipo}</TableCell>
-                          <TableCell className="text-center">{d.count}</TableCell>
-                          <TableCell className="text-right font-mono text-xs">{fmt(d.investido)}</TableCell>
-                          <TableCell className="text-right font-mono text-xs">{d.area.toFixed(0)}</TableCell>
-                          <TableCell className={`text-right font-mono text-sm font-bold ${d.avgM2 > (META_POR_M2[d.tipo] || 3250) ? "text-destructive" : "text-[hsl(152,60%,40%)]"}`}>{fmtM2(d.avgM2)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
 
               {/* By Category pie */}
               <Card>
