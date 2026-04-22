@@ -16,7 +16,8 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
-import { ArrowLeft, TrendingUp, TrendingDown, Building2, Target, BarChart3, Calculator, Plus, FileText, Trash2, Printer } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Building2, Target, BarChart3, Calculator, Plus, FileText, Trash2, Printer, FileSpreadsheet } from "lucide-react";
+import { exportCustosGeralExcel } from "@/lib/exportCustosGeralExcel";
 import logoConstance from "@/assets/logo-constance.svg";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell as ReCell } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
@@ -728,9 +729,26 @@ const CustosGeral = () => {
                   <SelectItem value="OUTLET">Outlet</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" className="ml-auto gap-2" onClick={() => window.print()}>
-                <Printer className="h-4 w-4" />Gerar PDF / Imprimir
-              </Button>
+              <div className="ml-auto flex gap-2">
+                <Button
+                  variant="default"
+                  className="gap-2 bg-[hsl(140,55%,35%)] hover:bg-[hsl(140,55%,30%)] text-white"
+                  onClick={async () => {
+                    try {
+                      await exportCustosGeralExcel(reportData, filterAno, filterTipo);
+                      toast.success("Relatório Excel gerado!");
+                    } catch (e) {
+                      toast.error("Erro ao gerar Excel");
+                      console.error(e);
+                    }
+                  }}
+                >
+                  <FileSpreadsheet className="h-4 w-4" />Exportar Excel
+                </Button>
+                <Button variant="outline" className="gap-2" onClick={() => window.print()}>
+                  <Printer className="h-4 w-4" />Gerar PDF / Imprimir
+                </Button>
+              </div>
             </div>
 
             {/* Print header - only visible when printing */}
