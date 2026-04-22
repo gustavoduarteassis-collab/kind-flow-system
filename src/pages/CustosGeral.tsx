@@ -251,32 +251,33 @@ const CustosGeral = () => {
       reguaPorTipo[p.tipo] = p.avgPerM2 as Record<CatKey, number>;
     });
 
-    // By type — agora com previsto x realizado por categoria
-    const byTipo = TIPOS.map((t) => {
-      const td = data.filter((e) => e.tipo === t);
-      const inv = td.reduce((s, e) => s + getStoreCostTotal(e), 0);
-      const area = td.reduce((s, e) => s + e.areaTotal, 0);
-      const meta = META_POR_M2[t] || 3250;
-      const regua = reguaPorTipo[t] || ({} as Record<CatKey, number>);
+    // Por loja — Previsto / Realizado / Diferença por categoria
+    const byLoja = data.map((e) => {
+      const regua = reguaPorTipo[e.tipo] || ({} as Record<CatKey, number>);
+      const area = e.areaTotal || 0;
       const categorias = CATEGORIAS.map(({ key, label }) => {
-        const realizadoTotal = td.reduce((s, e) => s + e[key], 0);
-        const realizadoM2 = area > 0 ? realizadoTotal / area : 0;
-        const previstoM2 = regua[key] || 0;
-        const previstoTotal = previstoM2 * area;
-        const bateu = realizadoM2 <= previstoM2;
-        return { key, label, previstoM2, realizadoM2, previstoTotal, realizadoTotal, bateu };
+        const realizado = e[key];
+        const previsto = (regua[key] || 0) * area;
+        const diferenca = realizado - previsto; // >0 = estourou, <=0 = bateu
+        return { key, label, previsto, realizado, diferenca };
       });
+      const previstoTotal = categorias.reduce((s, c) => s + c.previsto, 0);
+      const realizadoTotal = categorias.reduce((s, c) => s + c.realizado, 0);
+      const diferencaTotal = realizadoTotal - previstoTotal;
+      const meta = META_POR_M2[e.tipo] || 3250;
       return {
-        tipo: t,
-        count: td.length,
-        investido: inv,
+        nome: e.nome,
+        tipo: e.tipo,
+        ano: e.ano,
         area,
-        avgM2: area > 0 ? inv / area : 0,
         meta,
-        bateuTotal: (area > 0 ? inv / area : 0) <= meta,
         categorias,
+        previstoTotal,
+        realizadoTotal,
+        diferencaTotal,
+        bateuTotal: diferencaTotal <= 0,
       };
-    }).filter((d) => d.count > 0);
+    }).sort((a, b) => a.nome.localeCompare(b.nome));
 
     // By regional
     const regSet = new Set(data.map((d) => d.regional));
