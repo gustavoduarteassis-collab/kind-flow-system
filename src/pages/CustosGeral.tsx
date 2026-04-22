@@ -307,7 +307,7 @@ const CustosGeral = () => {
     });
 
     return { totalLojas: data.length, totalInvestido, totalArea, avgM2, ok, over, byTipo, byRegional, byCat, byEstado };
-  }, [allEntries, filterAno, filterTipo]);
+  }, [allEntries, filterAno, filterTipo, projections2026]);
 
   const getStatusInfo = (entry: StoreCostEntry) => {
     const custoM2 = getStoreCostPerM2(entry);
