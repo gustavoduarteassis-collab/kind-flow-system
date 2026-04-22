@@ -307,7 +307,7 @@ const CustosGeral = () => {
       if (cm2 <= meta) ok++; else over++;
     });
 
-    return { totalLojas: data.length, totalInvestido, totalArea, avgM2, ok, over, byTipo, byRegional, byCat, byEstado };
+    return { totalLojas: data.length, totalInvestido, totalArea, avgM2, ok, over, byLoja, byRegional, byCat, byEstado };
   }, [allEntries, filterAno, filterTipo, projections2026]);
 
   const getStatusInfo = (entry: StoreCostEntry) => {
