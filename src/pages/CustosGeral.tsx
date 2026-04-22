@@ -308,7 +308,41 @@ const CustosGeral = () => {
       if (cm2 <= meta) ok++; else over++;
     });
 
-    return { totalLojas: data.length, totalInvestido, totalArea, avgM2, ok, over, byLoja, byRegional, byCat, byEstado };
+    // Média mensal por tipo de loja (somente entries com createdAt) — acompanhamento mensal do ano filtrado
+    const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    const mensalPorTipo = TIPOS.map((tipo) => {
+      const dataDoTipo = data.filter((e) => e.tipo === tipo);
+      const meta = META_POR_M2[tipo] || 3250;
+      // Agrupa por mês de createdAt
+      const meses = MESES.map((mesLabel, i) => {
+        const noMes = dataDoTipo.filter((e) => {
+          const ca = (e as any).createdAt as string | undefined;
+          if (!ca) return false;
+          const dt = new Date(ca);
+          return dt.getMonth() === i;
+        });
+        const inv = noMes.reduce((s, e) => s + getStoreCostTotal(e), 0);
+        const area = noMes.reduce((s, e) => s + e.areaTotal, 0);
+        const avgM2 = area > 0 ? inv / area : 0;
+        return { mes: mesLabel, count: noMes.length, investido: inv, area, avgM2, meta, bateu: avgM2 <= meta && avgM2 > 0 };
+      });
+      // Acumulado anual do tipo (todas entries, com ou sem createdAt)
+      const totalInv = dataDoTipo.reduce((s, e) => s + getStoreCostTotal(e), 0);
+      const totalArea = dataDoTipo.reduce((s, e) => s + e.areaTotal, 0);
+      const mediaAnualM2 = totalArea > 0 ? totalInv / totalArea : 0;
+      return {
+        tipo,
+        meta,
+        countTotal: dataDoTipo.length,
+        totalInv,
+        totalArea,
+        mediaAnualM2,
+        bateuAnual: mediaAnualM2 > 0 && mediaAnualM2 <= meta,
+        meses,
+      };
+    });
+
+    return { totalLojas: data.length, totalInvestido, totalArea, avgM2, ok, over, byLoja, byRegional, byCat, byEstado, mensalPorTipo };
   }, [allEntries, filterAno, filterTipo, projections2026]);
 
   const getStatusInfo = (entry: StoreCostEntry) => {
