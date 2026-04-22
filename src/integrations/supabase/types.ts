@@ -907,7 +907,141 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      pipeline_stores_public: {
+        Row: {
+          analista_obra: string | null
+          cd_origem: string | null
+          cidade: string | null
+          contratos: string | null
+          created_at: string | null
+          data_inauguracao: string | null
+          data_liberacao_orcamento: string | null
+          estado: string | null
+          filial: string | null
+          franqueado: string | null
+          id: string | null
+          inicio_contratos: string | null
+          inicio_obra: string | null
+          inicio_orcamento_obra: string | null
+          inicio_projeto_ar_condicionado: string | null
+          inicio_projeto_arquitetonico: string | null
+          inicio_projeto_eletrico: string | null
+          inicio_projeto_estrutural: string | null
+          inicio_projeto_incendio: string | null
+          local: string | null
+          localizacao: string | null
+          observacoes: string | null
+          orcamento_obra: string | null
+          padrao: string | null
+          prazo_conclusao_orcamento: string | null
+          prazo_contratos: string | null
+          prazo_orcamento_obra: string | null
+          prazo_projeto_ar_condicionado: string | null
+          prazo_projeto_arquitetonico: string | null
+          prazo_projeto_eletrico: string | null
+          prazo_projeto_estrutural: string | null
+          prazo_projeto_incendio: string | null
+          previsao_inauguracao: string | null
+          projeto_ar_condicionado: string | null
+          projeto_arquitetonico: string | null
+          projeto_eletrico: string | null
+          projeto_estrutural: string | null
+          projeto_incendio: string | null
+          status_geral: string | null
+          transferido: boolean | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          analista_obra?: string | null
+          cd_origem?: string | null
+          cidade?: string | null
+          contratos?: string | null
+          created_at?: string | null
+          data_inauguracao?: string | null
+          data_liberacao_orcamento?: string | null
+          estado?: string | null
+          filial?: string | null
+          franqueado?: string | null
+          id?: string | null
+          inicio_contratos?: string | null
+          inicio_obra?: string | null
+          inicio_orcamento_obra?: string | null
+          inicio_projeto_ar_condicionado?: string | null
+          inicio_projeto_arquitetonico?: string | null
+          inicio_projeto_eletrico?: string | null
+          inicio_projeto_estrutural?: string | null
+          inicio_projeto_incendio?: string | null
+          local?: string | null
+          localizacao?: string | null
+          observacoes?: string | null
+          orcamento_obra?: string | null
+          padrao?: string | null
+          prazo_conclusao_orcamento?: string | null
+          prazo_contratos?: string | null
+          prazo_orcamento_obra?: string | null
+          prazo_projeto_ar_condicionado?: string | null
+          prazo_projeto_arquitetonico?: string | null
+          prazo_projeto_eletrico?: string | null
+          prazo_projeto_estrutural?: string | null
+          prazo_projeto_incendio?: string | null
+          previsao_inauguracao?: string | null
+          projeto_ar_condicionado?: string | null
+          projeto_arquitetonico?: string | null
+          projeto_eletrico?: string | null
+          projeto_estrutural?: string | null
+          projeto_incendio?: string | null
+          status_geral?: string | null
+          transferido?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          analista_obra?: string | null
+          cd_origem?: string | null
+          cidade?: string | null
+          contratos?: string | null
+          created_at?: string | null
+          data_inauguracao?: string | null
+          data_liberacao_orcamento?: string | null
+          estado?: string | null
+          filial?: string | null
+          franqueado?: string | null
+          id?: string | null
+          inicio_contratos?: string | null
+          inicio_obra?: string | null
+          inicio_orcamento_obra?: string | null
+          inicio_projeto_ar_condicionado?: string | null
+          inicio_projeto_arquitetonico?: string | null
+          inicio_projeto_eletrico?: string | null
+          inicio_projeto_estrutural?: string | null
+          inicio_projeto_incendio?: string | null
+          local?: string | null
+          localizacao?: string | null
+          observacoes?: string | null
+          orcamento_obra?: string | null
+          padrao?: string | null
+          prazo_conclusao_orcamento?: string | null
+          prazo_contratos?: string | null
+          prazo_orcamento_obra?: string | null
+          prazo_projeto_ar_condicionado?: string | null
+          prazo_projeto_arquitetonico?: string | null
+          prazo_projeto_eletrico?: string | null
+          prazo_projeto_estrutural?: string | null
+          prazo_projeto_incendio?: string | null
+          previsao_inauguracao?: string | null
+          projeto_ar_condicionado?: string | null
+          projeto_arquitetonico?: string | null
+          projeto_eletrico?: string | null
+          projeto_estrutural?: string | null
+          projeto_incendio?: string | null
+          status_geral?: string | null
+          transferido?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       is_authorized_team: { Args: { check_user_id: string }; Returns: boolean }
