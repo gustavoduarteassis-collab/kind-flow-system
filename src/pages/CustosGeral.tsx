@@ -251,32 +251,33 @@ const CustosGeral = () => {
       reguaPorTipo[p.tipo] = p.avgPerM2 as Record<CatKey, number>;
     });
 
-    // By type — agora com previsto x realizado por categoria
-    const byTipo = TIPOS.map((t) => {
-      const td = data.filter((e) => e.tipo === t);
-      const inv = td.reduce((s, e) => s + getStoreCostTotal(e), 0);
-      const area = td.reduce((s, e) => s + e.areaTotal, 0);
-      const meta = META_POR_M2[t] || 3250;
-      const regua = reguaPorTipo[t] || ({} as Record<CatKey, number>);
+    // Por loja — Previsto / Realizado / Diferença por categoria
+    const byLoja = data.map((e) => {
+      const regua = reguaPorTipo[e.tipo] || ({} as Record<CatKey, number>);
+      const area = e.areaTotal || 0;
       const categorias = CATEGORIAS.map(({ key, label }) => {
-        const realizadoTotal = td.reduce((s, e) => s + e[key], 0);
-        const realizadoM2 = area > 0 ? realizadoTotal / area : 0;
-        const previstoM2 = regua[key] || 0;
-        const previstoTotal = previstoM2 * area;
-        const bateu = realizadoM2 <= previstoM2;
-        return { key, label, previstoM2, realizadoM2, previstoTotal, realizadoTotal, bateu };
+        const realizado = e[key];
+        const previsto = (regua[key] || 0) * area;
+        const diferenca = realizado - previsto; // >0 = estourou, <=0 = bateu
+        return { key, label, previsto, realizado, diferenca };
       });
+      const previstoTotal = categorias.reduce((s, c) => s + c.previsto, 0);
+      const realizadoTotal = categorias.reduce((s, c) => s + c.realizado, 0);
+      const diferencaTotal = realizadoTotal - previstoTotal;
+      const meta = META_POR_M2[e.tipo] || 3250;
       return {
-        tipo: t,
-        count: td.length,
-        investido: inv,
+        nome: e.nome,
+        tipo: e.tipo,
+        ano: e.ano,
         area,
-        avgM2: area > 0 ? inv / area : 0,
         meta,
-        bateuTotal: (area > 0 ? inv / area : 0) <= meta,
         categorias,
+        previstoTotal,
+        realizadoTotal,
+        diferencaTotal,
+        bateuTotal: diferencaTotal <= 0,
       };
-    }).filter((d) => d.count > 0);
+    }).sort((a, b) => a.nome.localeCompare(b.nome));
 
     // By regional
     const regSet = new Set(data.map((d) => d.regional));
@@ -306,7 +307,7 @@ const CustosGeral = () => {
       if (cm2 <= meta) ok++; else over++;
     });
 
-    return { totalLojas: data.length, totalInvestido, totalArea, avgM2, ok, over, byTipo, byRegional, byCat, byEstado };
+    return { totalLojas: data.length, totalInvestido, totalArea, avgM2, ok, over, byLoja, byRegional, byCat, byEstado };
   }, [allEntries, filterAno, filterTipo, projections2026]);
 
   const getStatusInfo = (entry: StoreCostEntry) => {
@@ -723,46 +724,77 @@ const CustosGeral = () => {
               <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Estourou</p><p className="text-2xl font-bold text-destructive">{reportData.over}</p></CardContent></Card>
             </div>
 
-            {/* Previsto x Realizado por Tipo de Loja e Categoria */}
+            {/* Previsto x Realizado por Loja */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">Previsto x Realizado — Meta vs Realizado por Categoria</CardTitle>
-                <p className="text-xs text-muted-foreground">Cores: <span className="text-[hsl(152,60%,40%)] font-semibold">verde</span> = bateu a meta · <span className="text-destructive font-semibold">vermelho</span> = estourou</p>
+                <CardTitle className="text-sm">Previsto x Realizado — Por Loja</CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  Linhas: <span className="font-semibold">Previsto</span> (meta × área), <span className="font-semibold">Realizado</span> (executado) e <span className="font-semibold">Diferença</span>.
+                  {" "}Cores: <span className="text-[hsl(152,60%,40%)] font-semibold">verde</span> = bateu (≤ previsto) · <span className="text-destructive font-semibold">vermelho</span> = estourou.
+                </p>
               </CardHeader>
               <CardContent className="space-y-6">
-                {reportData.byTipo.map((d) => (
-                  <div key={d.tipo} className="space-y-2">
+                {reportData.byLoja.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-6">Nenhuma loja para os filtros selecionados.</p>
+                )}
+                {reportData.byLoja.map((loja) => (
+                  <div key={`${loja.nome}-${loja.ano}`} className="space-y-2">
                     <div className="flex items-center justify-between flex-wrap gap-2">
-                      <h4 className="text-sm font-bold uppercase tracking-wide">{d.tipo}</h4>
-                      <span className="text-xs text-muted-foreground">{d.count} loja{d.count > 1 ? "s" : ""} · Área {d.area.toFixed(0)} m² · Meta total: {fmtM2(d.meta)}/m²</span>
+                      <h4 className="text-sm font-bold uppercase tracking-wide">
+                        {loja.nome} <span className="text-xs text-muted-foreground font-normal">· {loja.tipo} · {loja.ano} · {loja.area.toFixed(0)} m²</span>
+                      </h4>
+                      <span className="text-xs text-muted-foreground">Meta: {fmtM2(loja.meta)}/m²</span>
                     </div>
                     <div className="overflow-x-auto rounded-lg border">
                       <Table>
                         <TableHeader>
                           <TableRow className="bg-muted/50">
-                            <TableHead className="text-xs">Categoria</TableHead>
-                            <TableHead className="text-right text-xs">Previsto R$/m²</TableHead>
-                            <TableHead className="text-right text-xs">Realizado R$/m²</TableHead>
-                            <TableHead className="text-right text-xs">Previsto Total</TableHead>
-                            <TableHead className="text-right text-xs">Realizado Total</TableHead>
+                            <TableHead className="text-xs">Linha</TableHead>
+                            {CATEGORIAS.map((c) => (
+                              <TableHead key={c.key} className="text-right text-xs">{c.label}</TableHead>
+                            ))}
+                            <TableHead className="text-right text-xs font-bold">TOTAL</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {d.categorias.map((c) => (
-                            <TableRow key={c.key}>
-                              <TableCell className="text-xs font-medium">{c.label}</TableCell>
-                              <TableCell className="text-right font-mono text-xs">{fmtM2(c.previstoM2)}</TableCell>
-                              <TableCell className={`text-right font-mono text-xs font-bold ${c.bateu ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>{fmtM2(c.realizadoM2)}</TableCell>
-                              <TableCell className="text-right font-mono text-xs">{fmt(c.previstoTotal)}</TableCell>
-                              <TableCell className={`text-right font-mono text-xs font-bold ${c.bateu ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>{fmt(c.realizadoTotal)}</TableCell>
-                            </TableRow>
-                          ))}
-                          <TableRow className="bg-muted/30 font-bold">
-                            <TableCell className="text-xs">TOTAL</TableCell>
-                            <TableCell className="text-right font-mono text-xs">{fmtM2(d.meta)}</TableCell>
-                            <TableCell className={`text-right font-mono text-sm font-bold ${d.bateuTotal ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>{fmtM2(d.avgM2)}</TableCell>
-                            <TableCell className="text-right font-mono text-xs">{fmt(d.meta * d.area)}</TableCell>
-                            <TableCell className={`text-right font-mono text-sm font-bold ${d.bateuTotal ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>{fmt(d.investido)}</TableCell>
+                          {/* Previsto */}
+                          <TableRow>
+                            <TableCell className="text-xs font-medium text-muted-foreground">Previsto</TableCell>
+                            {loja.categorias.map((c) => (
+                              <TableCell key={c.key} className="text-right font-mono text-xs">{fmt(c.previsto)}</TableCell>
+                            ))}
+                            <TableCell className="text-right font-mono text-xs font-bold">{fmt(loja.previstoTotal)}</TableCell>
+                          </TableRow>
+                          {/* Realizado */}
+                          <TableRow>
+                            <TableCell className="text-xs font-medium text-muted-foreground">Realizado</TableCell>
+                            {loja.categorias.map((c) => {
+                              const bateu = c.realizado <= c.previsto;
+                              return (
+                                <TableCell key={c.key} className={`text-right font-mono text-xs font-bold ${bateu ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>
+                                  {fmt(c.realizado)}
+                                </TableCell>
+                              );
+                            })}
+                            <TableCell className={`text-right font-mono text-sm font-bold ${loja.bateuTotal ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>
+                              {fmt(loja.realizadoTotal)}
+                            </TableCell>
+                          </TableRow>
+                          {/* Diferença */}
+                          <TableRow className="bg-muted/20">
+                            <TableCell className="text-xs font-medium text-muted-foreground">Diferença</TableCell>
+                            {loja.categorias.map((c) => {
+                              const bateu = c.diferenca <= 0;
+                              const sinal = c.diferenca > 0 ? "+" : "";
+                              return (
+                                <TableCell key={c.key} className={`text-right font-mono text-xs font-bold ${bateu ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>
+                                  {sinal}{fmt(c.diferenca)}
+                                </TableCell>
+                              );
+                            })}
+                            <TableCell className={`text-right font-mono text-sm font-bold ${loja.bateuTotal ? "text-[hsl(152,60%,40%)]" : "text-destructive"}`}>
+                              {loja.diferencaTotal > 0 ? "+" : ""}{fmt(loja.diferencaTotal)}
+                            </TableCell>
                           </TableRow>
                         </TableBody>
                       </Table>
