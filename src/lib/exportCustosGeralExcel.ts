@@ -381,9 +381,14 @@ function buildResumoSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportDat
     const realM2 = loja.area > 0 ? loja.realizadoTotal / loja.area : 0;
     const bateu = realM2 <= loja.meta && realM2 > 0;
     const r = ws.addRow([
-      loja.nome, loja.tipo, loja.realizadoTotal, loja.area, realM2,
-      bateu ? "✓ NA META" : "✗ ESTOUROU",
+      loja.nome, loja.tipo, loja.realizadoTotal, loja.area, null, null,
     ]);
+    const rn = r.number;
+    // E = C / D (R$/m²)
+    r.getCell(5).value = { formula: `IF(D${rn}=0,0,C${rn}/D${rn})` } as any;
+    // F = Status comparando com meta da loja (hardcoded como referência)
+    r.getCell(6).value = { formula: `IF(AND(E${rn}>0,E${rn}<=${loja.meta}),"✓ NA META","✗ ESTOUROU")` } as any;
+
     r.getCell(1).font = { name: "Calibri", bold: true, size: 10, color: { argb: BRAND } };
     r.getCell(2).alignment = { horizontal: "center" };
     r.getCell(3).numFmt = CURRENCY;
@@ -440,8 +445,11 @@ function buildResumoSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportDat
   reportData.mensalPorTipo.forEach((t) => {
     const bateu = t.mediaAnualM2 > 0 && t.mediaAnualM2 <= t.meta;
     const r = ws.addRow([
-      t.tipo, t.countTotal, t.totalInv, t.totalArea, t.mediaAnualM2, t.meta,
+      t.tipo, t.countTotal, t.totalInv, t.totalArea, null, t.meta,
     ]);
+    const rn = r.number;
+    // E = Média R$/m² = C / D (fórmula)
+    r.getCell(5).value = { formula: `IF(D${rn}=0,0,C${rn}/D${rn})` } as any;
     r.getCell(1).font = { name: "Calibri", bold: true, size: 11, color: { argb: BRAND } };
     r.getCell(2).numFmt = INT;
     r.getCell(3).numFmt = CURRENCY;
