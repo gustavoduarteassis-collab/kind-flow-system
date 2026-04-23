@@ -155,15 +155,26 @@ function buildGeralSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportData
     const cats = loja.categorias;
     const get = (k: string) => cats.find((c) => c.key === k)?.realizado || 0;
     const realM2 = loja.area > 0 ? loja.realizadoTotal / loja.area : 0;
-    const dif = realM2 - loja.meta;
-    const pct = loja.meta > 0 ? dif / loja.meta : 0;
-    const status = realM2 <= loja.meta ? "✓ NA META" : "✗ ESTOUROU";
+    const bateu = realM2 <= loja.meta && realM2 > 0;
 
+    // Adiciona somente os inputs (texto + categorias). Totais e métricas viram FÓRMULAS.
     const r = ws.addRow([
       loja.nome, loja.tipo, loja.ano, loja.area, loja.meta,
       get("maoDeObra"), get("moveis"), get("piso"), get("iluminacao"), get("informatica"), get("demaisItens"),
-      loja.realizadoTotal, realM2, dif, pct, status,
+      null, null, null, null, null,
     ]);
+    const rn = r.number;
+    // Custo Total = soma das categorias (F:K)
+    r.getCell(12).value = { formula: `SUM(F${rn}:K${rn})` } as any;
+    // Custo R$/m² = total / área
+    r.getCell(13).value = { formula: `IF(D${rn}=0,0,L${rn}/D${rn})` } as any;
+    // Diferença vs Meta = R$/m² - meta
+    r.getCell(14).value = { formula: `M${rn}-E${rn}` } as any;
+    // % Variação = (R$/m² - meta) / meta
+    r.getCell(15).value = { formula: `IF(E${rn}=0,0,(M${rn}-E${rn})/E${rn})` } as any;
+    // Status dinâmico
+    r.getCell(16).value = { formula: `IF(AND(M${rn}>0,M${rn}<=E${rn}),"✓ NA META","✗ ESTOUROU")` } as any;
+
     r.getCell(1).font = { name: "Calibri", bold: true, size: 10, color: { argb: BRAND } };
     r.getCell(2).alignment = { horizontal: "center" };
     r.getCell(3).alignment = { horizontal: "center" };
@@ -173,20 +184,16 @@ function buildGeralSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportData
     for (let c = 6; c <= 14; c++) r.getCell(c).numFmt = CURRENCY;
     r.getCell(15).numFmt = PCT;
 
-    // Custo total destacado
     r.getCell(12).font = { name: "Calibri", bold: true, size: 10, color: { argb: BRAND } };
-    // Custo R$/m² destacado
-    r.getCell(13).font = { name: "Calibri", bold: true, size: 11, color: { argb: realM2 <= loja.meta ? OK_TXT : OVER_TXT } };
-    // Diferença
-    r.getCell(14).font = { name: "Calibri", bold: true, size: 10, color: { argb: dif <= 0 ? OK_TXT : OVER_TXT } };
-    r.getCell(15).font = { name: "Calibri", bold: true, size: 10, color: { argb: dif <= 0 ? OK_TXT : OVER_TXT } };
-    // Status badge
+    r.getCell(13).font = { name: "Calibri", bold: true, size: 11, color: { argb: bateu ? OK_TXT : OVER_TXT } };
+    r.getCell(14).font = { name: "Calibri", bold: true, size: 10, color: { argb: bateu ? OK_TXT : OVER_TXT } };
+    r.getCell(15).font = { name: "Calibri", bold: true, size: 10, color: { argb: bateu ? OK_TXT : OVER_TXT } };
     const stCell = r.getCell(16);
     stCell.alignment = { horizontal: "center", vertical: "middle" };
     stCell.font = { name: "Calibri", bold: true, size: 10, color: { argb: HEADER_TXT } };
     stCell.fill = {
       type: "pattern", pattern: "solid",
-      fgColor: { argb: realM2 <= loja.meta ? OK_TXT : OVER_TXT },
+      fgColor: { argb: bateu ? OK_TXT : OVER_TXT },
     };
     r.height = 20;
   });
