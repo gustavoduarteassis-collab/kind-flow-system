@@ -276,14 +276,22 @@ function buildModeloSheet(wb: ExcelJS.Workbook, modelo: string, lojas: LojaItem[
   lojas.forEach((loja) => {
     const get = (k: string) => loja.categorias.find((c) => c.key === k)?.realizado || 0;
     const realM2 = loja.area > 0 ? loja.realizadoTotal / loja.area : 0;
-    const dif = realM2 - meta;
     const bateu = realM2 <= meta && realM2 > 0;
     const r = ws.addRow([
       loja.nome, loja.ano, loja.area,
       get("maoDeObra"), get("moveis"), get("piso"), get("iluminacao"), get("informatica"), get("demaisItens"),
-      loja.realizadoTotal, realM2, meta, dif,
-      bateu ? "✓ NA META" : "✗ ESTOUROU",
+      null, null, meta, null, null,
     ]);
+    const rn = r.number;
+    // J = Custo Total = SUM(D:I)
+    r.getCell(10).value = { formula: `SUM(D${rn}:I${rn})` } as any;
+    // K = Custo R$/m² = J / C
+    r.getCell(11).value = { formula: `IF(C${rn}=0,0,J${rn}/C${rn})` } as any;
+    // M = Diferença = K - L
+    r.getCell(13).value = { formula: `K${rn}-L${rn}` } as any;
+    // N = Status
+    r.getCell(14).value = { formula: `IF(AND(K${rn}>0,K${rn}<=L${rn}),"✓ NA META","✗ ESTOUROU")` } as any;
+
     r.getCell(1).font = { name: "Calibri", bold: true, size: 10, color: { argb: BRAND } };
     r.getCell(2).alignment = { horizontal: "center" };
     r.getCell(2).numFmt = "0";
@@ -292,7 +300,7 @@ function buildModeloSheet(wb: ExcelJS.Workbook, modelo: string, lojas: LojaItem[
     r.getCell(10).font = { name: "Calibri", bold: true, size: 10, color: { argb: BRAND } };
     r.getCell(11).font = { name: "Calibri", bold: true, size: 11, color: { argb: bateu ? OK_TXT : OVER_TXT } };
     r.getCell(11).fill = { type: "pattern", pattern: "solid", fgColor: { argb: bateu ? OK_BG : OVER_BG } };
-    r.getCell(13).font = { name: "Calibri", bold: true, size: 10, color: { argb: dif <= 0 ? OK_TXT : OVER_TXT } };
+    r.getCell(13).font = { name: "Calibri", bold: true, size: 10, color: { argb: bateu ? OK_TXT : OVER_TXT } };
     const st = r.getCell(14);
     st.alignment = { horizontal: "center", vertical: "middle" };
     st.font = { name: "Calibri", bold: true, size: 10, color: { argb: HEADER_TXT } };
