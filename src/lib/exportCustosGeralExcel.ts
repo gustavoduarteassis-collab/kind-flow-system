@@ -155,15 +155,26 @@ function buildGeralSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportData
     const cats = loja.categorias;
     const get = (k: string) => cats.find((c) => c.key === k)?.realizado || 0;
     const realM2 = loja.area > 0 ? loja.realizadoTotal / loja.area : 0;
-    const dif = realM2 - loja.meta;
-    const pct = loja.meta > 0 ? dif / loja.meta : 0;
-    const status = realM2 <= loja.meta ? "✓ NA META" : "✗ ESTOUROU";
+    const bateu = realM2 <= loja.meta && realM2 > 0;
 
+    // Adiciona somente os inputs (texto + categorias). Totais e métricas viram FÓRMULAS.
     const r = ws.addRow([
       loja.nome, loja.tipo, loja.ano, loja.area, loja.meta,
       get("maoDeObra"), get("moveis"), get("piso"), get("iluminacao"), get("informatica"), get("demaisItens"),
-      loja.realizadoTotal, realM2, dif, pct, status,
+      null, null, null, null, null,
     ]);
+    const rn = r.number;
+    // Custo Total = soma das categorias (F:K)
+    r.getCell(12).value = { formula: `SUM(F${rn}:K${rn})` } as any;
+    // Custo R$/m² = total / área
+    r.getCell(13).value = { formula: `IF(D${rn}=0,0,L${rn}/D${rn})` } as any;
+    // Diferença vs Meta = R$/m² - meta
+    r.getCell(14).value = { formula: `M${rn}-E${rn}` } as any;
+    // % Variação = (R$/m² - meta) / meta
+    r.getCell(15).value = { formula: `IF(E${rn}=0,0,(M${rn}-E${rn})/E${rn})` } as any;
+    // Status dinâmico
+    r.getCell(16).value = { formula: `IF(AND(M${rn}>0,M${rn}<=E${rn}),"✓ NA META","✗ ESTOUROU")` } as any;
+
     r.getCell(1).font = { name: "Calibri", bold: true, size: 10, color: { argb: BRAND } };
     r.getCell(2).alignment = { horizontal: "center" };
     r.getCell(3).alignment = { horizontal: "center" };
@@ -173,20 +184,16 @@ function buildGeralSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportData
     for (let c = 6; c <= 14; c++) r.getCell(c).numFmt = CURRENCY;
     r.getCell(15).numFmt = PCT;
 
-    // Custo total destacado
     r.getCell(12).font = { name: "Calibri", bold: true, size: 10, color: { argb: BRAND } };
-    // Custo R$/m² destacado
-    r.getCell(13).font = { name: "Calibri", bold: true, size: 11, color: { argb: realM2 <= loja.meta ? OK_TXT : OVER_TXT } };
-    // Diferença
-    r.getCell(14).font = { name: "Calibri", bold: true, size: 10, color: { argb: dif <= 0 ? OK_TXT : OVER_TXT } };
-    r.getCell(15).font = { name: "Calibri", bold: true, size: 10, color: { argb: dif <= 0 ? OK_TXT : OVER_TXT } };
-    // Status badge
+    r.getCell(13).font = { name: "Calibri", bold: true, size: 11, color: { argb: bateu ? OK_TXT : OVER_TXT } };
+    r.getCell(14).font = { name: "Calibri", bold: true, size: 10, color: { argb: bateu ? OK_TXT : OVER_TXT } };
+    r.getCell(15).font = { name: "Calibri", bold: true, size: 10, color: { argb: bateu ? OK_TXT : OVER_TXT } };
     const stCell = r.getCell(16);
     stCell.alignment = { horizontal: "center", vertical: "middle" };
     stCell.font = { name: "Calibri", bold: true, size: 10, color: { argb: HEADER_TXT } };
     stCell.fill = {
       type: "pattern", pattern: "solid",
-      fgColor: { argb: realM2 <= loja.meta ? OK_TXT : OVER_TXT },
+      fgColor: { argb: bateu ? OK_TXT : OVER_TXT },
     };
     r.height = 20;
   });
@@ -269,14 +276,22 @@ function buildModeloSheet(wb: ExcelJS.Workbook, modelo: string, lojas: LojaItem[
   lojas.forEach((loja) => {
     const get = (k: string) => loja.categorias.find((c) => c.key === k)?.realizado || 0;
     const realM2 = loja.area > 0 ? loja.realizadoTotal / loja.area : 0;
-    const dif = realM2 - meta;
     const bateu = realM2 <= meta && realM2 > 0;
     const r = ws.addRow([
       loja.nome, loja.ano, loja.area,
       get("maoDeObra"), get("moveis"), get("piso"), get("iluminacao"), get("informatica"), get("demaisItens"),
-      loja.realizadoTotal, realM2, meta, dif,
-      bateu ? "✓ NA META" : "✗ ESTOUROU",
+      null, null, meta, null, null,
     ]);
+    const rn = r.number;
+    // J = Custo Total = SUM(D:I)
+    r.getCell(10).value = { formula: `SUM(D${rn}:I${rn})` } as any;
+    // K = Custo R$/m² = J / C
+    r.getCell(11).value = { formula: `IF(C${rn}=0,0,J${rn}/C${rn})` } as any;
+    // M = Diferença = K - L
+    r.getCell(13).value = { formula: `K${rn}-L${rn}` } as any;
+    // N = Status
+    r.getCell(14).value = { formula: `IF(AND(K${rn}>0,K${rn}<=L${rn}),"✓ NA META","✗ ESTOUROU")` } as any;
+
     r.getCell(1).font = { name: "Calibri", bold: true, size: 10, color: { argb: BRAND } };
     r.getCell(2).alignment = { horizontal: "center" };
     r.getCell(2).numFmt = "0";
@@ -285,7 +300,7 @@ function buildModeloSheet(wb: ExcelJS.Workbook, modelo: string, lojas: LojaItem[
     r.getCell(10).font = { name: "Calibri", bold: true, size: 10, color: { argb: BRAND } };
     r.getCell(11).font = { name: "Calibri", bold: true, size: 11, color: { argb: bateu ? OK_TXT : OVER_TXT } };
     r.getCell(11).fill = { type: "pattern", pattern: "solid", fgColor: { argb: bateu ? OK_BG : OVER_BG } };
-    r.getCell(13).font = { name: "Calibri", bold: true, size: 10, color: { argb: dif <= 0 ? OK_TXT : OVER_TXT } };
+    r.getCell(13).font = { name: "Calibri", bold: true, size: 10, color: { argb: bateu ? OK_TXT : OVER_TXT } };
     const st = r.getCell(14);
     st.alignment = { horizontal: "center", vertical: "middle" };
     st.font = { name: "Calibri", bold: true, size: 10, color: { argb: HEADER_TXT } };
@@ -366,9 +381,14 @@ function buildResumoSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportDat
     const realM2 = loja.area > 0 ? loja.realizadoTotal / loja.area : 0;
     const bateu = realM2 <= loja.meta && realM2 > 0;
     const r = ws.addRow([
-      loja.nome, loja.tipo, loja.realizadoTotal, loja.area, realM2,
-      bateu ? "✓ NA META" : "✗ ESTOUROU",
+      loja.nome, loja.tipo, loja.realizadoTotal, loja.area, null, null,
     ]);
+    const rn = r.number;
+    // E = C / D (R$/m²)
+    r.getCell(5).value = { formula: `IF(D${rn}=0,0,C${rn}/D${rn})` } as any;
+    // F = Status comparando com meta da loja (hardcoded como referência)
+    r.getCell(6).value = { formula: `IF(AND(E${rn}>0,E${rn}<=${loja.meta}),"✓ NA META","✗ ESTOUROU")` } as any;
+
     r.getCell(1).font = { name: "Calibri", bold: true, size: 10, color: { argb: BRAND } };
     r.getCell(2).alignment = { horizontal: "center" };
     r.getCell(3).numFmt = CURRENCY;
@@ -425,8 +445,11 @@ function buildResumoSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportDat
   reportData.mensalPorTipo.forEach((t) => {
     const bateu = t.mediaAnualM2 > 0 && t.mediaAnualM2 <= t.meta;
     const r = ws.addRow([
-      t.tipo, t.countTotal, t.totalInv, t.totalArea, t.mediaAnualM2, t.meta,
+      t.tipo, t.countTotal, t.totalInv, t.totalArea, null, t.meta,
     ]);
+    const rn = r.number;
+    // E = Média R$/m² = C / D (fórmula)
+    r.getCell(5).value = { formula: `IF(D${rn}=0,0,C${rn}/D${rn})` } as any;
     r.getCell(1).font = { name: "Calibri", bold: true, size: 11, color: { argb: BRAND } };
     r.getCell(2).numFmt = INT;
     r.getCell(3).numFmt = CURRENCY;
@@ -463,9 +486,10 @@ function buildResumoSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportDat
 
   reportData.mensalPorTipo.forEach((t) => {
     const row: any[] = [t.tipo, t.meta];
-    t.meses.forEach((m) => row.push(m.avgM2));
-    row.push(t.mediaAnualM2);
+    t.meses.forEach((m) => row.push(m.avgM2 > 0 ? m.avgM2 : null));
+    row.push(null); // Média anual será fórmula
     const r = ws.addRow(row);
+    const rn = r.number;
     r.getCell(1).font = { name: "Calibri", bold: true, size: 11, color: { argb: BRAND } };
     r.getCell(2).numFmt = CURRENCY;
     t.meses.forEach((m, idx) => {
@@ -480,7 +504,9 @@ function buildResumoSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportDat
         cell.font = { name: "Calibri", size: 10, color: { argb: "BBBBBB" } };
       }
     });
+    // O = Média Anual = média dos meses com valor (C:N)
     const annCell = r.getCell(15);
+    annCell.value = { formula: `IFERROR(AVERAGEIF(C${rn}:N${rn},">0"),0)` } as any;
     annCell.numFmt = CURRENCY;
     annCell.font = { name: "Calibri", bold: true, size: 11, color: { argb: t.bateuAnual ? OK_TXT : (t.mediaAnualM2 > 0 ? OVER_TXT : "666666") } };
     if (t.mediaAnualM2 > 0) {
