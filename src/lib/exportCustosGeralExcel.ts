@@ -486,9 +486,10 @@ function buildResumoSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportDat
 
   reportData.mensalPorTipo.forEach((t) => {
     const row: any[] = [t.tipo, t.meta];
-    t.meses.forEach((m) => row.push(m.avgM2));
-    row.push(t.mediaAnualM2);
+    t.meses.forEach((m) => row.push(m.avgM2 > 0 ? m.avgM2 : null));
+    row.push(null); // Média anual será fórmula
     const r = ws.addRow(row);
+    const rn = r.number;
     r.getCell(1).font = { name: "Calibri", bold: true, size: 11, color: { argb: BRAND } };
     r.getCell(2).numFmt = CURRENCY;
     t.meses.forEach((m, idx) => {
@@ -503,7 +504,9 @@ function buildResumoSheet(wb: ExcelJS.Workbook, reportData: CustosGeralReportDat
         cell.font = { name: "Calibri", size: 10, color: { argb: "BBBBBB" } };
       }
     });
+    // O = Média Anual = média dos meses com valor (C:N)
     const annCell = r.getCell(15);
+    annCell.value = { formula: `IFERROR(AVERAGEIF(C${rn}:N${rn},">0"),0)` } as any;
     annCell.numFmt = CURRENCY;
     annCell.font = { name: "Calibri", bold: true, size: 11, color: { argb: t.bateuAnual ? OK_TXT : (t.mediaAnualM2 > 0 ? OVER_TXT : "666666") } };
     if (t.mediaAnualM2 > 0) {
