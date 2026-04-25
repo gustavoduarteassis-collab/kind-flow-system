@@ -200,25 +200,30 @@ const CronogramaLojasProprias = () => {
 
   return (
     <div className="min-h-screen bg-background pb-12">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10 print:hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-6">
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-2">
-              <HardHat className="h-5 w-5 text-primary" />
-              <h1 className="text-xl font-bold">Gestão de Cronogramas</h1>
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <HardHat className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-black tracking-tight text-primary uppercase">Modelo de Gestão de Lojas</h1>
+                <p className="text-xs font-bold text-muted-foreground tracking-[0.2em] uppercase">Cronograma Executivo 2026</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setViewGantt(!viewGantt)}>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="font-bold border-2" onClick={() => setViewGantt(!viewGantt)}>
               <Eye className="h-4 w-4 mr-2" />
               {viewGantt ? "Ver Tabela" : "Ver Linha do Tempo"}
             </Button>
-            <Button variant="default" size="sm" onClick={exportToExcel}>
+            <Button variant="default" className="font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90" onClick={exportToExcel}>
               <Download className="h-4 w-4 mr-2" />
-              Exportar XLS
+              Exportar XLS Executivo
             </Button>
           </div>
         </div>
