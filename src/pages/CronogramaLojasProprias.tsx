@@ -209,11 +209,13 @@ const CronogramaLojasProprias = () => {
         rules: [
           {
             type: 'expression',
+            priority: 1,
             formulae: [`AND($B4="OBRA NOVA", $C4<=${monthEnd}, $D4>=${monthStart})`],
             style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FF10B981' } } },
           },
           {
             type: 'expression',
+            priority: 2,
             formulae: [`AND($B4="REFORMA", $C4<=${monthEnd}, $D4>=${monthStart})`],
             style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FFFBBF24' } } },
           }
