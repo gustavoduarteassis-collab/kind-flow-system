@@ -43,9 +43,7 @@ const CronogramaLojasProprias = () => {
       if (data) {
         setStores(data.map(s => {
           const isPropria = s.franqueado?.toLowerCase().includes("própria") || 
-                           s.franqueado?.toLowerCase().includes("propria") ||
-                           s.tipo_loja?.toLowerCase().includes("própria") ||
-                           s.tipo_loja?.toLowerCase().includes("propria");
+                           s.franqueado?.toLowerCase().includes("propria");
           
           const isReforma = s.nome?.toLowerCase().includes("reforma") || 
                            s.tipo_loja?.toLowerCase().includes("reforma");
@@ -57,7 +55,7 @@ const CronogramaLojasProprias = () => {
             is_reforma: isReforma,
             analista_obra: s.analista_obra || "Não atribuído"
           };
-        }));
+        }).filter(s => s.is_propria || s.is_reforma));
       }
       setLoading(false);
     };
@@ -68,9 +66,8 @@ const CronogramaLojasProprias = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
 
   // Only show stores that are actually "Proprias" (either by category or name)
-  const allProprias = stores.filter(s => s.is_propria || s.is_reforma);
-  const proprias = allProprias.filter(s => !s.is_reforma);
-  const reformas = allProprias.filter(s => s.is_reforma);
+  const proprias = stores.filter(s => s.is_propria && !s.is_reforma);
+  const reformas = stores.filter(s => s.is_reforma);
 
   return (
     <div className="min-h-screen bg-background pb-12">
