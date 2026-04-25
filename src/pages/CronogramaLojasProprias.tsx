@@ -19,7 +19,7 @@ type CronogramaStore = {
   nome: string;
   filial: string;
   inauguracao: string;
-  analista_obra: string;
+  data_inicio?: string;
   tipo_loja: string;
   status: string;
   is_propria: boolean;
