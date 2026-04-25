@@ -614,6 +614,43 @@ const AGM = () => {
             <TabsTrigger value="planos">Planos de Ação ({plans.length})</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="gustavo" className="space-y-4">
+            <h3 className="text-lg font-bold flex items-center gap-2 pt-2 text-primary">
+              <Users className="h-5 w-5" /> Ações Gustavo Duarte ({gustavoPlans.length})
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {gustavoPlans.map((plan) => (
+                <Card key={plan.id} className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <Badge variant="outline" className="text-[10px] uppercase truncate">{plan.indicador}</Badge>
+                      <Badge className={`${farolColors[plan.farol]} text-[9px]`}>{plan.farol}</Badge>
+                    </div>
+                    <CardTitle className="text-sm mt-2 line-clamp-2">{plan.acao}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 pb-4">
+                    <div className="text-xs space-y-1">
+                      <p className="font-semibold text-muted-foreground uppercase text-[9px]">Como fazer:</p>
+                      <p className="text-foreground italic leading-relaxed">"{plan.como}"</p>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t text-[10px]">
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        <span>Prazo: {plan.prazo_final || 'N/A'}</span>
+                      </div>
+                      <Badge variant="secondary" className="text-[9px]">Ref: {plan.mes_referencia}</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              {gustavoPlans.length === 0 && (
+                <Card className="col-span-full py-12 text-center text-muted-foreground">
+                  Nenhum plano de ação encontrado para Gustavo Duarte.
+                </Card>
+              )}
+            </div>
+          </TabsContent>
+
           <TabsContent value="lojas" className="space-y-4">
             {loading && (
               <div className="flex items-center justify-center py-12">
