@@ -466,7 +466,7 @@ const CronogramaLojasProprias = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-black tracking-tight text-[#4A3728] uppercase">Modelo de Gestão de Lojas</h1>
-                <p className="text-xs font-bold text-muted-foreground tracking-[0.2em] uppercase">Cronograma Executivo 2026</p>
+                <p className="text-xs font-bold text-muted-foreground tracking-[0.2em] uppercase">Cronograma de Lojas Próprias 2026</p>
               </div>
             </div>
           </div>
@@ -481,7 +481,7 @@ const CronogramaLojasProprias = () => {
             </Button>
             <Button variant="default" className="font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90" onClick={exportToExcel}>
               <Download className="h-4 w-4 mr-2" />
-              Exportar XLS Executivo
+              Exportar XLS
             </Button>
           </div>
         </div>
