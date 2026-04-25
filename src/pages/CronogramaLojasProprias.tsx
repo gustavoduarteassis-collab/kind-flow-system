@@ -120,7 +120,7 @@ const CronogramaLojasProprias = () => {
     
     // Título Principal
     const totalCols = 5 + daysInInterval.length;
-    worksheet.mergeCells(1, 1, 1, 5); // Título apenas nas primeiras 5 colunas para fixar
+    worksheet.mergeCells('A1:E1'); // Fixa o título nas colunas que não rolam
     const titleCell = worksheet.getCell(1, 1);
     titleCell.value = 'CONSTANCE - CRONOGRAMA 2026';
     titleCell.font = { name: 'Arial Black', size: 14, color: { argb: 'FFFFFFFF' } };
