@@ -356,12 +356,12 @@ const CronogramaLojasProprias = () => {
               </div>
               <div className="flex gap-6 px-4 py-2 bg-card rounded-lg border shadow-sm text-[10px] font-bold uppercase tracking-wider">
                  <div className="flex items-center gap-2">
-                   <div className="w-4 h-4 bg-emerald-500 rounded-md shadow-sm shadow-emerald-200" />
-                   <span className="text-emerald-700">Obra Nova</span>
+                   <div className="w-4 h-4 bg-[#8B5A2B] rounded-md shadow-sm shadow-[#8B5A2B]/20" />
+                   <span className="text-[#8B5A2B]">Obra Nova</span>
                  </div>
                  <div className="flex items-center gap-2">
-                   <div className="w-4 h-4 bg-amber-500 rounded-md shadow-sm shadow-amber-200" />
-                   <span className="text-amber-700">Reforma</span>
+                   <div className="w-4 h-4 bg-[#4A3728] rounded-md shadow-sm shadow-[#4A3728]/20" />
+                   <span className="text-[#4A3728]">Reforma</span>
                  </div>
               </div>
             </div>
