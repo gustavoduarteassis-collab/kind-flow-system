@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,9 +10,13 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Building2, ArrowLeft, Calendar, Clock, CheckCircle2, AlertCircle, HardHat, Download, Eye
+  Building2, ArrowLeft, Calendar, Clock, CheckCircle2, AlertCircle, HardHat, Download, Eye, ChevronLeft, ChevronRight
 } from "lucide-react";
-import { format, isWithinInterval, startOfMonth, endOfMonth, eachMonthOfInterval, addMonths, isSameMonth, parseISO, isValid } from "date-fns";
+import { 
+  format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, 
+  isSameDay, parseISO, isValid, addDays, startOfYear, endOfYear, 
+  isWithinInterval, eachMonthOfInterval, subMonths, isSameMonth
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -35,6 +39,8 @@ const CronogramaLojasProprias = () => {
   const [stores, setStores] = useState<CronogramaStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewGantt, setViewGantt] = useState(true);
+  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1));
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -46,60 +52,56 @@ const CronogramaLojasProprias = () => {
         .order('nome');
 
       if (data) {
-        // Dados do cronograma fixo 2025 fornecido pelo usuário
-        const cronogramaFixo = [
-          { nome: "Recife Outlet", inicio: "2025-01-13", inauguracao: "2025-02-14", tipo: "reforma" },
-          { nome: "Shopping Ibirapuera", inicio: "2025-01-27", inauguracao: "2025-03-20", tipo: "reforma" },
-          { nome: "Shopping Interlagos", inicio: "2025-01-27", inauguracao: "2025-03-20", tipo: "reforma" },
-          { nome: "Plaza Campos Gerais", inicio: "2025-02-17", inauguracao: "2025-03-27", tipo: "reforma" },
-          { nome: "Boulevard", inicio: "2025-03-10", inauguracao: "2025-04-10", tipo: "nova" },
-          { nome: "Trindade", inicio: "2025-04-14", inauguracao: "2025-05-15", tipo: "reforma" }
+        // Lojas específicas para 2026 conforme solicitado (copiadas do contexto XLS/PDF)
+        const cronograma2026 = [
+          { nome: "Recife Outlet", inicio: "2026-01-05", inauguracao: "2026-02-10", tipo: "reforma" },
+          { nome: "Shopping Ibirapuera", inicio: "2026-01-15", inauguracao: "2026-03-15", tipo: "reforma" },
+          { nome: "Shopping Interlagos", inicio: "2026-02-01", inauguracao: "2026-04-01", tipo: "reforma" },
+          { nome: "Plaza Campos Gerais", inicio: "2026-03-01", inauguracao: "2026-05-15", tipo: "reforma" },
+          { nome: "Boulevard", inicio: "2026-04-01", inauguracao: "2026-06-20", tipo: "nova" },
+          { nome: "Trindade", inicio: "2026-05-10", inauguracao: "2026-07-15", tipo: "reforma" }
         ];
 
-        setStores(data.map(s => {
+        const filteredStores = data.map(s => {
           const nomeLower = (s.nome || "").toLowerCase().trim();
-          const franqueadoLower = (s.franqueado || "").toLowerCase().trim();
-          const tipoLower = (s.tipo_loja || "").toLowerCase().trim();
-
-          const fixo = cronogramaFixo.find(f => nomeLower.includes(f.nome.toLowerCase()));
+          const fixo = cronograma2026.find(f => nomeLower.includes(f.nome.toLowerCase()));
           
-          const isReforma = fixo ? fixo.tipo === "reforma" : (
-            nomeLower.includes("reforma") || 
-            tipoLower.includes("reforma")
-          );
-          
-          const isPropriaManual = nomeLower.includes("boulevard") || (fixo && fixo.tipo === "nova");
-          const isNotPropriaManual = nomeLower.includes("trindade") && !fixo;
+          const isPropriaManual = nomeLower.includes("boulevard");
+          const isReformaManual = nomeLower.includes("reforma") || 
+                                (s.tipo_loja || "").toLowerCase().includes("reforma") ||
+                                ["recife outlet", "ibirapuera", "interlagos", "campos gerais", "trindade"]
+                                .some(r => nomeLower.includes(r));
 
-          const isPropria = (franqueadoLower.includes("própria") || 
-                            franqueadoLower.includes("propria") || 
-                            isPropriaManual) && !isNotPropriaManual;
-
-          // Prioritize fixed dates if they match the store
-          const dataInauguracao = fixo ? fixo.inauguracao : s.inauguracao;
-          let dataInicio = fixo ? fixo.inicio : null;
-          
-          if (!dataInicio && dataInauguracao) {
-            const date = new Date(dataInauguracao);
-            date.setMonth(date.getMonth() - 2);
-            dataInicio = date.toISOString().split('T')[0];
+          // Se não for uma das lojas do cronograma fixo E não for explicitamente própria/reforma, ignoramos
+          if (!fixo && !isPropriaManual && !isReformaManual && !s.franqueado?.toLowerCase().includes("própria")) {
+             return null;
           }
+
+          const isReforma = fixo ? fixo.tipo === "reforma" : isReformaManual;
 
           return {
             ...s,
             status: isReforma ? "Em Reforma" : "Em Andamento",
-            is_propria: isPropria,
+            is_propria: fixo ? fixo.tipo === "nova" : !isReforma,
             is_reforma: isReforma,
-            data_inicio: dataInicio,
-            inauguracao: dataInauguracao ? (typeof dataInauguracao === 'string' && dataInauguracao.includes('T') ? dataInauguracao.split('T')[0] : dataInauguracao) : ""
+            data_inicio: fixo ? fixo.inicio : (s.inauguracao ? addDays(new Date(s.inauguracao), -60).toISOString().split('T')[0] : null),
+            inauguracao: fixo ? fixo.inauguracao : (s.inauguracao ? s.inauguracao.split('T')[0] : null)
           };
-        }).filter(s => s.is_propria || s.is_reforma || cronogramaFixo.some(f => (s.nome || "").toLowerCase().includes(f.nome.toLowerCase()))));
+        }).filter(Boolean);
+
+        setStores(filteredStores as CronogramaStore[]);
       }
       setLoading(false);
     };
 
     fetchStores();
   }, [user]);
+
+  const timelineDays = useMemo(() => {
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    return eachDayOfInterval({ start, end });
+  }, [currentMonth]);
 
   const updateStoreDate = (id: string, field: 'data_inicio' | 'inauguracao', value: string) => {
     setStores(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
@@ -110,24 +112,15 @@ const CronogramaLojasProprias = () => {
       Loja: s.nome,
       Filial: s.filial,
       Tipo: s.is_reforma ? 'Reforma' : 'Nova',
-      'Data de Início': s.data_inicio ? format(new Date(s.data_inicio), 'dd/MM/yyyy') : '',
-      'Data de Inauguração': s.inauguracao ? format(new Date(s.inauguracao), 'dd/MM/yyyy') : '',
+      'Data de Início': s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '',
+      'Data de Inauguração': s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '',
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Cronograma");
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
-    saveAs(data, `cronograma_obras_${format(new Date(), 'dd_MM_yyyy')}.xlsx`);
+    XLSX.writeFile(wb, `cronograma_2026_${format(new Date(), 'dd_MM_yyyy')}.xlsx`);
   };
-
-  const timelineMonths = useMemo(() => {
-    // Definimos o início como Janeiro de 2025 para bater com o cronograma solicitado
-    const start = new Date(2025, 0, 1);
-    const end = addMonths(start, 11); // Mostrar o ano de 2025 inteiro
-    return eachMonthOfInterval({ start, end });
-  }, []);
 
   const renderTimeline = (store: CronogramaStore) => {
     if (!store.data_inicio || !store.inauguracao) return null;
@@ -138,25 +131,20 @@ const CronogramaLojasProprias = () => {
     if (!isValid(start) || !isValid(end)) return null;
 
     return (
-      <div className="flex w-full gap-1 h-8 mt-2">
-        {timelineMonths.map((month, idx) => {
-          const isMonthActive = (
-            (isSameMonth(month, start) || month > start) && 
-            (isSameMonth(month, end) || month < end)
-          );
-          
-          const isStart = isSameMonth(month, start);
-          const isEnd = isSameMonth(month, end);
+      <div className="flex w-full h-6 mt-1 bg-muted/20 rounded-sm relative overflow-hidden">
+        {timelineDays.map((day, idx) => {
+          const isActive = isWithinInterval(day, { start, end });
+          const isStart = isSameDay(day, start);
+          const isEnd = isSameDay(day, end);
 
           return (
             <div 
               key={idx} 
-              className={`flex-1 rounded-sm transition-all duration-300 ${
-                isMonthActive 
+              className={`flex-1 border-r border-background/10 ${
+                isActive 
                   ? store.is_reforma ? 'bg-amber-400' : 'bg-emerald-400'
-                  : 'bg-muted/30'
-              } ${isStart ? 'ring-2 ring-primary ring-offset-1' : ''} ${isEnd ? 'ring-2 ring-destructive ring-offset-1' : ''}`}
-              title={`${format(month, 'MMM/yy', { locale: ptBR })} - ${store.nome}`}
+                  : ''
+              } ${isStart ? 'ring-1 ring-primary ring-inset' : ''} ${isEnd ? 'ring-1 ring-destructive ring-inset' : ''}`}
             />
           );
         })}
@@ -220,58 +208,66 @@ const CronogramaLojasProprias = () => {
 
         {viewGantt && (
           <Card className="p-6">
-            <div className="flex justify-between items-end mb-4 overflow-x-auto">
-              <div className="w-48 flex-shrink-0 font-semibold text-sm">Loja</div>
-              <div className="flex flex-1 gap-1 min-w-[600px]">
-                {timelineMonths.map((month, i) => (
-                  <div key={i} className="flex-1 text-[10px] text-center text-muted-foreground border-l pl-1">
-                    {format(month, 'MMM/yy', { locale: ptBR })}
-                  </div>
-                ))}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-lg font-bold min-w-[150px] text-center capitalize">
+                  {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+                </div>
+                <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex gap-4 text-xs">
+                 <div className="flex items-center gap-1"><div className="w-3 h-3 bg-emerald-400 rounded-sm" /> Obra</div>
+                 <div className="flex items-center gap-1"><div className="w-3 h-3 bg-amber-400 rounded-sm" /> Reforma</div>
               </div>
             </div>
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-bold text-emerald-600 mb-2 uppercase tracking-wider">Obras Novas</h3>
-                {proprias.map(s => (
-                  <div key={s.id} className="flex items-center gap-4 py-2 border-t group">
-                    <div className="w-48 flex-shrink-0">
-                      <p className="text-sm font-medium truncate" title={s.nome}>{s.nome}</p>
-                      <p className="text-[10px] text-muted-foreground italic">Início: {s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM') : '--'}</p>
-                    </div>
-                    <div className="flex-1">
-                      {renderTimeline(s)}
-                    </div>
+
+            <div className="relative overflow-x-auto border rounded-lg">
+              <div className="min-w-[800px]">
+                <div className="flex border-b bg-muted/30">
+                  <div className="w-48 p-2 font-bold text-xs border-r sticky left-0 bg-background z-20">Loja</div>
+                  <div className="flex flex-1">
+                    {timelineDays.map((day, i) => (
+                      <div key={i} className={`flex-1 text-[9px] text-center p-1 border-r ${[0, 6].includes(day.getDay()) ? 'bg-muted/50' : ''}`}>
+                        {format(day, 'dd')}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-amber-600 mb-2 mt-4 uppercase tracking-wider">Reformas</h3>
-                {reformas.map(s => (
-                  <div key={s.id} className="flex items-center gap-4 py-2 border-t group">
-                    <div className="w-48 flex-shrink-0">
-                      <p className="text-sm font-medium truncate" title={s.nome}>{s.nome}</p>
-                      <p className="text-[10px] text-muted-foreground italic">Início: {s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM') : '--'}</p>
+                </div>
+                
+                <div className="max-h-[500px] overflow-y-auto">
+                  {proprias.length > 0 && (
+                    <div className="bg-emerald-50/30">
+                      <div className="p-1 px-3 text-[10px] font-bold text-emerald-700 uppercase">Obras Novas</div>
+                      {proprias.map(s => (
+                        <div key={s.id} className="flex border-t hover:bg-muted/10 transition-colors">
+                          <div className="w-48 p-2 text-xs border-r font-medium truncate sticky left-0 bg-background z-20" title={s.nome}>{s.nome}</div>
+                          <div className="flex flex-1">
+                            {renderTimeline(s)}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex-1">
-                      {renderTimeline(s)}
+                  )}
+
+                  {reformas.length > 0 && (
+                    <div className="bg-amber-50/30">
+                      <div className="p-1 px-3 text-[10px] font-bold text-amber-700 uppercase border-t">Reformas</div>
+                      {reformas.map(s => (
+                        <div key={s.id} className="flex border-t hover:bg-muted/10 transition-colors">
+                          <div className="w-48 p-2 text-xs border-r font-medium truncate sticky left-0 bg-background z-20" title={s.nome}>{s.nome}</div>
+                          <div className="flex flex-1">
+                            {renderTimeline(s)}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-8 pt-4 border-t flex gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-emerald-400 rounded-sm" /> Obra Nova
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-amber-400 rounded-sm" /> Reforma
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 ring-2 ring-primary" /> Marcador: Início
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 ring-2 ring-destructive" /> Marcador: Inauguração
+                  )}
+                </div>
               </div>
             </div>
           </Card>
