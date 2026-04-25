@@ -15,7 +15,7 @@ import {
 import { 
   format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, 
   isSameDay, parseISO, isValid, addDays, startOfYear, endOfYear, 
-  isWithinInterval, eachMonthOfInterval, subMonths
+  isWithinInterval, eachMonthOfInterval, subMonths, isSameMonth
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as XLSX from 'xlsx';
