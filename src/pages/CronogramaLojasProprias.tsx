@@ -322,7 +322,7 @@ const CronogramaLojasProprias = () => {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     doc.setTextColor(74, 55, 40);
-    doc.text('CONSTANCE - CRONOGRAMA EXECUTIVO 2026', doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+    doc.text('CONSTANCE - CRONOGRAMA DE LOJAS PRÓPRIAS 2026', doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
 
     const sortedStores = [
       ...stores.filter(s => !s.is_reforma),
