@@ -108,14 +108,11 @@ const CronogramaLojasProprias = () => {
     // Definimos o cabeçalho e os meses para o Gantt
     const months = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
     
-    // Título Principal
-    const title = [["", "", "", "", "MODELO DE GESTÃO DE LOJAS - CRONOGRAMA EXECUTIVO 2026"]];
-    const emptyRow = [[]];
-    
-    // Cabeçalho da Tabela
-    const tableHeader = [
-      ["LOJA", "TIPO", "INÍCIO", "INAUGURAÇÃO", "PRAZO", "STATUS", ...months]
-    ];
+    // Preparar dados no formato esperado pelo exportador de custos (Estrutura AOA)
+    const titleRow = ["", "", "", "", "MODELO DE GESTÃO DE LOJAS - CRONOGRAMA EXECUTIVO 2026", "", "", "", "", "", "", "", "", "", "", "", "", ""];
+    const subTitleRow = ["", "", "", "", "Relatório Geral de Obras e Reformas 2026", "", "", "", "", "", "", "", "", "", "", "", "", ""];
+    const separatorRow = [""];
+    const headerRow = ["LOJA", "TIPO", "INÍCIO", "INAUGURAÇÃO", "PRAZO", "STATUS", ...months];
 
     const dataRows = stores.map(s => {
       const start = s.data_inicio ? parseISO(s.data_inicio) : null;
@@ -132,8 +129,6 @@ const CronogramaLojasProprias = () => {
         s.status.toUpperCase()
       ];
 
-      // Preenchimento do Gantt com símbolos de cores
-      // Usamos símbolos diferentes para que o usuário possa aplicar formatação condicional facilmente no Excel
       months.forEach((_, m) => {
         const monthDate = new Date(2026, m, 1);
         const isActive = start && end && (
@@ -142,8 +137,8 @@ const CronogramaLojasProprias = () => {
         );
         
         if (isActive) {
-          // Usamos caracteres de bloco sólido. No Excel, o usuário verá a "barra" colorida.
-          row.push(s.is_reforma ? "▓▓▓▓▓" : "█████");
+          // Usamos caracteres de preenchimento que visualmente indicam a barra no Excel
+          row.push(s.is_reforma ? "▣▣▣▣▣" : "■■■■■");
         } else {
           row.push("");
         }
@@ -152,23 +147,37 @@ const CronogramaLojasProprias = () => {
       return row;
     });
 
-    const ws = XLSX.utils.aoa_to_sheet([...title, ...emptyRow, ...tableHeader, ...dataRows]);
+    const aoaData = [
+      titleRow,
+      subTitleRow,
+      separatorRow,
+      headerRow,
+      ...dataRows
+    ];
 
-    // CONFIGURAÇÃO DE LARGURAS
+    const ws = XLSX.utils.aoa_to_sheet(aoaData);
+
+    // Configuração de Estilo de Células (Larguras e Mesclagens)
     ws['!cols'] = [
-      { wch: 40 }, // Loja
+      { wch: 45 }, // Loja
       { wch: 15 }, // Tipo
-      { wch: 14 }, // Início
-      { wch: 14 }, // Inauguração
-      { wch: 14 }, // Prazo
-      { wch: 18 }, // Status
-      ...months.map(() => ({ wch: 6 })) // Colunas dos meses (Gantt)
+      { wch: 15 }, // Início
+      { wch: 15 }, // Inauguração
+      { wch: 15 }, // Prazo
+      { wch: 20 }, // Status
+      ...months.map(() => ({ wch: 8 })) // Colunas dos meses
     ];
 
-    // MESCLAGEM DO TÍTULO (Centraliza no topo)
     ws['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 17 } }
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 17 } }, // Título
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 17 } }  // Subtítulo
     ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "CRONOGRAMA_EXECUTIVO");
+    
+    XLSX.writeFile(wb, `Cronograma_Lojas_Proprias_2026.xlsx`);
+  };
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "CRONOGRAMA 2026");
