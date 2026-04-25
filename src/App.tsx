@@ -14,6 +14,7 @@ import Pipeline from "./pages/Pipeline";
 import CustosGeral from "./pages/CustosGeral";
 import Diversos from "./pages/Diversos";
 import AGM from "./pages/AGM";
+import CronogramaLojasProprias from "./pages/CronogramaLojasProprias";
 import NotFound from "./pages/NotFound";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -110,6 +111,7 @@ function AppRoutes() {
       <Route path="/custos-geral" element={<CustosGeral />} />
       <Route path="/diversos" element={<Diversos />} />
       <Route path="/agm" element={<AGM />} />
+      <Route path="/cronograma-proprias" element={<CronogramaLojasProprias />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
