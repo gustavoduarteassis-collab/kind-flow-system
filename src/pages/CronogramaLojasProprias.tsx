@@ -445,6 +445,10 @@ const CronogramaLojasProprias = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button variant="outline" className="font-bold border-2" onClick={exportToPDF}>
+              <FileText className="h-4 w-4 mr-2" />
+              Relatório PDF
+            </Button>
             <Button variant="outline" className="font-bold border-2" onClick={() => setViewGantt(!viewGantt)}>
               <Eye className="h-4 w-4 mr-2" />
               {viewGantt ? "Ver Tabela" : "Ver Linha do Tempo"}
