@@ -318,7 +318,7 @@ const CronogramaLojasProprias = () => {
                       <Input
                         type="date"
                         className="w-36 h-8 text-xs"
-                        value={store.inauguracao ? store.inauguracao.split('T')[0] : ""}
+                        value={store.inauguracao ? store.inauguracao : ""}
                         onChange={(e) => updateStoreDate(store.id, 'inauguracao', e.target.value)}
                       />
                     </TableCell>
