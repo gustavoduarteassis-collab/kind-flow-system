@@ -138,6 +138,7 @@ const AGM = () => {
   const [mesRef, setMesRef] = useState(getCurrentMonth());
   const [entries, setEntries] = useState<AgmEntry[]>([]);
   const [plans, setPlans] = useState<ActionPlan[]>([]);
+  const [gustavoPlans, setGustavoPlans] = useState<ActionPlan[]>([]);
   const [storesData, setStoresData] = useState<StoreAGMData[]>([]);
   const [fornecedoresCount, setFornecedoresCount] = useState(0);
   const [loading, setLoading] = useState(false);
