@@ -108,6 +108,10 @@ const CronogramaLojasProprias = () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('CRONOGRAMA EXECUTIVO 2026');
 
+    // Inserir Logo via Base64 (Logo simplificada da Constance em texto estilizado se imagem não disponível)
+    // Para inserir uma imagem real, precisaríamos do buffer da imagem. 
+    // Como alternativa robusta, vamos configurar o cabeçalho para ser fixo e visível.
+
     // Configuração do período (Abril 2026 até Dezembro 2026)
     const startDate = new Date(2026, 3, 1); // Abril
     const endDate = new Date(2026, 11, 31); // Dezembro
