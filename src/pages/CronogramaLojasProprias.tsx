@@ -10,18 +10,21 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Building2, ArrowLeft, Calendar, Clock, CheckCircle2, AlertCircle, HardHat, Download, Eye, ChevronLeft, ChevronRight
+  Building2, ArrowLeft, Calendar, Clock, CheckCircle2, AlertCircle, HardHat, Download, Eye, ChevronLeft, ChevronRight, FileText
 } from "lucide-react";
 import { 
   format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, 
   isSameDay, parseISO, isValid, addDays, startOfYear, endOfYear, 
-  isWithinInterval, eachMonthOfInterval, subMonths, isSameMonth
+  isWithinInterval, eachMonthOfInterval, subMonths, isSameMonth, differenceInDays
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 type CronogramaStore = {
+
   id: string;
   nome: string;
   filial: string;
@@ -303,6 +306,88 @@ const CronogramaLojasProprias = () => {
     saveAs(new Blob([buffer]), `Cronograma_Constance_2026.xlsx`);
   };
 
+  const exportToPDF = () => {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // Título
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.setTextColor(74, 55, 40); // Marrom Escuro
+    doc.text('CONSTANCE - CRONOGRAMA EXECUTIVO 2026', 105, 20, { align: 'center' });
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text('Relatório de Obras e Reformas', 105, 27, { align: 'center' });
+
+    // Preparar dados (Novas primeiro, depois Reformas)
+    const sortedStores = [
+      ...stores.filter(s => !s.is_reforma),
+      ...stores.filter(s => s.is_reforma)
+    ];
+
+    const tableRows: any[] = [];
+    let currentCategory = "";
+
+    sortedStores.forEach((s) => {
+      const category = s.is_reforma ? 'REFORMAS' : 'OBRAS NOVAS';
+      
+      // Adicionar linha de categoria se mudou
+      if (category !== currentCategory) {
+        tableRows.push([
+          { content: category, colSpan: 4, styles: { fillColor: [245, 245, 245], fontStyle: 'bold', textColor: [74, 55, 40] } }
+        ]);
+        currentCategory = category;
+      }
+
+      const start = s.data_inicio ? format(new Date(s.data_inicio), 'dd/MM/yyyy') : '--';
+      const end = s.inauguracao ? format(new Date(s.inauguracao), 'dd/MM/yyyy') : '--';
+      let duration = '--';
+      
+      if (s.data_inicio && s.inauguracao) {
+        const diff = differenceInDays(new Date(s.inauguracao), new Date(s.data_inicio));
+        duration = `${diff} dias`;
+      }
+
+      tableRows.push([
+        s.nome.toUpperCase(),
+        start,
+        end,
+        duration
+      ]);
+    });
+
+    autoTable(doc, {
+      startY: 35,
+      head: [['LOJA', 'INÍCIO', 'INAUGURAÇÃO', 'PRAZO']],
+      body: tableRows,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [74, 55, 40],
+        textColor: [255, 255, 255],
+        fontSize: 10,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 9,
+        valign: 'middle'
+      },
+      columnStyles: {
+        0: { cellWidth: 'auto' },
+        1: { cellWidth: 35, halign: 'center' },
+        2: { cellWidth: 35, halign: 'center' },
+        3: { cellWidth: 30, halign: 'center' }
+      },
+      margin: { top: 35 }
+    });
+
+    doc.save(`Relatorio_Cronograma_Constance.pdf`);
+  };
+
   const renderTimeline = (store: CronogramaStore) => {
     if (!store.data_inicio || !store.inauguracao) return null;
     
@@ -360,6 +445,10 @@ const CronogramaLojasProprias = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button variant="outline" className="font-bold border-2" onClick={exportToPDF}>
+              <FileText className="h-4 w-4 mr-2" />
+              Relatório PDF
+            </Button>
             <Button variant="outline" className="font-bold border-2" onClick={() => setViewGantt(!viewGantt)}>
               <Eye className="h-4 w-4 mr-2" />
               {viewGantt ? "Ver Tabela" : "Ver Linha do Tempo"}
