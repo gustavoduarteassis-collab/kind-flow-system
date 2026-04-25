@@ -178,7 +178,7 @@ const CronogramaLojasProprias = () => {
     if (!isValid(start) || !isValid(end)) return null;
 
     return (
-      <div className="flex w-full h-6 mt-1 bg-muted/20 rounded-sm relative overflow-hidden">
+      <div className="flex w-full h-8 mt-1.5 bg-muted/20 rounded-lg relative overflow-hidden shadow-inner border border-black/5">
         {timelineDays.map((day, idx) => {
           const isActive = isWithinInterval(day, { start, end });
           const isStart = isSameDay(day, start);
@@ -187,11 +187,13 @@ const CronogramaLojasProprias = () => {
           return (
             <div 
               key={idx} 
-              className={`flex-1 border-r border-background/10 ${
+              className={`flex-1 border-r border-black/5 last:border-r-0 transition-all duration-300 ${
                 isActive 
-                  ? store.is_reforma ? 'bg-amber-400' : 'bg-emerald-400'
+                  ? store.is_reforma 
+                    ? 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-sm' 
+                    : 'bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-sm'
                   : ''
-              } ${isStart ? 'ring-1 ring-primary ring-inset' : ''} ${isEnd ? 'ring-1 ring-destructive ring-inset' : ''}`}
+              } ${isStart ? 'ring-2 ring-primary ring-inset z-10' : ''} ${isEnd ? 'ring-2 ring-destructive ring-inset z-10' : ''}`}
             />
           );
         })}
