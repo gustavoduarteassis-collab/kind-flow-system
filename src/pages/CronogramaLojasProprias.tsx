@@ -250,8 +250,6 @@ const CronogramaLojasProprias = () => {
   };
 
   const renderTimeline = (store: CronogramaStore) => {
-
-  const renderTimeline = (store: CronogramaStore) => {
     if (!store.data_inicio || !store.inauguracao) return null;
     
     const start = parseISO(store.data_inicio);
@@ -272,8 +270,8 @@ const CronogramaLojasProprias = () => {
               className={`flex-1 border-r border-black/5 last:border-r-0 transition-all duration-300 ${
                 isActive 
                   ? store.is_reforma 
-                    ? 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-sm' 
-                    : 'bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-sm'
+                    ? 'bg-gradient-to-r from-[#4A3728] to-[#5D4636] shadow-sm' 
+                    : 'bg-gradient-to-r from-[#8B5A2B] to-[#A67D54] shadow-sm'
                   : ''
               } ${isStart ? 'ring-2 ring-primary ring-inset z-10' : ''} ${isEnd ? 'ring-2 ring-destructive ring-inset z-10' : ''}`}
             />
@@ -298,11 +296,11 @@ const CronogramaLojasProprias = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <HardHat className="h-8 w-8 text-primary" />
+              <div className="bg-[#4A3728]/10 p-2 rounded-lg">
+                <HardHat className="h-8 w-8 text-[#4A3728]" />
               </div>
               <div>
-                <h1 className="text-2xl font-black tracking-tight text-primary uppercase">Modelo de Gestão de Lojas</h1>
+                <h1 className="text-2xl font-black tracking-tight text-[#4A3728] uppercase">Modelo de Gestão de Lojas</h1>
                 <p className="text-xs font-bold text-muted-foreground tracking-[0.2em] uppercase">Cronograma Executivo 2026</p>
               </div>
             </div>
@@ -349,7 +347,7 @@ const CronogramaLojasProprias = () => {
                 <Button variant="ghost" size="icon" className="hover:bg-primary/10" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
                   <ChevronLeft className="h-5 w-5 text-primary" />
                 </Button>
-                <div className="text-xl font-black min-w-[180px] text-center capitalize tracking-tight text-primary">
+                <div className="text-xl font-black min-w-[180px] text-center capitalize tracking-tight text-[#4A3728]">
                   {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
                 </div>
                 <Button variant="ghost" size="icon" className="hover:bg-primary/10" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
@@ -358,12 +356,12 @@ const CronogramaLojasProprias = () => {
               </div>
               <div className="flex gap-6 px-4 py-2 bg-card rounded-lg border shadow-sm text-[10px] font-bold uppercase tracking-wider">
                  <div className="flex items-center gap-2">
-                   <div className="w-4 h-4 bg-emerald-500 rounded-md shadow-sm shadow-emerald-200" />
-                   <span className="text-emerald-700">Obra Nova</span>
+                   <div className="w-4 h-4 bg-[#8B5A2B] rounded-md shadow-sm shadow-[#8B5A2B]/20" />
+                   <span className="text-[#8B5A2B]">Obra Nova</span>
                  </div>
                  <div className="flex items-center gap-2">
-                   <div className="w-4 h-4 bg-amber-500 rounded-md shadow-sm shadow-amber-200" />
-                   <span className="text-amber-700">Reforma</span>
+                   <div className="w-4 h-4 bg-[#4A3728] rounded-md shadow-sm shadow-[#4A3728]/20" />
+                   <span className="text-[#4A3728]">Reforma</span>
                  </div>
               </div>
             </div>
@@ -374,7 +372,7 @@ const CronogramaLojasProprias = () => {
                   <div className="flex border-b-2 bg-muted/50">
                     <div className="w-64 p-4 font-black text-xs border-r-2 sticky left-0 bg-muted/90 backdrop-blur-md z-20 flex items-center uppercase tracking-widest text-muted-foreground">Listagem de Lojas</div>
                     <div className="flex flex-1 flex-col">
-                      <div className="w-full text-center py-2 font-black text-[11px] border-b-2 bg-primary text-primary-foreground uppercase tracking-[0.3em]">
+                      <div className="w-full text-center py-2 font-black text-[11px] border-b-2 bg-[#4A3728] text-white uppercase tracking-[0.3em]">
                         {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
                       </div>
                       <div className="flex w-full">
@@ -389,8 +387,8 @@ const CronogramaLojasProprias = () => {
                   
                   <div className="max-h-[600px] overflow-y-auto">
                     {proprias.length > 0 && (
-                      <div className="border-b-4 border-emerald-100">
-                        <div className="p-2 px-4 text-[11px] font-black text-white bg-emerald-500 uppercase tracking-[0.2em] shadow-inner">Cronograma de Obras Novas</div>
+                      <div className="border-b-4 border-[#8B5A2B]/10">
+                        <div className="p-2 px-4 text-[11px] font-black text-white bg-[#8B5A2B] uppercase tracking-[0.2em] shadow-inner">Cronograma de Obras Novas</div>
                         {proprias.map(s => (
                           <div key={s.id} className="flex border-t hover:bg-emerald-50/50 transition-all duration-200 group">
                             <div className="w-64 p-4 text-[11px] font-bold border-r-2 truncate sticky left-0 bg-background group-hover:bg-emerald-50/50 z-20 transition-colors uppercase tracking-tight" title={s.nome}>{s.nome}</div>
@@ -403,8 +401,8 @@ const CronogramaLojasProprias = () => {
                     )}
 
                     {reformas.length > 0 && (
-                      <div className="border-b-4 border-amber-100">
-                        <div className="p-2 px-4 text-[11px] font-black text-white bg-amber-500 uppercase tracking-[0.2em] shadow-inner">Cronograma de Reformas</div>
+                      <div className="border-b-4 border-[#4A3728]/10">
+                        <div className="p-2 px-4 text-[11px] font-black text-white bg-[#4A3728] uppercase tracking-[0.2em] shadow-inner">Cronograma de Reformas</div>
                         {reformas.map(s => (
                           <div key={s.id} className="flex border-t hover:bg-amber-50/50 transition-all duration-200 group">
                             <div className="w-64 p-4 text-[11px] font-bold border-r-2 truncate sticky left-0 bg-background group-hover:bg-amber-50/50 z-20 transition-colors uppercase tracking-tight" title={s.nome}>{s.nome}</div>
@@ -448,7 +446,7 @@ const CronogramaLojasProprias = () => {
                       <p className="text-[10px] text-muted-foreground">{store.filial}</p>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={store.is_reforma ? "outline" : "default"} className={store.is_reforma ? "border-amber-500 text-amber-500" : "bg-emerald-500 hover:bg-emerald-600"}>
+                      <Badge variant={store.is_reforma ? "outline" : "default"} className={store.is_reforma ? "border-[#4A3728] text-[#4A3728]" : "bg-[#8B5A2B] hover:bg-[#8B5A2B]/90"}>
                         {store.is_reforma ? "Reforma" : "Nova"}
                       </Badge>
                     </TableCell>
