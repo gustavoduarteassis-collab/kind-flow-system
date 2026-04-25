@@ -38,7 +38,7 @@ const CronogramaLojasProprias = () => {
       
       const { data, error } = await supabase
         .from("stores")
-        .select("id, nome, filial, inauguracao, data_inicio, tipo_loja, franqueado")
+        .select("id, nome, filial, inauguracao, tipo_loja, franqueado")
         .order('nome');
 
       if (data) {
