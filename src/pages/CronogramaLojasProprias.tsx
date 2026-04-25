@@ -401,8 +401,8 @@ const CronogramaLojasProprias = () => {
                     )}
 
                     {reformas.length > 0 && (
-                      <div className="border-b-4 border-amber-100">
-                        <div className="p-2 px-4 text-[11px] font-black text-white bg-amber-500 uppercase tracking-[0.2em] shadow-inner">Cronograma de Reformas</div>
+                      <div className="border-b-4 border-[#4A3728]/10">
+                        <div className="p-2 px-4 text-[11px] font-black text-white bg-[#4A3728] uppercase tracking-[0.2em] shadow-inner">Cronograma de Reformas</div>
                         {reformas.map(s => (
                           <div key={s.id} className="flex border-t hover:bg-amber-50/50 transition-all duration-200 group">
                             <div className="w-64 p-4 text-[11px] font-bold border-r-2 truncate sticky left-0 bg-background group-hover:bg-amber-50/50 z-20 transition-colors uppercase tracking-tight" title={s.nome}>{s.nome}</div>
