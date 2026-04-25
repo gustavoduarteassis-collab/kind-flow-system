@@ -116,11 +116,11 @@ const CronogramaLojasProprias = () => {
     
     // Título Principal
     const totalCols = 5 + daysInInterval.length;
-    worksheet.mergeCells(1, 1, 1, totalCols);
+    worksheet.mergeCells(1, 1, 1, 5); // Título apenas nas primeiras 5 colunas para fixar
     const titleCell = worksheet.getCell(1, 1);
-    titleCell.value = 'CONSTANCE - MODELO DE GESTÃO DE LOJAS - CRONOGRAMA 2026';
+    titleCell.value = 'CONSTANCE - CRONOGRAMA 2026';
     titleCell.font = { name: 'Arial Black', size: 14, color: { argb: 'FFFFFFFF' } };
-    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A3728' } }; // Marrom Escuro
 
     // Linha dos Meses
