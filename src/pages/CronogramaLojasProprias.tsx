@@ -333,6 +333,7 @@ const CronogramaLojasProprias = () => {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Data de Início</TableHead>
                   <TableHead>Inauguração</TableHead>
+                  <TableHead>Prazo Estimado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
