@@ -250,8 +250,6 @@ const CronogramaLojasProprias = () => {
   };
 
   const renderTimeline = (store: CronogramaStore) => {
-
-  const renderTimeline = (store: CronogramaStore) => {
     if (!store.data_inicio || !store.inauguracao) return null;
     
     const start = parseISO(store.data_inicio);
