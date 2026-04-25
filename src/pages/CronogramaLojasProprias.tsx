@@ -18,7 +18,7 @@ import {
   isWithinInterval, eachMonthOfInterval, subMonths, isSameMonth
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
 type CronogramaStore = {
