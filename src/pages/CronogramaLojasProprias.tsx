@@ -52,7 +52,7 @@ const CronogramaLojasProprias = () => {
         .order('nome');
 
       if (data) {
-        // Lojas específicas do arquivo/solicitação para 2026
+        // Lojas específicas para 2026 conforme solicitado (copiadas do contexto XLS/PDF)
         const cronograma2026 = [
           { nome: "Recife Outlet", inicio: "2026-01-05", inauguracao: "2026-02-10", tipo: "reforma" },
           { nome: "Shopping Ibirapuera", inicio: "2026-01-15", inauguracao: "2026-03-15", tipo: "reforma" },
@@ -62,27 +62,34 @@ const CronogramaLojasProprias = () => {
           { nome: "Trindade", inicio: "2026-05-10", inauguracao: "2026-07-15", tipo: "reforma" }
         ];
 
-        setStores(data.map(s => {
+        const filteredStores = data.map(s => {
           const nomeLower = (s.nome || "").toLowerCase().trim();
           const fixo = cronograma2026.find(f => nomeLower.includes(f.nome.toLowerCase()));
           
-          if (!fixo && !s.franqueado?.toLowerCase().includes("própria") && !s.nome?.toLowerCase().includes("reforma")) {
+          const isPropriaManual = nomeLower.includes("boulevard");
+          const isReformaManual = nomeLower.includes("reforma") || 
+                                (s.tipo_loja || "").toLowerCase().includes("reforma") ||
+                                ["recife outlet", "ibirapuera", "interlagos", "campos gerais", "trindade"]
+                                .some(r => nomeLower.includes(r));
+
+          // Se não for uma das lojas do cronograma fixo E não for explicitamente própria/reforma, ignoramos
+          if (!fixo && !isPropriaManual && !isReformaManual && !s.franqueado?.toLowerCase().includes("própria")) {
              return null;
           }
 
-          const isReforma = fixo ? fixo.tipo === "reforma" : (
-            nomeLower.includes("reforma") || 
-            (s.tipo_loja || "").toLowerCase().includes("reforma")
-          );
+          const isReforma = fixo ? fixo.tipo === "reforma" : isReformaManual;
 
           return {
             ...s,
+            status: isReforma ? "Em Reforma" : "Em Andamento",
             is_propria: fixo ? fixo.tipo === "nova" : !isReforma,
             is_reforma: isReforma,
             data_inicio: fixo ? fixo.inicio : (s.inauguracao ? addDays(new Date(s.inauguracao), -60).toISOString().split('T')[0] : null),
             inauguracao: fixo ? fixo.inauguracao : (s.inauguracao ? s.inauguracao.split('T')[0] : null)
           };
-        }).filter(Boolean) as CronogramaStore[]);
+        }).filter(Boolean);
+
+        setStores(filteredStores as CronogramaStore[]);
       }
       setLoading(false);
     };
