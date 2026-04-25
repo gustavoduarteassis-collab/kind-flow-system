@@ -419,7 +419,7 @@ const CronogramaLojasProprias = () => {
                         const end = parseISO(store.inauguracao);
                         if (!isValid(start) || !isValid(end)) return "--";
                         const diff = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-                        return `${diff} dias`;
+                        return `${diff} DIAS`;
                       })()}
                     </TableCell>
                   </TableRow>
