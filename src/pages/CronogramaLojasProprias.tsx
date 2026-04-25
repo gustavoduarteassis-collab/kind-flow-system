@@ -105,12 +105,15 @@ const CronogramaLojasProprias = () => {
   };
 
   const exportToExcel = () => {
-    // Definimos o cabeçalho e os dados básicos
+    const wb = XLSX.utils.book_new();
+    
+    // Configuração dos meses para o cabeçalho do Gantt
+    const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    
+    // Cabeçalho estilizado
     const header = [
-      ["", "", "", "", "CRONOGRAMA DE OBRAS E REFORMAS 2026", "", "", "", "", "", ""],
-      ["", "", "", "", "Modelo de Gestão de Lojas Próprias", "", "", "", "", "", ""],
-      [],
-      ["Loja", "Tipo", "Data de Início", "Data de Inauguração", "Prazo Estimado (Dias)", "Status", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+      ["", "", "", "", "MODELO DE GESTÃO DE LOJAS - CRONOGRAMA EXECUTIVO 2026", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+      ["LOJA", "TIPO", "INÍCIO", "INAUGURAÇÃO", "PRAZO", "STATUS", ...months]
     ];
 
     const dataRows = stores.map(s => {
@@ -120,23 +123,23 @@ const CronogramaLojasProprias = () => {
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
       const row = [
-        s.nome,
-        s.is_reforma ? 'Reforma' : 'Nova',
-        s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '',
-        s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '',
-        diffDays > 0 ? `${diffDays} dias` : 'N/A',
-        s.status
+        s.nome.toUpperCase(),
+        s.is_reforma ? 'REFORMA' : 'OBRA NOVA',
+        s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '--',
+        s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '--',
+        diffDays > 0 ? `${diffDays} DIAS` : '--',
+        s.status.toUpperCase()
       ];
 
-      // Preenchimento do "gráfico" simplificado por meses no Excel
-      const months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-      months.forEach(m => {
+      // Indicadores coloridos (caracteres especiais que simulam blocos no Excel)
+      months.forEach((_, m) => {
         const monthDate = new Date(2026, m, 1);
         const isActive = start && end && (
           (isSameMonth(monthDate, start) || monthDate > start) && 
           (isSameMonth(monthDate, end) || monthDate < end)
         );
-        row.push(isActive ? "■■■■■" : "");
+        // Usamos blocos sólidos para simular a barra de Gantt
+        row.push(isActive ? "████████" : "");
       });
 
       return row;
@@ -144,22 +147,26 @@ const CronogramaLojasProprias = () => {
 
     const ws = XLSX.utils.aoa_to_sheet([...header, ...dataRows]);
 
-    // Estilização básica (largura das colunas)
-    const wscols = [
-      { wch: 35 }, // Loja
-      { wch: 10 }, // Tipo
-      { wch: 15 }, // Início
-      { wch: 15 }, // Inauguração
-      { wch: 20 }, // Prazo
+    // LARGURAS DAS COLUNAS (Otimizado para visualização)
+    ws['!cols'] = [
+      { wch: 40 }, // Loja
+      { wch: 15 }, // Tipo
+      { wch: 12 }, // Início
+      { wch: 12 }, // Inauguração
+      { wch: 12 }, // Prazo
       { wch: 15 }, // Status
-      { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, 
-      { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }
+      ...months.map(() => ({ wch: 8 })) // Meses
     ];
-    ws['!cols'] = wscols;
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Cronograma 2026");
-    XLSX.writeFile(wb, `cronograma_executivo_2026.xlsx`);
+    // MESCLAGEM DO TÍTULO
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 17 } }
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "CRONOGRAMA 2026");
+    
+    // Tentativa de adicionar cores via propriedades de célula (xlsx básico suporta pouco, mas tentamos formatar o máximo possível)
+    XLSX.writeFile(wb, `Cronograma_Lojas_Proprias_2026.xlsx`);
   };
 
   const renderTimeline = (store: CronogramaStore) => {
@@ -171,7 +178,7 @@ const CronogramaLojasProprias = () => {
     if (!isValid(start) || !isValid(end)) return null;
 
     return (
-      <div className="flex w-full h-6 mt-1 bg-muted/20 rounded-sm relative overflow-hidden">
+      <div className="flex w-full h-8 mt-1.5 bg-muted/20 rounded-lg relative overflow-hidden shadow-inner border border-black/5">
         {timelineDays.map((day, idx) => {
           const isActive = isWithinInterval(day, { start, end });
           const isStart = isSameDay(day, start);
@@ -180,11 +187,13 @@ const CronogramaLojasProprias = () => {
           return (
             <div 
               key={idx} 
-              className={`flex-1 border-r border-background/10 ${
+              className={`flex-1 border-r border-black/5 last:border-r-0 transition-all duration-300 ${
                 isActive 
-                  ? store.is_reforma ? 'bg-amber-400' : 'bg-emerald-400'
+                  ? store.is_reforma 
+                    ? 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-sm' 
+                    : 'bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-sm'
                   : ''
-              } ${isStart ? 'ring-1 ring-primary ring-inset' : ''} ${isEnd ? 'ring-1 ring-destructive ring-inset' : ''}`}
+              } ${isStart ? 'ring-2 ring-primary ring-inset z-10' : ''} ${isEnd ? 'ring-2 ring-destructive ring-inset z-10' : ''}`}
             />
           );
         })}
@@ -252,71 +261,79 @@ const CronogramaLojasProprias = () => {
         </div>
 
         {viewGantt && (
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
-                  <ChevronLeft className="h-4 w-4" />
+          <Card className="p-6 border-2 border-primary/10 shadow-xl bg-gradient-to-b from-background to-muted/20">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4 bg-card p-2 rounded-xl border shadow-sm">
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+                  <ChevronLeft className="h-5 w-5 text-primary" />
                 </Button>
-                <div className="text-lg font-bold min-w-[150px] text-center capitalize">
+                <div className="text-xl font-black min-w-[180px] text-center capitalize tracking-tight text-primary">
                   {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
                 </div>
-                <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
-                  <ChevronRight className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+                  <ChevronRight className="h-5 w-5 text-primary" />
                 </Button>
               </div>
-              <div className="flex gap-4 text-xs">
-                 <div className="flex items-center gap-1"><div className="w-3 h-3 bg-emerald-400 rounded-sm" /> Obra</div>
-                 <div className="flex items-center gap-1"><div className="w-3 h-3 bg-amber-400 rounded-sm" /> Reforma</div>
+              <div className="flex gap-6 px-4 py-2 bg-card rounded-lg border shadow-sm text-[10px] font-bold uppercase tracking-wider">
+                 <div className="flex items-center gap-2">
+                   <div className="w-4 h-4 bg-emerald-500 rounded-md shadow-sm shadow-emerald-200" />
+                   <span className="text-emerald-700">Obra Nova</span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                   <div className="w-4 h-4 bg-amber-500 rounded-md shadow-sm shadow-amber-200" />
+                   <span className="text-amber-700">Reforma</span>
+                 </div>
               </div>
             </div>
 
-            <div className="relative overflow-x-auto border rounded-lg">
-              <div className="min-w-[800px]">
-                <div className="flex border-b bg-muted/30">
-                  <div className="w-48 p-2 font-bold text-xs border-r sticky left-0 bg-background z-20 flex items-center justify-center">Loja</div>
-                  <div className="flex flex-1 flex-col">
-                    <div className="w-full text-center py-1 font-bold text-[10px] border-b bg-primary/5 capitalize">
-                      {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
-                    </div>
-                    <div className="flex w-full">
-                      {timelineDays.map((day, i) => (
-                        <div key={i} className={`flex-1 text-[9px] text-center p-1 border-r last:border-r-0 ${[0, 6].includes(day.getDay()) ? 'bg-muted/50' : ''}`}>
-                          {format(day, 'dd')}
-                        </div>
-                      ))}
+            <div className="relative overflow-hidden border-2 rounded-2xl shadow-inner bg-card">
+              <div className="overflow-x-auto">
+                <div className="min-w-[1000px]">
+                  <div className="flex border-b-2 bg-muted/50">
+                    <div className="w-64 p-4 font-black text-xs border-r-2 sticky left-0 bg-muted/90 backdrop-blur-md z-20 flex items-center uppercase tracking-widest text-muted-foreground">Listagem de Lojas</div>
+                    <div className="flex flex-1 flex-col">
+                      <div className="w-full text-center py-2 font-black text-[11px] border-b-2 bg-primary text-primary-foreground uppercase tracking-[0.3em]">
+                        {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+                      </div>
+                      <div className="flex w-full">
+                        {timelineDays.map((day, i) => (
+                          <div key={i} className={`flex-1 text-[10px] font-bold text-center py-2 border-r last:border-r-0 ${[0, 6].includes(day.getDay()) ? 'bg-black/5 text-primary/70' : 'text-muted-foreground'}`}>
+                            {format(day, 'dd')}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="max-h-[500px] overflow-y-auto">
-                  {proprias.length > 0 && (
-                    <div className="bg-emerald-50/30">
-                      <div className="p-1 px-3 text-[10px] font-bold text-emerald-700 uppercase">Obras Novas</div>
-                      {proprias.map(s => (
-                        <div key={s.id} className="flex border-t hover:bg-muted/10 transition-colors">
-                          <div className="w-48 p-2 text-xs border-r font-medium truncate sticky left-0 bg-background z-20" title={s.nome}>{s.nome}</div>
-                          <div className="flex flex-1">
-                            {renderTimeline(s)}
+                  
+                  <div className="max-h-[600px] overflow-y-auto">
+                    {proprias.length > 0 && (
+                      <div className="border-b-4 border-emerald-100">
+                        <div className="p-2 px-4 text-[11px] font-black text-white bg-emerald-500 uppercase tracking-[0.2em] shadow-inner">Cronograma de Obras Novas</div>
+                        {proprias.map(s => (
+                          <div key={s.id} className="flex border-t hover:bg-emerald-50/50 transition-all duration-200 group">
+                            <div className="w-64 p-4 text-[11px] font-bold border-r-2 truncate sticky left-0 bg-background group-hover:bg-emerald-50/50 z-20 transition-colors uppercase tracking-tight" title={s.nome}>{s.nome}</div>
+                            <div className="flex flex-1">
+                              {renderTimeline(s)}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
 
-                  {reformas.length > 0 && (
-                    <div className="bg-amber-50/30">
-                      <div className="p-1 px-3 text-[10px] font-bold text-amber-700 uppercase border-t">Reformas</div>
-                      {reformas.map(s => (
-                        <div key={s.id} className="flex border-t hover:bg-muted/10 transition-colors">
-                          <div className="w-48 p-2 text-xs border-r font-medium truncate sticky left-0 bg-background z-20" title={s.nome}>{s.nome}</div>
-                          <div className="flex flex-1">
-                            {renderTimeline(s)}
+                    {reformas.length > 0 && (
+                      <div className="border-b-4 border-amber-100">
+                        <div className="p-2 px-4 text-[11px] font-black text-white bg-amber-500 uppercase tracking-[0.2em] shadow-inner">Cronograma de Reformas</div>
+                        {reformas.map(s => (
+                          <div key={s.id} className="flex border-t hover:bg-amber-50/50 transition-all duration-200 group">
+                            <div className="w-64 p-4 text-[11px] font-bold border-r-2 truncate sticky left-0 bg-background group-hover:bg-amber-50/50 z-20 transition-colors uppercase tracking-tight" title={s.nome}>{s.nome}</div>
+                            <div className="flex flex-1">
+                              {renderTimeline(s)}
+                            </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
