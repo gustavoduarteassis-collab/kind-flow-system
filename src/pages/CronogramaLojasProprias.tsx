@@ -91,7 +91,7 @@ const CronogramaLojasProprias = () => {
             is_propria: isPropria,
             is_reforma: isReforma,
             data_inicio: dataInicio,
-            inauguracao: dataInauguracao ? (dataInauguracao.includes('T') ? dataInauguracao.split('T')[0] : dataInauguracao) : null
+            inauguracao: dataInauguracao ? (typeof dataInauguracao === 'string' && dataInauguracao.includes('T') ? dataInauguracao.split('T')[0] : dataInauguracao) : ""
           };
         }).filter(s => s.is_propria || s.is_reforma || cronogramaFixo.some(f => (s.nome || "").toLowerCase().includes(f.nome.toLowerCase()))));
       }
