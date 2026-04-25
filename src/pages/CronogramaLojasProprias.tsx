@@ -109,7 +109,7 @@ const CronogramaLojasProprias = () => {
 
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('CRONOGRAMA EXECUTIVO 2026');
+    const worksheet = workbook.addWorksheet('CRONOGRAMA DE LOJAS PRÓPRIAS 2026');
 
     // Inserir Logo via Base64 (Logo simplificada da Constance em texto estilizado se imagem não disponível)
     // Para inserir uma imagem real, precisaríamos do buffer da imagem. 
@@ -125,7 +125,7 @@ const CronogramaLojasProprias = () => {
     const totalCols = 5 + daysInInterval.length;
     worksheet.mergeCells('A1:E1'); // Fixa o título nas colunas que não rolam
     const titleCell = worksheet.getCell(1, 1);
-    titleCell.value = 'CONSTANCE - CRONOGRAMA 2026';
+    titleCell.value = 'CONSTANCE - CRONOGRAMA DE LOJAS PRÓPRIAS 2026';
     titleCell.font = { name: 'Inter', family: 2, size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A3728' } }; // Marrom Escuro
