@@ -140,7 +140,7 @@ const CronogramaLojasProprias = () => {
       worksheet.mergeCells(2, startCol, 2, endCol);
       const mCell = worksheet.getCell(2, startCol);
       mCell.value = format(month, 'MMMM yyyy', { locale: ptBR }).toUpperCase();
-      mCell.font = { bold: true, size: 10, color: { argb: 'FFFFFFFF' } };
+      mCell.font = { name: 'Inter', family: 2, bold: true, size: 10, color: { argb: 'FFFFFFFF' } };
       mCell.alignment = { horizontal: 'center', vertical: 'middle' };
       mCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8B5A2B' } }; // Marrom Claro
       mCell.border = { left: { style: 'thin', color: { argb: 'FFFFFFFF' } } };
