@@ -52,24 +52,34 @@ const CronogramaLojasProprias = () => {
         .order('nome');
 
       if (data) {
-        // Inicialmente vazio para permitir o cadastro manual pelo usuário
+        // Lojas específicas conforme solicitado pelo usuário
+        const cronogramaManual = [
+          // Lojas de Reforma
+          { nome: "Riomar Recife", tipo: "reforma" },
+          { nome: "Shopping Boulevard", tipo: "reforma" },
+          { nome: "Shopping Recife", tipo: "reforma" },
+          { nome: "Shopping Costa Dourada", tipo: "reforma" },
+          { nome: "Shopping em Salvador", tipo: "reforma" },
+          { nome: "Shopping Bela Vista", tipo: "reforma" },
+          { nome: "Minas Shopping II", tipo: "reforma" },
+          // Novas Lojas
+          { nome: "Ibirapuera Shopping", tipo: "nova" },
+          { nome: "Recife Outlet", tipo: "nova" },
+          { nome: "Shopping Aricanduva", tipo: "nova" }
+        ];
+
         const filteredStores = data.map(s => {
           const nomeLower = (s.nome || "").toLowerCase().trim();
-          const franqueadoLower = (s.franqueado || "").toLowerCase().trim();
-          const tipoLower = (s.tipo_loja || "").toLowerCase().trim();
+          const manualMatch = cronogramaManual.find(m => nomeLower.includes(m.nome.toLowerCase()));
 
-          const isReforma = nomeLower.includes("reforma") || tipoLower.includes("reforma");
-          const isPropria = franqueadoLower.includes("própria") || franqueadoLower.includes("propria");
+          if (!manualMatch) return null;
 
-          // Só mantemos se for explicitamente própria ou reforma já cadastrada no banco
-          if (!isPropria && !isReforma) {
-             return null;
-          }
+          const isReforma = manualMatch.tipo === "reforma";
 
           return {
             ...s,
             status: isReforma ? "Em Reforma" : "Em Andamento",
-            is_propria: isPropria,
+            is_propria: !isReforma,
             is_reforma: isReforma,
             data_inicio: s.inauguracao ? addDays(new Date(s.inauguracao), -60).toISOString().split('T')[0] : null,
             inauguracao: s.inauguracao ? s.inauguracao.split('T')[0] : null
