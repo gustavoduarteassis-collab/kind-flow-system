@@ -347,7 +347,7 @@ const CronogramaLojasProprias = () => {
                 <Button variant="ghost" size="icon" className="hover:bg-primary/10" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
                   <ChevronLeft className="h-5 w-5 text-primary" />
                 </Button>
-                <div className="text-xl font-black min-w-[180px] text-center capitalize tracking-tight text-primary">
+                <div className="text-xl font-black min-w-[180px] text-center capitalize tracking-tight text-[#4A3728]">
                   {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
                 </div>
                 <Button variant="ghost" size="icon" className="hover:bg-primary/10" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
