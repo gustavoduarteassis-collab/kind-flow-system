@@ -246,8 +246,8 @@ const CronogramaLojasProprias = () => {
       worksheet.getColumn(i).width = 3.5;
     }
 
-    // Congelar painéis para facilitar navegação
-    worksheet.views = [{ state: 'frozen', xSplit: 5, ySplit: 3 }];
+    // Congelar painéis para facilitar navegação (Coluna A até E e as 3 primeiras linhas)
+    worksheet.views = [{ state: 'frozen', xSplit: 5, ySplit: 3, activePane: 'bottomRight' }];
 
     const buffer = await workbook.xlsx.writeBuffer();
     saveAs(new Blob([buffer]), `Cronograma_Constance_2026.xlsx`);
