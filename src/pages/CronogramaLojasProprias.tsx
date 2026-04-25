@@ -105,18 +105,61 @@ const CronogramaLojasProprias = () => {
   };
 
   const exportToExcel = () => {
-    const exportData = stores.map(s => ({
-      Loja: s.nome,
-      Filial: s.filial,
-      Tipo: s.is_reforma ? 'Reforma' : 'Nova',
-      'Data de Início': s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '',
-      'Data de Inauguração': s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '',
-    }));
+    // Definimos o cabeçalho e os dados básicos
+    const header = [
+      ["", "", "", "", "CRONOGRAMA DE OBRAS E REFORMAS 2026", "", "", "", "", "", ""],
+      ["", "", "", "", "Modelo de Gestão de Lojas Próprias", "", "", "", "", "", ""],
+      [],
+      ["Loja", "Tipo", "Data de Início", "Data de Inauguração", "Prazo Estimado (Dias)", "Status", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    ];
 
-    const ws = XLSX.utils.json_to_sheet(exportData);
+    const dataRows = stores.map(s => {
+      const start = s.data_inicio ? parseISO(s.data_inicio) : null;
+      const end = s.inauguracao ? parseISO(s.inauguracao) : null;
+      const diffTime = start && end ? Math.abs(end.getTime() - start.getTime()) : 0;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      const row = [
+        s.nome,
+        s.is_reforma ? 'Reforma' : 'Nova',
+        s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '',
+        s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '',
+        diffDays > 0 ? `${diffDays} dias` : 'N/A',
+        s.status
+      ];
+
+      // Preenchimento do "gráfico" simplificado por meses no Excel
+      const months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+      months.forEach(m => {
+        const monthDate = new Date(2026, m, 1);
+        const isActive = start && end && (
+          (isSameMonth(monthDate, start) || monthDate > start) && 
+          (isSameMonth(monthDate, end) || monthDate < end)
+        );
+        row.push(isActive ? "■■■■■" : "");
+      });
+
+      return row;
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([...header, ...dataRows]);
+
+    // Estilização básica (largura das colunas)
+    const wscols = [
+      { wch: 35 }, // Loja
+      { wch: 10 }, // Tipo
+      { wch: 15 }, // Início
+      { wch: 15 }, // Inauguração
+      { wch: 20 }, // Prazo
+      { wch: 15 }, // Status
+      { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, 
+      { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }
+    ];
+    ws['!cols'] = wscols;
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Cronograma");
-    XLSX.writeFile(wb, `cronograma_2026_${format(new Date(), 'dd_MM_yyyy')}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "Cronograma 2026");
+    XLSX.writeFile(wb, `cronograma_executivo_2026.xlsx`);
   };
 
   const renderTimeline = (store: CronogramaStore) => {
@@ -157,25 +200,30 @@ const CronogramaLojasProprias = () => {
 
   return (
     <div className="min-h-screen bg-background pb-12">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10 print:hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-6">
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-2">
-              <HardHat className="h-5 w-5 text-primary" />
-              <h1 className="text-xl font-bold">Gestão de Cronogramas</h1>
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 p-2 rounded-lg">
+                <HardHat className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-black tracking-tight text-primary uppercase">Modelo de Gestão de Lojas</h1>
+                <p className="text-xs font-bold text-muted-foreground tracking-[0.2em] uppercase">Cronograma Executivo 2026</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setViewGantt(!viewGantt)}>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="font-bold border-2" onClick={() => setViewGantt(!viewGantt)}>
               <Eye className="h-4 w-4 mr-2" />
               {viewGantt ? "Ver Tabela" : "Ver Linha do Tempo"}
             </Button>
-            <Button variant="default" size="sm" onClick={exportToExcel}>
+            <Button variant="default" className="font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90" onClick={exportToExcel}>
               <Download className="h-4 w-4 mr-2" />
-              Exportar XLS
+              Exportar XLS Executivo
             </Button>
           </div>
         </div>
@@ -290,6 +338,7 @@ const CronogramaLojasProprias = () => {
                   <TableHead>Tipo</TableHead>
                   <TableHead>Data de Início</TableHead>
                   <TableHead>Inauguração</TableHead>
+                  <TableHead>Prazo Estimado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -319,6 +368,16 @@ const CronogramaLojasProprias = () => {
                         value={store.inauguracao ? store.inauguracao : ""}
                         onChange={(e) => updateStoreDate(store.id, 'inauguracao', e.target.value)}
                       />
+                    </TableCell>
+                    <TableCell className="text-xs font-medium text-muted-foreground">
+                      {(() => {
+                        if (!store.data_inicio || !store.inauguracao) return "--";
+                        const start = parseISO(store.data_inicio);
+                        const end = parseISO(store.inauguracao);
+                        if (!isValid(start) || !isValid(end)) return "--";
+                        const diff = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                        return `${diff} dias`;
+                      })()}
                     </TableCell>
                   </TableRow>
                 ))}
