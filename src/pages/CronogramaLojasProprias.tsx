@@ -43,16 +43,24 @@ const CronogramaLojasProprias = () => {
 
       if (data) {
         setStores(data.map(s => {
-          const nomeLower = s.nome?.toLowerCase() || "";
-          const franqueadoLower = s.franqueado?.toLowerCase() || "";
-          const tipoLower = s.tipo_loja?.toLowerCase() || "";
+          const nomeLower = (s.nome || "").toLowerCase().trim();
+          const franqueadoLower = (s.franqueado || "").toLowerCase().trim();
+          const tipoLower = (s.tipo_loja || "").toLowerCase().trim();
 
-          // Identifica se é reforma se o nome ou tipo_loja contiver "reforma"
-          const isReforma = nomeLower.includes("reforma") || tipoLower.includes("reforma");
+          // Lojas que devem ser consideradas como reforma conforme PDF/solicitação
+          const lojasReforma = [
+            "recife outlet",
+            "ibirapuera",
+            "interlagos",
+            "campos gerais",
+            "trindade"
+          ];
+          
+          const isReforma = nomeLower.includes("reforma") || 
+                           tipoLower.includes("reforma") ||
+                           lojasReforma.some(r => nomeLower.includes(r));
           
           // Identifica se é loja própria
-          // Adicionado Boulevard como própria conforme solicitado
-          // Removido Trindade das próprias conforme solicitado
           const isPropriaManual = nomeLower.includes("boulevard");
           const isNotPropriaManual = nomeLower.includes("trindade");
 
