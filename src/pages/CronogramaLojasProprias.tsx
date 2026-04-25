@@ -123,9 +123,9 @@ const CronogramaLojasProprias = () => {
   };
 
   const timelineMonths = useMemo(() => {
-    const now = new Date();
-    const start = startOfMonth(now);
-    const end = addMonths(start, 12);
+    // Definimos o início como Janeiro de 2025 para bater com o cronograma solicitado
+    const start = new Date(2025, 0, 1);
+    const end = addMonths(start, 11); // Mostrar o ano de 2025 inteiro
     return eachMonthOfInterval({ start, end });
   }, []);
 
