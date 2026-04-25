@@ -174,10 +174,58 @@ const CronogramaLojasProprias = () => {
       cell.style = tableHeaderStyle as any;
     });
 
+    // Ordenar lojas: Novas primeiro, depois Reformas
+    const sortedStores = [
+      ...stores.filter(s => !s.is_reforma),
+      ...stores.filter(s => s.is_reforma)
+    ];
+
+    let currentExcelRow = 4;
+    let hasShownNewStoresTitle = false;
+    let hasShownReformTitle = false;
+
     // Dados das Lojas
-    stores.forEach((s, rowIndex) => {
-      const excelRowIndex = 4 + rowIndex;
-      const row = worksheet.getRow(excelRowIndex);
+    sortedStores.forEach((s) => {
+      // Adicionar títulos de seção
+      if (!s.is_reforma && !hasShownNewStoresTitle) {
+        worksheet.mergeCells(currentExcelRow, 1, currentExcelRow, 5);
+        const titleCell = worksheet.getCell(currentExcelRow, 1);
+        titleCell.value = 'OBRAS NOVAS';
+        titleCell.font = { name: 'Inter', family: 2, size: 10, bold: true, color: { argb: 'FF4A3728' } };
+        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } };
+        titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
+        titleCell.border = { bottom: { style: 'thin' } };
+        
+        // Bordas para as colunas de dias na linha de título
+        daysInInterval.forEach((_, i) => {
+          const cell = worksheet.getRow(currentExcelRow).getCell(6 + i);
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } };
+          cell.border = { bottom: { style: 'thin' } };
+        });
+        
+        hasShownNewStoresTitle = true;
+        currentExcelRow++;
+      } else if (s.is_reforma && !hasShownReformTitle) {
+        worksheet.mergeCells(currentExcelRow, 1, currentExcelRow, 5);
+        const titleCell = worksheet.getCell(currentExcelRow, 1);
+        titleCell.value = 'REFORMAS';
+        titleCell.font = { name: 'Inter', family: 2, size: 10, bold: true, color: { argb: 'FF4A3728' } };
+        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } };
+        titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
+        titleCell.border = { bottom: { style: 'thin' }, top: { style: 'medium', color: { argb: 'FF4A3728' } } };
+        
+        // Bordas para as colunas de dias na linha de título
+        daysInInterval.forEach((_, i) => {
+          const cell = worksheet.getRow(currentExcelRow).getCell(6 + i);
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F5F5' } };
+          cell.border = { bottom: { style: 'thin' }, top: { style: 'medium', color: { argb: 'FF4A3728' } } };
+        });
+        
+        hasShownReformTitle = true;
+        currentExcelRow++;
+      }
+
+      const row = worksheet.getRow(currentExcelRow);
       
       row.getCell(1).value = s.nome.toUpperCase();
       row.getCell(2).value = s.is_reforma ? 'REFORMA' : 'OBRA NOVA';
@@ -196,7 +244,7 @@ const CronogramaLojasProprias = () => {
         c.numFmt = 'dd/mm/yyyy';
       }
 
-      row.getCell(5).value = { formula: `IF(AND(C${excelRowIndex}<>"", D${excelRowIndex}<>""), D${excelRowIndex}-C${excelRowIndex} & " DIAS", "--")` };
+      row.getCell(5).value = { formula: `IF(AND(C${currentExcelRow}<>"", D${currentExcelRow}<>""), D${currentExcelRow}-C${currentExcelRow} & " DIAS", "--")` };
 
       // Estilo colunas fixas
       for (let i = 1; i <= 5; i++) {
@@ -211,15 +259,16 @@ const CronogramaLojasProprias = () => {
         const cell = row.getCell(6 + i);
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       });
+      currentExcelRow++;
     });
 
-    // Formatação Condicional para cada dia
+    // Formatação Condicional para cada dia (ajustado para o novo range de linhas)
     daysInInterval.forEach((day, i) => {
       const colLetter = worksheet.getColumn(6 + i).letter;
       const excelDayVal = Math.floor(day.getTime() / (24 * 60 * 60 * 1000) + 25569);
 
       worksheet.addConditionalFormatting({
-        ref: `${colLetter}4:${colLetter}${4 + stores.length}`,
+        ref: `${colLetter}4:${colLetter}${currentExcelRow - 1}`,
         rules: [
           {
             type: 'expression',
