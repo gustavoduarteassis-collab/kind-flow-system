@@ -604,8 +604,8 @@ const AGM = () => {
 
         <Tabs defaultValue="gustavo" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="gustavo" className="bg-primary/10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              Ações Gustavo ({gustavoPlans.length})
+            <TabsTrigger value="gustavo" className="bg-primary/10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold">
+              Ações Gustavo Duarte
             </TabsTrigger>
             <TabsTrigger value="lojas">Lojas do Mês</TabsTrigger>
             <TabsTrigger value="matriz">Matriz de Resultados</TabsTrigger>
