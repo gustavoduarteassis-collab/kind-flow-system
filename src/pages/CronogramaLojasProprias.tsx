@@ -39,6 +39,8 @@ const CronogramaLojasProprias = () => {
   const [stores, setStores] = useState<CronogramaStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewGantt, setViewGantt] = useState(true);
+  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1));
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -50,60 +52,49 @@ const CronogramaLojasProprias = () => {
         .order('nome');
 
       if (data) {
-        // Dados do cronograma fixo 2025 fornecido pelo usuário
-        const cronogramaFixo = [
-          { nome: "Recife Outlet", inicio: "2025-01-13", inauguracao: "2025-02-14", tipo: "reforma" },
-          { nome: "Shopping Ibirapuera", inicio: "2025-01-27", inauguracao: "2025-03-20", tipo: "reforma" },
-          { nome: "Shopping Interlagos", inicio: "2025-01-27", inauguracao: "2025-03-20", tipo: "reforma" },
-          { nome: "Plaza Campos Gerais", inicio: "2025-02-17", inauguracao: "2025-03-27", tipo: "reforma" },
-          { nome: "Boulevard", inicio: "2025-03-10", inauguracao: "2025-04-10", tipo: "nova" },
-          { nome: "Trindade", inicio: "2025-04-14", inauguracao: "2025-05-15", tipo: "reforma" }
+        // Lojas específicas do arquivo/solicitação para 2026
+        const cronograma2026 = [
+          { nome: "Recife Outlet", inicio: "2026-01-05", inauguracao: "2026-02-10", tipo: "reforma" },
+          { nome: "Shopping Ibirapuera", inicio: "2026-01-15", inauguracao: "2026-03-15", tipo: "reforma" },
+          { nome: "Shopping Interlagos", inicio: "2026-02-01", inauguracao: "2026-04-01", tipo: "reforma" },
+          { nome: "Plaza Campos Gerais", inicio: "2026-03-01", inauguracao: "2026-05-15", tipo: "reforma" },
+          { nome: "Boulevard", inicio: "2026-04-01", inauguracao: "2026-06-20", tipo: "nova" },
+          { nome: "Trindade", inicio: "2026-05-10", inauguracao: "2026-07-15", tipo: "reforma" }
         ];
 
         setStores(data.map(s => {
           const nomeLower = (s.nome || "").toLowerCase().trim();
-          const franqueadoLower = (s.franqueado || "").toLowerCase().trim();
-          const tipoLower = (s.tipo_loja || "").toLowerCase().trim();
-
-          const fixo = cronogramaFixo.find(f => nomeLower.includes(f.nome.toLowerCase()));
+          const fixo = cronograma2026.find(f => nomeLower.includes(f.nome.toLowerCase()));
           
+          if (!fixo && !s.franqueado?.toLowerCase().includes("própria") && !s.nome?.toLowerCase().includes("reforma")) {
+             return null;
+          }
+
           const isReforma = fixo ? fixo.tipo === "reforma" : (
             nomeLower.includes("reforma") || 
-            tipoLower.includes("reforma")
+            (s.tipo_loja || "").toLowerCase().includes("reforma")
           );
-          
-          const isPropriaManual = nomeLower.includes("boulevard") || (fixo && fixo.tipo === "nova");
-          const isNotPropriaManual = nomeLower.includes("trindade") && !fixo;
-
-          const isPropria = (franqueadoLower.includes("própria") || 
-                            franqueadoLower.includes("propria") || 
-                            isPropriaManual) && !isNotPropriaManual;
-
-          // Prioritize fixed dates if they match the store
-          const dataInauguracao = fixo ? fixo.inauguracao : s.inauguracao;
-          let dataInicio = fixo ? fixo.inicio : null;
-          
-          if (!dataInicio && dataInauguracao) {
-            const date = new Date(dataInauguracao);
-            date.setMonth(date.getMonth() - 2);
-            dataInicio = date.toISOString().split('T')[0];
-          }
 
           return {
             ...s,
-            status: isReforma ? "Em Reforma" : "Em Andamento",
-            is_propria: isPropria,
+            is_propria: fixo ? fixo.tipo === "nova" : !isReforma,
             is_reforma: isReforma,
-            data_inicio: dataInicio,
-            inauguracao: dataInauguracao ? (typeof dataInauguracao === 'string' && dataInauguracao.includes('T') ? dataInauguracao.split('T')[0] : dataInauguracao) : ""
+            data_inicio: fixo ? fixo.inicio : (s.inauguracao ? addDays(new Date(s.inauguracao), -60).toISOString().split('T')[0] : null),
+            inauguracao: fixo ? fixo.inauguracao : (s.inauguracao ? s.inauguracao.split('T')[0] : null)
           };
-        }).filter(s => s.is_propria || s.is_reforma || cronogramaFixo.some(f => (s.nome || "").toLowerCase().includes(f.nome.toLowerCase()))));
+        }).filter(Boolean) as CronogramaStore[]);
       }
       setLoading(false);
     };
 
     fetchStores();
   }, [user]);
+
+  const timelineDays = useMemo(() => {
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    return eachDayOfInterval({ start, end });
+  }, [currentMonth]);
 
   const updateStoreDate = (id: string, field: 'data_inicio' | 'inauguracao', value: string) => {
     setStores(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
@@ -114,24 +105,15 @@ const CronogramaLojasProprias = () => {
       Loja: s.nome,
       Filial: s.filial,
       Tipo: s.is_reforma ? 'Reforma' : 'Nova',
-      'Data de Início': s.data_inicio ? format(new Date(s.data_inicio), 'dd/MM/yyyy') : '',
-      'Data de Inauguração': s.inauguracao ? format(new Date(s.inauguracao), 'dd/MM/yyyy') : '',
+      'Data de Início': s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '',
+      'Data de Inauguração': s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '',
     }));
 
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Cronograma");
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
-    saveAs(data, `cronograma_obras_${format(new Date(), 'dd_MM_yyyy')}.xlsx`);
+    XLSX.writeFile(wb, `cronograma_2026_${format(new Date(), 'dd_MM_yyyy')}.xlsx`);
   };
-
-  const timelineMonths = useMemo(() => {
-    // Definimos o início como Janeiro de 2025 para bater com o cronograma solicitado
-    const start = new Date(2025, 0, 1);
-    const end = addMonths(start, 11); // Mostrar o ano de 2025 inteiro
-    return eachMonthOfInterval({ start, end });
-  }, []);
 
   const renderTimeline = (store: CronogramaStore) => {
     if (!store.data_inicio || !store.inauguracao) return null;
@@ -142,25 +124,20 @@ const CronogramaLojasProprias = () => {
     if (!isValid(start) || !isValid(end)) return null;
 
     return (
-      <div className="flex w-full gap-1 h-8 mt-2">
-        {timelineMonths.map((month, idx) => {
-          const isMonthActive = (
-            (isSameMonth(month, start) || month > start) && 
-            (isSameMonth(month, end) || month < end)
-          );
-          
-          const isStart = isSameMonth(month, start);
-          const isEnd = isSameMonth(month, end);
+      <div className="flex w-full h-6 mt-1 bg-muted/20 rounded-sm relative overflow-hidden">
+        {timelineDays.map((day, idx) => {
+          const isActive = isWithinInterval(day, { start, end });
+          const isStart = isSameDay(day, start);
+          const isEnd = isSameDay(day, end);
 
           return (
             <div 
               key={idx} 
-              className={`flex-1 rounded-sm transition-all duration-300 ${
-                isMonthActive 
+              className={`flex-1 border-r border-background/10 ${
+                isActive 
                   ? store.is_reforma ? 'bg-amber-400' : 'bg-emerald-400'
-                  : 'bg-muted/30'
-              } ${isStart ? 'ring-2 ring-primary ring-offset-1' : ''} ${isEnd ? 'ring-2 ring-destructive ring-offset-1' : ''}`}
-              title={`${format(month, 'MMM/yy', { locale: ptBR })} - ${store.nome}`}
+                  : ''
+              } ${isStart ? 'ring-1 ring-primary ring-inset' : ''} ${isEnd ? 'ring-1 ring-destructive ring-inset' : ''}`}
             />
           );
         })}
