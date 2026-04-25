@@ -249,20 +249,7 @@ const CronogramaLojasProprias = () => {
     saveAs(new Blob([buffer]), `Cronograma_Constance_2026.xlsx`);
   };
 
-    // Largura das colunas
-    worksheet.getColumn(1).width = 40;
-    worksheet.getColumn(2).width = 15;
-    worksheet.getColumn(3).width = 12;
-    worksheet.getColumn(4).width = 12;
-    worksheet.getColumn(5).width = 12;
-    for (let i = 6; i <= 5 + daysInMonth.length; i++) {
-      worksheet.getColumn(i).width = 4;
-    }
-
-    // Gerar e salvar arquivo
-    const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), `Cronograma_Executivo_${format(currentMonth, 'MMM_yyyy')}.xlsx`);
-  };
+  const renderTimeline = (store: CronogramaStore) => {
 
   const renderTimeline = (store: CronogramaStore) => {
     if (!store.data_inicio || !store.inauguracao) return null;
