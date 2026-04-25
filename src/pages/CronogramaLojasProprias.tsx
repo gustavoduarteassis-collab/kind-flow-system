@@ -105,18 +105,61 @@ const CronogramaLojasProprias = () => {
   };
 
   const exportToExcel = () => {
-    const exportData = stores.map(s => ({
-      Loja: s.nome,
-      Filial: s.filial,
-      Tipo: s.is_reforma ? 'Reforma' : 'Nova',
-      'Data de Início': s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '',
-      'Data de Inauguração': s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '',
-    }));
+    // Definimos o cabeçalho e os dados básicos
+    const header = [
+      ["", "", "", "", "CRONOGRAMA DE OBRAS E REFORMAS 2026", "", "", "", "", "", ""],
+      ["", "", "", "", "Modelo de Gestão de Lojas Próprias", "", "", "", "", "", ""],
+      [],
+      ["Loja", "Tipo", "Data de Início", "Data de Inauguração", "Prazo Estimado (Dias)", "Status", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+    ];
 
-    const ws = XLSX.utils.json_to_sheet(exportData);
+    const dataRows = stores.map(s => {
+      const start = s.data_inicio ? parseISO(s.data_inicio) : null;
+      const end = s.inauguracao ? parseISO(s.inauguracao) : null;
+      const diffTime = start && end ? Math.abs(end.getTime() - start.getTime()) : 0;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      const row = [
+        s.nome,
+        s.is_reforma ? 'Reforma' : 'Nova',
+        s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '',
+        s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '',
+        diffDays > 0 ? `${diffDays} dias` : 'N/A',
+        s.status
+      ];
+
+      // Preenchimento do "gráfico" simplificado por meses no Excel
+      const months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+      months.forEach(m => {
+        const monthDate = new Date(2026, m, 1);
+        const isActive = start && end && (
+          (isSameMonth(monthDate, start) || monthDate > start) && 
+          (isSameMonth(monthDate, end) || monthDate < end)
+        );
+        row.push(isActive ? "■■■■■" : "");
+      });
+
+      return row;
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet([...header, ...dataRows]);
+
+    // Estilização básica (largura das colunas)
+    const wscols = [
+      { wch: 35 }, // Loja
+      { wch: 10 }, // Tipo
+      { wch: 15 }, // Início
+      { wch: 15 }, // Inauguração
+      { wch: 20 }, // Prazo
+      { wch: 15 }, // Status
+      { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, 
+      { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }
+    ];
+    ws['!cols'] = wscols;
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Cronograma");
-    XLSX.writeFile(wb, `cronograma_2026_${format(new Date(), 'dd_MM_yyyy')}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "Cronograma 2026");
+    XLSX.writeFile(wb, `cronograma_executivo_2026.xlsx`);
   };
 
   const renderTimeline = (store: CronogramaStore) => {
