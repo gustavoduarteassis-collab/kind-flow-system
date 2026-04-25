@@ -43,9 +43,7 @@ const CronogramaLojasProprias = () => {
       if (data) {
         setStores(data.map(s => {
           const isPropria = s.franqueado?.toLowerCase().includes("própria") || 
-                           s.franqueado?.toLowerCase().includes("propria") ||
-                           s.tipo_loja?.toLowerCase().includes("própria") ||
-                           s.tipo_loja?.toLowerCase().includes("propria");
+                           s.franqueado?.toLowerCase().includes("propria");
           
           const isReforma = s.nome?.toLowerCase().includes("reforma") || 
                            s.tipo_loja?.toLowerCase().includes("reforma");
@@ -57,7 +55,7 @@ const CronogramaLojasProprias = () => {
             is_reforma: isReforma,
             analista_obra: s.analista_obra || "Não atribuído"
           };
-        }));
+        }).filter(s => s.is_propria || s.is_reforma));
       }
       setLoading(false);
     };
