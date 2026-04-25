@@ -123,14 +123,12 @@ const CronogramaLojasProprias = () => {
                   <TableHead>Filial</TableHead>
                   <TableHead>Analista</TableHead>
                   <TableHead>Inauguração</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {proprias.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhuma loja própria encontrada.</TableCell>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Nenhuma loja própria encontrada.</TableCell>
                   </TableRow>
                 ) : (
                   proprias.map((store) => (
@@ -141,18 +139,8 @@ const CronogramaLojasProprias = () => {
                       <TableCell>
                         <div className="flex items-center gap-1.5 text-xs">
                           <Calendar className="h-3 w-3 text-muted-foreground" />
-                          {store.inauguracao}
+                          {store.inauguracao ? format(new Date(store.inauguracao), "dd/MM/yyyy", { locale: ptBR }) : "Não definida"}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                          {store.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => navigate(`/loja/${store.id}`)}>
-                          Ver Detalhes
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -175,14 +163,12 @@ const CronogramaLojasProprias = () => {
                   <TableHead>Filial</TableHead>
                   <TableHead>Analista</TableHead>
                   <TableHead>Previsão</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {reformas.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhuma reforma encontrada.</TableCell>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Nenhuma reforma encontrada.</TableCell>
                   </TableRow>
                 ) : (
                   reformas.map((store) => (
@@ -193,18 +179,8 @@ const CronogramaLojasProprias = () => {
                       <TableCell>
                         <div className="flex items-center gap-1.5 text-xs">
                           <Calendar className="h-3 w-3 text-muted-foreground" />
-                          {store.inauguracao}
+                          {store.inauguracao ? format(new Date(store.inauguracao), "dd/MM/yyyy", { locale: ptBR }) : "Não definida"}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                          Em Reforma
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" onClick={() => navigate(`/loja/${store.id}`)}>
-                          Ver Detalhes
-                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
