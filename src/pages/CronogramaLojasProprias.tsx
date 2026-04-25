@@ -52,41 +52,41 @@ const CronogramaLojasProprias = () => {
         .order('nome');
 
       if (data) {
-        // Lojas específicas conforme solicitado pelo usuário
+        // Mapeamento das lojas para o cronograma
         const cronogramaManual = [
-          // Lojas de Reforma
-          { nome: "Riomar Recife", tipo: "reforma" },
-          { nome: "Shopping Boulevard", tipo: "reforma" },
-          { nome: "Shopping Recife", tipo: "reforma" },
-          { nome: "Shopping Costa Dourada", tipo: "reforma" },
-          { nome: "Shopping em Salvador", tipo: "reforma" },
-          { nome: "Shopping Bela Vista", tipo: "reforma" },
-          { nome: "Minas Shopping II", tipo: "reforma" },
-          // Novas Lojas
-          { nome: "Ibirapuera Shopping", tipo: "nova" },
-          { nome: "Recife Outlet", tipo: "nova" },
-          { nome: "Shopping Aricanduva", tipo: "nova" }
+          { busca: "Riomar Recife", display: "Riomar Recife - Recife", tipo: "reforma" },
+          { busca: "Boulevard", display: "Shopping Boulevard - Belo Horizonte", tipo: "reforma" },
+          { busca: "Shopping Recife", display: "Shopping Recife - Recife", tipo: "reforma" },
+          { busca: "Costa Dourada", display: "Shopping Costa Dourada - Cabo", tipo: "reforma" },
+          { busca: "Salvador", display: "Shopping em Salvador - Salvador", tipo: "reforma" },
+          { busca: "Bela Vista", display: "Shopping Bela Vista - Recife", tipo: "reforma" },
+          { busca: "Minas Shopping", display: "Minas Shopping II – BH", tipo: "reforma" },
+          { busca: "Ibirapuera", display: "Ibirapuera Shopping - São Paulo", tipo: "nova" },
+          { busca: "Recife Outlet", display: "Recife Outlet - Moreno/PE", tipo: "nova" },
+          { busca: "Aricanduva", display: "Shopping Aricanduva - SP", tipo: "nova" }
         ];
 
-        const filteredStores = data.map(s => {
-          const nomeLower = (s.nome || "").toLowerCase().trim();
-          const manualMatch = cronogramaManual.find(m => nomeLower.includes(m.nome.toLowerCase()));
-
-          if (!manualMatch) return null;
-
-          const isReforma = manualMatch.tipo === "reforma";
-
+        // Criamos a lista baseada no cronogramaManual
+        const storesList = cronogramaManual.map((m, index) => {
+          // Tenta encontrar uma loja no banco que combine com o termo de busca
+          const dbStore = data.find(s => (s.nome || "").toLowerCase().includes(m.busca.toLowerCase()));
+          
+          const isReforma = m.tipo === "reforma";
+          
           return {
-            ...s,
+            id: dbStore?.id || `manual-${index}`,
+            nome: m.display,
+            filial: dbStore?.filial || "S/F",
+            inauguracao: dbStore?.inauguracao ? dbStore.inauguracao.split('T')[0] : "2026-12-31",
+            data_inicio: dbStore?.inauguracao ? addDays(new Date(dbStore.inauguracao), -60).toISOString().split('T')[0] : "2026-10-01",
+            tipo_loja: dbStore?.tipo_loja || (isReforma ? "reforma" : "nova"),
             status: isReforma ? "Em Reforma" : "Em Andamento",
             is_propria: !isReforma,
             is_reforma: isReforma,
-            data_inicio: s.inauguracao ? addDays(new Date(s.inauguracao), -60).toISOString().split('T')[0] : null,
-            inauguracao: s.inauguracao ? s.inauguracao.split('T')[0] : null
           };
-        }).filter(Boolean);
+        });
 
-        setStores(filteredStores as CronogramaStore[]);
+        setStores(storesList);
       }
       setLoading(false);
     };
