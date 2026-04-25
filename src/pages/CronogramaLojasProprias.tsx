@@ -179,13 +179,6 @@ const CronogramaLojasProprias = () => {
     XLSX.writeFile(wb, `Cronograma_Lojas_Proprias_2026.xlsx`);
   };
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "CRONOGRAMA 2026");
-    
-    // Exporta o arquivo
-    XLSX.writeFile(wb, `Cronograma_Executivo_Lojas_2026.xlsx`);
-  };
-
   const renderTimeline = (store: CronogramaStore) => {
     if (!store.data_inicio || !store.inauguracao) return null;
     
