@@ -602,16 +602,16 @@ const AGM = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="lojas" className="space-y-6">
+        <Tabs defaultValue="gustavo" className="space-y-6">
           <TabsList>
+            <TabsTrigger value="gustavo" className="bg-primary/10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Ações Gustavo ({gustavoPlans.length})
+            </TabsTrigger>
             <TabsTrigger value="lojas">Lojas do Mês</TabsTrigger>
             <TabsTrigger value="matriz">Matriz de Resultados</TabsTrigger>
             <TabsTrigger value="analistas">Metas Analistas</TabsTrigger>
             <TabsTrigger value="indicadores">Indicadores Extras</TabsTrigger>
             <TabsTrigger value="planos">Planos de Ação ({plans.length})</TabsTrigger>
-            <TabsTrigger value="gustavo" className="bg-primary/10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-              Ações Gustavo ({gustavoPlans.length})
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="lojas" className="space-y-4">
