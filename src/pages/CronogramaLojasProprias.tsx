@@ -109,7 +109,7 @@ const CronogramaLojasProprias = () => {
 
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('CRONOGRAMA EXECUTIVO 2026');
+    const worksheet = workbook.addWorksheet('CRONOGRAMA DE LOJAS PRÓPRIAS 2026');
 
     // Inserir Logo via Base64 (Logo simplificada da Constance em texto estilizado se imagem não disponível)
     // Para inserir uma imagem real, precisaríamos do buffer da imagem. 
@@ -125,7 +125,7 @@ const CronogramaLojasProprias = () => {
     const totalCols = 5 + daysInInterval.length;
     worksheet.mergeCells('A1:E1'); // Fixa o título nas colunas que não rolam
     const titleCell = worksheet.getCell(1, 1);
-    titleCell.value = 'CONSTANCE - CRONOGRAMA 2026';
+    titleCell.value = 'CONSTANCE - CRONOGRAMA DE LOJAS PRÓPRIAS 2026';
     titleCell.font = { name: 'Inter', family: 2, size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A3728' } }; // Marrom Escuro
@@ -322,7 +322,7 @@ const CronogramaLojasProprias = () => {
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
     doc.setTextColor(74, 55, 40);
-    doc.text('CONSTANCE - CRONOGRAMA EXECUTIVO 2026', doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+    doc.text('CONSTANCE - CRONOGRAMA DE LOJAS PRÓPRIAS 2026', doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
 
     const sortedStores = [
       ...stores.filter(s => !s.is_reforma),
@@ -466,7 +466,7 @@ const CronogramaLojasProprias = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-black tracking-tight text-[#4A3728] uppercase">Modelo de Gestão de Lojas</h1>
-                <p className="text-xs font-bold text-muted-foreground tracking-[0.2em] uppercase">Cronograma Executivo 2026</p>
+                <p className="text-xs font-bold text-muted-foreground tracking-[0.2em] uppercase">Cronograma de Lojas Próprias 2026</p>
               </div>
             </div>
           </div>
@@ -481,7 +481,7 @@ const CronogramaLojasProprias = () => {
             </Button>
             <Button variant="default" className="font-bold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90" onClick={exportToExcel}>
               <Download className="h-4 w-4 mr-2" />
-              Exportar XLS Executivo
+              Exportar XLS
             </Button>
           </div>
         </div>
