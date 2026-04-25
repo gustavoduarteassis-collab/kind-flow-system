@@ -108,27 +108,41 @@ const CronogramaLojasProprias = () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('CRONOGRAMA 2026');
 
-    // Configuração dos meses
-    const months = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+    // Configuração do período (Abril 2026 a Março 2027 - 12 meses)
+    const startPeriod = new Date(2026, 3, 1); // Abril
+    const months: { name: string, date: Date, colIndex: number }[] = [];
+    for (let i = 0; i < 12; i++) {
+      const d = addMonths(startPeriod, i);
+      months.push({ 
+        name: format(d, 'MMM/yy', { locale: ptBR }).toUpperCase(), 
+        date: d,
+        colIndex: 6 + i 
+      });
+    }
     
     // Título Principal
-    worksheet.mergeCells('A1:R1');
+    worksheet.mergeCells('A1:Q1');
     const titleCell = worksheet.getCell('A1');
-    titleCell.value = 'MODELO DE GESTÃO DE LOJAS - CRONOGRAMA EXECUTIVO 2026';
+    titleCell.value = 'MODELO DE GESTÃO DE LOJAS - CRONOGRAMA EXECUTIVO';
     titleCell.font = { name: 'Arial Black', size: 16, color: { argb: 'FFFFFFFF' } };
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E40AF' } };
 
-    // Subtítulo
-    worksheet.mergeCells('A2:R2');
-    const subTitleCell = worksheet.getCell('A2');
-    subTitleCell.value = 'Relatório Geral de Obras e Reformas';
-    subTitleCell.font = { name: 'Arial', size: 12, italic: true, color: { argb: 'FF4B5563' } };
-    subTitleCell.alignment = { horizontal: 'center' };
+    // Cabeçalho da Tabela (Sem Status)
+    // Linha 1 do cabeçalho: Meses
+    const headerRow1 = worksheet.getRow(3);
+    headerRow1.getCell(1).value = "LOJA";
+    headerRow1.getCell(2).value = "TIPO";
+    headerRow1.getCell(3).value = "INÍCIO";
+    headerRow1.getCell(4).value = "INAUGURAÇÃO";
+    headerRow1.getCell(5).value = "PRAZO";
+    
+    months.forEach((m, i) => {
+      const cell = headerRow1.getCell(6 + i);
+      cell.value = m.name;
+    });
 
-    // Cabeçalho da Tabela
-    const headerRow = worksheet.addRow(["LOJA", "TIPO", "INÍCIO", "INAUGURAÇÃO", "PRAZO", "STATUS", ...months]);
-    headerRow.eachCell((cell) => {
+    headerRow1.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF374151' } };
       cell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -136,46 +150,74 @@ const CronogramaLojasProprias = () => {
     });
 
     // Dados das Lojas
-    stores.forEach((s) => {
-      const start = s.data_inicio ? parseISO(s.data_inicio) : null;
-      const end = s.inauguracao ? parseISO(s.inauguracao) : null;
-      const diffTime = start && end ? Math.abs(end.getTime() - start.getTime()) : 0;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    stores.forEach((s, rowIndex) => {
+      const excelRowIndex = 4 + rowIndex;
+      const row = worksheet.getRow(excelRowIndex);
       
-      const rowData = [
-        s.nome.toUpperCase(),
-        s.is_reforma ? 'REFORMA' : 'OBRA NOVA',
-        s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '--',
-        s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '--',
-        diffDays > 0 ? `${diffDays} DIAS` : '--',
-        s.status.toUpperCase()
-      ];
-
-      // Inicializa colunas do Gantt vazias
-      const row = worksheet.addRow([...rowData, ...Array(12).fill('')]);
+      // Colunas de dados
+      row.getCell(1).value = s.nome.toUpperCase();
+      row.getCell(2).value = s.is_reforma ? 'REFORMA' : 'OBRA NOVA';
       
-      // Estilo para as colunas de dados
-      row.eachCell((cell, colNumber) => {
-        if (colNumber <= 6) {
-          cell.alignment = { horizontal: colNumber === 1 ? 'left' : 'center' };
-          cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-        }
-      });
+      // Datas como valores de data reais no Excel para as fórmulas funcionarem
+      const startValue = s.data_inicio ? new Date(s.data_inicio) : null;
+      const endValue = s.inauguracao ? new Date(s.inauguracao) : null;
+      
+      if (startValue) {
+        const c = row.getCell(3);
+        c.value = startValue;
+        c.numFmt = 'dd/mm/yyyy';
+      }
+      if (endValue) {
+        const c = row.getCell(4);
+        c.value = endValue;
+        c.numFmt = 'dd/mm/yyyy';
+      }
 
-      // Aplica cores no Gantt (Meses)
-      months.forEach((_, m) => {
-        const monthDate = new Date(2026, m, 1);
-        const isActive = start && end && (
-          (isSameMonth(monthDate, start) || monthDate > start) && 
-          (isSameMonth(monthDate, end) || monthDate < end)
-        );
+      // Fórmula de Prazo: =D[row]-C[row]
+      row.getCell(5).value = { formula: `IF(AND(C${excelRowIndex}<>"", D${excelRowIndex}<>""), D${excelRowIndex}-C${excelRowIndex} & " DIAS", "--")` };
+
+      // Estilo para dados
+      for (let i = 1; i <= 5; i++) {
+        const cell = row.getCell(i);
+        cell.alignment = { horizontal: i === 1 ? 'left' : 'center' };
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      }
+
+      // Formatação Condicional para o Gantt (Colorir conforme as datas)
+      // No ExcelJS, a formatação condicional é aplicada à worksheet
+      months.forEach((m, i) => {
+        const colLetter = worksheet.getColumn(6 + i).letter;
+        const cell = row.getCell(6 + i);
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
         
-        if (isActive) {
-          const ganttCell = row.getCell(7 + m);
-          const color = s.is_reforma ? 'FFFBBF24' : 'FF10B981'; // Amarelo para Reforma, Verde para Obra
-          ganttCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } };
-          ganttCell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
-        }
+        // Criamos uma data de referência para o mês (ex: 1º dia do mês)
+        const refDate = m.date;
+        const refDateValue = Math.floor(refDate.getTime() / (24 * 60 * 60 * 1000) + 25569); // Conversão para serial do Excel aprox.
+      });
+    });
+
+    // Aplicar Formatação Condicional (Isso faz com que mude de cor se o usuário mudar a data no Excel)
+    // Para cada coluna de mês
+    months.forEach((m, i) => {
+      const colLetter = worksheet.getColumn(6 + i).letter;
+      const monthStart = Math.floor(startOfMonth(m.date).getTime() / (24 * 60 * 60 * 1000) + 25569);
+      const monthEnd = Math.floor(endOfMonth(m.date).getTime() / (24 * 60 * 60 * 1000) + 25569);
+
+      // Regra para Obra Nova (Verde)
+      worksheet.addConditionalFormatting({
+        ref: `${colLetter}4:${colLetter}${4 + stores.length}`,
+        rules: [
+          {
+            type: 'expression',
+            formulae: [`AND($B4="OBRA NOVA", $C4<=${monthEnd}, $D4>=${monthStart})`],
+            style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FF10B981' } } },
+          },
+          {
+            type: 'expression',
+            formulae: [`AND($B4="REFORMA", $C4<=${monthEnd}, $D4>=${monthStart})`],
+            style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FFFBBF24' } } },
+          }
+        ]
       });
     });
 
@@ -185,14 +227,13 @@ const CronogramaLojasProprias = () => {
     worksheet.getColumn(3).width = 15;
     worksheet.getColumn(4).width = 15;
     worksheet.getColumn(5).width = 15;
-    worksheet.getColumn(6).width = 15;
-    for (let i = 7; i <= 18; i++) {
-      worksheet.getColumn(i).width = 6;
+    for (let i = 6; i <= 17; i++) {
+      worksheet.getColumn(i).width = 10;
     }
 
     // Gerar e salvar arquivo
     const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer]), `Cronograma_Lojas_2026.xlsx`);
+    saveAs(new Blob([buffer]), `Cronograma_Executivo_Dinâmico.xlsx`);
   };
 
   const renderTimeline = (store: CronogramaStore) => {
