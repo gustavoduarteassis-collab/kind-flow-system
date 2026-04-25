@@ -270,8 +270,8 @@ const CronogramaLojasProprias = () => {
               className={`flex-1 border-r border-black/5 last:border-r-0 transition-all duration-300 ${
                 isActive 
                   ? store.is_reforma 
-                    ? 'bg-gradient-to-r from-amber-400 to-amber-500 shadow-sm' 
-                    : 'bg-gradient-to-r from-emerald-400 to-emerald-500 shadow-sm'
+                    ? 'bg-gradient-to-r from-[#4A3728] to-[#5D4636] shadow-sm' 
+                    : 'bg-gradient-to-r from-[#8B5A2B] to-[#A67D54] shadow-sm'
                   : ''
               } ${isStart ? 'ring-2 ring-primary ring-inset z-10' : ''} ${isEnd ? 'ring-2 ring-destructive ring-inset z-10' : ''}`}
             />
