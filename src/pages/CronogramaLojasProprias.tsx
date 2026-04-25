@@ -123,7 +123,7 @@ const CronogramaLojasProprias = () => {
     worksheet.mergeCells('A1:E1'); // Fixa o título nas colunas que não rolam
     const titleCell = worksheet.getCell(1, 1);
     titleCell.value = 'CONSTANCE - CRONOGRAMA 2026';
-    titleCell.font = { name: 'Arial Black', size: 14, color: { argb: 'FFFFFFFF' } };
+    titleCell.font = { name: 'Inter', family: 2, size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A3728' } }; // Marrom Escuro
 
@@ -140,7 +140,7 @@ const CronogramaLojasProprias = () => {
       worksheet.mergeCells(2, startCol, 2, endCol);
       const mCell = worksheet.getCell(2, startCol);
       mCell.value = format(month, 'MMMM yyyy', { locale: ptBR }).toUpperCase();
-      mCell.font = { bold: true, size: 10, color: { argb: 'FFFFFFFF' } };
+      mCell.font = { name: 'Inter', family: 2, bold: true, size: 10, color: { argb: 'FFFFFFFF' } };
       mCell.alignment = { horizontal: 'center', vertical: 'middle' };
       mCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8B5A2B' } }; // Marrom Claro
       mCell.border = { left: { style: 'thin', color: { argb: 'FFFFFFFF' } } };
@@ -151,7 +151,7 @@ const CronogramaLojasProprias = () => {
     // Cabeçalho da Tabela
     const headerRow = worksheet.getRow(3);
     const tableHeaderStyle = {
-      font: { bold: true, size: 9, color: { argb: 'FFFFFFFF' } },
+      font: { name: 'Inter', family: 2, bold: true, size: 9, color: { argb: 'FFFFFFFF' } },
       fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A3728' } },
       alignment: { horizontal: 'center', vertical: 'middle' },
       border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
@@ -201,6 +201,7 @@ const CronogramaLojasProprias = () => {
       // Estilo colunas fixas
       for (let i = 1; i <= 5; i++) {
         const cell = row.getCell(i);
+        cell.font = { name: 'Inter', family: 2, size: 9 };
         cell.alignment = { horizontal: i === 1 ? 'left' : 'center', vertical: 'middle' };
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       }
