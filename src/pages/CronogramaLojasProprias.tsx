@@ -446,7 +446,7 @@ const CronogramaLojasProprias = () => {
                       <p className="text-[10px] text-muted-foreground">{store.filial}</p>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={store.is_reforma ? "outline" : "default"} className={store.is_reforma ? "border-amber-500 text-amber-500" : "bg-emerald-500 hover:bg-emerald-600"}>
+                      <Badge variant={store.is_reforma ? "outline" : "default"} className={store.is_reforma ? "border-[#4A3728] text-[#4A3728]" : "bg-[#8B5A2B] hover:bg-[#8B5A2B]/90"}>
                         {store.is_reforma ? "Reforma" : "Nova"}
                       </Badge>
                     </TableCell>
