@@ -266,9 +266,10 @@ const AGM = () => {
 
   const fetchAGMData = useCallback(async () => {
     if (!user) return;
-    const [e, p] = await Promise.all([
+    const [e, p, g] = await Promise.all([
       supabase.from("agm_entries").select("*").eq("mes_referencia", mesRef).order("created_at"),
       supabase.from("agm_action_plans").select("*").eq("mes_referencia", mesRef).order("created_at"),
+      supabase.from("agm_action_plans").select("*").ilike("responsavel", "%Gustavo%").order("prazo_final"),
     ]);
     if (e.data) {
       setEntries(e.data as AgmEntry[]);
@@ -279,6 +280,7 @@ const AGM = () => {
       setEditingEntry(edit);
     }
     if (p.data) setPlans(p.data as ActionPlan[]);
+    if (g.data) setGustavoPlans(g.data as ActionPlan[]);
   }, [user, mesRef]);
 
   // Check if user is authorized team member
