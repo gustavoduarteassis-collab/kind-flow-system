@@ -38,19 +38,22 @@ const CronogramaLojasProprias = () => {
       
       const { data, error } = await supabase
         .from("stores")
-        .select("id, nome, filial, inauguracao, analista_obra, tipo_loja, franqueado");
+        .select("id, nome, filial, inauguracao, analista_obra, tipo_loja, franqueado")
+        .order('nome');
 
       if (data) {
         setStores(data.map(s => {
+          // Identifica se é loja própria pelo campo franqueado
           const isPropria = s.franqueado?.toLowerCase().includes("própria") || 
                            s.franqueado?.toLowerCase().includes("propria");
           
+          // Identifica se é reforma se o nome ou tipo_loja contiver "reforma"
           const isReforma = s.nome?.toLowerCase().includes("reforma") || 
                            s.tipo_loja?.toLowerCase().includes("reforma");
 
           return {
             ...s,
-            status: "Em Andamento",
+            status: isReforma ? "Em Reforma" : "Em Andamento",
             is_propria: isPropria,
             is_reforma: isReforma,
             analista_obra: s.analista_obra || "Não atribuído"
