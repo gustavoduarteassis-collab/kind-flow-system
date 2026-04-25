@@ -372,7 +372,7 @@ const CronogramaLojasProprias = () => {
                   <div className="flex border-b-2 bg-muted/50">
                     <div className="w-64 p-4 font-black text-xs border-r-2 sticky left-0 bg-muted/90 backdrop-blur-md z-20 flex items-center uppercase tracking-widest text-muted-foreground">Listagem de Lojas</div>
                     <div className="flex flex-1 flex-col">
-                      <div className="w-full text-center py-2 font-black text-[11px] border-b-2 bg-primary text-primary-foreground uppercase tracking-[0.3em]">
+                      <div className="w-full text-center py-2 font-black text-[11px] border-b-2 bg-[#4A3728] text-white uppercase tracking-[0.3em]">
                         {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
                       </div>
                       <div className="flex w-full">
