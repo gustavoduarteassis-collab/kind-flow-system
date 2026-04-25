@@ -38,7 +38,7 @@ const CronogramaLojasProprias = () => {
       
       const { data, error } = await supabase
         .from("stores")
-        .select("id, nome, filial, inauguracao, analista_obra, tipo_loja, franqueado")
+        .select("id, nome, filial, inauguracao, data_inicio, tipo_loja, franqueado")
         .order('nome');
 
       if (data) {
@@ -51,12 +51,14 @@ const CronogramaLojasProprias = () => {
           const isReforma = s.nome?.toLowerCase().includes("reforma") || 
                            s.tipo_loja?.toLowerCase().includes("reforma");
 
+          // Trindade não é própria
+          const finalIsPropria = s.nome?.toLowerCase().includes("trindade") ? false : isPropria;
+
           return {
             ...s,
             status: isReforma ? "Em Reforma" : "Em Andamento",
-            is_propria: isPropria,
+            is_propria: finalIsPropria,
             is_reforma: isReforma,
-            analista_obra: s.analista_obra || "Não atribuído"
           };
         }).filter(s => s.is_propria || s.is_reforma));
       }
