@@ -22,6 +22,7 @@ type CronogramaStore = {
   analista_obra: string;
   tipo_loja: string;
   status: string;
+  is_propria: boolean;
   is_reforma: boolean;
 };
 
@@ -35,26 +36,28 @@ const CronogramaLojasProprias = () => {
     const fetchStores = async () => {
       if (!user) return;
       
-      // We'll fetch stores that are marked as "Própria" or identified as such.
-      // For now, we'll fetch all stores and filter in memory if needed, 
-      // or assume the user will tag them.
-      // Looking at existing schema, there isn't an explicit "is_propria" column yet,
-      // but "padrao" or names might indicate it.
-      // The user asked for a "cronograma de lojas proprias e reformas de lojas proprias".
-      
       const { data, error } = await supabase
         .from("stores")
-        .select("id, nome, filial, inauguracao, analista_obra, tipo_loja");
+        .select("id, nome, filial, inauguracao, analista_obra, tipo_loja, franqueado");
 
       if (data) {
-        // Mocking the "is_propria" and "is_reforma" for now as we might need a schema change
-        // to properly categorize them, or we can use the "tipo_loja" if it contains that info.
-        setStores(data.map(s => ({
-          ...s,
-          status: "Em Andamento", // Placeholder
-          is_reforma: s.nome.toLowerCase().includes("reforma") || s.tipo_loja?.toLowerCase().includes("reforma"),
-          analista_obra: s.analista_obra || "Não atribuído"
-        })));
+        setStores(data.map(s => {
+          const isPropria = s.franqueado?.toLowerCase().includes("própria") || 
+                           s.franqueado?.toLowerCase().includes("propria") ||
+                           s.tipo_loja?.toLowerCase().includes("própria") ||
+                           s.tipo_loja?.toLowerCase().includes("propria");
+          
+          const isReforma = s.nome?.toLowerCase().includes("reforma") || 
+                           s.tipo_loja?.toLowerCase().includes("reforma");
+
+          return {
+            ...s,
+            status: "Em Andamento",
+            is_propria: isPropria,
+            is_reforma: isReforma,
+            analista_obra: s.analista_obra || "Não atribuído"
+          };
+        }));
       }
       setLoading(false);
     };
@@ -64,8 +67,10 @@ const CronogramaLojasProprias = () => {
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
 
-  const proprias = stores.filter(s => !s.is_reforma);
-  const reformas = stores.filter(s => s.is_reforma);
+  // Only show stores that are actually "Proprias" (either by category or name)
+  const allProprias = stores.filter(s => s.is_propria || s.is_reforma);
+  const proprias = allProprias.filter(s => !s.is_reforma);
+  const reformas = allProprias.filter(s => s.is_reforma);
 
   return (
     <div className="min-h-screen bg-background pb-12">
