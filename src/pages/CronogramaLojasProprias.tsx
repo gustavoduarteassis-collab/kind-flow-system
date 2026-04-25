@@ -308,84 +308,80 @@ const CronogramaLojasProprias = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF({
-      orientation: 'portrait',
+      orientation: 'landscape',
       unit: 'mm',
       format: 'a4'
     });
 
+    const startDate = new Date(2026, 3, 1);
+    const endDate = new Date(2026, 11, 31);
+    const monthsInInterval = eachMonthOfInterval({ start: startDate, end: endDate });
+    const daysInInterval = eachDayOfInterval({ start: startDate, end: endDate });
+
     // Título
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.setTextColor(74, 55, 40); // Marrom Escuro
-    doc.text('CONSTANCE - CRONOGRAMA EXECUTIVO 2026', 105, 20, { align: 'center' });
+    doc.setFontSize(14);
+    doc.setTextColor(74, 55, 40);
+    doc.text('CONSTANCE - CRONOGRAMA EXECUTIVO 2026', 148, 15, { align: 'center' });
 
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text('Relatório de Obras e Reformas', 105, 27, { align: 'center' });
-
-    // Preparar dados (Novas primeiro, depois Reformas)
     const sortedStores = [
       ...stores.filter(s => !s.is_reforma),
       ...stores.filter(s => s.is_reforma)
     ];
 
-    const tableRows: any[] = [];
+    // Cabeçalho da Tabela
+    const head = [
+      ['LOJA', 'TIPO', 'INÍCIO', 'INAUGURAÇÃO', ...daysInInterval.map(d => format(d, 'dd'))]
+    ];
+
+    const body: any[] = [];
     let currentCategory = "";
 
     sortedStores.forEach((s) => {
       const category = s.is_reforma ? 'REFORMAS' : 'OBRAS NOVAS';
       
-      // Adicionar linha de categoria se mudou
       if (category !== currentCategory) {
-        tableRows.push([
-          { content: category, colSpan: 4, styles: { fillColor: [245, 245, 245], fontStyle: 'bold', textColor: [74, 55, 40] } }
+        body.push([
+          { content: category, colSpan: 4 + daysInInterval.length, styles: { fillColor: [245, 245, 245], fontStyle: 'bold', textColor: [74, 55, 40] } }
         ]);
         currentCategory = category;
       }
 
-      const start = s.data_inicio ? format(new Date(s.data_inicio), 'dd/MM/yyyy') : '--';
-      const end = s.inauguracao ? format(new Date(s.inauguracao), 'dd/MM/yyyy') : '--';
-      let duration = '--';
-      
-      if (s.data_inicio && s.inauguracao) {
-        const diff = differenceInDays(new Date(s.inauguracao), new Date(s.data_inicio));
-        duration = `${diff} dias`;
-      }
+      const storeStart = s.data_inicio ? new Date(s.data_inicio) : null;
+      const storeEnd = s.inauguracao ? new Date(s.inauguracao) : null;
 
-      tableRows.push([
+      const row = [
         s.nome.toUpperCase(),
-        start,
-        end,
-        duration
-      ]);
+        s.is_reforma ? 'REFORMA' : 'OBRA',
+        s.data_inicio ? format(new Date(s.data_inicio), 'dd/MM') : '--',
+        s.inauguracao ? format(new Date(s.inauguracao), 'dd/MM') : '--',
+        ...daysInInterval.map(day => {
+          if (storeStart && storeEnd && isWithinInterval(day, { start: storeStart, end: storeEnd })) {
+            return { content: '', styles: { fillColor: s.is_reforma ? [74, 55, 40] : [139, 90, 43] } };
+          }
+          return '';
+        })
+      ];
+      body.push(row);
     });
 
     autoTable(doc, {
-      startY: 35,
-      head: [['LOJA', 'INÍCIO', 'INAUGURAÇÃO', 'PRAZO']],
-      body: tableRows,
+      startY: 20,
+      head: head,
+      body: body,
       theme: 'grid',
-      headStyles: {
-        fillColor: [74, 55, 40],
-        textColor: [255, 255, 255],
-        fontSize: 10,
-        fontStyle: 'bold',
-        halign: 'center'
-      },
-      bodyStyles: {
-        fontSize: 9,
-        valign: 'middle'
-      },
+      styles: { fontSize: 5, cellPadding: 0.5, halign: 'center' },
+      headStyles: { fillColor: [74, 55, 40], textColor: [255, 255, 255], fontSize: 5 },
       columnStyles: {
-        0: { cellWidth: 'auto' },
-        1: { cellWidth: 35, halign: 'center' },
-        2: { cellWidth: 35, halign: 'center' },
-        3: { cellWidth: 30, halign: 'center' }
+        0: { halign: 'left', cellWidth: 35, fontSize: 5 },
+        1: { cellWidth: 12 },
+        2: { cellWidth: 12 },
+        3: { cellWidth: 12 }
       },
-      margin: { top: 35 }
+      margin: { left: 5, right: 5 }
     });
 
-    doc.save(`Relatorio_Cronograma_Constance.pdf`);
+    doc.save(`Cronograma_Constance_Full_2026.pdf`);
   };
 
   const renderTimeline = (store: CronogramaStore) => {
