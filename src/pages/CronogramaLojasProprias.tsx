@@ -201,6 +201,7 @@ const CronogramaLojasProprias = () => {
       // Estilo colunas fixas
       for (let i = 1; i <= 5; i++) {
         const cell = row.getCell(i);
+        cell.font = { name: 'Inter', family: 2, size: 9 };
         cell.alignment = { horizontal: i === 1 ? 'left' : 'center', vertical: 'middle' };
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       }
