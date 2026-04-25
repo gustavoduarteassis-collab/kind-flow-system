@@ -10,18 +10,21 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Building2, ArrowLeft, Calendar, Clock, CheckCircle2, AlertCircle, HardHat, Download, Eye, ChevronLeft, ChevronRight
+  Building2, ArrowLeft, Calendar, Clock, CheckCircle2, AlertCircle, HardHat, Download, Eye, ChevronLeft, ChevronRight, FileText
 } from "lucide-react";
 import { 
   format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, 
   isSameDay, parseISO, isValid, addDays, startOfYear, endOfYear, 
-  isWithinInterval, eachMonthOfInterval, subMonths, isSameMonth
+  isWithinInterval, eachMonthOfInterval, subMonths, isSameMonth, differenceInDays
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 type CronogramaStore = {
+
   id: string;
   nome: string;
   filial: string;
