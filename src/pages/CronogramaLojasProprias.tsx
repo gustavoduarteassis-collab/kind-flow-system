@@ -52,28 +52,28 @@ const CronogramaLojasProprias = () => {
         .order('nome');
 
       if (data) {
-        // Lojas específicas para 2026 conforme solicitado (copiadas do contexto XLS/PDF)
+        // Lojas específicas para 2026 conforme solicitado (copiadas do contexto/PDF)
         const cronograma2026 = [
-          { nome: "Recife Outlet", inicio: "2026-01-05", inauguracao: "2026-02-10", tipo: "reforma" },
-          { nome: "Shopping Ibirapuera", inicio: "2026-01-15", inauguracao: "2026-03-15", tipo: "reforma" },
-          { nome: "Shopping Interlagos", inicio: "2026-02-01", inauguracao: "2026-04-01", tipo: "reforma" },
-          { nome: "Plaza Campos Gerais", inicio: "2026-03-01", inauguracao: "2026-05-15", tipo: "reforma" },
-          { nome: "Boulevard", inicio: "2026-04-01", inauguracao: "2026-06-20", tipo: "nova" },
-          { nome: "Trindade", inicio: "2026-05-10", inauguracao: "2026-07-15", tipo: "reforma" }
+          { nome: "Riomar Recife", inicio: "2026-01-05", inauguracao: "2026-02-15", tipo: "reforma" },
+          { nome: "Boulevard Shopping", inicio: "2026-02-10", inauguracao: "2026-03-20", tipo: "reforma" },
+          { nome: "Shopping Recife", inicio: "2026-03-01", inauguracao: "2026-04-15", tipo: "reforma" },
+          { nome: "Shopping Costa Dourada", inicio: "2026-04-05", inauguracao: "2026-05-20", tipo: "reforma" },
+          { nome: "Salvador Shopping", inicio: "2026-05-10", inauguracao: "2026-06-25", tipo: "reforma" },
+          { nome: "Shopping Bela Vista", inicio: "2026-06-01", inauguracao: "2026-07-15", tipo: "reforma" },
+          { nome: "Minas Shopping II", inicio: "2026-07-05", inauguracao: "2026-08-20", tipo: "reforma" }
         ];
 
         const filteredStores = data.map(s => {
           const nomeLower = (s.nome || "").toLowerCase().trim();
           const fixo = cronograma2026.find(f => nomeLower.includes(f.nome.toLowerCase()));
           
+          const isFixo = !!fixo;
           const isPropriaManual = nomeLower.includes("boulevard");
           const isReformaManual = nomeLower.includes("reforma") || 
-                                (s.tipo_loja || "").toLowerCase().includes("reforma") ||
-                                ["recife outlet", "ibirapuera", "interlagos", "campos gerais", "trindade"]
-                                .some(r => nomeLower.includes(r));
+                                (s.tipo_loja || "").toLowerCase().includes("reforma");
 
           // Se não for uma das lojas do cronograma fixo E não for explicitamente própria/reforma, ignoramos
-          if (!fixo && !isPropriaManual && !isReformaManual && !s.franqueado?.toLowerCase().includes("própria")) {
+          if (!isFixo && !isPropriaManual && !isReformaManual && !s.franqueado?.toLowerCase().includes("própria")) {
              return null;
           }
 
