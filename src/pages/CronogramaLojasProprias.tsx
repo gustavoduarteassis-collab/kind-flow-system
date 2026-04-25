@@ -123,7 +123,7 @@ const CronogramaLojasProprias = () => {
     worksheet.mergeCells('A1:E1'); // Fixa o título nas colunas que não rolam
     const titleCell = worksheet.getCell(1, 1);
     titleCell.value = 'CONSTANCE - CRONOGRAMA 2026';
-    titleCell.font = { name: 'Arial Black', size: 14, color: { argb: 'FFFFFFFF' } };
+    titleCell.font = { name: 'Inter', family: 2, size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A3728' } }; // Marrom Escuro
 
