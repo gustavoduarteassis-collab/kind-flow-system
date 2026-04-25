@@ -108,6 +108,10 @@ const CronogramaLojasProprias = () => {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('CRONOGRAMA EXECUTIVO 2026');
 
+    // Inserir Logo via Base64 (Logo simplificada da Constance em texto estilizado se imagem não disponível)
+    // Para inserir uma imagem real, precisaríamos do buffer da imagem. 
+    // Como alternativa robusta, vamos configurar o cabeçalho para ser fixo e visível.
+
     // Configuração do período (Abril 2026 até Dezembro 2026)
     const startDate = new Date(2026, 3, 1); // Abril
     const endDate = new Date(2026, 11, 31); // Dezembro
@@ -116,11 +120,11 @@ const CronogramaLojasProprias = () => {
     
     // Título Principal
     const totalCols = 5 + daysInInterval.length;
-    worksheet.mergeCells(1, 1, 1, totalCols);
+    worksheet.mergeCells('A1:E1'); // Fixa o título nas colunas que não rolam
     const titleCell = worksheet.getCell(1, 1);
-    titleCell.value = 'CONSTANCE - MODELO DE GESTÃO DE LOJAS - CRONOGRAMA 2026';
+    titleCell.value = 'CONSTANCE - CRONOGRAMA 2026';
     titleCell.font = { name: 'Arial Black', size: 14, color: { argb: 'FFFFFFFF' } };
-    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A3728' } }; // Marrom Escuro
 
     // Linha dos Meses
@@ -242,7 +246,7 @@ const CronogramaLojasProprias = () => {
       worksheet.getColumn(i).width = 3.5;
     }
 
-    // Congelar painéis para facilitar navegação
+    // Congelar painéis para facilitar navegação (Coluna A até E e as 3 primeiras linhas)
     worksheet.views = [{ state: 'frozen', xSplit: 5, ySplit: 3 }];
 
     const buffer = await workbook.xlsx.writeBuffer();
