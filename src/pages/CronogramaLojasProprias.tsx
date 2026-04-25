@@ -34,6 +34,7 @@ const CronogramaLojasProprias = () => {
   const navigate = useNavigate();
   const [stores, setStores] = useState<CronogramaStore[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewGantt, setViewGantt] = useState(true);
 
   useEffect(() => {
     const fetchStores = async () => {
@@ -50,7 +51,6 @@ const CronogramaLojasProprias = () => {
           const franqueadoLower = (s.franqueado || "").toLowerCase().trim();
           const tipoLower = (s.tipo_loja || "").toLowerCase().trim();
 
-          // Lojas que devem ser consideradas como reforma conforme PDF/solicitação
           const lojasReforma = [
             "recife outlet",
             "ibirapuera",
@@ -63,7 +63,6 @@ const CronogramaLojasProprias = () => {
                            tipoLower.includes("reforma") ||
                            lojasReforma.some(r => nomeLower.includes(r));
           
-          // Identifica se é loja própria
           const isPropriaManual = nomeLower.includes("boulevard");
           const isNotPropriaManual = nomeLower.includes("trindade");
 
@@ -71,11 +70,22 @@ const CronogramaLojasProprias = () => {
                             franqueadoLower.includes("propria") || 
                             isPropriaManual) && !isNotPropriaManual;
 
+          // Estimate a start date if not present (e.g., 2 months before inauguration)
+          const dataInauguracao = s.inauguracao;
+          let dataInicio = null;
+          if (dataInauguracao) {
+            const date = new Date(dataInauguracao);
+            date.setMonth(date.getMonth() - 2);
+            dataInicio = date.toISOString().split('T')[0];
+          }
+
           return {
             ...s,
             status: isReforma ? "Em Reforma" : "Em Andamento",
             is_propria: isPropria,
             is_reforma: isReforma,
+            data_inicio: dataInicio,
+            inauguracao: dataInauguracao
           };
         }).filter(s => s.is_propria || s.is_reforma));
       }
@@ -84,6 +94,69 @@ const CronogramaLojasProprias = () => {
 
     fetchStores();
   }, [user]);
+
+  const updateStoreDate = (id: string, field: 'data_inicio' | 'inauguracao', value: string) => {
+    setStores(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+
+  const exportToExcel = () => {
+    const exportData = stores.map(s => ({
+      Loja: s.nome,
+      Filial: s.filial,
+      Tipo: s.is_reforma ? 'Reforma' : 'Nova',
+      'Data de Início': s.data_inicio ? format(new Date(s.data_inicio), 'dd/MM/yyyy') : '',
+      'Data de Inauguração': s.inauguracao ? format(new Date(s.inauguracao), 'dd/MM/yyyy') : '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Cronograma");
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+    saveAs(data, `cronograma_obras_${format(new Date(), 'dd_MM_yyyy')}.xlsx`);
+  };
+
+  const timelineMonths = useMemo(() => {
+    const now = new Date();
+    const start = startOfMonth(now);
+    const end = addMonths(start, 12);
+    return eachMonthOfInterval({ start, end });
+  }, []);
+
+  const renderTimeline = (store: CronogramaStore) => {
+    if (!store.data_inicio || !store.inauguracao) return null;
+    
+    const start = parseISO(store.data_inicio);
+    const end = parseISO(store.inauguracao);
+    
+    if (!isValid(start) || !isValid(end)) return null;
+
+    return (
+      <div className="flex w-full gap-1 h-8 mt-2">
+        {timelineMonths.map((month, idx) => {
+          const isMonthActive = (
+            (isSameMonth(month, start) || month > start) && 
+            (isSameMonth(month, end) || month < end)
+          );
+          
+          const isStart = isSameMonth(month, start);
+          const isEnd = isSameMonth(month, end);
+
+          return (
+            <div 
+              key={idx} 
+              className={`flex-1 rounded-sm transition-all duration-300 ${
+                isMonthActive 
+                  ? store.is_reforma ? 'bg-amber-400' : 'bg-emerald-400'
+                  : 'bg-muted/30'
+              } ${isStart ? 'ring-2 ring-primary ring-offset-1' : ''} ${isEnd ? 'ring-2 ring-destructive ring-offset-1' : ''}`}
+              title={`${format(month, 'MMM/yy', { locale: ptBR })} - ${store.nome}`}
+            />
+          );
+        })}
+      </div>
+    );
+  };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
 
