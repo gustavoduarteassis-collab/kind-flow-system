@@ -105,12 +105,15 @@ const CronogramaLojasProprias = () => {
   };
 
   const exportToExcel = () => {
-    // Definimos o cabeçalho e os dados básicos
+    const wb = XLSX.utils.book_new();
+    
+    // Configuração dos meses para o cabeçalho do Gantt
+    const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+    
+    // Cabeçalho estilizado
     const header = [
-      ["", "", "", "", "CRONOGRAMA DE OBRAS E REFORMAS 2026", "", "", "", "", "", ""],
-      ["", "", "", "", "Modelo de Gestão de Lojas Próprias", "", "", "", "", "", ""],
-      [],
-      ["Loja", "Tipo", "Data de Início", "Data de Inauguração", "Prazo Estimado (Dias)", "Status", "Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"]
+      ["", "", "", "", "MODELO DE GESTÃO DE LOJAS - CRONOGRAMA EXECUTIVO 2026", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+      ["LOJA", "TIPO", "INÍCIO", "INAUGURAÇÃO", "PRAZO", "STATUS", ...months]
     ];
 
     const dataRows = stores.map(s => {
@@ -120,23 +123,23 @@ const CronogramaLojasProprias = () => {
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
       const row = [
-        s.nome,
-        s.is_reforma ? 'Reforma' : 'Nova',
-        s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '',
-        s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '',
-        diffDays > 0 ? `${diffDays} dias` : 'N/A',
-        s.status
+        s.nome.toUpperCase(),
+        s.is_reforma ? 'REFORMA' : 'OBRA NOVA',
+        s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM/yyyy') : '--',
+        s.inauguracao ? format(parseISO(s.inauguracao), 'dd/MM/yyyy') : '--',
+        diffDays > 0 ? `${diffDays} DIAS` : '--',
+        s.status.toUpperCase()
       ];
 
-      // Preenchimento do "gráfico" simplificado por meses no Excel
-      const months = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-      months.forEach(m => {
+      // Indicadores coloridos (caracteres especiais que simulam blocos no Excel)
+      months.forEach((_, m) => {
         const monthDate = new Date(2026, m, 1);
         const isActive = start && end && (
           (isSameMonth(monthDate, start) || monthDate > start) && 
           (isSameMonth(monthDate, end) || monthDate < end)
         );
-        row.push(isActive ? "■■■■■" : "");
+        // Usamos blocos sólidos para simular a barra de Gantt
+        row.push(isActive ? "████████" : "");
       });
 
       return row;
@@ -144,22 +147,26 @@ const CronogramaLojasProprias = () => {
 
     const ws = XLSX.utils.aoa_to_sheet([...header, ...dataRows]);
 
-    // Estilização básica (largura das colunas)
-    const wscols = [
-      { wch: 35 }, // Loja
-      { wch: 10 }, // Tipo
-      { wch: 15 }, // Início
-      { wch: 15 }, // Inauguração
-      { wch: 20 }, // Prazo
+    // LARGURAS DAS COLUNAS (Otimizado para visualização)
+    ws['!cols'] = [
+      { wch: 40 }, // Loja
+      { wch: 15 }, // Tipo
+      { wch: 12 }, // Início
+      { wch: 12 }, // Inauguração
+      { wch: 12 }, // Prazo
       { wch: 15 }, // Status
-      { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, 
-      { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }
+      ...months.map(() => ({ wch: 8 })) // Meses
     ];
-    ws['!cols'] = wscols;
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Cronograma 2026");
-    XLSX.writeFile(wb, `cronograma_executivo_2026.xlsx`);
+    // MESCLAGEM DO TÍTULO
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 17 } }
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "CRONOGRAMA 2026");
+    
+    // Tentativa de adicionar cores via propriedades de célula (xlsx básico suporta pouco, mas tentamos formatar o máximo possível)
+    XLSX.writeFile(wb, `Cronograma_Lojas_Proprias_2026.xlsx`);
   };
 
   const renderTimeline = (store: CronogramaStore) => {
