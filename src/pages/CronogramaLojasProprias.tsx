@@ -43,22 +43,27 @@ const CronogramaLojasProprias = () => {
 
       if (data) {
         setStores(data.map(s => {
-          // Identifica se é loja própria pelo campo franqueado
-          const isPropria = s.franqueado?.toLowerCase().includes("própria") || 
-                           s.franqueado?.toLowerCase().includes("propria");
-          
+          const nomeLower = s.nome?.toLowerCase() || "";
+          const franqueadoLower = s.franqueado?.toLowerCase() || "";
+          const tipoLower = s.tipo_loja?.toLowerCase() || "";
+
           // Identifica se é reforma se o nome ou tipo_loja contiver "reforma"
-          const isReforma = s.nome?.toLowerCase().includes("reforma") || 
-                           s.tipo_loja?.toLowerCase().includes("reforma");
+          const isReforma = nomeLower.includes("reforma") || tipoLower.includes("reforma");
+          
+          // Identifica se é loja própria
+          // Adicionado Boulevard como própria conforme solicitado
+          // Removido Trindade das próprias conforme solicitado
+          const isPropriaManual = nomeLower.includes("boulevard");
+          const isNotPropriaManual = nomeLower.includes("trindade");
 
-          // Trindade não é própria
-          const finalIsPropria = (s.nome?.toLowerCase().includes("trindade") || s.franqueado?.toLowerCase().includes("marli")) ? false : isPropria;
+          const isPropria = (franqueadoLower.includes("própria") || 
+                            franqueadoLower.includes("propria") || 
+                            isPropriaManual) && !isNotPropriaManual;
 
-          // No momento não temos data_inicio no banco, mas deixamos o campo pronto
           return {
             ...s,
             status: isReforma ? "Em Reforma" : "Em Andamento",
-            is_propria: finalIsPropria,
+            is_propria: isPropria,
             is_reforma: isReforma,
           };
         }).filter(s => s.is_propria || s.is_reforma));
