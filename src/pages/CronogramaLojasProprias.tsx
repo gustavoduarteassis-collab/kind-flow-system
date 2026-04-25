@@ -106,48 +106,68 @@ const CronogramaLojasProprias = () => {
 
   const exportToExcel = async () => {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('CRONOGRAMA DETALHADO 2026');
+    const worksheet = workbook.addWorksheet('CRONOGRAMA EXECUTIVO 2026');
 
-    // Configuração do período (Abril 2026)
-    const currentMonthStart = startOfMonth(currentMonth);
-    const currentMonthEnd = endOfMonth(currentMonth);
-    const daysInMonth = eachDayOfInterval({ start: currentMonthStart, end: currentMonthEnd });
+    // Configuração do período (Abril 2026 até Dezembro 2026)
+    const startDate = new Date(2026, 3, 1); // Abril
+    const endDate = new Date(2026, 11, 31); // Dezembro
+    const daysInInterval = eachDayOfInterval({ start: startDate, end: endDate });
+    const monthsInInterval = eachMonthOfInterval({ start: startDate, end: endDate });
     
     // Título Principal
-    worksheet.mergeCells(1, 1, 1, 5 + daysInMonth.length);
+    const totalCols = 5 + daysInInterval.length;
+    worksheet.mergeCells(1, 1, 1, totalCols);
     const titleCell = worksheet.getCell(1, 1);
-    titleCell.value = 'MODELO DE GESTÃO DE LOJAS - CRONOGRAMA EXECUTIVO';
+    titleCell.value = 'CONSTANCE - MODELO DE GESTÃO DE LOJAS - CRONOGRAMA 2026';
     titleCell.font = { name: 'Arial Black', size: 14, color: { argb: 'FFFFFFFF' } };
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E40AF' } };
+    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A3728' } }; // Marrom Escuro
 
-    // Linha do Mês (Centralizada sobre os dias)
-    worksheet.mergeCells(2, 6, 2, 5 + daysInMonth.length);
-    const monthCell = worksheet.getCell(2, 6);
-    monthCell.value = format(currentMonth, 'MMMM yyyy', { locale: ptBR }).toUpperCase();
-    monthCell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    monthCell.alignment = { horizontal: 'center', vertical: 'middle' };
-    monthCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF3B82F6' } };
+    // Linha dos Meses
+    let currentDayCol = 6;
+    monthsInInterval.forEach((month) => {
+      const start = isSameMonth(month, startDate) ? startDate : startOfMonth(month);
+      const end = isSameMonth(month, endDate) ? endDate : endOfMonth(month);
+      const days = eachDayOfInterval({ start, end });
+      
+      const startCol = currentDayCol;
+      const endCol = currentDayCol + days.length - 1;
+      
+      worksheet.mergeCells(2, startCol, 2, endCol);
+      const mCell = worksheet.getCell(2, startCol);
+      mCell.value = format(month, 'MMMM yyyy', { locale: ptBR }).toUpperCase();
+      mCell.font = { bold: true, size: 10, color: { argb: 'FFFFFFFF' } };
+      mCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      mCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF8B5A2B' } }; // Marrom Claro
+      mCell.border = { left: { style: 'thin', color: { argb: 'FFFFFFFF' } } };
+      
+      currentDayCol += days.length;
+    });
 
     // Cabeçalho da Tabela
     const headerRow = worksheet.getRow(3);
+    const tableHeaderStyle = {
+      font: { bold: true, size: 9, color: { argb: 'FFFFFFFF' } },
+      fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A3728' } },
+      alignment: { horizontal: 'center', vertical: 'middle' },
+      border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
+    };
+
     headerRow.getCell(1).value = "LOJA";
     headerRow.getCell(2).value = "TIPO";
     headerRow.getCell(3).value = "INÍCIO";
     headerRow.getCell(4).value = "INAUGURAÇÃO";
     headerRow.getCell(5).value = "PRAZO";
     
+    for (let i = 1; i <= 5; i++) {
+      headerRow.getCell(i).style = tableHeaderStyle as any;
+    }
+
     // Dias do Mês
-    daysInMonth.forEach((day, i) => {
+    daysInInterval.forEach((day, i) => {
       const cell = headerRow.getCell(6 + i);
       cell.value = format(day, 'dd');
-    });
-
-    headerRow.eachCell((cell, colNumber) => {
-      cell.font = { bold: true, size: 9, color: { argb: 'FFFFFFFF' } };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF374151' } };
-      cell.alignment = { horizontal: 'center', vertical: 'middle' };
-      cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+      cell.style = tableHeaderStyle as any;
     });
 
     // Dados das Lojas
@@ -158,17 +178,17 @@ const CronogramaLojasProprias = () => {
       row.getCell(1).value = s.nome.toUpperCase();
       row.getCell(2).value = s.is_reforma ? 'REFORMA' : 'OBRA NOVA';
       
-      const startValue = s.data_inicio ? new Date(s.data_inicio) : null;
-      const endValue = s.inauguracao ? new Date(s.inauguracao) : null;
+      const startVal = s.data_inicio ? new Date(s.data_inicio) : null;
+      const endVal = s.inauguracao ? new Date(s.inauguracao) : null;
       
-      if (startValue) {
+      if (startVal) {
         const c = row.getCell(3);
-        c.value = startValue;
+        c.value = startVal;
         c.numFmt = 'dd/mm/yyyy';
       }
-      if (endValue) {
+      if (endVal) {
         const c = row.getCell(4);
-        c.value = endValue;
+        c.value = endVal;
         c.numFmt = 'dd/mm/yyyy';
       }
 
@@ -177,41 +197,57 @@ const CronogramaLojasProprias = () => {
       // Estilo colunas fixas
       for (let i = 1; i <= 5; i++) {
         const cell = row.getCell(i);
-        cell.alignment = { horizontal: i === 1 ? 'left' : 'center' };
+        cell.alignment = { horizontal: i === 1 ? 'left' : 'center', vertical: 'middle' };
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       }
 
       // Bordas para as colunas de dias
-      daysInMonth.forEach((_, i) => {
+      daysInInterval.forEach((_, i) => {
         const cell = row.getCell(6 + i);
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
       });
     });
 
-    // Formatação Condicional para cada dia do mês
-    daysInMonth.forEach((day, i) => {
+    // Formatação Condicional para cada dia
+    daysInInterval.forEach((day, i) => {
       const colLetter = worksheet.getColumn(6 + i).letter;
-      const excelDayValue = Math.floor(day.getTime() / (24 * 60 * 60 * 1000) + 25569);
+      const excelDayVal = Math.floor(day.getTime() / (24 * 60 * 60 * 1000) + 25569);
 
-      // Regra para Obra Nova (Verde)
       worksheet.addConditionalFormatting({
         ref: `${colLetter}4:${colLetter}${4 + stores.length}`,
         rules: [
           {
             type: 'expression',
             priority: 1,
-            formulae: [`AND($B4="OBRA NOVA", $C4<=${excelDayValue}, $D4>=${excelDayValue})`],
-            style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FF10B981' } } },
+            formulae: [`AND($B4="OBRA NOVA", $C4<=${excelDayVal}, $D4>=${excelDayVal})`],
+            style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FF8B5A2B' } } }, // Marrom Claro para Obras
           },
           {
             type: 'expression',
             priority: 2,
-            formulae: [`AND($B4="REFORMA", $C4<=${excelDayValue}, $D4>=${excelDayValue})`],
-            style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FFFBBF24' } } },
+            formulae: [`AND($B4="REFORMA", $C4<=${excelDayVal}, $D4>=${excelDayVal})`],
+            style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: 'FF4A3728' } } }, // Marrom Escuro para Reformas
           }
         ]
       });
     });
+
+    // Largura das colunas
+    worksheet.getColumn(1).width = 40;
+    worksheet.getColumn(2).width = 15;
+    worksheet.getColumn(3).width = 12;
+    worksheet.getColumn(4).width = 12;
+    worksheet.getColumn(5).width = 12;
+    for (let i = 6; i <= 5 + daysInInterval.length; i++) {
+      worksheet.getColumn(i).width = 3.5;
+    }
+
+    // Congelar painéis para facilitar navegação
+    worksheet.views = [{ state: 'frozen', xSplit: 5, ySplit: 3 }];
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `Cronograma_Constance_2026.xlsx`);
+  };
 
     // Largura das colunas
     worksheet.getColumn(1).width = 40;
