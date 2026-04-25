@@ -387,8 +387,8 @@ const CronogramaLojasProprias = () => {
                   
                   <div className="max-h-[600px] overflow-y-auto">
                     {proprias.length > 0 && (
-                      <div className="border-b-4 border-emerald-100">
-                        <div className="p-2 px-4 text-[11px] font-black text-white bg-emerald-500 uppercase tracking-[0.2em] shadow-inner">Cronograma de Obras Novas</div>
+                      <div className="border-b-4 border-[#8B5A2B]/10">
+                        <div className="p-2 px-4 text-[11px] font-black text-white bg-[#8B5A2B] uppercase tracking-[0.2em] shadow-inner">Cronograma de Obras Novas</div>
                         {proprias.map(s => (
                           <div key={s.id} className="flex border-t hover:bg-emerald-50/50 transition-all duration-200 group">
                             <div className="w-64 p-4 text-[11px] font-bold border-r-2 truncate sticky left-0 bg-background group-hover:bg-emerald-50/50 z-20 transition-colors uppercase tracking-tight" title={s.nome}>{s.nome}</div>
