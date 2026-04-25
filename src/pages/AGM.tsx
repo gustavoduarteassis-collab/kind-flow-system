@@ -609,6 +609,9 @@ const AGM = () => {
             <TabsTrigger value="analistas">Metas Analistas</TabsTrigger>
             <TabsTrigger value="indicadores">Indicadores Extras</TabsTrigger>
             <TabsTrigger value="planos">Planos de Ação ({plans.length})</TabsTrigger>
+            <TabsTrigger value="gustavo" className="bg-primary/10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              Ações Gustavo ({gustavoPlans.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="lojas" className="space-y-4">
