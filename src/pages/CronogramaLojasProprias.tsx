@@ -324,7 +324,6 @@ const CronogramaLojasProprias = () => {
         </section>
       </main>
     </div>
-    </div>
   );
 };
 
