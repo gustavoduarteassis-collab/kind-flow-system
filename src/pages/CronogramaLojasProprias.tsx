@@ -296,11 +296,11 @@ const CronogramaLojasProprias = () => {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <HardHat className="h-8 w-8 text-primary" />
+              <div className="bg-[#4A3728]/10 p-2 rounded-lg">
+                <HardHat className="h-8 w-8 text-[#4A3728]" />
               </div>
               <div>
-                <h1 className="text-2xl font-black tracking-tight text-primary uppercase">Modelo de Gestão de Lojas</h1>
+                <h1 className="text-2xl font-black tracking-tight text-[#4A3728] uppercase">Modelo de Gestão de Lojas</h1>
                 <p className="text-xs font-bold text-muted-foreground tracking-[0.2em] uppercase">Cronograma Executivo 2026</p>
               </div>
             </div>
