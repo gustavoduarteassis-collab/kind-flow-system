@@ -151,7 +151,7 @@ const CronogramaLojasProprias = () => {
     // Cabeçalho da Tabela
     const headerRow = worksheet.getRow(3);
     const tableHeaderStyle = {
-      font: { bold: true, size: 9, color: { argb: 'FFFFFFFF' } },
+      font: { name: 'Inter', family: 2, bold: true, size: 9, color: { argb: 'FFFFFFFF' } },
       fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF4A3728' } },
       alignment: { horizontal: 'center', vertical: 'middle' },
       border: { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } }
