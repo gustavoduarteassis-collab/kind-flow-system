@@ -52,8 +52,9 @@ const CronogramaLojasProprias = () => {
                            s.tipo_loja?.toLowerCase().includes("reforma");
 
           // Trindade não é própria
-          const finalIsPropria = s.nome?.toLowerCase().includes("trindade") ? false : isPropria;
+          const finalIsPropria = (s.nome?.toLowerCase().includes("trindade") || s.franqueado?.toLowerCase().includes("marli")) ? false : isPropria;
 
+          // No momento não temos data_inicio no banco, mas deixamos o campo pronto
           return {
             ...s,
             status: isReforma ? "Em Reforma" : "Em Andamento",
