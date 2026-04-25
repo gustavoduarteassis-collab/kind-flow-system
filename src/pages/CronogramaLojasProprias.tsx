@@ -363,6 +363,16 @@ const CronogramaLojasProprias = () => {
                         onChange={(e) => updateStoreDate(store.id, 'inauguracao', e.target.value)}
                       />
                     </TableCell>
+                    <TableCell className="text-xs font-medium text-muted-foreground">
+                      {(() => {
+                        if (!store.data_inicio || !store.inauguracao) return "--";
+                        const start = parseISO(store.data_inicio);
+                        const end = parseISO(store.inauguracao);
+                        if (!isValid(start) || !isValid(end)) return "--";
+                        const diff = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                        return `${diff} dias`;
+                      })()}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
