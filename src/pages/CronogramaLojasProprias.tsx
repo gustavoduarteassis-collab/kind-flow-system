@@ -201,58 +201,66 @@ const CronogramaLojasProprias = () => {
 
         {viewGantt && (
           <Card className="p-6">
-            <div className="flex justify-between items-end mb-4 overflow-x-auto">
-              <div className="w-48 flex-shrink-0 font-semibold text-sm">Loja</div>
-              <div className="flex flex-1 gap-1 min-w-[600px]">
-                {timelineMonths.map((month, i) => (
-                  <div key={i} className="flex-1 text-[10px] text-center text-muted-foreground border-l pl-1">
-                    {format(month, 'MMM/yy', { locale: ptBR })}
-                  </div>
-                ))}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="text-lg font-bold min-w-[150px] text-center capitalize">
+                  {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+                </div>
+                <Button variant="outline" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex gap-4 text-xs">
+                 <div className="flex items-center gap-1"><div className="w-3 h-3 bg-emerald-400 rounded-sm" /> Obra</div>
+                 <div className="flex items-center gap-1"><div className="w-3 h-3 bg-amber-400 rounded-sm" /> Reforma</div>
               </div>
             </div>
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-sm font-bold text-emerald-600 mb-2 uppercase tracking-wider">Obras Novas</h3>
-                {proprias.map(s => (
-                  <div key={s.id} className="flex items-center gap-4 py-2 border-t group">
-                    <div className="w-48 flex-shrink-0">
-                      <p className="text-sm font-medium truncate" title={s.nome}>{s.nome}</p>
-                      <p className="text-[10px] text-muted-foreground italic">Início: {s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM') : '--'}</p>
-                    </div>
-                    <div className="flex-1">
-                      {renderTimeline(s)}
-                    </div>
+
+            <div className="relative overflow-x-auto border rounded-lg">
+              <div className="min-w-[800px]">
+                <div className="flex border-b bg-muted/30">
+                  <div className="w-48 p-2 font-bold text-xs border-r sticky left-0 bg-background z-20">Loja</div>
+                  <div className="flex flex-1">
+                    {timelineDays.map((day, i) => (
+                      <div key={i} className={`flex-1 text-[9px] text-center p-1 border-r ${[0, 6].includes(day.getDay()) ? 'bg-muted/50' : ''}`}>
+                        {format(day, 'dd')}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div>
-                <h3 className="text-sm font-bold text-amber-600 mb-2 mt-4 uppercase tracking-wider">Reformas</h3>
-                {reformas.map(s => (
-                  <div key={s.id} className="flex items-center gap-4 py-2 border-t group">
-                    <div className="w-48 flex-shrink-0">
-                      <p className="text-sm font-medium truncate" title={s.nome}>{s.nome}</p>
-                      <p className="text-[10px] text-muted-foreground italic">Início: {s.data_inicio ? format(parseISO(s.data_inicio), 'dd/MM') : '--'}</p>
+                </div>
+                
+                <div className="max-h-[500px] overflow-y-auto">
+                  {proprias.length > 0 && (
+                    <div className="bg-emerald-50/30">
+                      <div className="p-1 px-3 text-[10px] font-bold text-emerald-700 uppercase">Obras Novas</div>
+                      {proprias.map(s => (
+                        <div key={s.id} className="flex border-t hover:bg-muted/10 transition-colors">
+                          <div className="w-48 p-2 text-xs border-r font-medium truncate sticky left-0 bg-background z-20" title={s.nome}>{s.nome}</div>
+                          <div className="flex flex-1">
+                            {renderTimeline(s)}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex-1">
-                      {renderTimeline(s)}
+                  )}
+
+                  {reformas.length > 0 && (
+                    <div className="bg-amber-50/30">
+                      <div className="p-1 px-3 text-[10px] font-bold text-amber-700 uppercase border-t">Reformas</div>
+                      {reformas.map(s => (
+                        <div key={s.id} className="flex border-t hover:bg-muted/10 transition-colors">
+                          <div className="w-48 p-2 text-xs border-r font-medium truncate sticky left-0 bg-background z-20" title={s.nome}>{s.nome}</div>
+                          <div className="flex flex-1">
+                            {renderTimeline(s)}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-8 pt-4 border-t flex gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-emerald-400 rounded-sm" /> Obra Nova
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 bg-amber-400 rounded-sm" /> Reforma
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 ring-2 ring-primary" /> Marcador: Início
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-3 h-3 ring-2 ring-destructive" /> Marcador: Inauguração
+                  )}
+                </div>
               </div>
             </div>
           </Card>
