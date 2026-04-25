@@ -52,40 +52,27 @@ const CronogramaLojasProprias = () => {
         .order('nome');
 
       if (data) {
-        // Lojas específicas para 2026 conforme solicitado (copiadas do contexto/PDF)
-        const cronograma2026 = [
-          { nome: "Riomar Recife", inicio: "2026-01-05", inauguracao: "2026-02-15", tipo: "reforma" },
-          { nome: "Boulevard Shopping", inicio: "2026-02-10", inauguracao: "2026-03-20", tipo: "reforma" },
-          { nome: "Shopping Recife", inicio: "2026-03-01", inauguracao: "2026-04-15", tipo: "reforma" },
-          { nome: "Shopping Costa Dourada", inicio: "2026-04-05", inauguracao: "2026-05-20", tipo: "reforma" },
-          { nome: "Salvador Shopping", inicio: "2026-05-10", inauguracao: "2026-06-25", tipo: "reforma" },
-          { nome: "Shopping Bela Vista", inicio: "2026-06-01", inauguracao: "2026-07-15", tipo: "reforma" },
-          { nome: "Minas Shopping II", inicio: "2026-07-05", inauguracao: "2026-08-20", tipo: "reforma" }
-        ];
-
+        // Inicialmente vazio para permitir o cadastro manual pelo usuário
         const filteredStores = data.map(s => {
           const nomeLower = (s.nome || "").toLowerCase().trim();
-          const fixo = cronograma2026.find(f => nomeLower.includes(f.nome.toLowerCase()));
-          
-          const isFixo = !!fixo;
-          const isPropriaManual = nomeLower.includes("boulevard");
-          const isReformaManual = nomeLower.includes("reforma") || 
-                                (s.tipo_loja || "").toLowerCase().includes("reforma");
+          const franqueadoLower = (s.franqueado || "").toLowerCase().trim();
+          const tipoLower = (s.tipo_loja || "").toLowerCase().trim();
 
-          // Se não for uma das lojas do cronograma fixo E não for explicitamente própria/reforma, ignoramos
-          if (!isFixo && !isPropriaManual && !isReformaManual && !s.franqueado?.toLowerCase().includes("própria")) {
+          const isReforma = nomeLower.includes("reforma") || tipoLower.includes("reforma");
+          const isPropria = franqueadoLower.includes("própria") || franqueadoLower.includes("propria");
+
+          // Só mantemos se for explicitamente própria ou reforma já cadastrada no banco
+          if (!isPropria && !isReforma) {
              return null;
           }
-
-          const isReforma = fixo ? fixo.tipo === "reforma" : isReformaManual;
 
           return {
             ...s,
             status: isReforma ? "Em Reforma" : "Em Andamento",
-            is_propria: fixo ? fixo.tipo === "nova" : !isReforma,
+            is_propria: isPropria,
             is_reforma: isReforma,
-            data_inicio: fixo ? fixo.inicio : (s.inauguracao ? addDays(new Date(s.inauguracao), -60).toISOString().split('T')[0] : null),
-            inauguracao: fixo ? fixo.inauguracao : (s.inauguracao ? s.inauguracao.split('T')[0] : null)
+            data_inicio: s.inauguracao ? addDays(new Date(s.inauguracao), -60).toISOString().split('T')[0] : null,
+            inauguracao: s.inauguracao ? s.inauguracao.split('T')[0] : null
           };
         }).filter(Boolean);
 
