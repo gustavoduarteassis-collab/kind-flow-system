@@ -226,13 +226,18 @@ const CronogramaLojasProprias = () => {
             <div className="relative overflow-x-auto border rounded-lg">
               <div className="min-w-[800px]">
                 <div className="flex border-b bg-muted/30">
-                  <div className="w-48 p-2 font-bold text-xs border-r sticky left-0 bg-background z-20">Loja</div>
-                  <div className="flex flex-1">
-                    {timelineDays.map((day, i) => (
-                      <div key={i} className={`flex-1 text-[9px] text-center p-1 border-r ${[0, 6].includes(day.getDay()) ? 'bg-muted/50' : ''}`}>
-                        {format(day, 'dd')}
-                      </div>
-                    ))}
+                  <div className="w-48 p-2 font-bold text-xs border-r sticky left-0 bg-background z-20 flex items-center justify-center">Loja</div>
+                  <div className="flex flex-1 flex-col">
+                    <div className="w-full text-center py-1 font-bold text-[10px] border-b bg-primary/5 capitalize">
+                      {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
+                    </div>
+                    <div className="flex w-full">
+                      {timelineDays.map((day, i) => (
+                        <div key={i} className={`flex-1 text-[9px] text-center p-1 border-r last:border-r-0 ${[0, 6].includes(day.getDay()) ? 'bg-muted/50' : ''}`}>
+                          {format(day, 'dd')}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 
