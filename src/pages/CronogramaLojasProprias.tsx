@@ -46,34 +46,40 @@ const CronogramaLojasProprias = () => {
         .order('nome');
 
       if (data) {
+        // Dados do cronograma fixo 2025 fornecido pelo usuário
+        const cronogramaFixo = [
+          { nome: "Recife Outlet", inicio: "2025-01-13", inauguracao: "2025-02-14", tipo: "reforma" },
+          { nome: "Shopping Ibirapuera", inicio: "2025-01-27", inauguracao: "2025-03-20", tipo: "reforma" },
+          { nome: "Shopping Interlagos", inicio: "2025-01-27", inauguracao: "2025-03-20", tipo: "reforma" },
+          { nome: "Plaza Campos Gerais", inicio: "2025-02-17", inauguracao: "2025-03-27", tipo: "reforma" },
+          { nome: "Boulevard", inicio: "2025-03-10", inauguracao: "2025-04-10", tipo: "nova" },
+          { nome: "Trindade", inicio: "2025-04-14", inauguracao: "2025-05-15", tipo: "reforma" }
+        ];
+
         setStores(data.map(s => {
           const nomeLower = (s.nome || "").toLowerCase().trim();
           const franqueadoLower = (s.franqueado || "").toLowerCase().trim();
           const tipoLower = (s.tipo_loja || "").toLowerCase().trim();
 
-          const lojasReforma = [
-            "recife outlet",
-            "ibirapuera",
-            "interlagos",
-            "campos gerais",
-            "trindade"
-          ];
+          const fixo = cronogramaFixo.find(f => nomeLower.includes(f.nome.toLowerCase()));
           
-          const isReforma = nomeLower.includes("reforma") || 
-                           tipoLower.includes("reforma") ||
-                           lojasReforma.some(r => nomeLower.includes(r));
+          const isReforma = fixo ? fixo.tipo === "reforma" : (
+            nomeLower.includes("reforma") || 
+            tipoLower.includes("reforma")
+          );
           
-          const isPropriaManual = nomeLower.includes("boulevard");
-          const isNotPropriaManual = nomeLower.includes("trindade");
+          const isPropriaManual = nomeLower.includes("boulevard") || (fixo && fixo.tipo === "nova");
+          const isNotPropriaManual = nomeLower.includes("trindade") && !fixo;
 
           const isPropria = (franqueadoLower.includes("própria") || 
                             franqueadoLower.includes("propria") || 
                             isPropriaManual) && !isNotPropriaManual;
 
-          // Estimate a start date if not present (e.g., 2 months before inauguration)
-          const dataInauguracao = s.inauguracao;
-          let dataInicio = null;
-          if (dataInauguracao) {
+          // Prioritize fixed dates if they match the store
+          const dataInauguracao = fixo ? fixo.inauguracao : s.inauguracao;
+          let dataInicio = fixo ? fixo.inicio : null;
+          
+          if (!dataInicio && dataInauguracao) {
             const date = new Date(dataInauguracao);
             date.setMonth(date.getMonth() - 2);
             dataInicio = date.toISOString().split('T')[0];
@@ -85,9 +91,9 @@ const CronogramaLojasProprias = () => {
             is_propria: isPropria,
             is_reforma: isReforma,
             data_inicio: dataInicio,
-            inauguracao: dataInauguracao
+            inauguracao: dataInauguracao ? (typeof dataInauguracao === 'string' && dataInauguracao.includes('T') ? dataInauguracao.split('T')[0] : dataInauguracao) : ""
           };
-        }).filter(s => s.is_propria || s.is_reforma));
+        }).filter(s => s.is_propria || s.is_reforma || cronogramaFixo.some(f => (s.nome || "").toLowerCase().includes(f.nome.toLowerCase()))));
       }
       setLoading(false);
     };
@@ -117,9 +123,9 @@ const CronogramaLojasProprias = () => {
   };
 
   const timelineMonths = useMemo(() => {
-    const now = new Date();
-    const start = startOfMonth(now);
-    const end = addMonths(start, 12);
+    // Definimos o início como Janeiro de 2025 para bater com o cronograma solicitado
+    const start = new Date(2025, 0, 1);
+    const end = addMonths(start, 11); // Mostrar o ano de 2025 inteiro
     return eachMonthOfInterval({ start, end });
   }, []);
 
@@ -312,7 +318,7 @@ const CronogramaLojasProprias = () => {
                       <Input
                         type="date"
                         className="w-36 h-8 text-xs"
-                        value={store.inauguracao ? store.inauguracao.split('T')[0] : ""}
+                        value={store.inauguracao ? store.inauguracao : ""}
                         onChange={(e) => updateStoreDate(store.id, 'inauguracao', e.target.value)}
                       />
                     </TableCell>
