@@ -310,28 +310,45 @@ const CronogramaLojasProprias = () => {
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
-      format: 'a4'
+      format: 'a3' // A3 para ter mais espaço lateral
     });
 
     const startDate = new Date(2026, 3, 1);
     const endDate = new Date(2026, 11, 31);
-    const monthsInInterval = eachMonthOfInterval({ start: startDate, end: endDate });
     const daysInInterval = eachDayOfInterval({ start: startDate, end: endDate });
+    const monthsInInterval = eachMonthOfInterval({ start: startDate, end: endDate });
 
     // Título
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
+    doc.setFontSize(18);
     doc.setTextColor(74, 55, 40);
-    doc.text('CONSTANCE - CRONOGRAMA EXECUTIVO 2026', 148, 15, { align: 'center' });
+    doc.text('CONSTANCE - CRONOGRAMA EXECUTIVO 2026', doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
 
     const sortedStores = [
       ...stores.filter(s => !s.is_reforma),
       ...stores.filter(s => s.is_reforma)
     ];
 
-    // Cabeçalho da Tabela
-    const head = [
-      ['LOJA', 'TIPO', 'INÍCIO', 'INAUGURAÇÃO', ...daysInInterval.map(d => format(d, 'dd'))]
+    // Cabeçalho de Meses (Primeira linha da tabela)
+    const monthHeader: any[] = [
+      { content: '', colSpan: 4 },
+    ];
+    
+    monthsInInterval.forEach(month => {
+      const monthStart = isSameMonth(month, startDate) ? startDate : startOfMonth(month);
+      const monthEnd = isSameMonth(month, endDate) ? endDate : endOfMonth(month);
+      const daysCount = eachDayOfInterval({ start: monthStart, end: monthEnd }).length;
+      monthHeader.push({
+        content: format(month, 'MMMM', { locale: ptBR }).toUpperCase(),
+        colSpan: daysCount,
+        styles: { halign: 'center', fillColor: [139, 90, 43], textColor: [255, 255, 255], fontStyle: 'bold' }
+      });
+    });
+
+    // Cabeçalho de Dias (Segunda linha da tabela)
+    const dayHeader = [
+      'LOJA', 'TIPO', 'INÍCIO', 'INAUGURAÇÃO', 
+      ...daysInInterval.map(d => format(d, 'd'))
     ];
 
     const body: any[] = [];
@@ -342,7 +359,7 @@ const CronogramaLojasProprias = () => {
       
       if (category !== currentCategory) {
         body.push([
-          { content: category, colSpan: 4 + daysInInterval.length, styles: { fillColor: [245, 245, 245], fontStyle: 'bold', textColor: [74, 55, 40] } }
+          { content: category, colSpan: 4 + daysInInterval.length, styles: { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: [74, 55, 40] } }
         ]);
         currentCategory = category;
       }
@@ -351,8 +368,8 @@ const CronogramaLojasProprias = () => {
       const storeEnd = s.inauguracao ? new Date(s.inauguracao) : null;
 
       const row = [
-        s.nome.toUpperCase(),
-        s.is_reforma ? 'REFORMA' : 'OBRA',
+        { content: s.nome.toUpperCase(), styles: { halign: 'left' } },
+        s.is_reforma ? 'REF' : 'OBRA',
         s.data_inicio ? format(new Date(s.data_inicio), 'dd/MM') : '--',
         s.inauguracao ? format(new Date(s.inauguracao), 'dd/MM') : '--',
         ...daysInInterval.map(day => {
@@ -366,19 +383,32 @@ const CronogramaLojasProprias = () => {
     });
 
     autoTable(doc, {
-      startY: 20,
-      head: head,
+      startY: 25,
+      head: [monthHeader, dayHeader],
       body: body,
       theme: 'grid',
-      styles: { fontSize: 5, cellPadding: 0.5, halign: 'center' },
-      headStyles: { fillColor: [74, 55, 40], textColor: [255, 255, 255], fontSize: 5 },
+      styles: { 
+        fontSize: 5, 
+        cellPadding: 0.3, 
+        halign: 'center', 
+        valign: 'middle',
+        overflow: 'visible',
+        lineWidth: 0.1
+      },
+      headStyles: { 
+        fillColor: [74, 55, 40], 
+        textColor: [255, 255, 255], 
+        fontSize: 5,
+        lineWidth: 0.1
+      },
       columnStyles: {
-        0: { halign: 'left', cellWidth: 35, fontSize: 5 },
-        1: { cellWidth: 12 },
+        0: { cellWidth: 45 }, // Aumentado para o nome da loja
+        1: { cellWidth: 10 },
         2: { cellWidth: 12 },
         3: { cellWidth: 12 }
       },
-      margin: { left: 5, right: 5 }
+      margin: { left: 5, right: 5 },
+      tableWidth: 'auto'
     });
 
     doc.save(`Cronograma_Constance_Full_2026.pdf`);
