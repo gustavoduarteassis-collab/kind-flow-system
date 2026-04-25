@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/table";
 import {
   Building2, Users, ListTodo, Target,
-  ChevronRight, LogOut, Calendar, KeyRound, Plus, Trash2, GitBranch, DollarSign, FolderOpen,
+  ChevronRight, LogOut, Calendar, KeyRound, Plus, Trash2, GitBranch, DollarSign, FolderOpen, HardHat,
 } from "lucide-react";
 import logoConstance from "@/assets/logo-constance.svg";
 import { useToast } from "@/hooks/use-toast";
@@ -276,6 +276,16 @@ const Index = () => {
               </div>
               <p className="text-lg font-bold text-white">Equipe</p>
               <p className="text-xs text-white/40 mt-0.5">Time e calendário</p>
+            </div>
+            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/cronograma-proprias")}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-10 w-10 rounded-lg bg-[hsl(38,70%,50%)]/15 flex items-center justify-center">
+                  <HardHat className="h-5 w-5 text-[hsl(38,70%,50%)]" />
+                </div>
+                <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-[hsl(38,70%,50%)]/60 transition-colors" />
+              </div>
+              <p className="text-lg font-bold text-white">Próprias</p>
+              <p className="text-xs text-white/40 mt-0.5">Obras & Reformas Próprias</p>
             </div>
           </div>
 
