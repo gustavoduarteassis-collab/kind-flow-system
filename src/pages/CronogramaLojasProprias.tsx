@@ -19,7 +19,7 @@ type CronogramaStore = {
   nome: string;
   filial: string;
   inauguracao: string;
-  analista_obra: string;
+  data_inicio?: string;
   tipo_loja: string;
   status: string;
   is_propria: boolean;
@@ -38,7 +38,7 @@ const CronogramaLojasProprias = () => {
       
       const { data, error } = await supabase
         .from("stores")
-        .select("id, nome, filial, inauguracao, analista_obra, tipo_loja, franqueado")
+        .select("id, nome, filial, inauguracao, tipo_loja, franqueado")
         .order('nome');
 
       if (data) {
@@ -51,12 +51,15 @@ const CronogramaLojasProprias = () => {
           const isReforma = s.nome?.toLowerCase().includes("reforma") || 
                            s.tipo_loja?.toLowerCase().includes("reforma");
 
+          // Trindade não é própria
+          const finalIsPropria = (s.nome?.toLowerCase().includes("trindade") || s.franqueado?.toLowerCase().includes("marli")) ? false : isPropria;
+
+          // No momento não temos data_inicio no banco, mas deixamos o campo pronto
           return {
             ...s,
             status: isReforma ? "Em Reforma" : "Em Andamento",
-            is_propria: isPropria,
+            is_propria: finalIsPropria,
             is_reforma: isReforma,
-            analista_obra: s.analista_obra || "Não atribuído"
           };
         }).filter(s => s.is_propria || s.is_reforma));
       }
@@ -121,7 +124,7 @@ const CronogramaLojasProprias = () => {
                 <TableRow>
                   <TableHead>Loja</TableHead>
                   <TableHead>Filial</TableHead>
-                  <TableHead>Analista</TableHead>
+                  <TableHead>Data de Início</TableHead>
                   <TableHead>Inauguração</TableHead>
                 </TableRow>
               </TableHeader>
@@ -135,7 +138,12 @@ const CronogramaLojasProprias = () => {
                     <TableRow key={store.id}>
                       <TableCell className="font-medium">{store.nome}</TableCell>
                       <TableCell>{store.filial}</TableCell>
-                      <TableCell>{store.analista_obra}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                          {store.data_inicio ? format(new Date(store.data_inicio), "dd/MM/yyyy", { locale: ptBR }) : "Não definida"}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5 text-xs">
                           <Calendar className="h-3 w-3 text-muted-foreground" />
@@ -161,8 +169,8 @@ const CronogramaLojasProprias = () => {
                 <TableRow>
                   <TableHead>Loja</TableHead>
                   <TableHead>Filial</TableHead>
-                  <TableHead>Analista</TableHead>
-                  <TableHead>Previsão</TableHead>
+                  <TableHead>Data de Início</TableHead>
+                  <TableHead>Inauguração</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -175,7 +183,12 @@ const CronogramaLojasProprias = () => {
                     <TableRow key={store.id}>
                       <TableCell className="font-medium">{store.nome}</TableCell>
                       <TableCell>{store.filial}</TableCell>
-                      <TableCell>{store.analista_obra}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                          {store.data_inicio ? format(new Date(store.data_inicio), "dd/MM/yyyy", { locale: ptBR }) : "Não definida"}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5 text-xs">
                           <Calendar className="h-3 w-3 text-muted-foreground" />
