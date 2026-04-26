@@ -58,38 +58,18 @@ const CronogramaLojasProprias = () => {
         .order('nome');
 
       if (data) {
-        const cronogramaManual = [
-          { busca: "Riomar Recife", display: "Riomar Recife - Recife", tipo: "reforma" },
-          { busca: "Boulevard", display: "Shopping Boulevard - Belo Horizonte", tipo: "reforma" },
-          { busca: "Shopping Recife", display: "Shopping Recife - Recife", tipo: "reforma" },
-          { busca: "Costa Dourada", display: "Shopping Costa Dourada - Cabo", tipo: "reforma" },
-          { busca: "Salvador", display: "Shopping em Salvador - Salvador", tipo: "reforma" },
-          { busca: "Bela Vista", display: "Shopping Bela Vista - Recife", tipo: "reforma" },
-          { busca: "Minas Shopping", display: "Minas Shopping II – BH", tipo: "reforma" },
-          { busca: "Ibirapuera", display: "Ibirapuera Shopping - São Paulo", tipo: "nova" },
-          { busca: "Recife Outlet", display: "Recife Outlet - Moreno/PE", tipo: "nova" },
-          { busca: "Aricanduva", display: "Shopping Aricanduva - SP", tipo: "nova" }
-        ];
-
-        const storesList = cronogramaManual.map((m, index) => {
-          const dbStore = data.find(s => (s.nome || "").toLowerCase().includes(m.busca.toLowerCase()));
-          const isReforma = m.tipo === "reforma";
-          
-          return {
-            id: dbStore?.id || `manual-${index}`,
-            nome: m.display,
-            filial: dbStore?.filial || "S/F",
-            inauguracao: dbStore?.inauguracao ? dbStore.inauguracao.split('T')[0] : "2026-12-31",
-            data_inicio: dbStore?.inauguracao ? addDays(new Date(dbStore.inauguracao), -60).toISOString().split('T')[0] : "2026-10-01",
-            tipo_loja: dbStore?.tipo_loja || (isReforma ? "reforma" : "nova"),
-            status: isReforma ? "Em Reforma" : "Em Andamento",
-            is_propria: !isReforma,
-            is_reforma: isReforma,
-            dbData: dbStore
-          };
-        });
-
-        setStores(storesList);
+        setStores(data.map(row => ({
+          id: row.id,
+          nome: row.nome,
+          filial: row.filial || "S/F",
+          inauguracao: row.inauguracao ? row.inauguracao.split('T')[0] : "2026-12-31",
+          data_inicio: row.inauguracao ? addDays(new Date(row.inauguracao), -60).toISOString().split('T')[0] : "2026-10-01",
+          tipo_loja: row.tipo_loja || (row.is_reforma ? "reforma" : "nova"),
+          status: row.is_reforma ? "Em Reforma" : "Em Andamento",
+          is_propria: true,
+          is_reforma: row.is_reforma || false,
+          dbData: row
+        })));
       }
       setLoading(false);
     };
