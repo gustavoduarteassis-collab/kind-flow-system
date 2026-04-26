@@ -277,16 +277,6 @@ const Index = () => {
               <p className="text-lg font-bold text-white">Equipe</p>
               <p className="text-xs text-white/40 mt-0.5">Time e calendário</p>
             </div>
-            <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/acompanhamento-processo")}>
-              <div className="flex items-center justify-between mb-3">
-                <div className="h-10 w-10 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-                  <LayoutList className="h-5 w-5 text-emerald-500" />
-                </div>
-                <ChevronRight className="h-4 w-4 text-white/20 group-hover:text-emerald-500/60 transition-colors" />
-              </div>
-              <p className="text-lg font-bold text-white">Processos</p>
-              <p className="text-xs text-white/40 mt-0.5">Acompanhamento de Implantação</p>
-            </div>
             <div className="bg-white/[0.07] backdrop-blur-sm border border-white/[0.08] rounded-xl p-5 group hover:bg-white/[0.12] transition-all cursor-pointer" onClick={() => navigate("/cronograma-proprias")}>
               <div className="flex items-center justify-between mb-3">
                 <div className="h-10 w-10 rounded-lg bg-[hsl(38,70%,50%)]/15 flex items-center justify-center">
