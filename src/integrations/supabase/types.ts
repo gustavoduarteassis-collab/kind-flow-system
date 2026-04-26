@@ -696,6 +696,7 @@ export type Database = {
           id: string
           inauguracao: string
           inauguracao_checklist: Json
+          is_reforma: boolean | null
           nome: string
           solicitacoes: Json
           tipo_loja: string
@@ -715,6 +716,7 @@ export type Database = {
           id?: string
           inauguracao?: string
           inauguracao_checklist?: Json
+          is_reforma?: boolean | null
           nome: string
           solicitacoes?: Json
           tipo_loja?: string
@@ -734,6 +736,7 @@ export type Database = {
           id?: string
           inauguracao?: string
           inauguracao_checklist?: Json
+          is_reforma?: boolean | null
           nome?: string
           solicitacoes?: Json
           tipo_loja?: string
