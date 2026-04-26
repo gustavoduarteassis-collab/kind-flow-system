@@ -606,6 +606,10 @@ const CronogramaLojasProprias = () => {
           </Card>
         )}
 
+        </section>
+      </TabsContent>
+
+      <TabsContent value="processo" className="space-y-6 mt-0">
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold flex items-center gap-2">
