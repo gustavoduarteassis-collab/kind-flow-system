@@ -44,7 +44,7 @@ const CronogramaLojasProprias = () => {
   const [stores, setStores] = useState<CronogramaStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewGantt, setViewGantt] = useState(true);
-  const [activeTab, setActiveTab] = useState<"propria" | "processo">("propria");
+  const [activeTab, setActiveTab] = useState<"propria">("propria");
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1));
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -276,13 +276,8 @@ const CronogramaLojasProprias = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-8">
-          <TabsList className="bg-muted/50 p-1">
-            <TabsTrigger value="propria" className="data-[state=active]:bg-[#4A3728] data-[state=active]:text-white gap-2 py-2 px-6"><Building2 className="h-4 w-4" />Lojas Próprias</TabsTrigger>
-            <TabsTrigger value="processo" className="data-[state=active]:bg-[#4A3728] data-[state=active]:text-white gap-2 py-2 px-6"><LayoutList className="h-4 w-4" />Acompanhamento de Processo</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="propria" className="space-y-8 mt-0">
+        <div className="space-y-8">
+          <div className="space-y-8 mt-0">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Novas Lojas</CardTitle><Building2 className="h-4 w-4 text-emerald-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{proprias.length}</div></CardContent></Card>
               <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Reformas</CardTitle><Clock className="h-4 w-4 text-amber-500" /></CardHeader><CardContent><div className="text-2xl font-bold">{reformas.length}</div></CardContent></Card>
@@ -355,52 +350,8 @@ const CronogramaLojasProprias = () => {
                 </Table>
               </Card>
             )}
-          </TabsContent>
-
-          <TabsContent value="processo" className="space-y-6 mt-0">
-            <Card className="border-2 border-primary/10 shadow-xl">
-              <CardHeader className="bg-[#4A3728] text-white rounded-t-lg">
-                <CardTitle className="text-xl font-bold">Acompanhamento de Processo de Implantação</CardTitle>
-                <p className="text-sm text-white/70">Status de todas as solicitações por loja</p>
-              </CardHeader>
-              <CardContent className="p-0 overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-muted/50">
-                    <TableRow>
-                      <TableHead className="w-64 sticky left-0 bg-muted/90 backdrop-blur-md z-20 font-bold border-r">Loja</TableHead>
-                      {SOLICITACOES_ITEMS.map(item => (
-                        <TableHead key={item.id} className="min-w-[120px] text-center font-bold text-[10px] uppercase tracking-tighter">{item.label}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {stores.map(store => {
-                      const solicitacoes = store.dbData?.solicitacoes || {};
-                      return (
-                        <TableRow key={store.id} className="hover:bg-muted/30">
-                          <TableCell className="sticky left-0 bg-background font-bold border-r z-10 text-[11px] uppercase">{store.nome}</TableCell>
-                          {SOLICITACOES_ITEMS.map(item => {
-                            const status = solicitacoes[item.id]?.status || "pendente";
-                            return (
-                              <TableCell key={item.id} className="text-center p-2">
-                                <div className={`mx-auto w-4 h-4 rounded-full border shadow-sm ${status === "concluido" ? "bg-emerald-500 border-emerald-600 shadow-emerald-200" : status === "solicitado" ? "bg-amber-400 border-amber-500 shadow-amber-100" : "bg-slate-100 border-slate-300"}`} title={status.toUpperCase()} />
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-            <div className="flex gap-4 px-4 py-3 bg-card rounded-lg border shadow-sm text-[10px] font-bold uppercase tracking-wider w-fit">
-              <div className="flex items-center gap-2"><div className="w-3 h-3 bg-slate-100 border rounded-full" /><span className="text-muted-foreground">Pendente</span></div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 bg-amber-400 border border-amber-500 rounded-full" /><span className="text-[#4A3728]">Solicitado</span></div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 bg-emerald-500 border border-emerald-600 rounded-full" /><span className="text-emerald-700">Concluído</span></div>
-            </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </main>
     </div>
   );
