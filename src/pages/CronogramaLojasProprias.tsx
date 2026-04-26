@@ -42,7 +42,6 @@ const CronogramaLojasProprias = () => {
   const [stores, setStores] = useState<CronogramaStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewGantt, setViewGantt] = useState(true);
-  const [activeTab, setActiveTab] = useState<"propria">("propria");
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1));
   const scrollRef = useRef<HTMLDivElement>(null);
 
