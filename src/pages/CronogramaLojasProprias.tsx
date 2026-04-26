@@ -489,7 +489,22 @@ const CronogramaLojasProprias = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="space-y-8">
+          <div className="flex items-center justify-between">
+            <TabsList className="bg-muted/50 p-1">
+              <TabsTrigger value="propria" className="data-[state=active]:bg-[#4A3728] data-[state=active]:text-white gap-2 py-2 px-6">
+                <Building2 className="h-4 w-4" />
+                Lojas Próprias
+              </TabsTrigger>
+              <TabsTrigger value="processo" className="data-[state=active]:bg-[#4A3728] data-[state=active]:text-white gap-2 py-2 px-6">
+                <LayoutList className="h-4 w-4" />
+                Acompanhamento de Processo
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="propria" className="space-y-8 mt-0">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
