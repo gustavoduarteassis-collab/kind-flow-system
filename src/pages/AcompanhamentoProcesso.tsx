@@ -8,10 +8,11 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  ArrowLeft, LayoutList, Download, Filter
+  ArrowLeft, LayoutList, Download, Filter, Building2, Hammer
 } from "lucide-react";
 import { SOLICITACOES_ITEMS } from "@/data/solicitacoesData";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const AcompanhamentoProcesso = () => {
   const { user } = useAuth();
@@ -45,6 +46,73 @@ const AcompanhamentoProcesso = () => {
     }
   };
 
+  const obrasNovas = stores.filter(s => !s.is_reforma);
+  const reformas = stores.filter(s => s.is_reforma);
+
+  const renderTable = (storesList: any[]) => (
+    <Card className="border-2 border-primary/10 shadow-xl overflow-hidden">
+      <div className="overflow-x-auto overflow-y-auto max-h-[65vh]">
+        <Table>
+          <TableHeader className="bg-[#4A3728] sticky top-0 z-40">
+            <TableRow>
+              <TableHead className="w-[300px] min-w-[300px] sticky left-0 bg-[#4A3728] text-white font-bold border-r z-50">LOJA / FILIAL</TableHead>
+              <TableHead className="min-w-[150px] text-white font-bold text-center">INAUGURAÇÃO</TableHead>
+              <TableHead className="min-w-[150px] text-white font-bold text-center border-r">STATUS GERAL</TableHead>
+              {SOLICITACOES_ITEMS.map(item => (
+                <TableHead key={item.id} className="min-w-[120px] text-center font-bold text-[10px] text-white uppercase tracking-tighter whitespace-nowrap px-2">
+                  {item.label}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {storesList.length === 0 ? (
+              <TableRow><TableCell colSpan={SOLICITACOES_ITEMS.length + 3} className="text-center py-10 text-muted-foreground">Nenhuma loja encontrada.</TableCell></TableRow>
+            ) : (
+              storesList.map(store => {
+                const solicitacoes = store.solicitacoes || {};
+                return (
+                  <TableRow key={store.id} className="hover:bg-muted/30 transition-colors">
+                    <TableCell className="sticky left-0 bg-background font-black border-r z-30 text-[11px] uppercase py-4 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
+                      <div className="flex flex-col">
+                        <span>{store.nome}</span>
+                        <span className="text-[9px] font-normal text-muted-foreground">FILIAL: {store.filial || '---'}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center font-bold text-[11px]">
+                      {store.inauguracao ? new Date(store.inauguracao).toLocaleDateString('pt-BR') : '---'}
+                    </TableCell>
+                    <TableCell className="text-center border-r">
+                      <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors text-[9px] font-bold">
+                        {store.status || 'EM ANDAMENTO'}
+                      </Badge>
+                    </TableCell>
+                    {SOLICITACOES_ITEMS.map(item => {
+                      const data = solicitacoes[item.id] || {};
+                      const status = data.status || "pendente";
+                      return (
+                        <TableCell key={item.id} className="text-center p-2 border-r last:border-r-0">
+                          <div className="flex flex-col items-center gap-1">
+                            <div className={`w-5 h-5 rounded-full border-2 shadow-sm ${getStatusColor(status)}`} title={status.toUpperCase()} />
+                            {data.comentarios && (
+                              <span className="text-[8px] text-muted-foreground max-w-[100px] truncate" title={data.comentarios}>
+                                💬
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                      );
+                    })}
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </Card>
+  );
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
 
   return (
@@ -59,82 +127,37 @@ const AcompanhamentoProcesso = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="font-bold border-2"><Filter className="h-4 w-4 mr-2" />Filtrar</Button>
-            <Button variant="default" size="sm" className="font-bold shadow-lg bg-primary hover:bg-primary/90"><Download className="h-4 w-4 mr-2" />Exportar</Button>
+            <Button variant="outline" size="sm" className="font-bold border-2"><Download className="h-4 w-4 mr-2" />Exportar XLS</Button>
           </div>
         </div>
       </header>
 
       <main className="max-w-[98vw] mx-auto px-4 py-8">
-        <div className="space-y-6">
-          <Card className="border-2 border-primary/10 shadow-xl overflow-hidden">
-            <div className="overflow-x-auto overflow-y-auto max-h-[75vh]">
-              <Table>
-                <TableHeader className="bg-[#4A3728] sticky top-0 z-40">
-                  <TableRow>
-                    <TableHead className="w-[300px] min-w-[300px] sticky left-0 bg-[#4A3728] text-white font-bold border-r z-50">LOJA / FILIAL</TableHead>
-                    <TableHead className="min-w-[150px] text-white font-bold text-center">INAUGURAÇÃO</TableHead>
-                    <TableHead className="min-w-[150px] text-white font-bold text-center border-r">STATUS GERAL</TableHead>
-                    {SOLICITACOES_ITEMS.map(item => (
-                      <TableHead key={item.id} className="min-w-[120px] text-center font-bold text-[10px] text-white uppercase tracking-tighter whitespace-nowrap px-2">
-                        {item.label}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {stores.length === 0 ? (
-                    <TableRow><TableCell colSpan={SOLICITACOES_ITEMS.length + 3} className="text-center py-10 text-muted-foreground">Nenhuma loja encontrada.</TableCell></TableRow>
-                  ) : (
-                    stores.map(store => {
-                      const solicitacoes = store.solicitacoes || {};
-                      return (
-                        <TableRow key={store.id} className="hover:bg-muted/30 transition-colors">
-                          <TableCell className="sticky left-0 bg-background font-black border-r z-30 text-[11px] uppercase py-4 shadow-[2px_0_5px_rgba(0,0,0,0.05)]">
-                            <div className="flex flex-col">
-                              <span>{store.nome}</span>
-                              <span className="text-[9px] font-normal text-muted-foreground">FILIAL: {store.filial || '---'}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center font-bold text-[11px]">
-                            {store.inauguracao ? new Date(store.inauguracao).toLocaleDateString('pt-BR') : '---'}
-                          </TableCell>
-                          <TableCell className="text-center border-r">
-                            <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 transition-colors text-[9px] font-bold">
-                              {store.status || 'EM ANDAMENTO'}
-                            </Badge>
-                          </TableCell>
-                          {SOLICITACOES_ITEMS.map(item => {
-                            const data = solicitacoes[item.id] || {};
-                            const status = data.status || "pendente";
-                            return (
-                              <TableCell key={item.id} className="text-center p-2 border-r last:border-r-0">
-                                <div className="flex flex-col items-center gap-1">
-                                  <div className={`w-5 h-5 rounded-full border-2 shadow-sm ${getStatusColor(status)}`} title={status.toUpperCase()} />
-                                  {data.comentarios && (
-                                    <span className="text-[8px] text-muted-foreground max-w-[100px] truncate" title={data.comentarios}>
-                                      💬
-                                    </span>
-                                  )}
-                                </div>
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      );
-                    })
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </Card>
+        <Tabs defaultValue="novas" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <TabsList className="bg-muted/50 p-1">
+              <TabsTrigger value="novas" className="data-[state=active]:bg-[#4A3728] data-[state=active]:text-white gap-2 py-2 px-6">
+                <Building2 className="h-4 w-4" /> Obras Novas
+              </TabsTrigger>
+              <TabsTrigger value="reformas" className="data-[state=active]:bg-[#4A3728] data-[state=active]:text-white gap-2 py-2 px-6">
+                <Hammer className="h-4 w-4" /> Reformas
+              </TabsTrigger>
+            </TabsList>
 
-          <div className="flex flex-wrap gap-6 px-6 py-4 bg-card rounded-xl border-2 border-primary/5 shadow-sm text-[10px] font-bold uppercase tracking-widest w-fit ml-auto">
-            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-slate-100 border-2 rounded-full" /><span className="text-muted-foreground">Pendente</span></div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-amber-400 border-2 border-amber-500 rounded-full" /><span className="text-amber-700">Solicitado</span></div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 bg-emerald-500 border-2 border-emerald-600 rounded-full" /><span className="text-emerald-700">Concluído</span></div>
+            <div className="flex flex-wrap gap-6 px-6 py-2 bg-card rounded-xl border-2 border-primary/5 shadow-sm text-[10px] font-bold uppercase tracking-widest w-fit">
+              <div className="flex items-center gap-2"><div className="w-4 h-4 bg-slate-100 border-2 rounded-full" /><span className="text-muted-foreground">Pendente</span></div>
+              <div className="flex items-center gap-2"><div className="w-4 h-4 bg-amber-400 border-2 border-amber-500 rounded-full" /><span className="text-amber-700">Solicitado</span></div>
+              <div className="flex items-center gap-2"><div className="w-4 h-4 bg-emerald-500 border-2 border-emerald-600 rounded-full" /><span className="text-emerald-700">Concluído</span></div>
+            </div>
           </div>
-        </div>
+
+          <TabsContent value="novas" className="mt-0">
+            {renderTable(obrasNovas)}
+          </TabsContent>
+          <TabsContent value="reformas" className="mt-0">
+            {renderTable(reformas)}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
