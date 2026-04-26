@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,24 +6,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Building2, ArrowLeft, Calendar, Clock, CheckCircle2, AlertCircle, HardHat, Download, Eye, ChevronLeft, ChevronRight, FileText, LayoutList
+  Building2, ArrowLeft, Calendar, Clock, HardHat, Download, Eye, ChevronLeft, ChevronRight, FileText
 } from "lucide-react";
 import { 
   format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, 
-  isSameDay, parseISO, isValid, addDays, startOfYear, endOfYear, 
-  isWithinInterval, eachMonthOfInterval, subMonths, isSameMonth, differenceInDays
+  isSameDay, parseISO, isValid, addDays, 
+  isWithinInterval, eachMonthOfInterval, subMonths, isSameMonth
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { SOLICITACOES_ITEMS } from "@/data/solicitacoesData";
 
 type CronogramaStore = {
   id: string;
@@ -44,7 +42,6 @@ const CronogramaLojasProprias = () => {
   const [stores, setStores] = useState<CronogramaStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewGantt, setViewGantt] = useState(true);
-  const [activeTab, setActiveTab] = useState<"propria">("propria");
   const [currentMonth, setCurrentMonth] = useState(new Date(2026, 0, 1));
   const scrollRef = useRef<HTMLDivElement>(null);
 
