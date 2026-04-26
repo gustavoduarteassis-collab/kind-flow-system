@@ -28,7 +28,9 @@ export type Database = {
           mes_referencia: string
           prazo_final: string
           prazo_inicial: string
+          realizado: string | null
           responsavel: string
+          status_concluido: boolean | null
           updated_at: string
           user_id: string
         }
@@ -45,7 +47,9 @@ export type Database = {
           mes_referencia?: string
           prazo_final?: string
           prazo_inicial?: string
+          realizado?: string | null
           responsavel?: string
+          status_concluido?: boolean | null
           updated_at?: string
           user_id: string
         }
@@ -62,7 +66,9 @@ export type Database = {
           mes_referencia?: string
           prazo_final?: string
           prazo_inicial?: string
+          realizado?: string | null
           responsavel?: string
+          status_concluido?: boolean | null
           updated_at?: string
           user_id?: string
         }

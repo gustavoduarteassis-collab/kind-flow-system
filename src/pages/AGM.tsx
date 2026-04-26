@@ -100,6 +100,7 @@ type ActionPlan = {
   causa: string; fenomeno: string; acao: string; como: string;
   responsavel: string; prazo_inicial: string; prazo_final: string;
   farol: string; ai_generated: boolean; created_at: string;
+  realizado?: string; status_concluido?: boolean;
 };
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -422,6 +423,15 @@ const AGM = () => {
     fetchAGMData();
   };
 
+  const updateGustavoPlan = async (id: string, updates: { realizado?: string; status_concluido?: boolean }) => {
+    const { error } = await supabase.from("agm_action_plans").update(updates).eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+    } else {
+      fetchAGMData();
+    }
+  };
+
   const generatePDF = () => {
     const w = window.open("", "_blank");
     if (!w) return;
@@ -620,25 +630,60 @@ const AGM = () => {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {gustavoPlans.map((plan) => (
-                <Card key={plan.id} className="border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
+                <Card key={plan.id} className={`border-l-4 ${plan.status_concluido ? 'border-l-green-500 opacity-80' : 'border-l-primary'} shadow-sm hover:shadow-md transition-all`}>
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start gap-2">
                       <Badge variant="outline" className="text-[10px] uppercase truncate">{plan.indicador}</Badge>
-                      <Badge className={`${farolColors[plan.farol]} text-[9px]`}>{plan.farol}</Badge>
+                      <div className="flex items-center gap-2">
+                        {plan.status_concluido && (
+                          <Badge className="bg-green-500 text-white flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" /> Realizado
+                          </Badge>
+                        )}
+                        <Badge className={`${farolColors[plan.farol]} text-[9px]`}>{plan.farol}</Badge>
+                      </div>
                     </div>
-                    <CardTitle className="text-sm mt-2 line-clamp-2">{plan.acao}</CardTitle>
+                    <CardTitle className={`text-sm mt-2 ${plan.status_concluido ? 'line-through text-muted-foreground' : ''}`}>
+                      {plan.acao}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 pb-4">
                     <div className="text-xs space-y-1">
                       <p className="font-semibold text-muted-foreground uppercase text-[9px]">Como fazer:</p>
                       <p className="text-foreground italic leading-relaxed">"{plan.como}"</p>
                     </div>
-                    <div className="flex items-center justify-between pt-2 border-t text-[10px]">
-                      <div className="flex items-center gap-1 text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        <span>Prazo: {plan.prazo_final || 'N/A'}</span>
+                    
+                    <div className="space-y-2 pt-2 border-t">
+                      <Label className="text-[10px] uppercase text-muted-foreground font-semibold">O que foi feito:</Label>
+                      <Textarea 
+                        placeholder="Descreva o que foi realizado..."
+                        className="text-xs min-h-[60px] bg-muted/30"
+                        defaultValue={plan.realizado || ""}
+                        onBlur={(e) => {
+                          if (e.target.value !== plan.realizado) {
+                            updateGustavoPlan(plan.id, { realizado: e.target.value });
+                          }
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 text-[10px]">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          <span>Prazo: {plan.prazo_final || 'N/A'}</span>
+                        </div>
                       </div>
-                      <Badge variant="secondary" className="text-[9px]">Ref: {plan.mes_referencia}</Badge>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant={plan.status_concluido ? "outline" : "default"}
+                          className={`h-7 px-2 text-[10px] ${plan.status_concluido ? 'text-green-600' : ''}`}
+                          onClick={() => updateGustavoPlan(plan.id, { status_concluido: !plan.status_concluido })}
+                        >
+                          {plan.status_concluido ? "Reabrir" : "Concluir"}
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
