@@ -667,7 +667,78 @@ const CronogramaLojasProprias = () => {
               </TableBody>
             </Table>
           </Card>
-        </section>
+          </TabsContent>
+
+          <TabsContent value="processo" className="space-y-6 mt-0">
+            <div className="grid gap-6">
+              <Card className="border-2 border-primary/10 shadow-xl">
+                <CardHeader className="bg-[#4A3728] text-white rounded-t-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl font-bold">Acompanhamento de Processo de Implantação</CardTitle>
+                      <p className="text-sm text-white/70">Status de todas as solicitações por loja</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0 overflow-x-auto">
+                  <Table>
+                    <TableHeader className="bg-muted/50">
+                      <TableRow>
+                        <TableHead className="w-64 sticky left-0 bg-muted/90 backdrop-blur-md z-20 font-bold border-r">Loja</TableHead>
+                        {SOLICITACOES_ITEMS.map(item => (
+                          <TableHead key={item.id} className="min-w-[120px] text-center font-bold text-[10px] uppercase tracking-tighter">
+                            {item.label}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {stores.map(store => {
+                        const dbStore = (store as any).dbData;
+                        const solicitacoes = dbStore?.solicitacoes || {};
+                        
+                        return (
+                          <TableRow key={store.id} className="hover:bg-muted/30">
+                            <TableCell className="sticky left-0 bg-background font-bold border-r z-10 text-[11px] uppercase">
+                              {store.nome}
+                            </TableCell>
+                            {SOLICITACOES_ITEMS.map(item => {
+                              const status = solicitacoes[item.id]?.status || "pendente";
+                              return (
+                                <TableCell key={item.id} className="text-center p-2">
+                                  <div className={`mx-auto w-4 h-4 rounded-full border shadow-sm ${
+                                    status === "concluido" ? "bg-emerald-500 border-emerald-600 shadow-emerald-200" :
+                                    status === "solicitado" ? "bg-amber-400 border-amber-500 shadow-amber-100" :
+                                    "bg-slate-100 border-slate-300"
+                                  }`} title={status.toUpperCase()} />
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <div className="flex gap-4 px-4 py-3 bg-card rounded-lg border shadow-sm text-[10px] font-bold uppercase tracking-wider w-fit">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-slate-100 border rounded-full" />
+                  <span className="text-muted-foreground">Pendente</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-amber-400 border border-amber-500 rounded-full" />
+                  <span className="text-[#4A3728]">Solicitado</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-emerald-500 border border-emerald-600 rounded-full" />
+                  <span className="text-emerald-700">Concluído</span>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
