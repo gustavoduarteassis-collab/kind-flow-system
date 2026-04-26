@@ -45,34 +45,39 @@ function AppRoutes() {
           return;
         }
 
-        // 2. Check if user owns stores or has team data
-        const { data: ownedStores } = await supabase
-          .from("stores")
-          .select("id")
-          .eq("user_id", user.id)
-          .limit(1);
-
-        const { data: teamMembers } = await supabase
-          .from("team_members")
-          .select("id")
-          .eq("user_id", user.id)
-          .limit(1);
-
-        const hasOwnData = (ownedStores && ownedStores.length > 0) || (teamMembers && teamMembers.length > 0);
-
-        if (hasOwnData) {
-          setIsFranqueado(false);
-          return;
-        }
-
-        // 3. Check franchisee/construtor access
+        // 2. Check franchisee/construtor access
         const { data: access } = await supabase
           .from("franchisee_access")
           .select("id, access_type")
           .ilike("franchisee_email", user.email!)
           .limit(1);
 
-        setIsFranqueado(access && access.length > 0);
+        if (access && access.length > 0) {
+          setIsFranqueado(true);
+          return;
+        }
+
+        // 3. Fallback: Check if user has any team records or stores
+        const { data: teamMembers } = await supabase
+          .from("team_members")
+          .select("id")
+          .eq("user_id", user.id)
+          .limit(1);
+
+        const { data: ownedStores } = await supabase
+          .from("stores")
+          .select("id")
+          .eq("user_id", user.id)
+          .limit(1);
+
+        if ((teamMembers && teamMembers.length > 0) || (ownedStores && ownedStores.length > 0)) {
+          setIsFranqueado(false);
+          return;
+        }
+
+        // If no records found, assume internal team member (or let them see the main UI)
+        // rather than locking them out of the portal if they aren't explicitly a franchisee.
+        setIsFranqueado(false);
       } catch (err) {
         console.error("checkRole error:", err);
         setIsFranqueado(false);
