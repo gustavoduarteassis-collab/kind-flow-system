@@ -79,13 +79,21 @@ const Lojas = () => {
     return counts;
   };
 
-  const filtered = stores.filter(
-    (s) =>
-      (s.nome.toLowerCase().includes(search.toLowerCase()) ||
-      s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
-      s.filial.toLowerCase().includes(search.toLowerCase())) &&
-      (!filterAnalista || s.analistaObra === filterAnalista)
-  );
+  const filtered = stores
+    .filter(
+      (s) =>
+        (s.nome.toLowerCase().includes(search.toLowerCase()) ||
+        s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
+        s.filial.toLowerCase().includes(search.toLowerCase())) &&
+        (!filterAnalista || s.analistaObra === filterAnalista)
+    )
+    .sort((a, b) => {
+      const aHasChecklist = Object.keys(a.checklist || {}).length > 0;
+      const bHasChecklist = Object.keys(b.checklist || {}).length > 0;
+      if (aHasChecklist && !bHasChecklist) return -1;
+      if (!aHasChecklist && bHasChecklist) return 1;
+      return 0;
+    });
 
   return (
     <div className="min-h-screen bg-background">
