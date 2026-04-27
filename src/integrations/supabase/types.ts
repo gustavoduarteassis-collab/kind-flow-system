@@ -688,6 +688,8 @@ export type Database = {
           action_plans: Json | null
           analista_obra: string
           checklist: Json
+          cobranca_nota: string | null
+          comentarios_obras: string | null
           construtor: string
           created_at: string
           cronograma: Json
@@ -697,9 +699,13 @@ export type Database = {
           id: string
           inauguracao: string
           inauguracao_checklist: Json
+          inicio_obra_texto: string | null
           is_reforma: boolean | null
+          localizacao: string | null
           nome: string
+          previsao_inauguracao_texto: string | null
           solicitacoes: Json
+          status_geral: string | null
           tipo_loja: string
           updated_at: string
           user_id: string
@@ -709,6 +715,8 @@ export type Database = {
           action_plans?: Json | null
           analista_obra?: string
           checklist?: Json
+          cobranca_nota?: string | null
+          comentarios_obras?: string | null
           construtor?: string
           created_at?: string
           cronograma?: Json
@@ -718,9 +726,13 @@ export type Database = {
           id?: string
           inauguracao?: string
           inauguracao_checklist?: Json
+          inicio_obra_texto?: string | null
           is_reforma?: boolean | null
+          localizacao?: string | null
           nome: string
+          previsao_inauguracao_texto?: string | null
           solicitacoes?: Json
+          status_geral?: string | null
           tipo_loja?: string
           updated_at?: string
           user_id: string
@@ -730,6 +742,8 @@ export type Database = {
           action_plans?: Json | null
           analista_obra?: string
           checklist?: Json
+          cobranca_nota?: string | null
+          comentarios_obras?: string | null
           construtor?: string
           created_at?: string
           cronograma?: Json
@@ -739,9 +753,13 @@ export type Database = {
           id?: string
           inauguracao?: string
           inauguracao_checklist?: Json
+          inicio_obra_texto?: string | null
           is_reforma?: boolean | null
+          localizacao?: string | null
           nome?: string
+          previsao_inauguracao_texto?: string | null
           solicitacoes?: Json
+          status_geral?: string | null
           tipo_loja?: string
           updated_at?: string
           user_id?: string

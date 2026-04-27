@@ -1821,16 +1821,15 @@ const Equipe = () => {
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {(() => {
                       const criticalStores = stores.filter(store => {
-                        const checklist = store.checklist || {};
-                        const solicitacoes = (store as any).solicitacoes || {};
-                        const hasAtraso = Object.values(checklist).some((i: any) => i.observacoes?.toLowerCase().includes("atraso") || i.observacoes?.toLowerCase().includes("pendente"));
-                        const hasAcaoCritica = Object.values(solicitacoes).some((s: any) => s.comentarios?.toLowerCase().includes("urgente") || s.status === "atrasado");
-                        return hasAtraso || hasAcaoCritica;
+                        const statusStr = (store.statusGeral || "").toLowerCase();
+                        const commentStr = (store.comentariosObras || "").toLowerCase();
+                        const terms = ["atraso", "cobrar", "pendente", "aguardando"];
+                        return terms.some(term => statusStr.includes(term) || commentStr.includes(term));
                       });
                       
                       return criticalStores.length === 0 ? (
                         <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-                          Nenhuma pendência crítica ou atraso detectado no momento nas lojas.
+                          Nenhuma pendência crítica ou atraso detectado nos status das lojas.
                         </div>
                       ) : (
                         criticalStores.map(store => (
@@ -1838,29 +1837,25 @@ const Equipe = () => {
                             <CardHeader className="pb-2">
                               <div className="flex justify-between items-start">
                                 <CardTitle className="text-sm font-bold truncate pr-2">{store.nome}</CardTitle>
-                                <Badge variant="destructive" className="text-[10px] shrink-0">Pendência</Badge>
+                                <Badge variant="destructive" className="text-[10px] shrink-0">Cobrar</Badge>
                               </div>
                               <p className="text-[10px] text-muted-foreground">{store.analistaObra || "Sem analista"}</p>
                             </CardHeader>
                             <CardContent className="space-y-3">
                               <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground uppercase font-bold">Observações de Cobrança</Label>
+                                <Label className="text-[10px] text-muted-foreground uppercase font-bold">Último Status / Comentário</Label>
+                                <div className="p-2 bg-muted/30 rounded text-xs italic">
+                                  {store.statusGeral || store.comentariosObras || "Sem comentários recentes"}
+                                </div>
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground uppercase font-bold">Minha Nota de Cobrança</Label>
                                 <Textarea 
                                   className="text-xs min-h-[60px] resize-none" 
-                                  placeholder="Deixe aqui sua nota de cobrança..."
-                                  value={(store as any).cobranca_nota || ""}
-                                  onChange={(e) => updateStore(store.id, { cobranca_nota: e.target.value } as any)}
+                                  placeholder="Escreva sua orientação para a equipe..."
+                                  value={store.cobrancaNota || ""}
+                                  onChange={(e) => updateStore(store.id, { cobrancaNota: e.target.value } as any)}
                                 />
-                              </div>
-                              <div className="space-y-1 pt-1">
-                                <p className="text-[10px] font-bold text-destructive flex items-center gap-1">
-                                  <Target className="h-3 w-3" /> Ações Pendentes:
-                                </p>
-                                <div className="text-[11px] text-muted-foreground max-h-20 overflow-y-auto pr-1">
-                                  {Object.values(store.checklist || {}).filter((i: any) => i.observacoes).map((i: any, idx) => (
-                                    <div key={idx} className="border-l-2 border-destructive/30 pl-2 mb-1 py-0.5">• {i.observacoes}</div>
-                                  ))}
-                                </div>
                               </div>
                             </CardContent>
                           </Card>
@@ -1875,33 +1870,39 @@ const Equipe = () => {
                 <Card>
                   <CardHeader className="pb-3 border-b">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <Users className="h-4 w-4 text-blue-500" /> Ações para Equipe (Deise/Gizelia)
+                      <Users className="h-4 w-4 text-blue-500" /> Ações Deise & Gizelia
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-4 px-0">
                     <div className="max-h-[400px] overflow-y-auto px-4 space-y-3">
                       {(() => {
-                        const highlightedTasks = tasks.filter(t => {
-                          const member = members.find(m => m.id === t.assigned_to);
-                          return member && (member.name.toLowerCase().includes("deise") || member.name.toLowerCase().includes("gizelia"));
-                        });
+                        const filteredStores = stores.filter(s => 
+                          (s.comentariosObras || "").toLowerCase().includes("deise") || 
+                          (s.comentariosObras || "").toLowerCase().includes("gizelia") ||
+                          (s.statusGeral || "").toLowerCase().includes("deise") ||
+                          (s.statusGeral || "").toLowerCase().includes("gizelia")
+                        );
 
-                        return highlightedTasks.length === 0 ? (
-                          <p className="text-sm text-center py-8 text-muted-foreground italic">Nenhuma tarefa recente de Deise ou Gizelia.</p>
+                        return filteredStores.length === 0 ? (
+                          <p className="text-sm text-center py-8 text-muted-foreground italic">Nenhuma ação mencionando Deise ou Gizelia.</p>
                         ) : (
-                          highlightedTasks.map(task => (
-                            <div key={task.id} className="p-3 rounded-lg border bg-muted/20 flex flex-col gap-1 relative overflow-hidden">
+                          filteredStores.map(store => (
+                            <div key={store.id} className="p-3 rounded-lg border bg-muted/20 flex flex-col gap-1 relative overflow-hidden">
                               <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
                               <div className="flex justify-between items-start mb-1">
                                 <span className="text-[10px] font-bold text-blue-600 uppercase">
-                                  {members.find(m => m.id === task.assigned_to)?.name}
+                                  {store.nome}
                                 </span>
-                                <Badge variant="outline" className="text-[9px] h-4">{statusLabels[task.status]}</Badge>
                               </div>
-                              <p className="text-sm font-medium">{task.title}</p>
-                              {task.description && <p className="text-xs text-muted-foreground line-clamp-2 italic">"{task.description}"</p>}
-                              <div className="flex justify-between items-center mt-2 pt-2 border-t border-muted/50">
-                                <span className="text-[10px] text-muted-foreground">Prazo: {formatDate(task.due_date)}</span>
+                              <p className="text-xs font-medium">{store.statusGeral || store.comentariosObras}</p>
+                              <div className="mt-2 pt-2 border-t border-muted/50">
+                                <Label className="text-[9px] text-muted-foreground uppercase">Nota de Cobrança</Label>
+                                <Textarea 
+                                  className="text-xs min-h-[40px] mt-1" 
+                                  placeholder="Nota de cobrança..."
+                                  value={store.cobrancaNota || ""}
+                                  onChange={(e) => updateStore(store.id, { cobrancaNota: e.target.value } as any)}
+                                />
                               </div>
                             </div>
                           ))
@@ -1914,7 +1915,7 @@ const Equipe = () => {
                 <Card>
                   <CardHeader className="pb-3 border-b">
                     <CardTitle className="text-base flex items-center gap-2">
-                      <ListTodo className="h-4 w-4 text-orange-500" /> Todas as Lojas (Campo de Cobrança)
+                      <ListTodo className="h-4 w-4 text-orange-500" /> Todas as Lojas (Acompanhamento)
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-4 px-0">
@@ -1923,13 +1924,21 @@ const Equipe = () => {
                         <div key={store.id} className="space-y-2 pb-4 border-b last:border-0">
                           <div className="flex justify-between items-center">
                             <span className="text-sm font-bold">{store.nome}</span>
-                            <span className="text-[10px] text-muted-foreground">{store.analistaObra}</span>
+                            <span className="text-[10px] text-muted-foreground">Filial: {store.filial}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-[10px]">
+                            <div className="bg-muted/30 p-1 rounded">
+                              <strong>Previsão:</strong> {store.previsaoInauguracaoTexto}
+                            </div>
+                            <div className="bg-muted/30 p-1 rounded">
+                              <strong>Status:</strong> {store.statusGeral?.substring(0, 30)}...
+                            </div>
                           </div>
                           <Textarea 
-                            className="text-xs min-h-[50px] bg-muted/10 border-muted-foreground/20" 
-                            placeholder="Adicionar nota de cobrança rápida..."
-                            value={(store as any).cobranca_nota || ""}
-                            onChange={(e) => updateStore(store.id, { cobranca_nota: e.target.value } as any)}
+                            className="text-xs min-h-[50px] bg-muted/10" 
+                            placeholder="Adicionar nota de cobrança para a equipe..."
+                            value={store.cobrancaNota || ""}
+                            onChange={(e) => updateStore(store.id, { cobrancaNota: e.target.value } as any)}
                           />
                         </div>
                       ))}
