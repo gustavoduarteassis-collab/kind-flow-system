@@ -1808,44 +1808,80 @@ const Equipe = () => {
 
           <TabsContent value="lojas_principal">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <ListTodo className="h-5 w-5" /> Acompanhamento de Obras (Principal)
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">Status detalhado de todas as filiais e locais.</p>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ListTodo className="h-5 w-5" /> Acompanhamento de Obras (Principal)
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Status detalhado de todas as filiais e locais.</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={async () => {
+                    const confirm = window.confirm("Deseja sincronizar os dados da planilha novamente?");
+                    if (confirm) {
+                      // Logic is server-side/internal usually, but we could trigger a refetch
+                      toast({ title: "Sincronizando...", description: "Recarregando dados do banco." });
+                      // fetchAll is already called in useEffect, but we can call it again
+                      fetchAll();
+                    }
+                  }}
+                >
+                  Sincronizar Planilha
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Filial</TableHead>
-                        <TableHead>Local</TableHead>
-                        <TableHead>Status Geral</TableHead>
-                        <TableHead>Início Obra</TableHead>
-                        <TableHead>Inauguração</TableHead>
-                        <TableHead>Comentários</TableHead>
+                        <TableHead className="w-[100px]">Filial</TableHead>
+                        <TableHead className="min-w-[200px]">Local</TableHead>
+                        <TableHead className="min-w-[150px]">Status Geral</TableHead>
+                        <TableHead className="min-w-[200px]">Início Obra</TableHead>
+                        <TableHead className="min-w-[120px]">Inauguração</TableHead>
+                        <TableHead className="min-w-[300px]">Comentários Recentes</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {stores.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhuma loja cadastrada.</TableCell>
+                          <TableCell colSpan={6} className="text-center py-12 text-muted-foreground italic">Nenhuma loja encontrada.</TableCell>
                         </TableRow>
                       ) : (
                         stores.map(store => (
-                          <TableRow key={store.id}>
-                            <TableCell className="font-mono text-xs">{store.filial || "—"}</TableCell>
-                            <TableCell className="font-semibold">{store.nome}</TableCell>
+                          <TableRow 
+                            key={store.id} 
+                            className="hover:bg-muted/30 cursor-pointer transition-colors"
+                            onClick={() => navigate(`/loja/${store.id}`)}
+                          >
+                            <TableCell className="font-mono text-xs font-bold">{store.filial || "—"}</TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="text-[10px] bg-muted/50">
-                                {store.statusGeral || "NÃO INICIADO"}
-                              </Badge>
+                              <div>
+                                <p className="font-semibold text-sm">{store.nome}</p>
+                                <p className="text-[10px] text-muted-foreground truncate max-w-[180px]">{store.localizacao}</p>
+                              </div>
                             </TableCell>
-                            <TableCell className="text-xs whitespace-pre-wrap">{store.inicioObraTexto || "—"}</TableCell>
-                            <TableCell className="text-xs">{store.previsaoInauguracaoTexto || "—"}</TableCell>
-                            <TableCell className="text-xs max-w-[300px] truncate" title={store.comentariosObras}>
-                              {store.comentariosObras || "—"}
+                            <TableCell>
+                              <div className="flex flex-col gap-1">
+                                <Badge variant="secondary" className="text-[10px] w-fit">
+                                  {store.statusGeral || "NÃO INICIADO"}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              <ScrollArea className="h-10">
+                                <p className="whitespace-pre-wrap">{store.inicioObraTexto || "—"}</p>
+                              </ScrollArea>
+                            </TableCell>
+                            <TableCell className="text-xs font-medium">{store.previsaoInauguracaoTexto || "—"}</TableCell>
+                            <TableCell className="text-xs">
+                              <ScrollArea className="h-12">
+                                <p className="text-muted-foreground leading-relaxed">
+                                  {store.comentariosObras || "Nenhum comentário registrado."}
+                                </p>
+                              </ScrollArea>
                             </TableCell>
                           </TableRow>
                         ))
