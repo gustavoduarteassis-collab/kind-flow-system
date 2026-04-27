@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -630,6 +631,7 @@ const Equipe = () => {
         <Tabs defaultValue="tarefas">
           <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="tarefas" className="gap-2"><ListTodo className="h-4 w-4" /> Tarefas</TabsTrigger>
+            <TabsTrigger value="lojas_principal" className="gap-2"><Plus className="h-4 w-4" /> Lojas Principal</TabsTrigger>
             <TabsTrigger value="habitos" className="gap-2"><Target className="h-4 w-4" /> Hábitos</TabsTrigger>
             <TabsTrigger value="programacao" className="gap-2"><Calendar className="h-4 w-4" /> Programação</TabsTrigger>
             <TabsTrigger value="calendario" className="gap-2"><Calendar className="h-4 w-4" /> Calendário</TabsTrigger>
@@ -1802,6 +1804,93 @@ const Equipe = () => {
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="lojas_principal">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ListTodo className="h-5 w-5" /> Acompanhamento de Obras (Principal)
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground">Status detalhado de todas as filiais e locais.</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={async () => {
+                    const confirm = window.confirm("Deseja sincronizar os dados da planilha novamente?");
+                    if (confirm) {
+                      // Logic is server-side/internal usually, but we could trigger a refetch
+                      toast({ title: "Sincronizando...", description: "Recarregando dados do banco." });
+                      // fetchAll is already called in useEffect, but we can call it again
+                      fetchAll();
+                    }
+                  }}
+                >
+                  Sincronizar Planilha
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[100px]">Filial</TableHead>
+                        <TableHead className="min-w-[200px]">Local</TableHead>
+                        <TableHead className="min-w-[150px]">Status Geral</TableHead>
+                        <TableHead className="min-w-[200px]">Início Obra</TableHead>
+                        <TableHead className="min-w-[120px]">Inauguração</TableHead>
+                        <TableHead className="min-w-[300px]">Comentários Recentes</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {stores.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-12 text-muted-foreground italic">Nenhuma loja encontrada.</TableCell>
+                        </TableRow>
+                      ) : (
+                        stores.map(store => (
+                          <TableRow 
+                            key={store.id} 
+                            className="hover:bg-muted/30 cursor-pointer transition-colors"
+                            onClick={() => navigate(`/loja/${store.id}`)}
+                          >
+                            <TableCell className="font-mono text-xs font-bold">{store.filial || "—"}</TableCell>
+                            <TableCell>
+                              <div>
+                                <p className="font-semibold text-sm">{store.nome}</p>
+                                <p className="text-[10px] text-muted-foreground truncate max-w-[180px]">{store.localizacao}</p>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col gap-1">
+                                <Badge variant="secondary" className="text-[10px] w-fit">
+                                  {store.statusGeral || "NÃO INICIADO"}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              <ScrollArea className="h-10">
+                                <p className="whitespace-pre-wrap">{store.inicioObraTexto || "—"}</p>
+                              </ScrollArea>
+                            </TableCell>
+                            <TableCell className="text-xs font-medium">{store.previsaoInauguracaoTexto || "—"}</TableCell>
+                            <TableCell className="text-xs">
+                              <ScrollArea className="h-12">
+                                <p className="text-muted-foreground leading-relaxed">
+                                  {store.comentariosObras || "Nenhum comentário registrado."}
+                                </p>
+                              </ScrollArea>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="ferias_gustavo">
