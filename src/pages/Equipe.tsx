@@ -634,6 +634,7 @@ const Equipe = () => {
             <TabsTrigger value="programacao" className="gap-2"><Calendar className="h-4 w-4" /> Programação</TabsTrigger>
             <TabsTrigger value="calendario" className="gap-2"><Calendar className="h-4 w-4" /> Calendário</TabsTrigger>
             <TabsTrigger value="equipe" className="gap-2"><Users className="h-4 w-4" /> Equipe</TabsTrigger>
+            <TabsTrigger value="ferias_gustavo" className="gap-2 text-[hsl(38,90%,55%)]"><Sun className="h-4 w-4" /> Férias Gustavo</TabsTrigger>
           </TabsList>
 
           {/* === TAREFAS === */}
@@ -1803,6 +1804,141 @@ const Equipe = () => {
             )}
           </TabsContent>
 
+          <TabsContent value="ferias_gustavo">
+            <div className="grid gap-6">
+              <Card className="border-[hsl(38,90%,55%)]/30">
+                <CardHeader className="bg-[hsl(38,90%,55%)]/5">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div className="space-y-1">
+                      <CardTitle className="flex items-center gap-2 text-[hsl(38,90%,55%)] text-lg">
+                        <Sun className="h-5 w-5" /> Dashboard de Cobrança — Férias Gustavo
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground">Monitoramento de pendências e ações críticas em lojas.</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {(() => {
+                      const criticalStores = stores.filter(store => {
+                        const checklist = store.checklist || {};
+                        const solicitacoes = (store as any).solicitacoes || {};
+                        const hasAtraso = Object.values(checklist).some((i: any) => i.observacoes?.toLowerCase().includes("atraso") || i.observacoes?.toLowerCase().includes("pendente"));
+                        const hasAcaoCritica = Object.values(solicitacoes).some((s: any) => s.comentarios?.toLowerCase().includes("urgente") || s.status === "atrasado");
+                        return hasAtraso || hasAcaoCritica;
+                      });
+                      
+                      return criticalStores.length === 0 ? (
+                        <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
+                          Nenhuma pendência crítica ou atraso detectado no momento nas lojas.
+                        </div>
+                      ) : (
+                        criticalStores.map(store => (
+                          <Card key={store.id} className="border-destructive/20 hover:border-destructive/40 transition-colors shadow-sm">
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-start">
+                                <CardTitle className="text-sm font-bold truncate pr-2">{store.nome}</CardTitle>
+                                <Badge variant="destructive" className="text-[10px] shrink-0">Pendência</Badge>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground">{store.analistaObra || "Sem analista"}</p>
+                            </CardHeader>
+                            <CardContent className="space-y-3">
+                              <div className="space-y-1">
+                                <Label className="text-[10px] text-muted-foreground uppercase font-bold">Observações de Cobrança</Label>
+                                <Textarea 
+                                  className="text-xs min-h-[60px] resize-none" 
+                                  placeholder="Deixe aqui sua nota de cobrança..."
+                                  value={(store as any).cobranca_nota || ""}
+                                  onChange={(e) => updateStore(store.id, { cobranca_nota: e.target.value } as any)}
+                                />
+                              </div>
+                              <div className="space-y-1 pt-1">
+                                <p className="text-[10px] font-bold text-destructive flex items-center gap-1">
+                                  <Target className="h-3 w-3" /> Ações Pendentes:
+                                </p>
+                                <div className="text-[11px] text-muted-foreground max-h-20 overflow-y-auto pr-1">
+                                  {Object.values(store.checklist || {}).filter((i: any) => i.observacoes).map((i: any, idx) => (
+                                    <div key={idx} className="border-l-2 border-destructive/30 pl-2 mb-1 py-0.5">• {i.observacoes}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))
+                      );
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader className="pb-3 border-b">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-500" /> Ações para Equipe (Deise/Gizelia)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 px-0">
+                    <div className="max-h-[400px] overflow-y-auto px-4 space-y-3">
+                      {(() => {
+                        const highlightedTasks = tasks.filter(t => {
+                          const member = members.find(m => m.id === t.assigned_to);
+                          return member && (member.name.toLowerCase().includes("deise") || member.name.toLowerCase().includes("gizelia"));
+                        });
+
+                        return highlightedTasks.length === 0 ? (
+                          <p className="text-sm text-center py-8 text-muted-foreground italic">Nenhuma tarefa recente de Deise ou Gizelia.</p>
+                        ) : (
+                          highlightedTasks.map(task => (
+                            <div key={task.id} className="p-3 rounded-lg border bg-muted/20 flex flex-col gap-1 relative overflow-hidden">
+                              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
+                              <div className="flex justify-between items-start mb-1">
+                                <span className="text-[10px] font-bold text-blue-600 uppercase">
+                                  {members.find(m => m.id === task.assigned_to)?.name}
+                                </span>
+                                <Badge variant="outline" className="text-[9px] h-4">{statusLabels[task.status]}</Badge>
+                              </div>
+                              <p className="text-sm font-medium">{task.title}</p>
+                              {task.description && <p className="text-xs text-muted-foreground line-clamp-2 italic">"{task.description}"</p>}
+                              <div className="flex justify-between items-center mt-2 pt-2 border-t border-muted/50">
+                                <span className="text-[10px] text-muted-foreground">Prazo: {formatDate(task.due_date)}</span>
+                              </div>
+                            </div>
+                          ))
+                        );
+                      })()}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-3 border-b">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <ListTodo className="h-4 w-4 text-orange-500" /> Todas as Lojas (Campo de Cobrança)
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-4 px-0">
+                    <div className="max-h-[400px] overflow-y-auto px-4 space-y-4">
+                      {stores.map(store => (
+                        <div key={store.id} className="space-y-2 pb-4 border-b last:border-0">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-bold">{store.nome}</span>
+                            <span className="text-[10px] text-muted-foreground">{store.analistaObra}</span>
+                          </div>
+                          <Textarea 
+                            className="text-xs min-h-[50px] bg-muted/10 border-muted-foreground/20" 
+                            placeholder="Adicionar nota de cobrança rápida..."
+                            value={(store as any).cobranca_nota || ""}
+                            onChange={(e) => updateStore(store.id, { cobranca_nota: e.target.value } as any)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
       </main>
     </div>
