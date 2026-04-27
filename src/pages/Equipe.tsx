@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
-  ChevronLeft, ChevronRight, Calendar, KeyRound,
+  ChevronLeft, ChevronRight, Calendar, KeyRound, Sun,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
