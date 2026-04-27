@@ -28,7 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import * as XLSX from 'xlsx';
+import { exportFeriasGustavoExcel } from "@/lib/exportFeriasGustavoExcel";
 
 type TeamMember = {
   id: string; name: string; role: string; email: string | null; phone: string | null;
