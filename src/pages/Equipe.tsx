@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
-  ChevronLeft, ChevronRight, Calendar, KeyRound, Sun,
+  ChevronLeft, ChevronRight, Calendar, KeyRound, Sun, User,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
@@ -1862,130 +1862,292 @@ const Equipe = () => {
                           const getSolStatus = (id: string) => solicitacoes[id]?.status || "pendente";
 
                           return (
-                            <TableRow key={store.id} className="hover:bg-muted/50">
-                              <TableCell className="font-semibold">{store.nome}</TableCell>
-                              
-                              {/* Arquitetônico (Item 28 no checklist) */}
+                            <TableRow key={store.id} className="hover:bg-muted/50 cursor-pointer" onClick={() => navigate(`/loja/${store.id}`)}>
                               <TableCell>
-                                <Badge variant="outline" className={checklist[28]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(28)}
-                                </Badge>
+                                <div className="font-semibold">{store.nome}</div>
+                                {store.analistaObra && (
+                                  <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                    <User className="h-3 w-3" /> {store.analistaObra}
+                                  </div>
+                                )}
+                              </TableCell>
+                              
+                              {/* Arquitetônico (Item 28) */}
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[28]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(28)}
+                                  </Badge>
+                                  {getItemStatus(28) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[28]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 28: { ...checklist[28], status: checklist[28]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
                               {/* Elétrico (Item 31) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[31]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(31)}
-                                </Badge>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[31]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(31)}
+                                  </Badge>
+                                  {getItemStatus(31) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[31]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 31: { ...checklist[31], status: checklist[31]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
                               {/* Incêndio (Item 32) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[32]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(32)}
-                                </Badge>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[32]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(32)}
+                                  </Badge>
+                                  {getItemStatus(32) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[32]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 32: { ...checklist[32], status: checklist[32]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
                               {/* Ar Condicionado (Item 33) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[33]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(33)}
-                                </Badge>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[33]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(33)}
+                                  </Badge>
+                                  {getItemStatus(33) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[33]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 33: { ...checklist[33], status: checklist[33]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
-                              {/* Orçamentos (Cotação de Construtora - Item 36) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[36]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(36)}
-                                </Badge>
+                              {/* Orçamentos (Item 36) */}
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[36]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(36)}
+                                  </Badge>
+                                  {getItemStatus(36) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[36]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 36: { ...checklist[36], status: checklist[36]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
                               {/* Demolição (Item 61) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[61]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(61)}
-                                </Badge>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[61]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(61)}
+                                  </Badge>
+                                  {getItemStatus(61) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[61]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 61: { ...checklist[61], status: checklist[61]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
-                              {/* Início de Obra (Geralmente quando item 37/40 ok) */}
+                              {/* Início de Obra */}
                               <TableCell>
                                 <Badge variant="outline">
                                   {checklist[40]?.status === "REALIZADO" ? "Iniciada" : "Aguardando"}
                                 </Badge>
                               </TableCell>
                               
-                              {/* Contrato Obra (Item 37 ou solicitação contrato_obras) */}
-                              <TableCell>
-                                <Badge variant="outline" className={getSolStatus("contrato_obras") === "concluido" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getSolStatus("contrato_obras")}
-                                </Badge>
+                              {/* Contrato Obra */}
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={getSolStatus("contrato_obras") === "concluido" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getSolStatus("contrato_obras")}
+                                  </Badge>
+                                  {getSolStatus("contrato_obras") === "pendente" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={solicitacoes["contrato_obras"]?.comentarios || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        solicitacoes: { ...solicitacoes, "contrato_obras": { ...solicitacoes["contrato_obras"], status: solicitacoes["contrato_obras"]?.status || "pendente", comentarios: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
-                              {/* Checklist Iniciado (Se tem mais que X itens com status) */}
+                              {/* Checklist Iniciado */}
                               <TableCell>
-                                <Badge variant="outline" className={Object.keys(checklist).length > 5 ? "bg-blue-500 text-white" : ""}>
+                                <Badge variant="outline" className={Object.keys(checklist).length > 5 ? "bg-blue-500 text-white border-none" : ""}>
                                   {Object.keys(checklist).length > 5 ? "Sim" : "Não"}
                                 </Badge>
                               </TableCell>
                               
                               {/* Apresentação Projetos (Item 27) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[27]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(27)}
-                                </Badge>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[27]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(27)}
+                                  </Badge>
+                                  {getItemStatus(27) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[27]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 27: { ...checklist[27], status: checklist[27]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
                               {/* Móveis (Item 44) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[44]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(44)}
-                                </Badge>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[44]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(44)}
+                                  </Badge>
+                                  {getItemStatus(44) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[44]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 44: { ...checklist[44], status: checklist[44]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
-                              {/* Piso (Item 46/47) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[46]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(46)}
-                                </Badge>
+                              {/* Piso (Item 46) */}
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[46]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(46)}
+                                  </Badge>
+                                  {getItemStatus(46) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[46]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 46: { ...checklist[46], status: checklist[46]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
                               {/* Luminárias (Item 53) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[53]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(53)}
-                                </Badge>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[53]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(53)}
+                                  </Badge>
+                                  {getItemStatus(53) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[53]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 53: { ...checklist[53], status: checklist[53]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
                               {/* Teca (Item 49) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[49]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(49)}
-                                </Badge>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[49]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(49)}
+                                  </Badge>
+                                  {getItemStatus(49) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[49]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 49: { ...checklist[49], status: checklist[49]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
                               {/* Antena (Item 50) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[50]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(50)}
-                                </Badge>
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[50]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(50)}
+                                  </Badge>
+                                  {getItemStatus(50) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[50]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 50: { ...checklist[50], status: checklist[50]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                               
-                              {/* Status Lojas (Global progress) */}
+                              {/* Status Lojas */}
                               <TableCell>
                                 {(() => {
-                                  const total = 100; // approximation or calculate real
                                   const done = Object.values(checklist).filter(i => i.status === "REALIZADO").length;
                                   const pct = Math.round((done / 144) * 100);
-                                  return <div className="text-xs font-bold">{pct}% Concluído</div>
+                                  return <div className="text-xs font-bold">{pct}%</div>
                                 })()}
                               </TableCell>
                               
-                              {/* Visita Técnica (Data) */}
+                              {/* Visita Técnica */}
                               <TableCell className="text-xs">
                                 {visita.dataVisita ? formatDate(visita.dataVisita) : "—"}
                               </TableCell>
                               
-                              {/* Visita Implantação (Data) */}
+                              {/* Visita Implantação */}
                               <TableCell className="text-xs">
                                 {visita.dataImplantacao ? formatDate(visita.dataImplantacao) : "—"}
                               </TableCell>
@@ -1995,11 +2157,23 @@ const Equipe = () => {
                                 {store.inauguracao ? formatDate(store.inauguracao) : "—"}
                               </TableCell>
                               
-                              {/* Implantação Sistema (Item 106) */}
-                              <TableCell>
-                                <Badge variant="outline" className={checklist[106]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
-                                  {getItemStatus(106)}
-                                </Badge>
+                              {/* Implantação Sistema */}
+                              <TableCell onClick={(e) => e.stopPropagation()}>
+                                <div className="space-y-1">
+                                  <Badge variant="outline" className={checklist[106]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white border-none" : ""}>
+                                    {getItemStatus(106)}
+                                  </Badge>
+                                  {getItemStatus(106) === "NÃO INICIADO" && (
+                                    <Input 
+                                      className="h-6 text-[10px] px-1" 
+                                      placeholder="Ação..." 
+                                      value={checklist[106]?.observacoes || ""}
+                                      onChange={(e) => updateStore(store.id, { 
+                                        checklist: { ...checklist, 106: { ...checklist[106], status: checklist[106]?.status || "NÃO INICIADO", observacoes: e.target.value } } 
+                                      } as any)}
+                                    />
+                                  )}
+                                </div>
                               </TableCell>
                             </TableRow>
                           );
