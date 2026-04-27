@@ -1802,6 +1802,29 @@ const Equipe = () => {
             )}
           </TabsContent>
 
+          <TabsContent value="ferias_gustavo">
+            <Card className="border-[hsl(38,90%,55%)]/30">
+              <CardHeader className="bg-[hsl(38,90%,55%)]/5">
+                <CardTitle className="flex items-center gap-2 text-[hsl(38,90%,55%)]">
+                  <Sun className="h-5 w-5" /> Demandas & Tarefas - Férias Gustavo
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Espaço dedicado para acompanhamento de pendências e transição durante o período de férias.
+                </p>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="rounded-lg border border-dashed p-12 flex flex-col items-center justify-center text-center">
+                  <div className="h-12 w-12 rounded-full bg-[hsl(38,90%,55%)]/10 flex items-center justify-center mb-4">
+                    <ListTodo className="h-6 w-6 text-[hsl(38,90%,55%)]" />
+                  </div>
+                  <h3 className="text-lg font-medium">Nenhuma demanda registrada</h3>
+                  <p className="text-sm text-muted-foreground max-w-sm mt-2">
+                    Envie os comandos para atualizar esta aba e as tarefas aparecerão aqui.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </main>
     </div>
