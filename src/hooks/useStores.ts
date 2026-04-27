@@ -33,6 +33,12 @@ export function useStores() {
         solicitacoes: row.solicitacoes || {},
         visitaTecnica: row.visita_tecnica || {},
         actionPlans: row.action_plans || [],
+        statusGeral: row.status_geral || "",
+        comentariosObras: row.comentarios_obras || "",
+        cobrancaNota: row.cobranca_nota || "",
+        localizacao: row.localizacao || "",
+        previsaoInauguracaoTexto: row.previsao_inauguracao_texto || "",
+        inicioObraTexto: row.inicio_obra_texto || "",
       })));
     }
     setLoading(false);
