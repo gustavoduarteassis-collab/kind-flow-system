@@ -1804,6 +1804,57 @@ const Equipe = () => {
             )}
           </TabsContent>
 
+          <TabsContent value="lojas_principal">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <ListTodo className="h-5 w-5" /> Acompanhamento de Obras (Principal)
+                </CardTitle>
+                <p className="text-sm text-muted-foreground">Status detalhado de todas as filiais e locais.</p>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Filial</TableHead>
+                        <TableHead>Local</TableHead>
+                        <TableHead>Status Geral</TableHead>
+                        <TableHead>Início Obra</TableHead>
+                        <TableHead>Inauguração</TableHead>
+                        <TableHead>Comentários</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {stores.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhuma loja cadastrada.</TableCell>
+                        </TableRow>
+                      ) : (
+                        stores.map(store => (
+                          <TableRow key={store.id}>
+                            <TableCell className="font-mono text-xs">{store.filial || "—"}</TableCell>
+                            <TableCell className="font-semibold">{store.nome}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="text-[10px] bg-muted/50">
+                                {store.statusGeral || "NÃO INICIADO"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-xs whitespace-pre-wrap">{store.inicioObraTexto || "—"}</TableCell>
+                            <TableCell className="text-xs">{store.previsaoInauguracaoTexto || "—"}</TableCell>
+                            <TableCell className="text-xs max-w-[300px] truncate" title={store.comentariosObras}>
+                              {store.comentariosObras || "—"}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="ferias_gustavo">
             <div className="grid gap-6">
               <Card className="border-[hsl(38,90%,55%)]/30">
