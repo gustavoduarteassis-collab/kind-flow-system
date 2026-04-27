@@ -1849,6 +1849,26 @@ const Equipe = () => {
                   >
                     <FileDown className="h-4 w-4" /> Exportar XLS
                   </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center gap-2 border-destructive text-destructive hover:bg-destructive hover:text-white"
+                    onClick={() => {
+                      stores.forEach(store => {
+                        updateStore(store.id, { 
+                          checklist: {}, 
+                          solicitacoes: {}, 
+                          visitaTecnica: {} 
+                        } as any);
+                      });
+                      toast({ 
+                        title: "Pendências Zeradas", 
+                        description: "Todas as pendências e status das lojas foram limpos." 
+                      });
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" /> Zerar Pendências
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="pt-6">
