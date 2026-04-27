@@ -32,6 +32,7 @@ export function useStores() {
         inauguracaoChecklist: row.inauguracao_checklist || {},
         solicitacoes: row.solicitacoes || {},
         visitaTecnica: row.visita_tecnica || {},
+        actionPlans: row.action_plans || [],
       })));
     }
     setLoading(false);
@@ -83,6 +84,7 @@ export function useStores() {
     if ((updates as any).inauguracaoChecklist !== undefined) dbUpdates.inauguracao_checklist = (updates as any).inauguracaoChecklist;
     if ((updates as any).solicitacoes !== undefined) dbUpdates.solicitacoes = (updates as any).solicitacoes;
     if ((updates as any).visitaTecnica !== undefined) dbUpdates.visita_tecnica = (updates as any).visitaTecnica;
+    if ((updates as any).actionPlans !== undefined) dbUpdates.action_plans = (updates as any).actionPlans;
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
   }, []);
