@@ -1946,5 +1946,3 @@ const Equipe = () => {
 };
 
 export default Equipe;
-
-export default Equipe;
