@@ -1805,22 +1805,208 @@ const Equipe = () => {
           <TabsContent value="ferias_gustavo">
             <Card className="border-[hsl(38,90%,55%)]/30">
               <CardHeader className="bg-[hsl(38,90%,55%)]/5">
-                <CardTitle className="flex items-center gap-2 text-[hsl(38,90%,55%)]">
-                  <Sun className="h-5 w-5" /> Demandas & Tarefas - Férias Gustavo
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Espaço dedicado para acompanhamento de pendências e transição durante o período de férias.
-                </p>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <CardTitle className="flex items-center gap-2 text-[hsl(38,90%,55%)]">
+                      <Sun className="h-5 w-5" /> Demandas & Tarefas - Férias Gustavo
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Acompanhamento geral de projetos, obras e pendências das lojas.
+                    </p>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="pt-6">
-                <div className="rounded-lg border border-dashed p-12 flex flex-col items-center justify-center text-center">
-                  <div className="h-12 w-12 rounded-full bg-[hsl(38,90%,55%)]/10 flex items-center justify-center mb-4">
-                    <ListTodo className="h-6 w-6 text-[hsl(38,90%,55%)]" />
-                  </div>
-                  <h3 className="text-lg font-medium">Nenhuma demanda registrada</h3>
-                  <p className="text-sm text-muted-foreground max-w-sm mt-2">
-                    Envie os comandos para atualizar esta aba e as tarefas aparecerão aqui.
-                  </p>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[150px]">Loja</TableHead>
+                        <TableHead className="min-w-[120px]">Arquitetônico</TableHead>
+                        <TableHead className="min-w-[120px]">Elétrico</TableHead>
+                        <TableHead className="min-w-[120px]">Incêndio</TableHead>
+                        <TableHead className="min-w-[120px]">Ar Condic.</TableHead>
+                        <TableHead className="min-w-[120px]">Orçamentos</TableHead>
+                        <TableHead className="min-w-[120px]">Demolição</TableHead>
+                        <TableHead className="min-w-[120px]">Obra Início</TableHead>
+                        <TableHead className="min-w-[120px]">Contrato Obra</TableHead>
+                        <TableHead className="min-w-[120px]">Checklist Ini.</TableHead>
+                        <TableHead className="min-w-[120px]">Apres. Proj.</TableHead>
+                        <TableHead className="min-w-[120px]">Móveis</TableHead>
+                        <TableHead className="min-w-[120px]">Piso</TableHead>
+                        <TableHead className="min-w-[120px]">Luminárias</TableHead>
+                        <TableHead className="min-w-[120px]">Teca</TableHead>
+                        <TableHead className="min-w-[120px]">Antena</TableHead>
+                        <TableHead className="min-w-[120px]">Status</TableHead>
+                        <TableHead className="min-w-[120px]">V. Técnica</TableHead>
+                        <TableHead className="min-w-[120px]">V. Implant.</TableHead>
+                        <TableHead className="min-w-[120px]">Inauguração</TableHead>
+                        <TableHead className="min-w-[120px]">Sist. Implant.</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {stores.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={21} className="text-center py-10 text-muted-foreground">
+                            Nenhuma loja cadastrada
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        stores.map((store) => {
+                          const checklist = store.checklist || {};
+                          const solicitacoes = (store as any).solicitacoes || {};
+                          const visita = (store as any).visitaTecnica || {};
+                          
+                          // Helper to get item status
+                          const getItemStatus = (id: number) => checklist[id]?.status || "NÃO INICIADO";
+                          const getSolStatus = (id: string) => solicitacoes[id]?.status || "pendente";
+
+                          return (
+                            <TableRow key={store.id} className="hover:bg-muted/50">
+                              <TableCell className="font-semibold">{store.nome}</TableCell>
+                              
+                              {/* Arquitetônico (Item 28 no checklist) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[28]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(28)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Elétrico (Item 31) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[31]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(31)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Incêndio (Item 32) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[32]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(32)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Ar Condicionado (Item 33) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[33]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(33)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Orçamentos (Cotação de Construtora - Item 36) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[36]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(36)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Demolição (Item 61) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[61]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(61)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Início de Obra (Geralmente quando item 37/40 ok) */}
+                              <TableCell>
+                                <Badge variant="outline">
+                                  {checklist[40]?.status === "REALIZADO" ? "Iniciada" : "Aguardando"}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Contrato Obra (Item 37 ou solicitação contrato_obras) */}
+                              <TableCell>
+                                <Badge variant="outline" className={getSolStatus("contrato_obras") === "concluido" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getSolStatus("contrato_obras")}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Checklist Iniciado (Se tem mais que X itens com status) */}
+                              <TableCell>
+                                <Badge variant="outline" className={Object.keys(checklist).length > 5 ? "bg-blue-500 text-white" : ""}>
+                                  {Object.keys(checklist).length > 5 ? "Sim" : "Não"}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Apresentação Projetos (Item 27) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[27]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(27)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Móveis (Item 44) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[44]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(44)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Piso (Item 46/47) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[46]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(46)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Luminárias (Item 53) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[53]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(53)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Teca (Item 49) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[49]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(49)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Antena (Item 50) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[50]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(50)}
+                                </Badge>
+                              </TableCell>
+                              
+                              {/* Status Lojas (Global progress) */}
+                              <TableCell>
+                                {(() => {
+                                  const total = 100; // approximation or calculate real
+                                  const done = Object.values(checklist).filter(i => i.status === "REALIZADO").length;
+                                  const pct = Math.round((done / 144) * 100);
+                                  return <div className="text-xs font-bold">{pct}% Concluído</div>
+                                })()}
+                              </TableCell>
+                              
+                              {/* Visita Técnica (Data) */}
+                              <TableCell className="text-xs">
+                                {visita.dataVisita ? formatDate(visita.dataVisita) : "—"}
+                              </TableCell>
+                              
+                              {/* Visita Implantação (Data) */}
+                              <TableCell className="text-xs">
+                                {visita.dataImplantacao ? formatDate(visita.dataImplantacao) : "—"}
+                              </TableCell>
+                              
+                              {/* Data Inauguração */}
+                              <TableCell className="text-xs font-bold">
+                                {store.inauguracao ? formatDate(store.inauguracao) : "—"}
+                              </TableCell>
+                              
+                              {/* Implantação Sistema (Item 106) */}
+                              <TableCell>
+                                <Badge variant="outline" className={checklist[106]?.status === "REALIZADO" ? "bg-[hsl(var(--success))] text-white" : ""}>
+                                  {getItemStatus(106)}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
               </CardContent>
             </Card>
