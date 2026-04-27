@@ -53,6 +53,13 @@ export interface Store {
   custos?: any;
   solicitacoes?: any;
   visitaTecnica?: any;
+  actionPlans?: any[];
+  statusGeral?: string;
+  comentariosObras?: string;
+  cobrancaNota?: string;
+  localizacao?: string;
+  previsaoInauguracaoTexto?: string;
+  inicioObraTexto?: string;
 }
 
 const defaultStatusOptions: StatusType[] = [
