@@ -2233,40 +2233,76 @@ const Equipe = () => {
                           Estratégias e ações preventivas/corretivas para o período de férias.
                         </p>
                       </div>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button className="bg-[hsl(38,90%,55%)] hover:bg-[hsl(38,90%,65%)] text-white gap-2">
-                            <Plus className="h-4 w-4" /> Novo Plano
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Criar Novo Plano de Ação</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4 py-4">
-                            <div className="space-y-2">
-                              <Label>Loja Responsável</Label>
-                              <Select onValueChange={(val) => {
-                                const store = stores.find(s => s.id === val);
-                                if (store) {
-                                  // @ts-ignore
-                                  const plans = store.actionPlans || [];
-                                  const newPlan = { id: crypto.randomUUID(), description: "", deadline: "", status: "pendente", responsible: "Gustavo", created_at: new Date().toISOString() };
-                                  updateStore(store.id, { actionPlans: [...plans, newPlan] } as any);
-                                  toast({ title: "Plano iniciado", description: `Plano de ação criado para ${store.nome}` });
-                                }
-                              }}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Selecione a loja..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
-                                </SelectContent>
-                              </Select>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline"
+                          className="border-[hsl(38,90%,55%)] text-[hsl(38,90%,55%)] hover:bg-[hsl(38,90%,55%)] hover:text-white gap-2"
+                          onClick={() => {
+                            const demands = [
+                              "Acompanhamento de Obras",
+                              "Validação de Projetos",
+                              "Checklist de Qualidade",
+                              "Treinamento de Equipe",
+                              "Suporte Técnico às Lojas"
+                            ];
+                            
+                            stores.forEach(store => {
+                              // @ts-ignore
+                              const existingPlans = store.actionPlans || [];
+                              const newPlans = demands.map(demand => ({
+                                id: crypto.randomUUID(),
+                                description: demand,
+                                deadline: format(addDays(new Date(), 15), "yyyy-MM-dd"),
+                                status: "pendente",
+                                responsible: "Gustavo",
+                                created_at: new Date().toISOString()
+                              }));
+                              updateStore(store.id, { actionPlans: [...existingPlans, ...newPlans] } as any);
+                            });
+                            
+                            toast({ 
+                              title: "Demandas Criadas", 
+                              description: "As demandas padrão foram adicionadas a todas as lojas." 
+                            });
+                          }}
+                        >
+                          <ListTodo className="h-4 w-4" /> Sugerir Demandas
+                        </Button>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button className="bg-[hsl(38,90%,55%)] hover:bg-[hsl(38,90%,65%)] text-white gap-2">
+                              <Plus className="h-4 w-4" /> Novo Plano
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Criar Novo Plano de Ação</DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4 py-4">
+                              <div className="space-y-2">
+                                <Label>Loja Responsável</Label>
+                                <Select onValueChange={(val) => {
+                                  const store = stores.find(s => s.id === val);
+                                  if (store) {
+                                    // @ts-ignore
+                                    const plans = store.actionPlans || [];
+                                    const newPlan = { id: crypto.randomUUID(), description: "", deadline: "", status: "pendente", responsible: "Gustavo", created_at: new Date().toISOString() };
+                                    updateStore(store.id, { actionPlans: [...plans, newPlan] } as any);
+                                    toast({ title: "Plano iniciado", description: `Plano de ação criado para ${store.nome}` });
+                                  }
+                                }}>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Selecione a loja..." />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {stores.map(s => <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-6">
