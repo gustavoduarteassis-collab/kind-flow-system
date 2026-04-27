@@ -2243,7 +2243,12 @@ const Equipe = () => {
                               "VALIDAÇÃO DE PROJETOS EXECUTIVOS",
                               "CHECKLIST DE QUALIDADE (LOJAS NOVAS)",
                               "SUPORTE TÉCNICO - MANUTENÇÃO",
-                              "REUNIÃO SEMANAL DE STATUS"
+                              "REUNIÃO SEMANAL DE STATUS",
+                              "VERIFICAÇÃO DE PISO E REVESTIMENTOS",
+                              "INSTALAÇÃO DE LUMINÁRIAS E ILUMINAÇÃO",
+                              "MONTAGEM DE MOBILIÁRIO E EXPOSITORES",
+                              "CONFERÊNCIA DE INSTALAÇÕES ELÉTRICAS",
+                              "LIMPEZA FINAL E ENTREGA DA OBRA"
                             ];
                             
                             stores.forEach(store => {
@@ -2262,11 +2267,11 @@ const Equipe = () => {
                             
                             toast({ 
                               title: "Demandas Lançadas", 
-                              description: "As demandas foram atribuídas ao Gustavo para todas as lojas." 
+                              description: "Todas as demandas do plano de ação foram atribuídas ao Gustavo." 
                             });
                           }}
                         >
-                          <ListTodo className="h-4 w-4" /> Lançar Demandas (Gustavo)
+                          <ListTodo className="h-4 w-4" /> Lançar Demandas Completas
                         </Button>
                         <Dialog>
                           <DialogTrigger asChild>
