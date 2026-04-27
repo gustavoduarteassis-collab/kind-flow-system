@@ -91,6 +91,12 @@ export function useStores() {
     if ((updates as any).solicitacoes !== undefined) dbUpdates.solicitacoes = (updates as any).solicitacoes;
     if ((updates as any).visitaTecnica !== undefined) dbUpdates.visita_tecnica = (updates as any).visitaTecnica;
     if ((updates as any).actionPlans !== undefined) dbUpdates.action_plans = (updates as any).actionPlans;
+    if ((updates as any).statusGeral !== undefined) dbUpdates.status_geral = (updates as any).statusGeral;
+    if ((updates as any).comentariosObras !== undefined) dbUpdates.comentarios_obras = (updates as any).comentariosObras;
+    if ((updates as any).cobrancaNota !== undefined) dbUpdates.cobranca_nota = (updates as any).cobrancaNota;
+    if ((updates as any).localizacao !== undefined) dbUpdates.localizacao = (updates as any).localizacao;
+    if ((updates as any).previsaoInauguracaoTexto !== undefined) dbUpdates.previsao_inauguracao_texto = (updates as any).previsaoInauguracaoTexto;
+    if ((updates as any).inicioObraTexto !== undefined) dbUpdates.inicio_obra_texto = (updates as any).inicioObraTexto;
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
   }, []);
