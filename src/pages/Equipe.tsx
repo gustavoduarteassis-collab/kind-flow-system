@@ -22,11 +22,13 @@ import {
 import {
   ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
   ChevronLeft, ChevronRight, Calendar, KeyRound, Sun, User,
+  FileDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import * as XLSX from 'xlsx';
 
 type TeamMember = {
   id: string; name: string; role: string; email: string | null; phone: string | null;
