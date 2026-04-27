@@ -630,6 +630,7 @@ const Equipe = () => {
         <Tabs defaultValue="tarefas">
           <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="tarefas" className="gap-2"><ListTodo className="h-4 w-4" /> Tarefas</TabsTrigger>
+            <TabsTrigger value="lojas_principal" className="gap-2"><Plus className="h-4 w-4" /> Lojas Principal</TabsTrigger>
             <TabsTrigger value="habitos" className="gap-2"><Target className="h-4 w-4" /> Hábitos</TabsTrigger>
             <TabsTrigger value="programacao" className="gap-2"><Calendar className="h-4 w-4" /> Programação</TabsTrigger>
             <TabsTrigger value="calendario" className="gap-2"><Calendar className="h-4 w-4" /> Calendário</TabsTrigger>
