@@ -22,11 +22,13 @@ import {
 import {
   ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
   ChevronLeft, ChevronRight, Calendar, KeyRound, Sun, User,
+  FileDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import * as XLSX from 'xlsx';
 
 type TeamMember = {
   id: string; name: string; role: string; email: string | null; phone: string | null;
@@ -1814,6 +1816,54 @@ const Equipe = () => {
                       Acompanhamento geral de projetos, obras e pendências das lojas.
                     </p>
                   </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex items-center gap-2 border-[hsl(38,90%,55%)] text-[hsl(38,90%,55%)] hover:bg-[hsl(38,90%,55%)] hover:text-white"
+                    onClick={() => {
+                      const reportData = stores.map(store => {
+                        const checklist = store.checklist || {};
+                        const solicitacoes = (store as any).solicitacoes || {};
+                        
+                        return {
+                          "Loja": store.nome,
+                          "Responsável": store.analistaObra || "Não definido",
+                          "Arquitetônico": checklist[28]?.status || "NÃO INICIADO",
+                          "Arquitetônico (Ação)": checklist[28]?.observacoes || "",
+                          "Elétrico": checklist[31]?.status || "NÃO INICIADO",
+                          "Elétrico (Ação)": checklist[31]?.observacoes || "",
+                          "Incêndio": checklist[32]?.status || "NÃO INICIADO",
+                          "Incêndio (Ação)": checklist[32]?.observacoes || "",
+                          "Ar Condic.": checklist[33]?.status || "NÃO INICIADO",
+                          "Ar Condic. (Ação)": checklist[33]?.observacoes || "",
+                          "Orçamentos": checklist[36]?.status || "NÃO INICIADO",
+                          "Orçamentos (Ação)": checklist[36]?.observacoes || "",
+                          "Demolição": checklist[61]?.status || "NÃO INICIADO",
+                          "Demolição (Ação)": checklist[61]?.observacoes || "",
+                          "Obra Início": checklist[40]?.status === "REALIZADO" ? "Iniciada" : "Aguardando",
+                          "Contrato Obra": solicitacoes["contrato_obras"]?.status || "pendente",
+                          "Contrato Obra (Ação)": solicitacoes["contrato_obras"]?.comentarios || "",
+                          "Apres. Proj.": checklist[27]?.status || "NÃO INICIADO",
+                          "Móveis": checklist[44]?.status || "NÃO INICIADO",
+                          "Piso": checklist[46]?.status || "NÃO INICIADO",
+                          "Luminárias": checklist[47]?.status || "NÃO INICIADO",
+                          "Inauguração": (store as any).dataInauguracao || ""
+                        };
+                      });
+
+                      const ws = XLSX.utils.json_to_sheet(reportData);
+                      const wb = XLSX.utils.book_new();
+                      XLSX.utils.book_append_sheet(wb, ws, "Pendências Férias");
+                      XLSX.writeFile(wb, `Relatorio_Ferias_Gustavo_${format(new Date(), 'dd-MM-yyyy')}.xlsx`);
+                      
+                      toast({
+                        title: "Relatório gerado!",
+                        description: "O arquivo Excel foi baixado com sucesso.",
+                      });
+                    }}
+                  >
+                    <FileDown className="h-4 w-4" /> Exportar XLS
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="pt-6">
