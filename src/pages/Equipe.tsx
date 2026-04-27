@@ -2236,54 +2236,18 @@ const Equipe = () => {
                       <div className="flex gap-2">
                         <Button 
                           variant="outline"
-                          className="border-[hsl(38,90%,55%)] text-[hsl(38,90%,55%)] hover:bg-[hsl(38,90%,55%)] hover:text-white gap-2"
+                          className="border-destructive text-destructive hover:bg-destructive hover:text-white gap-2"
                           onClick={() => {
-                            const storesData = [
-                              { name: "538 - Atibaia/SP", status: "Em andamento entrada da mercadoria e montagem dos moveis / Pendencia para entrega das antenas" },
-                              { name: "Passos/MG", status: "Retoque de pintura, falta instalação de luminárias. Montagem dos móveis e produtos." },
-                              { name: "Super Shopping Osasco", status: "Em andamento fechamento do forro, estrutura e porta prontos" },
-                              { name: "Shopping Curitiba", status: "Retirada de forro e gesso, elétrica e hidráulica em andamento" },
-                              { name: "Tucuruvi/SP", status: "Piso em andamento" },
-                              { name: "Shopping Cerrado", status: "Finalizado" }
-                            ];
-                            
                             stores.forEach(store => {
-                              const storeUpdate = storesData.find(d => store.nome.toLowerCase().includes(d.name.toLowerCase().split(' - ')[0].toLowerCase()));
-                              
-                              const demands = [
-                                { desc: "ACOMPANHAMENTO DIÁRIO - OBRAS", status: storeUpdate?.status || "pendente" },
-                                { desc: "VALIDAÇÃO DE PROJETOS EXECUTIVOS", status: "concluido" },
-                                { desc: "CHECKLIST DE QUALIDADE (LOJAS NOVAS)", status: "pendente" },
-                                { desc: "SUPORTE TÉCNICO - MANUTENÇÃO", status: "pendente" },
-                                { desc: "REUNIÃO SEMANAL DE STATUS", status: "pendente" },
-                                { desc: "VERIFICAÇÃO DE PISO E REVESTIMENTOS", status: storeUpdate?.status?.toLowerCase().includes("piso") ? "em_andamento" : "pendente" },
-                                { desc: "INSTALAÇÃO DE LUMINÁRIAS E ILUMINAÇÃO", status: storeUpdate?.status?.toLowerCase().includes("luminárias") ? "em_andamento" : "pendente" },
-                                { desc: "MONTAGEM DE MOBILIÁRIO E EXPOSITORES", status: storeUpdate?.status?.toLowerCase().includes("moveis") || storeUpdate?.status?.toLowerCase().includes("móveis") ? "em_andamento" : "pendente" },
-                                { desc: "CONFERÊNCIA DE INSTALAÇÕES ELÉTRICAS", status: "pendente" },
-                                { desc: "LIMPEZA FINAL E ENTREGA DA OBRA", status: "pendente" }
-                              ];
-                              
-                              // @ts-ignore
-                              const existingPlans = store.actionPlans || [];
-                              const newPlans = demands.map(demand => ({
-                                id: crypto.randomUUID(),
-                                description: demand.desc,
-                                deadline: format(addDays(new Date(), 7), "yyyy-MM-dd"),
-                                status: demand.status === "concluido" ? "concluido" : "pendente",
-                                notes: demand.status !== "concluido" && demand.status !== "pendente" ? demand.status : "",
-                                responsible: "Gustavo",
-                                created_at: new Date().toISOString()
-                              }));
-                              updateStore(store.id, { actionPlans: newPlans } as any);
+                              updateStore(store.id, { actionPlans: [] } as any);
                             });
-                            
                             toast({ 
-                              title: "Acompanhamento Atualizado", 
-                              description: "As demandas foram atualizadas com os status das lojas do relatório." 
+                              title: "Informações Zeradas", 
+                              description: "Todos os planos de ação das férias do Gustavo foram removidos." 
                             });
                           }}
                         >
-                          <ListTodo className="h-4 w-4" /> Sincronizar Relatório de Lojas
+                          <Trash2 className="h-4 w-4" /> Zerar Planos de Ação
                         </Button>
                         <Dialog>
                           <DialogTrigger asChild>
