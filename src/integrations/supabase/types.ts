@@ -685,6 +685,7 @@ export type Database = {
       }
       stores: {
         Row: {
+          action_plans: Json | null
           analista_obra: string
           checklist: Json
           construtor: string
@@ -705,6 +706,7 @@ export type Database = {
           visita_tecnica: Json
         }
         Insert: {
+          action_plans?: Json | null
           analista_obra?: string
           checklist?: Json
           construtor?: string
@@ -725,6 +727,7 @@ export type Database = {
           visita_tecnica?: Json
         }
         Update: {
+          action_plans?: Json | null
           analista_obra?: string
           checklist?: Json
           construtor?: string
