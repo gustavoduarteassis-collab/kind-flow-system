@@ -2356,74 +2356,79 @@ const Equipe = () => {
                                 Nenhum plano de ação registrado. Clique em "Novo Plano" para começar.
                               </TableCell>
                             </TableRow>
-                          ) : stores.flatMap(store => (store as any).actionPlans?.map((plan: any) => (
-                            <TableRow key={plan.id}>
-                              <TableCell className="font-medium">{store.nome}</TableCell>
-                              <TableCell>
-                                <Input 
-                                  value={plan.description} 
-                                  onChange={(e) => {
-                                    const updatedPlans = (store as any).actionPlans.map((p: any) => p.id === plan.id ? { ...p, description: e.target.value } : p);
-                                    updateStore(store.id, { actionPlans: updatedPlans } as any);
-                                  }}
-                                  placeholder="Descreva a ação..."
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Select 
-                                  value={plan.responsible} 
-                                  onValueChange={(val) => {
-                                    const updatedPlans = (store as any).actionPlans.map((p: any) => p.id === plan.id ? { ...p, responsible: val } : p);
-                                    updateStore(store.id, { actionPlans: updatedPlans } as any);
-                                  }}
-                                >
-                                  <SelectTrigger className="w-[120px]">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {ANALYST_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
-                                  </SelectContent>
-                                </Select>
-                              </TableCell>
-                              <TableCell>
-                                <Input 
-                                  type="date" 
-                                  value={plan.deadline}
-                                  className="w-[130px]"
-                                  onChange={(e) => {
-                                    const updatedPlans = (store as any).actionPlans.map((p: any) => p.id === plan.id ? { ...p, deadline: e.target.value } : p);
-                                    updateStore(store.id, { actionPlans: updatedPlans } as any);
-                                  }}
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Badge 
-                                  variant="outline" 
-                                  className={`cursor-pointer ${plan.status === "concluido" ? "bg-[hsl(var(--success))] text-white" : "bg-yellow-100 text-yellow-800"}`}
-                                  onClick={() => {
-                                    const newStatus = plan.status === "concluido" ? "pendente" : "concluido";
-                                    const updatedPlans = (store as any).actionPlans.map((p: any) => p.id === plan.id ? { ...p, status: newStatus } : p);
-                                    updateStore(store.id, { actionPlans: updatedPlans } as any);
-                                  }}
-                                >
-                                  {plan.status === "concluido" ? "Concluído" : "Pendente"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  onClick={() => {
-                                    const updatedPlans = (store as any).actionPlans.filter((p: any) => p.id !== plan.id);
-                                    updateStore(store.id, { actionPlans: updatedPlans } as any);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          )))}
+                          ) : (
+                            stores.map(store => {
+                              const plans = (store as any).actionPlans || [];
+                              return plans.map((plan: any) => (
+                                <TableRow key={plan.id}>
+                                  <TableCell className="font-medium">{store.nome}</TableCell>
+                                  <TableCell>
+                                    <Input 
+                                      value={plan.description} 
+                                      onChange={(e) => {
+                                        const updatedPlans = (store as any).actionPlans.map((p: any) => p.id === plan.id ? { ...p, description: e.target.value } : p);
+                                        updateStore(store.id, { actionPlans: updatedPlans } as any);
+                                      }}
+                                      placeholder="Descreva a ação..."
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Select 
+                                      value={plan.responsible} 
+                                      onValueChange={(val) => {
+                                        const updatedPlans = (store as any).actionPlans.map((p: any) => p.id === plan.id ? { ...p, responsible: val } : p);
+                                        updateStore(store.id, { actionPlans: updatedPlans } as any);
+                                      }}
+                                    >
+                                      <SelectTrigger className="w-[120px]">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {ANALYST_OPTIONS.map(opt => <SelectItem key={opt} value={opt}>{opt}</SelectItem>)}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input 
+                                      type="date" 
+                                      value={plan.deadline}
+                                      className="w-[130px]"
+                                      onChange={(e) => {
+                                        const updatedPlans = (store as any).actionPlans.map((p: any) => p.id === plan.id ? { ...p, deadline: e.target.value } : p);
+                                        updateStore(store.id, { actionPlans: updatedPlans } as any);
+                                      }}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge 
+                                      variant="outline" 
+                                      className={`cursor-pointer ${plan.status === "concluido" ? "bg-[hsl(var(--success))] text-white" : "bg-yellow-100 text-yellow-800"}`}
+                                      onClick={() => {
+                                        const newStatus = plan.status === "concluido" ? "pendente" : "concluido";
+                                        const updatedPlans = (store as any).actionPlans.map((p: any) => p.id === plan.id ? { ...p, status: newStatus } : p);
+                                        updateStore(store.id, { actionPlans: updatedPlans } as any);
+                                      }}
+                                    >
+                                      {plan.status === "concluido" ? "Concluído" : "Pendente"}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      onClick={() => {
+                                        const updatedPlans = (store as any).actionPlans.filter((p: any) => p.id !== plan.id);
+                                        updateStore(store.id, { actionPlans: updatedPlans } as any);
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ));
+                            })
+                          )}
                         </TableBody>
                       </Table>
                     </div>
