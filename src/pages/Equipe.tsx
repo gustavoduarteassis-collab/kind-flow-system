@@ -634,6 +634,7 @@ const Equipe = () => {
             <TabsTrigger value="programacao" className="gap-2"><Calendar className="h-4 w-4" /> Programação</TabsTrigger>
             <TabsTrigger value="calendario" className="gap-2"><Calendar className="h-4 w-4" /> Calendário</TabsTrigger>
             <TabsTrigger value="equipe" className="gap-2"><Users className="h-4 w-4" /> Equipe</TabsTrigger>
+            <TabsTrigger value="ferias_gustavo" className="gap-2 text-[hsl(38,90%,55%)]"><Sun className="h-4 w-4" /> Férias Gustavo</TabsTrigger>
           </TabsList>
 
           {/* === TAREFAS === */}
