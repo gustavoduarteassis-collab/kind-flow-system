@@ -2239,11 +2239,11 @@ const Equipe = () => {
                           className="border-[hsl(38,90%,55%)] text-[hsl(38,90%,55%)] hover:bg-[hsl(38,90%,55%)] hover:text-white gap-2"
                           onClick={() => {
                             const demands = [
-                              "Acompanhamento de Obras",
-                              "Validação de Projetos",
-                              "Checklist de Qualidade",
-                              "Treinamento de Equipe",
-                              "Suporte Técnico às Lojas"
+                              "ACOMPANHAMENTO DIÁRIO - OBRAS",
+                              "VALIDAÇÃO DE PROJETOS EXECUTIVOS",
+                              "CHECKLIST DE QUALIDADE (LOJAS NOVAS)",
+                              "SUPORTE TÉCNICO - MANUTENÇÃO",
+                              "REUNIÃO SEMANAL DE STATUS"
                             ];
                             
                             stores.forEach(store => {
@@ -2252,7 +2252,7 @@ const Equipe = () => {
                               const newPlans = demands.map(demand => ({
                                 id: crypto.randomUUID(),
                                 description: demand,
-                                deadline: format(addDays(new Date(), 15), "yyyy-MM-dd"),
+                                deadline: format(addDays(new Date(), 7), "yyyy-MM-dd"),
                                 status: "pendente",
                                 responsible: "Gustavo",
                                 created_at: new Date().toISOString()
@@ -2261,12 +2261,12 @@ const Equipe = () => {
                             });
                             
                             toast({ 
-                              title: "Demandas Criadas", 
-                              description: "As demandas padrão foram adicionadas a todas as lojas." 
+                              title: "Demandas Lançadas", 
+                              description: "As demandas foram atribuídas ao Gustavo para todas as lojas." 
                             });
                           }}
                         >
-                          <ListTodo className="h-4 w-4" /> Sugerir Demandas
+                          <ListTodo className="h-4 w-4" /> Lançar Demandas (Gustavo)
                         </Button>
                         <Dialog>
                           <DialogTrigger asChild>
