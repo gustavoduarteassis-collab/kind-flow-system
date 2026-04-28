@@ -178,7 +178,11 @@ const StoreReport = () => {
 
   const today = new Date().toLocaleDateString("pt-BR");
 
-  const cronograma = store.cronograma || { cells: {}, startDate: "", itemDates: {} };
+  const cronograma = {
+    cells: store.cronograma?.cells || {},
+    startDate: store.cronograma?.startDate || "",
+    itemDates: store.cronograma?.itemDates || {},
+  };
   const cronStartDate = cronograma.startDate
     ? new Date(cronograma.startDate + "T00:00:00")
     : null;
