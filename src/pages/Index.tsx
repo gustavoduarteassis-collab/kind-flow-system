@@ -56,7 +56,7 @@ const priorityLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  "NÃO INICIADO": "bg-muted text-muted-foreground",
+  "NÃO REALIZADO": "bg-muted text-muted-foreground",
   "EM COTAÇÃO": "bg-secondary text-secondary-foreground",
   "EM TRANSPORTE": "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
   "REALIZADO": "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]",
@@ -344,10 +344,10 @@ const Index = () => {
                       const doneCount = allChecklistItems.filter(item => store.checklist[item.id]?.status === "REALIZADO").length;
                       const progress = applicableItems.length > 0 ? Math.round((doneCount / applicableItems.length) * 100) : 0;
                       const atrasados = allChecklistItems.filter(item => store.checklist[item.id]?.status === "ATRASADO").length;
-                      const naoIniciados = allChecklistItems.filter(item => !store.checklist[item.id] || store.checklist[item.id].status === "NÃO INICIADO").length;
+                      const naoIniciados = allChecklistItems.filter(item => !store.checklist[item.id] || store.checklist[item.id].status === "NÃO REALIZADO").length;
                       const inProgress = allChecklistItems.filter(item => {
                         const status = store.checklist[item.id]?.status;
-                        return status && !["REALIZADO", "NÃO SE APLICA", "ATRASADO", "NÃO INICIADO"].includes(status);
+                        return status && !["REALIZADO", "NÃO SE APLICA", "ATRASADO", "NÃO REALIZADO"].includes(status);
                       }).length;
 
                       return (

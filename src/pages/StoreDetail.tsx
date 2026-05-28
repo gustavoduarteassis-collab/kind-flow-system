@@ -58,7 +58,7 @@ import { saveAs } from "file-saver";
 import logoConstanceSvg from "@/assets/logo-constance.svg";
 
 const statusColors: Record<StatusType, string> = {
-  "NÃO INICIADO": "bg-secondary text-secondary-foreground",
+  "NÃO REALIZADO": "bg-secondary text-secondary-foreground",
   "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
   "EM TRANSPORTE": "bg-[hsl(210,80%,55%)] text-[hsl(0,0%,100%)]",
   "REALIZADO": "bg-[hsl(142,60%,45%)] text-[hsl(0,0%,100%)]",
@@ -200,7 +200,7 @@ const StoreDetail = () => {
       "ATRASADO": { bg: "FFF44336", font: "FFFFFFFF" },
       "EM TRANSPORTE": { bg: "FF2196F3", font: "FFFFFFFF" },
       "EM COTAÇÃO": { bg: "FFFF9800", font: "FF333333" },
-      "NÃO INICIADO": { bg: "FFE0E0E0", font: "FF555555" },
+      "NÃO REALIZADO": { bg: "FFE0E0E0", font: "FF555555" },
       "NÃO SE APLICA": { bg: "FF9E9E9E", font: "FFFFFFFF" },
       "CONSTRUTORA": { bg: "FF7E57C2", font: "FFFFFFFF" },
       "EM ELABORAÇÃO": { bg: "FFFFB74D", font: "FF333333" },
@@ -301,7 +301,7 @@ const StoreDetail = () => {
       // Data rows
       cat.items.forEach((item, idx) => {
         const data = store.checklist[item.id] || {} as any;
-        const status = data.status || "NÃO INICIADO";
+        const status = data.status || "NÃO REALIZADO";
         const rowData = isObra
           ? [item.id, data.atividade || item.atividade, item.responsavel, status, data.prazoInicial || "", data.prazoFinal || "", data.descricao || "", data.observacoes || ""]
           : [item.id, data.atividade || item.atividade, item.responsavel, status, data.prazoFinal || "", data.descricao || "", data.observacoes || ""];
@@ -626,7 +626,7 @@ const StoreDetail = () => {
                     <TableBody>
                       {cat.items.map((item) => {
                         const data = store.checklist[item.id] || {
-                          status: "NÃO INICIADO" as StatusType,
+                          status: "NÃO REALIZADO" as StatusType,
                           prazoInicial: "",
                           prazoFinal: "",
                           observacoes: "",

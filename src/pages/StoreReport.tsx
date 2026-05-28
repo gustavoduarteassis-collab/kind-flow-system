@@ -40,7 +40,7 @@ type DiaryPhotoReport = {
 };
 
 const statusLabels: Record<StatusType, string> = {
-  "NÃO INICIADO": "⬜ Não Iniciado",
+  "NÃO REALIZADO": "⬜ Não Iniciado",
   "EM COTAÇÃO": "🟡 Em Cotação",
   "EM TRANSPORTE": "🔵 Em Transporte",
   "REALIZADO": "✅ Realizado",
@@ -55,7 +55,7 @@ const statusLabels: Record<StatusType, string> = {
 };
 
 const statusPrintColors: Record<StatusType, string> = {
-  "NÃO INICIADO": "bg-gray-100",
+  "NÃO REALIZADO": "bg-gray-100",
   "EM COTAÇÃO": "bg-[hsl(38,90%,85%)]",
   "EM TRANSPORTE": "bg-[hsl(210,80%,88%)]",
   "REALIZADO": "bg-[hsl(142,60%,88%)]",
@@ -70,7 +70,7 @@ const statusPrintColors: Record<StatusType, string> = {
 };
 
 const statusTextColors: Record<StatusType, string> = {
-  "NÃO INICIADO": "text-gray-600",
+  "NÃO REALIZADO": "text-gray-600",
   "EM COTAÇÃO": "text-[hsl(38,90%,30%)]",
   "EM TRANSPORTE": "text-[hsl(210,80%,35%)]",
   "REALIZADO": "text-[hsl(142,60%,25%)]",
@@ -171,11 +171,11 @@ const StoreReport = () => {
     (c) =>
       c.status !== "REALIZADO" &&
       c.status !== "NÃO SE APLICA" &&
-      c.status !== "NÃO INICIADO" &&
+      c.status !== "NÃO REALIZADO" &&
       c.status !== "ATRASADO"
   ).length;
   const naoIniciados = Object.values(store.checklist).filter(
-    (c) => c.status === "NÃO INICIADO"
+    (c) => c.status === "NÃO REALIZADO"
   ).length;
 
   const today = new Date().toLocaleDateString("pt-BR");
@@ -442,7 +442,7 @@ const StoreReport = () => {
                   <tbody>
                     {cat.items.map((item) => {
                       const data = store.checklist[item.id] || {
-                        status: "NÃO INICIADO" as StatusType,
+                        status: "NÃO REALIZADO" as StatusType,
                         prazoInicial: "",
                         prazoFinal: "",
                         observacoes: "",

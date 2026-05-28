@@ -25,7 +25,7 @@ import {
 import { LogOut, ClipboardCheck } from "lucide-react";
 
 const statusColors: Record<StatusType, string> = {
-  "NÃO INICIADO": "bg-secondary text-secondary-foreground",
+  "NÃO REALIZADO": "bg-secondary text-secondary-foreground",
   "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
   "EM TRANSPORTE": "bg-[hsl(210,80%,55%)] text-[hsl(0,0%,100%)]",
   "REALIZADO": "bg-[hsl(142,60%,45%)] text-[hsl(0,0%,100%)]",
@@ -299,7 +299,7 @@ const FranqueadoPortal = () => {
                         </TableHeader>
                         <TableBody>
                           {cat.items.map((item) => {
-                            const data = store.checklist[item.id] || { status: "NÃO INICIADO" as StatusType, prazoInicial: "", prazoFinal: "", observacoes: "" };
+                            const data = store.checklist[item.id] || { status: "NÃO REALIZADO" as StatusType, prazoInicial: "", prazoFinal: "", observacoes: "" };
                             const isImpeditivo = item.atividade.includes("IMPEDITIVO");
                             return (
                               <TableRow key={item.id} className={
