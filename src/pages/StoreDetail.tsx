@@ -157,12 +157,13 @@ const StoreDetail = () => {
   }
 
   const allChecklistItems = checklistCategories.flatMap((c) => c.items);
+  const applicableItems = allChecklistItems.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
   const totalItems = allChecklistItems.length;
   const doneItems = allChecklistItems.filter((item) => {
     const status = store.checklist[item.id]?.status;
-    return status === "REALIZADO" || status === "NÃO SE APLICA";
+    return status === "REALIZADO";
   }).length;
-  const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+  const progress = applicableItems.length > 0 ? Math.round((doneItems / applicableItems.length) * 100) : 0;
   const atrasados = allChecklistItems.filter((item) => store.checklist[item.id]?.status === "ATRASADO").length;
 
   const handleStatusChange = (itemId: number, status: StatusType) => {
