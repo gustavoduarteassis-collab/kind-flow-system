@@ -26,6 +26,11 @@ export function useStores() {
         analistaObra: row.analista_obra || "",
         inauguracao: row.inauguracao || "",
         tipoLoja: row.tipo_loja || "",
+        razaoSocial: row.razao_social || "",
+        porte: row.porte || "",
+        cidade: row.cidade || "",
+        uf: row.uf || "",
+        faseAtual: row.fase_atual || "Pré-Obra",
         checklist: row.checklist || createDefaultChecklist(),
         cronograma: row.cronograma || createDefaultCronograma(),
         custos: row.custos || createDefaultCustos(),
@@ -40,6 +45,7 @@ export function useStores() {
         previsaoInauguracaoTexto: row.previsao_inauguracao_texto || "",
         inicioObraTexto: row.inicio_obra_texto || "",
       })));
+
     }
     setLoading(false);
   }, [user]);
