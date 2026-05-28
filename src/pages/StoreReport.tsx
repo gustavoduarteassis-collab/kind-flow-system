@@ -70,18 +70,18 @@ const statusPrintColors: Record<StatusType, string> = {
 };
 
 const statusTextColors: Record<StatusType, string> = {
-  "NÃO REALIZADO": "text-gray-600",
-  "EM COTAÇÃO": "text-[hsl(38,90%,30%)]",
-  "EM TRANSPORTE": "text-[hsl(210,80%,35%)]",
-  "REALIZADO": "text-[hsl(142,60%,25%)]",
-  "REALIZANDO": "text-[hsl(152,50%,20%)]",
-  "ATRASADO": "text-[hsl(0,72%,35%)]",
+  "NÃO REALIZADO": "text-red-700",
+  "EM COTAÇÃO": "text-[hsl(38,90%,35%)]",
+  "EM TRANSPORTE": "text-[hsl(38,90%,35%)]",
+  "REALIZADO": "text-[hsl(142,60%,30%)]",
+  "REALIZANDO": "text-[hsl(38,90%,35%)]",
+  "ATRASADO": "text-red-700",
   "NÃO SE APLICA": "text-gray-400",
-  "CONSTRUTORA": "text-[hsl(270,50%,35%)]",
-  "EM ELABORAÇÃO": "text-[hsl(38,70%,30%)]",
-  "EM ANÁLISE": "text-[hsl(200,60%,30%)]",
-  "EM CONTRATAÇÃO": "text-[hsl(280,50%,30%)]",
-  "EM ANDAMENTO": "text-[hsl(45,90%,25%)]",
+  "CONSTRUTORA": "text-[hsl(38,90%,35%)]",
+  "EM ELABORAÇÃO": "text-[hsl(38,90%,35%)]",
+  "EM ANÁLISE": "text-[hsl(38,90%,35%)]",
+  "EM CONTRATAÇÃO": "text-[hsl(38,90%,35%)]",
+  "EM ANDAMENTO": "text-[hsl(38,90%,35%)]",
 };
 
 const formatCurrency = (v: number) =>
