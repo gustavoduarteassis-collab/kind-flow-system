@@ -40,6 +40,11 @@ export interface Store {
   analistaObra: string;
   inauguracao: string;
   tipoLoja: "rua" | "shopping" | "";
+  razaoSocial?: string;
+  porte?: "Compacta" | "Padrão" | "Ampliada" | "";
+  cidade?: string;
+  uf?: string;
+  faseAtual?: "Pré-Obra" | "Obra" | "Setup" | "Abertura";
   checklist: Record<number, {
     status: StatusType;
     prazoInicial: string;
@@ -62,6 +67,7 @@ export interface Store {
   previsaoInauguracaoTexto?: string;
   inicioObraTexto?: string;
 }
+
 
 const defaultStatusOptions: StatusType[] = [
   "NÃO REALIZADO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
