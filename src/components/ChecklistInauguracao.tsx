@@ -11,10 +11,12 @@ import {
   inaugStatusColors,
   migrateInaugData,
   createNewRound,
+  InaugRound,
 } from "@/data/inauguracaoChecklistData";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -211,6 +213,14 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
     });
   };
 
+  const handleRessalvaChange = (value: string) => {
+    if (!currentRound) return;
+    updateCurrentRound({
+      ...currentRound,
+      ressalva: value,
+    });
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !uploadingItemId || !currentRound) return;
     const file = e.target.files[0];
@@ -283,8 +293,9 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
         return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
       }).length
     : 0;
-  const isLiberado = progress >= 95 && impeditivosPendentes === 0;
-  const isLiberadoComRessalvas = !isLiberado && progress >= 85 && impeditivosPendentes === 0;
+  const hasRessalva = !!currentRound?.ressalva && currentRound.ressalva.trim().length > 0;
+  const isLiberado = progress >= 90 && impeditivosPendentes === 0;
+  const isLiberadoComRessalvas = !isLiberado && (hasRessalva || (progress >= 80 && impeditivosPendentes === 0));
 
   const getCatProgress = (cat: InaugCategory) => {
     if (!currentRound) return 0;
