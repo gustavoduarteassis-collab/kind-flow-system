@@ -8,10 +8,10 @@ export const inaugStatusLabels: Record<InaugStatusType, string> = {
 };
 
 export const inaugStatusColors: Record<InaugStatusType, string> = {
-  NAO_ATENDIDO: "bg-[hsl(0,84%,60%)] text-white",
-  EM_ANDAMENTO: "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  TOTALMENTE_ATENDIDO: "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
-  NAO_SE_APLICA: "bg-muted text-muted-foreground",
+  NAO_ATENDIDO: "bg-[#ef4444] text-white", // Red
+  EM_ANDAMENTO: "bg-[#f59e0b] text-white", // Yellow/Amber
+  TOTALMENTE_ATENDIDO: "bg-[#10b981] text-white", // Green
+  NAO_SE_APLICA: "bg-[#94a3b8] text-white", // Gray/Slate
 };
 
 export interface InaugItem {
@@ -211,6 +211,8 @@ const ruaCategories: InaugCategory[] = [
       { id: "rua-131", nome: "Rolos de etiquetas e Ribbon", impeditivo: true },
       { id: "rua-132", nome: "Coletor de dados: para auditoria" },
       { id: "rua-133", nome: "Listenx", impeditivo: true },
+      { id: "rua-151", nome: "Agendamento técnico (Data System & Skytef)", impeditivo: true },
+      { id: "rua-152", nome: "Auditoria de Cupom Fiscal com CNPJ validado", impeditivo: true },
     ],
   },
   {
@@ -218,7 +220,7 @@ const ruaCategories: InaugCategory[] = [
     nome: "Finalização",
     items: [
       { id: "rua-134", nome: "Campanha vigente: validar com o Trade Marketing" },
-      { id: "rua-135", nome: "Alarmagem dos produtos", impeditivo: true },
+      { id: "rua-135", nome: "Alarmagem de 100% dos produtos", impeditivo: true },
       { id: "rua-136", nome: "Reposição", impeditivo: true },
       { id: "rua-137", nome: "Kit Visual Merchandising: adesivos, placas de numeração, suporte e expositor acrílico", impeditivo: true },
       { id: "rua-138", nome: "Blocos expositores em MDF" },
@@ -406,6 +408,8 @@ const shoppingCategories: InaugCategory[] = [
       { id: "shop-119", nome: "Rolos de etiquetas e Ribbon", impeditivo: true },
       { id: "shop-120", nome: "Coletor de dados: para auditoria" },
       { id: "shop-121", nome: "Listenx", impeditivo: true },
+      { id: "shop-151", nome: "Agendamento técnico (Data System & Skytef)", impeditivo: true },
+      { id: "shop-152", nome: "Auditoria de Cupom Fiscal com CNPJ validado", impeditivo: true },
     ],
   },
   {
@@ -413,7 +417,7 @@ const shoppingCategories: InaugCategory[] = [
     nome: "Finalização",
     items: [
       { id: "shop-122", nome: "Campanha vigente: validar com o Trade Marketing" },
-      { id: "shop-123", nome: "Alarmagem dos produtos", impeditivo: true },
+      { id: "shop-123", nome: "Alarmagem de 100% dos produtos", impeditivo: true },
       { id: "shop-124", nome: "Reposição", impeditivo: true },
       { id: "shop-125", nome: "Kit Visual Merchandising: adesivos, placas de numeração, suporte e expositor acrílico", impeditivo: true },
       { id: "shop-126", nome: "Blocos expositores em MDF" },

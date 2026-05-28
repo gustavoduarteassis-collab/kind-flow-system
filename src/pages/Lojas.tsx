@@ -98,11 +98,17 @@ const Lojas = () => {
   const getProgress = (store: typeof stores[0]) => {
     const allChecklistItems = checklistCategories.flatMap((c) => c.items);
     const applicableItems = allChecklistItems.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
-    const doneItems = allChecklistItems.filter((item) => {
-      const status = store.checklist[item.id]?.status;
-      return status === "REALIZADO";
-    }).length;
-    return applicableItems.length > 0 ? Math.round((doneItems / applicableItems.length) * 100) : 0;
+    
+    const getStatusScore = (status?: StatusType): number => {
+      if (status === "REALIZADO") return 100;
+      if (status === "NÃO SE APLICA") return 0;
+      if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return 0;
+      return 50; // In progress variants
+    };
+
+    const totalScore = allChecklistItems.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
+    const maxScore = applicableItems.length * 100;
+    return maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
   };
 
   const getStatusCounts = (store: typeof stores[0]) => {
@@ -294,9 +300,9 @@ const Lojas = () => {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`h-2.5 w-2.5 rounded-full ${
-                          progress >= 90 ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' :
-                          progress >= 50 ? 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]' :
-                          'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
+                          progress >= 90 ? 'bg-[#10b981]' :
+                          progress >= 50 ? 'bg-[#f59e0b]' :
+                          'bg-[#ef4444]'
                         }`} />
                         <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{store.faseAtual || 'Pré-Obra'}</span>
                         {store.porte && (

@@ -261,7 +261,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   // Progress calculations
   const allItems = checklist.categories.flatMap((c) => c.items);
   const applicableItems = allItems.filter(item => currentRound?.items[item.id]?.status !== "NAO_SE_APLICA");
-  const totalItems = allItems.length;
+  
   const getStatusScore = (status?: InaugStatusType) => {
     switch (status) {
       case "TOTALMENTE_ATENDIDO":
@@ -269,22 +269,26 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
       case "EM_ANDAMENTO":
         return 50;
       case "NAO_SE_APLICA":
-        return 0; // Don't add to score if it's N/A (numerator)
+        return 0;
       default:
         return 0;
     }
   };
-  const doneItems = currentRound
-    ? allItems.filter((item) => {
-        const s = currentRound.items[item.id]?.status;
-        return s === "TOTALMENTE_ATENDIDO";
-      }).length
-    : 0;
+
   const totalScore = currentRound
-    ? allItems.reduce((acc, item) => acc + getStatusScore(currentRound.items[item.id]?.status), 0)
+    ? allItems.reduce((acc, item) => {
+        const s = currentRound.items[item.id]?.status;
+        return acc + getStatusScore(s);
+      }, 0)
     : 0;
+    
   const maxScore = applicableItems.length * 100;
   const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+  
+  const doneItems = currentRound
+    ? allItems.filter((item) => currentRound.items[item.id]?.status === "TOTALMENTE_ATENDIDO").length
+    : 0;
+
   const impeditivos = allItems.filter((i) => i.impeditivo);
   const impeditivosPendentes = currentRound
     ? impeditivos.filter((i) => {
@@ -292,6 +296,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
         return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
       }).length
     : 0;
+
   const hasRessalva = !!currentRound?.ressalva && currentRound.ressalva.trim().length > 0;
   const isLiberado = progress >= 90;
   const isLiberadoComRessalvas = !isLiberado && hasRessalva;
@@ -382,7 +387,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                       <Calendar mode="single" selected={deadlineDate} onSelect={handleDeadlineChange} initialFocus className="p-3 pointer-events-auto" />
                     </PopoverContent>
                   </Popover>
-                  <span className="text-sm text-muted-foreground">{doneItems}/{totalItems} itens</span>
+                  <span className="text-sm text-muted-foreground">{doneItems}/{allItems.length} itens</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {impeditivosPendentes > 0 && (
@@ -394,13 +399,50 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                 </div>
               </div>
 
-              {/* Progress */}
-              <div className="space-y-1">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Progresso</span>
-                  <span className="font-bold">{progress}%</span>
+              {/* Status & Progress Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card className={cn(
+                  "border-2",
+                  isLiberado ? "border-green-200 bg-green-50/50" : (isLiberadoComRessalvas ? "border-amber-200 bg-amber-50/50" : "border-red-200 bg-red-50/50")
+                )}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-4">
+                      <div className={cn(
+                        "h-12 w-12 rounded-full flex items-center justify-center shrink-0",
+                        isLiberado ? "bg-green-500" : (isLiberadoComRessalvas ? "bg-amber-500" : "bg-red-500")
+                      )}>
+                        {isLiberado ? <CheckCircle2 className="h-6 w-6 text-white" /> : <XCircle className="h-6 w-6 text-white" />}
+                      </div>
+                      <div>
+                        <h4 className={cn(
+                          "text-lg font-bold leading-tight",
+                          isLiberado ? "text-green-700" : (isLiberadoComRessalvas ? "text-amber-700" : "text-red-700")
+                        )}>
+                          {isLiberado ? "Liberado para Inauguração" : (isLiberadoComRessalvas ? "Liberado com Ressalva" : "Não Liberado para Inauguração")}
+                        </h4>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {isLiberado 
+                            ? "A loja atingiu o percentual mínimo de 90% para inauguração." 
+                            : (isLiberadoComRessalvas 
+                                ? "Percentual abaixo de 90%, porém liberado com ressalvas documentadas." 
+                                : "A loja ainda não atingiu o percentual mínimo de 90%.")}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-3 pt-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Progresso da Conferência</span>
+                    <span className="font-bold text-lg">{progress}%</span>
+                  </div>
+                  <Progress value={progress} className="h-3" />
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500"></span> Realizados: {doneItems}</span>
+                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500"></span> Pendentes: {allItems.length - doneItems}</span>
+                  </div>
                 </div>
-                <Progress value={progress} className="h-3" />
               </div>
 
               {/* Categories */}

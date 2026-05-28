@@ -54,24 +54,25 @@ import {
   FileSpreadsheet,
   AlertTriangle,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import logoConstanceSvg from "@/assets/logo-constance.svg";
 
 const statusColors: Record<StatusType, string> = {
-  "NÃO REALIZADO": "bg-destructive text-destructive-foreground",
-  "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM TRANSPORTE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "REALIZADO": "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
-  "REALIZANDO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "ATRASADO": "bg-destructive text-destructive-foreground",
-  "NÃO SE APLICA": "bg-muted text-muted-foreground",
-  "CONSTRUTORA": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM ELABORAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM ANÁLISE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM CONTRATAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM ANDAMENTO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "NÃO REALIZADO": "bg-[#ef4444] text-white",
+  "EM COTAÇÃO": "bg-[#f59e0b] text-white",
+  "EM TRANSPORTE": "bg-[#f59e0b] text-white",
+  "REALIZADO": "bg-[#10b981] text-white",
+  "REALIZANDO": "bg-[#f59e0b] text-white",
+  "ATRASADO": "bg-[#ef4444] text-white",
+  "NÃO SE APLICA": "bg-[#94a3b8] text-white",
+  "CONSTRUTORA": "bg-[#f59e0b] text-white",
+  "EM ELABORAÇÃO": "bg-[#f59e0b] text-white",
+  "EM ANÁLISE": "bg-[#f59e0b] text-white",
+  "EM CONTRATAÇÃO": "bg-[#f59e0b] text-white",
+  "EM ANDAMENTO": "bg-[#f59e0b] text-white",
 };
 
 const StoreDetail = () => {
@@ -184,6 +185,11 @@ const StoreDetail = () => {
   const totalScore = allChecklistItems.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
   const maxScore = applicableItems.length * 100;
   const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+  
+  const isLiberado = progress >= 90;
+  const hasRessalva = !!store.comentariosObras && store.comentariosObras.trim().length > 0;
+  const statusLabel = isLiberado ? "Liberado para Inauguração" : (hasRessalva ? "Liberado com Ressalva" : "Não Liberado para Inauguração");
+  const statusColor = isLiberado ? "bg-green-100 text-green-700 border-green-200" : (hasRessalva ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-red-100 text-red-700 border-red-200");
   const doneItems = allChecklistItems.filter(item => store.checklist[item.id]?.status === "REALIZADO").length;
   const atrasados = allChecklistItems.filter((item) => store.checklist[item.id]?.status === "ATRASADO").length;
 
@@ -441,6 +447,12 @@ const StoreDetail = () => {
                         {new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR")}
                       </span>
                     )}
+                    
+                    {/* Status de Liberação badge */}
+                    <Badge variant="outline" className={cn("ml-2 font-bold px-3 py-1", statusColor)}>
+                      {statusLabel}
+                    </Badge>
+
                     {isTeamMember && (
                       <Button size="sm" variant="ghost" className="h-6 px-1.5" onClick={() => {
                         setHeaderFields({
