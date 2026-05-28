@@ -162,17 +162,40 @@ const Lojas = () => {
                     <Label>Nome da Loja *</Label>
                     <Input placeholder="Ex: Shopping Center Norte" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Filial</Label>
+                      <Input placeholder="Ex: 001" value={form.filial} onChange={(e) => setForm({ ...form, filial: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Porte</Label>
+                      <Select value={form.porte} onValueChange={(v: any) => setForm({ ...form, porte: v })}>
+                        <SelectTrigger><SelectValue placeholder="Selecione o porte" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Compacta">Compacta</SelectItem>
+                          <SelectItem value="Padrão">Padrão</SelectItem>
+                          <SelectItem value="Ampliada">Ampliada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                   <div className="space-y-2">
-                    <Label>Filial</Label>
-                    <Input placeholder="Ex: 001" value={form.filial} onChange={(e) => setForm({ ...form, filial: e.target.value })} />
+                    <Label>Razão Social</Label>
+                    <Input placeholder="Razão Social da Loja" value={form.razaoSocial} onChange={(e) => setForm({ ...form, razaoSocial: e.target.value })} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Cidade</Label>
+                      <Input placeholder="Cidade" value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>UF</Label>
+                      <Input placeholder="Ex: MG" maxLength={2} value={form.uf} onChange={(e) => setForm({ ...form, uf: e.target.value })} />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Franqueado</Label>
                     <Input placeholder="Nome do franqueado" value={form.franqueado} onChange={(e) => setForm({ ...form, franqueado: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Construtor</Label>
-                    <Input placeholder="Nome do construtor" value={form.construtor} onChange={(e) => setForm({ ...form, construtor: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <Label>Analista de Obra</Label>
@@ -182,7 +205,8 @@ const Lojas = () => {
                     <Label>Data de Inauguração</Label>
                     <Input type="date" value={form.inauguracao} onChange={(e) => setForm({ ...form, inauguracao: e.target.value })} />
                   </div>
-                  <Button onClick={handleAdd} className="w-full">Criar Loja</Button>
+                  <Button onClick={handleAdd} className="w-full bg-[hsl(38,70%,50%)] hover:bg-[hsl(38,70%,45%)] text-white">Criar Loja</Button>
+
                 </div>
               </DialogContent>
             </Dialog>
