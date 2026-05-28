@@ -156,12 +156,14 @@ const StoreDetail = () => {
     );
   }
 
-  const totalItems = checklistCategories.flatMap((c) => c.items).length;
-  const doneItems = Object.values(store.checklist).filter(
-    (c) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA"
-  ).length;
-  const progress = Math.round((doneItems / totalItems) * 100);
-  const atrasados = Object.values(store.checklist).filter((c) => c.status === "ATRASADO").length;
+  const allChecklistItems = checklistCategories.flatMap((c) => c.items);
+  const totalItems = allChecklistItems.length;
+  const doneItems = allChecklistItems.filter((item) => {
+    const status = store.checklist[item.id]?.status;
+    return status === "REALIZADO" || status === "NÃO SE APLICA";
+  }).length;
+  const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+  const atrasados = allChecklistItems.filter((item) => store.checklist[item.id]?.status === "ATRASADO").length;
 
   const handleStatusChange = (itemId: number, status: StatusType) => {
     const newChecklist = { ...store.checklist };
