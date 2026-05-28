@@ -691,7 +691,15 @@ const StoreReport = () => {
                               {cat.items.map(item => {
                                 const iData = round.items[item.id] || { status: "NAO_ATENDIDO" as InaugStatusType, observacoes: "", photos: [] };
                                 return (
-                                  <tr key={item.id} className={item.impeditivo ? "bg-red-50" : ""}>
+                                  <tr key={item.id} className={
+                                    iData.status === "TOTALMENTE_ATENDIDO" || iData.status === "CONCLUIDO" as any
+                                      ? "bg-green-50"
+                                      : iData.status === "EM_ANDAMENTO"
+                                      ? "bg-yellow-50"
+                                      : iData.status === "NAO_ATENDIDO" || iData.status === "NAO_INICIADO" as any
+                                      ? "bg-red-50"
+                                      : "bg-gray-50"
+                                  }>
                                     <td className="border border-black px-1 py-0.5">
                                       {item.nome}
                                       {item.impeditivo && " ⚠"}

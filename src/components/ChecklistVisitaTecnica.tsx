@@ -230,7 +230,9 @@ const ChecklistVisitaTecnica = ({ storeId, storeInauguracao, data: rawData, onDa
                                 ? "bg-[hsl(152,60%,95%)]"
                                 : itemData.status === "EM_ANDAMENTO"
                                 ? "bg-[hsl(38,90%,97%)]"
-                                : ""
+                                : itemData.status === "NAO_INICIADO"
+                                ? "bg-[hsl(0,84%,97%)]"
+                                : "bg-muted/30"
                             }
                           >
                             <TableCell className="text-sm font-medium">{item.nome}</TableCell>
