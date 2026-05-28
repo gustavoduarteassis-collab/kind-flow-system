@@ -387,7 +387,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                       <Calendar mode="single" selected={deadlineDate} onSelect={handleDeadlineChange} initialFocus className="p-3 pointer-events-auto" />
                     </PopoverContent>
                   </Popover>
-                  <span className="text-sm text-muted-foreground">{doneItems}/{totalItems} itens</span>
+                  <span className="text-sm text-muted-foreground">{doneItems}/{allItems.length} itens</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {impeditivosPendentes > 0 && (

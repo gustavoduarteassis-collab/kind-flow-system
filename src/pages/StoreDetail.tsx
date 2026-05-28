@@ -184,6 +184,11 @@ const StoreDetail = () => {
   const totalScore = allChecklistItems.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
   const maxScore = applicableItems.length * 100;
   const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+  
+  const isLiberado = progress >= 90;
+  const hasRessalva = !!store.comentariosObras && store.comentariosObras.trim().length > 0;
+  const statusLabel = isLiberado ? "Liberado para Inauguração" : (hasRessalva ? "Liberado com Ressalva" : "Não Liberado para Inauguração");
+  const statusColor = isLiberado ? "bg-green-100 text-green-700 border-green-200" : (hasRessalva ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-red-100 text-red-700 border-red-200");
   const doneItems = allChecklistItems.filter(item => store.checklist[item.id]?.status === "REALIZADO").length;
   const atrasados = allChecklistItems.filter((item) => store.checklist[item.id]?.status === "ATRASADO").length;
 
