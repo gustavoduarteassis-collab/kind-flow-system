@@ -500,8 +500,62 @@ const StoreDetail = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Phase Timeline */}
+        <div className="bg-white rounded-xl p-6 border shadow-sm">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Pipeline de Implantação</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-slate-500">Fase Atual:</span>
+              <Select 
+                value={store.faseAtual || "Pré-Obra"} 
+                onValueChange={(v) => updateStore(store.id, { faseAtual: v as any })}
+              >
+                <SelectTrigger className="h-8 w-[140px] text-xs font-bold border-none bg-slate-50">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Pré-Obra">Pré-Obra</SelectItem>
+                  <SelectItem value="Obra">Obra</SelectItem>
+                  <SelectItem value="Setup">Setup</SelectItem>
+                  <SelectItem value="Abertura">Abertura</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="relative">
+            {/* Connector line */}
+            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2" />
+            <div className="relative flex justify-between">
+              {['Pré-Obra', 'Obra', 'Setup', 'Abertura'].map((phase, idx) => {
+                const phases = ['Pré-Obra', 'Obra', 'Setup', 'Abertura'];
+                const currentIdx = phases.indexOf(store.faseAtual || "Pré-Obra");
+                const isCompleted = idx < currentIdx;
+                const isCurrent = idx === currentIdx;
+                
+                return (
+                  <div key={phase} className="flex flex-col items-center gap-3 relative z-10">
+                    <div className={`h-10 w-10 rounded-full flex items-center justify-center border-4 transition-all ${
+                      isCompleted ? 'bg-green-500 border-green-100 text-white' :
+                      isCurrent ? 'bg-[hsl(38,70%,50%)] border-[hsl(38,70%,90%)] text-white scale-110 shadow-lg' :
+                      'bg-white border-slate-100 text-slate-300'
+                    }`}>
+                      {isCompleted ? <Check className="h-5 w-5" /> : <span className="text-sm font-bold">{idx + 1}</span>}
+                    </div>
+                    <span className={`text-[10px] font-bold uppercase tracking-tight ${
+                      isCurrent ? 'text-slate-900' : 'text-slate-400'
+                    }`}>
+                      {phase}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
+
           <div className="overflow-x-auto pb-2 -mx-4 px-4">
             <TabsList className="h-auto flex-wrap gap-1 bg-transparent p-0">
               <TabsTrigger
