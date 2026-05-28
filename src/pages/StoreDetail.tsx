@@ -439,7 +439,13 @@ const StoreDetail = () => {
                           construtor: store.construtor || "",
                           analistaObra: store.analistaObra || "",
                           inauguracao: store.inauguracao || "",
+                          razaoSocial: store.razaoSocial || "",
+                          porte: store.porte || "",
+                          cidade: store.cidade || "",
+                          uf: store.uf || "",
+                          filial: store.filial || "",
                         });
+
                         setEditingHeader(true);
                       }}>
                         <Pencil className="h-3 w-3" />
