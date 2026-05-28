@@ -292,7 +292,22 @@ const Lojas = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`h-2.5 w-2.5 rounded-full ${
+                          progress >= 90 ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' :
+                          progress >= 50 ? 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]' :
+                          'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
+                        }`} />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{store.faseAtual || 'Pré-Obra'}</span>
+                        {store.porte && (
+                          <>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-[10px] font-medium text-slate-500">{store.porte}</span>
+                          </>
+                        )}
+                      </div>
                       <CardTitle className="text-lg leading-tight">{store.nome}</CardTitle>
+
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         {store.filial && (
                           <span className="flex items-center gap-1">
