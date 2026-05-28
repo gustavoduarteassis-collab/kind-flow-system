@@ -631,13 +631,15 @@ const StoreReport = () => {
             (store as any).inauguracaoChecklist || {},
             tipoLoja
           );
-          if (inaugData.rounds.length === 0) return null;
           const inaugChecklist = getInaugChecklist(tipoLoja);
           return (
             <section className={`mb-6 ${secao ? "" : "break-before-page"}`}>
               <h2 className="text-lg font-bold border-b border-black mb-3">
                 {secao ? "" : "6. "}CHECKLIST DE INAUGURAÇÃO — {tipoLoja === "rua" ? "Loja de Rua" : "Loja de Shopping"}
               </h2>
+              {inaugData.rounds.length === 0 && (
+                <p className="text-sm italic text-gray-500">Nenhuma conferência realizada até o momento.</p>
+              )}
               {inaugData.rounds.map((round) => {
                 const allItems = inaugChecklist.categories.flatMap(c => c.items);
                 const getStatusScore = (status?: string): number => {
