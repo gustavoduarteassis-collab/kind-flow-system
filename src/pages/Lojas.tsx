@@ -216,15 +216,38 @@ const Lojas = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {stores.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex flex-wrap gap-3 mb-6">
+            <div className="relative flex-1 min-w-[300px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar loja, franqueado..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
+            <Select value={filterPorte} onValueChange={(v) => setFilterPorte(v === "all" ? "" : v)}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Porte" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Portes</SelectItem>
+                <SelectItem value="Compacta">Compacta</SelectItem>
+                <SelectItem value="Padrão">Padrão</SelectItem>
+                <SelectItem value="Ampliada">Ampliada</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterFase} onValueChange={(v) => setFilterFase(v === "all" ? "" : v)}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Fase" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Fases</SelectItem>
+                <SelectItem value="Pré-Obra">Pré-Obra</SelectItem>
+                <SelectItem value="Obra">Obra</SelectItem>
+                <SelectItem value="Setup">Setup</SelectItem>
+                <SelectItem value="Abertura">Abertura</SelectItem>
+              </SelectContent>
+            </Select>
             {analistas.length > 0 && (
               <Select value={filterAnalista} onValueChange={(v) => setFilterAnalista(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue placeholder="Filtrar por analista" />
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Analista" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as analistas</SelectItem>
@@ -235,6 +258,7 @@ const Lojas = () => {
               </Select>
             )}
           </div>
+
         )}
 
         {stores.length === 0 && (
