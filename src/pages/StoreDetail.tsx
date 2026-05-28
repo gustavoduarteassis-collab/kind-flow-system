@@ -81,6 +81,13 @@ const StoreDetail = () => {
   const [activeTab, setActiveTab] = useState("cronograma");
   const { user } = useAuth();
   const [isTeamMember, setIsTeamMember] = useState(false);
+  const phaseCategories = [
+    { id: 'pre-obra', label: '1. Pré-Obra', categories: ['documental-fiscal', 'projetos'] },
+    { id: 'obra', label: '2. Obra', categories: ['obra-aquisicao', 'obra-execucao'] },
+    { id: 'setup', label: '3. Setup / Contas', categories: ['informatica', 'mobiliario-apoio', 'papelaria-contratos', 'contratacao-pessoal'] },
+    { id: 'abertura', label: '4. Abertura / Campo', categories: ['marketing'] }
+  ];
+
   const [editingHeader, setEditingHeader] = useState(false);
   const [headerFields, setHeaderFields] = useState({
     franqueado: store?.franqueado || "",
