@@ -38,7 +38,9 @@ const parseWorkers = (weather: string): WorkerEntry[] => {
   try {
     const parsed = JSON.parse(weather);
     if (Array.isArray(parsed)) return parsed;
-  } catch {}
+  } catch (e) {
+    console.error("Error parsing workers:", e);
+  }
   return [];
 };
 

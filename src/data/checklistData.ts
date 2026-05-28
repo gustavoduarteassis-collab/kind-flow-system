@@ -54,6 +54,7 @@ export interface Store {
   solicitacoes?: any;
   visitaTecnica?: any;
   actionPlans?: any[];
+  _categoryNames?: Record<string, string>;
   statusGeral?: string;
   comentariosObras?: string;
   cobrancaNota?: string;
