@@ -475,6 +475,7 @@ export type InaugRound = {
   label: string; // e.g. "1ª Conferência"
   items: Record<string, InaugItemData>;
   signatures?: InaugSignatures;
+  ressalva?: string; // Observação para liberação com ressalva
 };
 
 // V2 data format: multiple rounds
