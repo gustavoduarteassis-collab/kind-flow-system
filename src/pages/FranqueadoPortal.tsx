@@ -195,7 +195,7 @@ const FranqueadoPortal = () => {
             <div className="flex items-center gap-4">
               <Progress value={progress} className="h-2.5 flex-1" />
               <span className="font-semibold text-sm">{progress}%</span>
-              <Badge className="bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]">✓ {doneItems}/{totalItems}</Badge>
+              <Badge className="bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]">✓ {doneItems}/{allItems.length}</Badge>
             </div>
           )}
         </div>
