@@ -137,11 +137,15 @@ const ChecklistVisitaTecnica = ({ storeId, storeInauguracao, data: rawData, onDa
   const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
 
   const getCatProgress = (cat: VisitaCategory) => {
-    const done = cat.items.filter((i) => {
+    const applicable = cat.items.filter(i => vtData.items[i.id]?.status !== "NAO_SE_APLICA");
+    const doneScore = cat.items.reduce((acc, i) => {
       const s = vtData.items[i.id]?.status;
-      return s === "CONCLUIDO" || s === "NAO_SE_APLICA";
-    }).length;
-    return Math.round((done / cat.items.length) * 100);
+      if (s === "CONCLUIDO") return acc + 100;
+      if (s === "EM_ANDAMENTO") return acc + 50;
+      return acc;
+    }, 0);
+    const max = applicable.length * 100;
+    return max > 0 ? Math.round((doneScore / max) * 100) : 0;
   };
 
   const formatDateBR = (d: string) => d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—";
