@@ -56,16 +56,16 @@ const priorityLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  "NÃO REALIZADO": "bg-muted text-muted-foreground",
-  "EM COTAÇÃO": "bg-secondary text-secondary-foreground",
-  "EM TRANSPORTE": "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
-  "REALIZADO": "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]",
+  "NÃO REALIZADO": "bg-destructive text-destructive-foreground",
+  "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM TRANSPORTE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "REALIZADO": "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
   "ATRASADO": "bg-destructive text-destructive-foreground",
   "NÃO SE APLICA": "bg-muted text-muted-foreground",
-  "CONSTRUTORA": "bg-primary text-primary-foreground",
-  "EM ELABORAÇÃO": "bg-secondary text-secondary-foreground",
-  "EM ANÁLISE": "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
-  "EM CONTRATAÇÃO": "bg-secondary text-secondary-foreground",
+  "CONSTRUTORA": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM ELABORAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM ANÁLISE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM CONTRATAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
 };
 
 const formatDate = (d: string | null) => {
