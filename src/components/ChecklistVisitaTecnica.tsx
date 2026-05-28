@@ -119,12 +119,22 @@ const ChecklistVisitaTecnica = ({ storeId, storeInauguracao, data: rawData, onDa
 
   // Progress
   const allItems = visitaTecnicaCategories.flatMap((c) => c.items);
+  const applicableItems = allItems.filter(item => vtData.items[item.id]?.status !== "NAO_SE_APLICA");
   const totalItems = allItems.length;
   const doneItems = allItems.filter((item) => {
     const s = vtData.items[item.id]?.status;
-    return s === "CONCLUIDO" || s === "NAO_SE_APLICA";
+    return s === "CONCLUIDO";
   }).length;
-  const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+  
+  const totalScore = allItems.reduce((acc, item) => {
+    const s = vtData.items[item.id]?.status;
+    if (s === "CONCLUIDO") return acc + 100;
+    if (s === "EM_ANDAMENTO") return acc + 50;
+    return acc;
+  }, 0);
+
+  const maxScore = applicableItems.length * 100;
+  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
 
   const getCatProgress = (cat: VisitaCategory) => {
     const done = cat.items.filter((i) => {
