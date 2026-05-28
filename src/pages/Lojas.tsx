@@ -65,12 +65,12 @@ const Lojas = () => {
 
   const getProgress = (store: typeof stores[0]) => {
     const allChecklistItems = checklistCategories.flatMap((c) => c.items);
-    const totalItems = allChecklistItems.length;
+    const applicableItems = allChecklistItems.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
     const doneItems = allChecklistItems.filter((item) => {
       const status = store.checklist[item.id]?.status;
-      return status === "REALIZADO" || status === "NÃO SE APLICA";
+      return status === "REALIZADO";
     }).length;
-    return totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+    return applicableItems.length > 0 ? Math.round((doneItems / applicableItems.length) * 100) : 0;
   };
 
   const getStatusCounts = (store: typeof stores[0]) => {

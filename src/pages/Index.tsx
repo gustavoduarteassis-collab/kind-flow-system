@@ -109,22 +109,29 @@ const Index = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const allChecklistItems = checklistCategories.flatMap((c) => c.items);
-  const totalItems = stores.length * allChecklistItems.length;
-  const getStoreStatusSummary = () => {
-    const summary: Partial<Record<StatusType, number>> = {};
+  const allChecklistItems = checklistCategories.flatMap((c) => c.items);
+  
+  const getOverallStats = () => {
+    let totalApplicable = 0;
+    let totalDone = 0;
+    
     stores.forEach((store) => {
       allChecklistItems.forEach((item) => {
         const itemData = store.checklist[item.id];
-        if (itemData) {
-          summary[itemData.status] = (summary[itemData.status] || 0) + 1;
+        if (itemData && itemData.status !== "NÃO SE APLICA") {
+          totalApplicable++;
+          if (itemData.status === "REALIZADO") {
+            totalDone++;
+          }
         }
       });
     });
-    return summary;
+    
+    const progress = totalApplicable > 0 ? Math.round((totalDone / totalApplicable) * 100) : 0;
+    return { totalApplicable, totalDone, progress };
   };
-  const statusSummary = getStoreStatusSummary();
-  const doneItems = (statusSummary["REALIZADO"] || 0) + (statusSummary["NÃO SE APLICA"] || 0);
-  const overallProgress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+
+  const { progress: overallProgress } = getOverallStats();
 
   const pendingTasks = tasks.filter((t) => t.status === "pendente").length;
   const inProgressTasks = tasks.filter((t) => t.status === "em_andamento").length;
