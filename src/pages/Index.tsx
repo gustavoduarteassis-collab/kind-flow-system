@@ -349,10 +349,17 @@ const Index = () => {
                   <TableBody>
                     {stores.map((store) => {
                       const applicableItems = allChecklistItems.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
+                      const totalScore = allChecklistItems.reduce((acc, item) => {
+                        const status = store.checklist[item.id]?.status;
+                        if (status === "REALIZADO") return acc + 100;
+                        if (status === "NÃO SE APLICA") return acc;
+                        if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return acc;
+                        return acc + 50;
+                      }, 0);
+                      const progress = applicableItems.length > 0 ? Math.round((totalScore / (applicableItems.length * 100)) * 100) : 0;
                       const doneCount = allChecklistItems.filter(item => store.checklist[item.id]?.status === "REALIZADO").length;
-                      const progress = applicableItems.length > 0 ? Math.round((doneCount / applicableItems.length) * 100) : 0;
                       const atrasados = allChecklistItems.filter(item => store.checklist[item.id]?.status === "ATRASADO").length;
-                      const naoIniciados = allChecklistItems.filter(item => !store.checklist[item.id] || store.checklist[item.id].status === "NÃO REALIZADO").length;
+                      const naoRealizados = allChecklistItems.filter(item => !store.checklist[item.id] || store.checklist[item.id].status === "NÃO REALIZADO").length;
                       const inProgress = allChecklistItems.filter(item => {
                         const status = store.checklist[item.id]?.status;
                         return status && !["REALIZADO", "NÃO SE APLICA", "ATRASADO", "NÃO REALIZADO"].includes(status);
