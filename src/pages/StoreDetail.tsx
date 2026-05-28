@@ -632,22 +632,17 @@ const StoreDetail = () => {
                           observacoes: "",
                         };
                         const isImpeditivo = item.atividade.includes("IMPEDITIVO");
+                        
+                        const rowBg = 
+                          data.status === "REALIZADO" ? "bg-[hsl(152,60%,95%)]" :
+                          data.status === "NÃO SE APLICA" ? "bg-muted/30" :
+                          (data.status === "ATRASADO" || data.status === "NÃO REALIZADO") ? "bg-[hsl(0,84%,97%)]" :
+                          "bg-[hsl(38,90%,97%)]"; // Em andamento/Outros
+
                         return (
                           <TableRow
                             key={item.id}
-                            className={
-                              data.status === "ATRASADO"
-                                ? "bg-destructive/5"
-                                : data.status === "REALIZADO"
-                                ? "bg-[hsl(142,60%,95%)]"
-                                : data.status === "REALIZANDO"
-                                ? "bg-[hsl(152,40%,92%)]"
-                                : data.status === "EM ANDAMENTO"
-                                ? "bg-[hsl(45,90%,95%)]"
-                                : isImpeditivo
-                                ? "bg-[hsl(38,90%,97%)]"
-                                : ""
-                            }
+                            className={rowBg}
                           >
                             <TableCell className="text-center font-mono text-xs text-muted-foreground">
                               {item.id}
