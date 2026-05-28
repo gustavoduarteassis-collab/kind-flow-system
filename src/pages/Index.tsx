@@ -394,7 +394,7 @@ const Index = () => {
                             }
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className="text-xs text-muted-foreground">{naoIniciados}</span>
+                            <span className="text-xs text-muted-foreground">{naoRealizados}</span>
                           </TableCell>
                           <TableCell className="text-center">
                             <span className="text-xs text-muted-foreground">{inProgress}</span>
