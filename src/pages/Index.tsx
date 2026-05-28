@@ -211,9 +211,10 @@ const Index = () => {
                   </div>
                   <div className="text-right">
                     <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-600 uppercase tracking-tight">
-                      {store.fase_atual}
+                      {store.faseAtual || 'Pré-Obra'}
                     </span>
                   </div>
+
                 </div>
               ))}
           </div>
