@@ -110,24 +110,32 @@ const Index = () => {
 
   const allChecklistItems = checklistCategories.flatMap((c) => c.items);
   
+  const getStatusScore = (status?: string): number => {
+    if (status === "REALIZADO") return 100;
+    if (status === "NÃO SE APLICA") return 0;
+    if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return 0;
+    return 50;
+  };
+
   const getOverallStats = () => {
-    let totalApplicable = 0;
+    let totalScore = 0;
+    let totalApplicableCount = 0;
     let totalDone = 0;
     
     stores.forEach((store) => {
       allChecklistItems.forEach((item) => {
         const itemData = store.checklist[item.id];
-        if (itemData && itemData.status !== "NÃO SE APLICA") {
-          totalApplicable++;
-          if (itemData.status === "REALIZADO") {
-            totalDone++;
-          }
+        const status = itemData?.status;
+        if (status !== "NÃO SE APLICA") {
+          totalApplicableCount++;
+          totalScore += getStatusScore(status);
+          if (status === "REALIZADO") totalDone++;
         }
       });
     });
     
-    const progress = totalApplicable > 0 ? Math.round((totalDone / totalApplicable) * 100) : 0;
-    return { totalApplicable, totalDone, progress };
+    const progress = totalApplicableCount > 0 ? Math.round((totalScore / (totalApplicableCount * 100)) * 100) : 0;
+    return { totalApplicable: totalApplicableCount, totalDone, progress };
   };
 
   const { progress: overallProgress } = getOverallStats();
