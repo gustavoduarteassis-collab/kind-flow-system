@@ -744,11 +744,27 @@ const StoreDetail = () => {
                                       <p className="text-xs font-medium text-slate-900 leading-tight">
                                         {data.atividade || item.atividade}
                                       </p>
-                                      {isImpeditivo && (
-                                        <Badge className="w-fit bg-red-100 text-red-700 text-[8px] font-bold border-none h-4">
-                                          IMPEDITIVO
-                                        </Badge>
-                                      )}
+                                  {isImpeditivo && (
+                                    <Badge className="w-fit bg-red-100 text-red-700 text-[8px] font-bold border-none h-4">
+                                      IMPEDITIVO
+                                    </Badge>
+                                  )}
+                                  {(item.id === 5 || item.id === 6) && store.inauguracao && (
+                                    (() => {
+                                      const opening = new Date(store.inauguracao + "T00:00:00");
+                                      const diffDays = Math.ceil((opening.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                                      if (diffDays > 30) {
+                                        return (
+                                          <div className="flex items-center gap-1 mt-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 w-fit">
+                                            <AlertTriangle className="h-3 w-3" />
+                                            AGUARDAR (Faltam {diffDays} dias)
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    })()
+                                  )}
+
                                     </div>
                                   </TableCell>
                                   <TableCell>
