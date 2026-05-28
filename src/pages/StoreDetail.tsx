@@ -187,12 +187,10 @@ const StoreDetail = () => {
   const getCategoryProgress = (categoryId: string) => {
     const cat = checklistCategories.find((c) => c.id === categoryId);
     if (!cat) return 0;
-    const done = cat.items.filter(
-      (item) =>
-        store.checklist[item.id]?.status === "REALIZADO" ||
-        store.checklist[item.id]?.status === "NÃO SE APLICA"
-    ).length;
-    return Math.round((done / cat.items.length) * 100);
+    const applicable = cat.items.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
+    const totalScore = cat.items.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
+    const maxScore = applicable.length * 100;
+    return maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
   };
 
   const exportChecklistToExcel = async () => {
