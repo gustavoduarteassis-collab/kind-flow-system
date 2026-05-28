@@ -35,11 +35,14 @@ export function getInaugurationLibStatus(inaugChecklistRaw: any, tipoLoja?: stri
     }
   };
 
+  const applicableItems = allItems.filter(item => currentRound.items[item.id]?.status !== "NAO_SE_APLICA");
   const totalScore = allItems.reduce(
     (acc, item) => acc + getStatusScore(currentRound.items[item.id]?.status),
     0
   );
-  const maxScore = totalItems * 100;
+  
+  // Exclude NAO_SE_APLICA from max possible score
+  const maxScore = applicableItems.length * 100;
   const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
 
   const impeditivos = allItems.filter((i) => i.impeditivo);

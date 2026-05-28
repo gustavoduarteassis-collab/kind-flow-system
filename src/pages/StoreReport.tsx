@@ -157,11 +157,13 @@ const StoreReport = () => {
     );
   }
 
-  const totalItems = checklistCategories.flatMap((c) => c.items).length;
+  const allItemsArr = checklistCategories.flatMap((c) => c.items);
+  const applicableItemsArr = allItemsArr.filter(i => store.checklist[i.id]?.status !== "NÃO SE APLICA");
+  const totalItems = allItemsArr.length;
   const doneItems = Object.values(store.checklist).filter(
-    (c) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA"
+    (c) => c.status === "REALIZADO"
   ).length;
-  const progress = Math.round((doneItems / totalItems) * 100);
+  const progress = applicableItemsArr.length > 0 ? Math.round((doneItems / applicableItemsArr.length) * 100) : 0;
   const atrasados = Object.values(store.checklist).filter(
     (c) => c.status === "ATRASADO"
   ).length;
@@ -642,16 +644,16 @@ const StoreReport = () => {
               )}
               {inaugData.rounds.map((round) => {
                 const allItems = inaugChecklist.categories.flatMap(c => c.items);
+                const applicableItems = allItems.filter(i => round.items[i.id]?.status !== "NAO_SE_APLICA");
                 const getStatusScore = (status?: string): number => {
                   switch (status) {
                     case "TOTALMENTE_ATENDIDO": return 100;
                     case "EM_ANDAMENTO": return 50;
-                    case "NAO_SE_APLICA": return 100;
                     default: return 0;
                   }
                 };
                 const totalScore = allItems.reduce((acc, i) => acc + getStatusScore(round.items[i.id]?.status), 0);
-                const maxScore = allItems.length * 100;
+                const maxScore = applicableItems.length * 100;
                 const roundProg = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
                 const impItems = allItems.filter(i => i.impeditivo);
                 const impPendentes = impItems.filter(i => {
@@ -668,16 +670,12 @@ const StoreReport = () => {
                       {round.deadline && ` | Prazo: ${new Date(round.deadline + "T00:00:00").toLocaleDateString("pt-BR")}`}
                     </h3>
                     {inaugChecklist.categories.map(cat => {
-                      // Filter only pending items (not completed, not N/A)
-                      const pendingItems = cat.items.filter(item => {
-                        const s = round.items[item.id]?.status;
-                        return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
-                      });
-                      if (pendingItems.length === 0) return null;
+                      const catItems = cat.items;
+                      if (catItems.length === 0) return null;
                       return (
                         <div key={cat.id} className="mb-2">
                           <h4 className="text-xs font-bold bg-gray-50 px-2 py-0.5 border-x border-black">
-                            {cat.nome} ({pendingItems.length} pendentes de {cat.items.length})
+                            {cat.nome}
                           </h4>
                           <table className="w-full text-[10px] border-collapse">
                             <thead>
@@ -689,7 +687,7 @@ const StoreReport = () => {
                               </tr>
                             </thead>
                             <tbody>
-                              {pendingItems.map(item => {
+                              {cat.items.map(item => {
                                 const iData = round.items[item.id] || { status: "NAO_ATENDIDO" as InaugStatusType, observacoes: "", photos: [] };
                                 return (
                                   <tr key={item.id} className={item.impeditivo ? "bg-red-50" : ""}>
