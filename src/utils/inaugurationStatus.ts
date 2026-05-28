@@ -30,7 +30,7 @@ export function getInaugurationLibStatus(inaugChecklistRaw: any, tipoLoja?: stri
     switch (status) {
       case "TOTALMENTE_ATENDIDO": return 100;
       case "EM_ANDAMENTO": return 50;
-      case "NAO_SE_APLICA": return 100;
+      case "NAO_SE_APLICA": return 0;
       default: return 0;
     }
   };
@@ -53,8 +53,8 @@ export function getInaugurationLibStatus(inaugChecklistRaw: any, tipoLoja?: stri
 
   const hasRessalva = !!currentRound.ressalva && currentRound.ressalva.trim().length > 0;
 
-  if (progress >= 90 && impeditivosPendentes === 0) return "LIBERADO";
-  if (hasRessalva || (progress >= 80 && impeditivosPendentes === 0)) return "LIBERADO_COM_RESSALVAS";
+  if (progress >= 90) return "LIBERADO";
+  if (hasRessalva) return "LIBERADO_COM_RESSALVAS";
   return "NAO_LIBERADO";
 }
 
