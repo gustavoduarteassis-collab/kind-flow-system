@@ -54,6 +54,7 @@ import {
   FileSpreadsheet,
   AlertTriangle,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
