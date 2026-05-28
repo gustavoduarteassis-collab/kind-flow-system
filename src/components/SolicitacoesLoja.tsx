@@ -11,13 +11,13 @@ import { Button } from "@/components/ui/button";
 import { MessageSquare, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 
 const statusLabels: Record<SolicitacaoStatus, string> = {
-  pendente: "Pendente",
-  solicitado: "Solicitado",
-  concluido: "Concluído",
+  pendente: "Não Realizado",
+  solicitado: "Em Andamento",
+  concluido: "Realizado",
 };
 
 const statusColors: Record<SolicitacaoStatus, string> = {
-  pendente: "bg-secondary text-secondary-foreground",
+  pendente: "bg-destructive text-destructive-foreground",
   solicitado: "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
   concluido: "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
 };

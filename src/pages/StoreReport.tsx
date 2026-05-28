@@ -40,48 +40,48 @@ type DiaryPhotoReport = {
 };
 
 const statusLabels: Record<StatusType, string> = {
-  "NÃO INICIADO": "⬜ Não Iniciado",
+  "NÃO REALIZADO": "⬜ Não Realizado",
   "EM COTAÇÃO": "🟡 Em Cotação",
-  "EM TRANSPORTE": "🔵 Em Transporte",
+  "EM TRANSPORTE": "🟡 Em Transporte",
   "REALIZADO": "✅ Realizado",
-  "REALIZANDO": "🟢 Realizando",
+  "REALIZANDO": "🟡 Realizando",
   "ATRASADO": "🔴 Atrasado",
   "NÃO SE APLICA": "⚪ N/A",
-  "CONSTRUTORA": "🟣 Construtora",
-  "EM ELABORAÇÃO": "🟠 Em Elaboração",
-  "EM ANÁLISE": "🔵 Em Análise",
-  "EM CONTRATAÇÃO": "🟣 Em Contratação",
+  "CONSTRUTORA": "🟡 Construtora",
+  "EM ELABORAÇÃO": "🟡 Em Elaboração",
+  "EM ANÁLISE": "🟡 Em Análise",
+  "EM CONTRATAÇÃO": "🟡 Em Contratação",
   "EM ANDAMENTO": "🟡 Em Andamento",
 };
 
 const statusPrintColors: Record<StatusType, string> = {
-  "NÃO INICIADO": "bg-gray-100",
-  "EM COTAÇÃO": "bg-[hsl(38,90%,85%)]",
-  "EM TRANSPORTE": "bg-[hsl(210,80%,88%)]",
-  "REALIZADO": "bg-[hsl(142,60%,88%)]",
-  "REALIZANDO": "bg-[hsl(152,40%,85%)]",
-  "ATRASADO": "bg-[hsl(0,72%,90%)]",
+  "NÃO REALIZADO": "bg-red-50",
+  "EM COTAÇÃO": "bg-[hsl(38,90%,95%)]",
+  "EM TRANSPORTE": "bg-[hsl(38,90%,95%)]",
+  "REALIZADO": "bg-[hsl(142,60%,95%)]",
+  "REALIZANDO": "bg-[hsl(38,90%,95%)]",
+  "ATRASADO": "bg-red-50",
   "NÃO SE APLICA": "bg-gray-50",
-  "CONSTRUTORA": "bg-[hsl(270,50%,90%)]",
-  "EM ELABORAÇÃO": "bg-[hsl(38,70%,88%)]",
-  "EM ANÁLISE": "bg-[hsl(200,60%,88%)]",
-  "EM CONTRATAÇÃO": "bg-[hsl(280,50%,88%)]",
-  "EM ANDAMENTO": "bg-[hsl(45,90%,85%)]",
+  "CONSTRUTORA": "bg-[hsl(38,90%,95%)]",
+  "EM ELABORAÇÃO": "bg-[hsl(38,90%,95%)]",
+  "EM ANÁLISE": "bg-[hsl(38,90%,95%)]",
+  "EM CONTRATAÇÃO": "bg-[hsl(38,90%,95%)]",
+  "EM ANDAMENTO": "bg-[hsl(38,90%,95%)]",
 };
 
 const statusTextColors: Record<StatusType, string> = {
-  "NÃO INICIADO": "text-gray-600",
-  "EM COTAÇÃO": "text-[hsl(38,90%,30%)]",
-  "EM TRANSPORTE": "text-[hsl(210,80%,35%)]",
-  "REALIZADO": "text-[hsl(142,60%,25%)]",
-  "REALIZANDO": "text-[hsl(152,50%,20%)]",
-  "ATRASADO": "text-[hsl(0,72%,35%)]",
+  "NÃO REALIZADO": "text-red-700",
+  "EM COTAÇÃO": "text-[hsl(38,90%,35%)]",
+  "EM TRANSPORTE": "text-[hsl(38,90%,35%)]",
+  "REALIZADO": "text-[hsl(142,60%,30%)]",
+  "REALIZANDO": "text-[hsl(38,90%,35%)]",
+  "ATRASADO": "text-red-700",
   "NÃO SE APLICA": "text-gray-400",
-  "CONSTRUTORA": "text-[hsl(270,50%,35%)]",
-  "EM ELABORAÇÃO": "text-[hsl(38,70%,30%)]",
-  "EM ANÁLISE": "text-[hsl(200,60%,30%)]",
-  "EM CONTRATAÇÃO": "text-[hsl(280,50%,30%)]",
-  "EM ANDAMENTO": "text-[hsl(45,90%,25%)]",
+  "CONSTRUTORA": "text-[hsl(38,90%,35%)]",
+  "EM ELABORAÇÃO": "text-[hsl(38,90%,35%)]",
+  "EM ANÁLISE": "text-[hsl(38,90%,35%)]",
+  "EM CONTRATAÇÃO": "text-[hsl(38,90%,35%)]",
+  "EM ANDAMENTO": "text-[hsl(38,90%,35%)]",
 };
 
 const formatCurrency = (v: number) =>
@@ -160,10 +160,17 @@ const StoreReport = () => {
   const allItemsArr = checklistCategories.flatMap((c) => c.items);
   const applicableItemsArr = allItemsArr.filter(i => store.checklist[i.id]?.status !== "NÃO SE APLICA");
   const totalItems = allItemsArr.length;
-  const doneItems = Object.values(store.checklist).filter(
-    (c) => c.status === "REALIZADO"
-  ).length;
-  const progress = applicableItemsArr.length > 0 ? Math.round((doneItems / applicableItemsArr.length) * 100) : 0;
+  const getStatusScore = (status?: StatusType): number => {
+    if (status === "REALIZADO") return 100;
+    if (status === "NÃO SE APLICA") return 0;
+    if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return 0;
+    return 50;
+  };
+
+  const totalScore = allItemsArr.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
+  const maxScore = applicableItemsArr.length * 100;
+  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+  const doneItems = Object.values(store.checklist).filter(item => item.status === "REALIZADO").length;
   const atrasados = Object.values(store.checklist).filter(
     (c) => c.status === "ATRASADO"
   ).length;
@@ -171,11 +178,11 @@ const StoreReport = () => {
     (c) =>
       c.status !== "REALIZADO" &&
       c.status !== "NÃO SE APLICA" &&
-      c.status !== "NÃO INICIADO" &&
+      c.status !== "NÃO REALIZADO" &&
       c.status !== "ATRASADO"
   ).length;
   const naoIniciados = Object.values(store.checklist).filter(
-    (c) => c.status === "NÃO INICIADO"
+    (c) => c.status === "NÃO REALIZADO"
   ).length;
 
   const today = new Date().toLocaleDateString("pt-BR");
@@ -442,7 +449,7 @@ const StoreReport = () => {
                   <tbody>
                     {cat.items.map((item) => {
                       const data = store.checklist[item.id] || {
-                        status: "NÃO INICIADO" as StatusType,
+                        status: "NÃO REALIZADO" as StatusType,
                         prazoInicial: "",
                         prazoFinal: "",
                         observacoes: "",

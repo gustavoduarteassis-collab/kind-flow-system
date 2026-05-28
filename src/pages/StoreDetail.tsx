@@ -58,18 +58,18 @@ import { saveAs } from "file-saver";
 import logoConstanceSvg from "@/assets/logo-constance.svg";
 
 const statusColors: Record<StatusType, string> = {
-  "NÃO INICIADO": "bg-secondary text-secondary-foreground",
+  "NÃO REALIZADO": "bg-destructive text-destructive-foreground",
   "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM TRANSPORTE": "bg-[hsl(210,80%,55%)] text-[hsl(0,0%,100%)]",
-  "REALIZADO": "bg-[hsl(142,60%,45%)] text-[hsl(0,0%,100%)]",
-  "REALIZANDO": "bg-[hsl(152,50%,28%)] text-[hsl(0,0%,100%)]",
+  "EM TRANSPORTE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "REALIZADO": "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
+  "REALIZANDO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
   "ATRASADO": "bg-destructive text-destructive-foreground",
   "NÃO SE APLICA": "bg-muted text-muted-foreground",
-  "CONSTRUTORA": "bg-[hsl(270,50%,50%)] text-[hsl(0,0%,100%)]",
-  "EM ELABORAÇÃO": "bg-[hsl(38,70%,60%)] text-[hsl(38,90%,15%)]",
-  "EM ANÁLISE": "bg-[hsl(200,60%,55%)] text-[hsl(0,0%,100%)]",
-  "EM CONTRATAÇÃO": "bg-[hsl(280,50%,55%)] text-[hsl(0,0%,100%)]",
-  "EM ANDAMENTO": "bg-[hsl(45,90%,55%)] text-[hsl(45,90%,15%)]",
+  "CONSTRUTORA": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM ELABORAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM ANÁLISE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM CONTRATAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM ANDAMENTO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
 };
 
 const StoreDetail = () => {
@@ -159,11 +159,17 @@ const StoreDetail = () => {
   const allChecklistItems = checklistCategories.flatMap((c) => c.items);
   const applicableItems = allChecklistItems.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
   const totalItems = allChecklistItems.length;
-  const doneItems = allChecklistItems.filter((item) => {
-    const status = store.checklist[item.id]?.status;
-    return status === "REALIZADO";
-  }).length;
-  const progress = applicableItems.length > 0 ? Math.round((doneItems / applicableItems.length) * 100) : 0;
+  const getStatusScore = (status?: StatusType): number => {
+    if (status === "REALIZADO") return 100;
+    if (status === "NÃO SE APLICA") return 0;
+    if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return 0;
+    return 50; // All other "in progress" statuses
+  };
+
+  const totalScore = allChecklistItems.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
+  const maxScore = applicableItems.length * 100;
+  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+  const doneItems = allChecklistItems.filter(item => store.checklist[item.id]?.status === "REALIZADO").length;
   const atrasados = allChecklistItems.filter((item) => store.checklist[item.id]?.status === "ATRASADO").length;
 
   const handleStatusChange = (itemId: number, status: StatusType) => {
@@ -181,12 +187,10 @@ const StoreDetail = () => {
   const getCategoryProgress = (categoryId: string) => {
     const cat = checklistCategories.find((c) => c.id === categoryId);
     if (!cat) return 0;
-    const done = cat.items.filter(
-      (item) =>
-        store.checklist[item.id]?.status === "REALIZADO" ||
-        store.checklist[item.id]?.status === "NÃO SE APLICA"
-    ).length;
-    return Math.round((done / cat.items.length) * 100);
+    const applicable = cat.items.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
+    const totalScore = cat.items.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
+    const maxScore = applicable.length * 100;
+    return maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
   };
 
   const exportChecklistToExcel = async () => {
@@ -200,7 +204,7 @@ const StoreDetail = () => {
       "ATRASADO": { bg: "FFF44336", font: "FFFFFFFF" },
       "EM TRANSPORTE": { bg: "FF2196F3", font: "FFFFFFFF" },
       "EM COTAÇÃO": { bg: "FFFF9800", font: "FF333333" },
-      "NÃO INICIADO": { bg: "FFE0E0E0", font: "FF555555" },
+      "NÃO REALIZADO": { bg: "FFE0E0E0", font: "FF555555" },
       "NÃO SE APLICA": { bg: "FF9E9E9E", font: "FFFFFFFF" },
       "CONSTRUTORA": { bg: "FF7E57C2", font: "FFFFFFFF" },
       "EM ELABORAÇÃO": { bg: "FFFFB74D", font: "FF333333" },
@@ -301,7 +305,7 @@ const StoreDetail = () => {
       // Data rows
       cat.items.forEach((item, idx) => {
         const data = store.checklist[item.id] || {} as any;
-        const status = data.status || "NÃO INICIADO";
+        const status = data.status || "NÃO REALIZADO";
         const rowData = isObra
           ? [item.id, data.atividade || item.atividade, item.responsavel, status, data.prazoInicial || "", data.prazoFinal || "", data.descricao || "", data.observacoes || ""]
           : [item.id, data.atividade || item.atividade, item.responsavel, status, data.prazoFinal || "", data.descricao || "", data.observacoes || ""];
@@ -626,28 +630,23 @@ const StoreDetail = () => {
                     <TableBody>
                       {cat.items.map((item) => {
                         const data = store.checklist[item.id] || {
-                          status: "NÃO INICIADO" as StatusType,
+                          status: "NÃO REALIZADO" as StatusType,
                           prazoInicial: "",
                           prazoFinal: "",
                           observacoes: "",
                         };
                         const isImpeditivo = item.atividade.includes("IMPEDITIVO");
+                        
+                        const rowBg = 
+                          data.status === "REALIZADO" ? "bg-[hsl(152,60%,95%)]" :
+                          data.status === "NÃO SE APLICA" ? "bg-muted/30" :
+                          (data.status === "ATRASADO" || data.status === "NÃO REALIZADO") ? "bg-[hsl(0,84%,97%)]" :
+                          "bg-[hsl(38,90%,97%)]"; // Em andamento/Outros
+
                         return (
                           <TableRow
                             key={item.id}
-                            className={
-                              data.status === "ATRASADO"
-                                ? "bg-destructive/5"
-                                : data.status === "REALIZADO"
-                                ? "bg-[hsl(142,60%,95%)]"
-                                : data.status === "REALIZANDO"
-                                ? "bg-[hsl(152,40%,92%)]"
-                                : data.status === "EM ANDAMENTO"
-                                ? "bg-[hsl(45,90%,95%)]"
-                                : isImpeditivo
-                                ? "bg-[hsl(38,90%,97%)]"
-                                : ""
-                            }
+                            className={rowBg}
                           >
                             <TableCell className="text-center font-mono text-xs text-muted-foreground">
                               {item.id}

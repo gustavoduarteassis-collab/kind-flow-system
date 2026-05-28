@@ -56,16 +56,16 @@ const priorityLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-  "NÃO INICIADO": "bg-muted text-muted-foreground",
-  "EM COTAÇÃO": "bg-secondary text-secondary-foreground",
-  "EM TRANSPORTE": "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
-  "REALIZADO": "bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))]",
+  "NÃO REALIZADO": "bg-destructive text-destructive-foreground",
+  "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM TRANSPORTE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "REALIZADO": "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
   "ATRASADO": "bg-destructive text-destructive-foreground",
   "NÃO SE APLICA": "bg-muted text-muted-foreground",
-  "CONSTRUTORA": "bg-primary text-primary-foreground",
-  "EM ELABORAÇÃO": "bg-secondary text-secondary-foreground",
-  "EM ANÁLISE": "bg-[hsl(var(--accent))] text-[hsl(var(--accent-foreground))]",
-  "EM CONTRATAÇÃO": "bg-secondary text-secondary-foreground",
+  "CONSTRUTORA": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM ELABORAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM ANÁLISE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM CONTRATAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
 };
 
 const formatDate = (d: string | null) => {
@@ -110,24 +110,32 @@ const Index = () => {
 
   const allChecklistItems = checklistCategories.flatMap((c) => c.items);
   
+  const getStatusScore = (status?: string): number => {
+    if (status === "REALIZADO") return 100;
+    if (status === "NÃO SE APLICA") return 0;
+    if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return 0;
+    return 50;
+  };
+
   const getOverallStats = () => {
-    let totalApplicable = 0;
+    let totalScore = 0;
+    let totalApplicableCount = 0;
     let totalDone = 0;
     
     stores.forEach((store) => {
       allChecklistItems.forEach((item) => {
         const itemData = store.checklist[item.id];
-        if (itemData && itemData.status !== "NÃO SE APLICA") {
-          totalApplicable++;
-          if (itemData.status === "REALIZADO") {
-            totalDone++;
-          }
+        const status = itemData?.status;
+        if (status !== "NÃO SE APLICA") {
+          totalApplicableCount++;
+          totalScore += getStatusScore(status);
+          if (status === "REALIZADO") totalDone++;
         }
       });
     });
     
-    const progress = totalApplicable > 0 ? Math.round((totalDone / totalApplicable) * 100) : 0;
-    return { totalApplicable, totalDone, progress };
+    const progress = totalApplicableCount > 0 ? Math.round((totalScore / (totalApplicableCount * 100)) * 100) : 0;
+    return { totalApplicable: totalApplicableCount, totalDone, progress };
   };
 
   const { progress: overallProgress } = getOverallStats();
@@ -334,20 +342,27 @@ const Index = () => {
                       <TableHead className="text-center">Progresso</TableHead>
                       <TableHead className="text-center">Realizados</TableHead>
                       <TableHead className="text-center">Atrasados</TableHead>
-                      <TableHead className="text-center">Não Iniciados</TableHead>
+                      <TableHead className="text-center">Não Realizados</TableHead>
                       <TableHead className="text-center">Em Andamento</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {stores.map((store) => {
                       const applicableItems = allChecklistItems.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
+                      const totalScore = allChecklistItems.reduce((acc, item) => {
+                        const status = store.checklist[item.id]?.status;
+                        if (status === "REALIZADO") return acc + 100;
+                        if (status === "NÃO SE APLICA") return acc;
+                        if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return acc;
+                        return acc + 50;
+                      }, 0);
+                      const progress = applicableItems.length > 0 ? Math.round((totalScore / (applicableItems.length * 100)) * 100) : 0;
                       const doneCount = allChecklistItems.filter(item => store.checklist[item.id]?.status === "REALIZADO").length;
-                      const progress = applicableItems.length > 0 ? Math.round((doneCount / applicableItems.length) * 100) : 0;
                       const atrasados = allChecklistItems.filter(item => store.checklist[item.id]?.status === "ATRASADO").length;
-                      const naoIniciados = allChecklistItems.filter(item => !store.checklist[item.id] || store.checklist[item.id].status === "NÃO INICIADO").length;
+                      const naoRealizados = allChecklistItems.filter(item => !store.checklist[item.id] || store.checklist[item.id].status === "NÃO REALIZADO").length;
                       const inProgress = allChecklistItems.filter(item => {
                         const status = store.checklist[item.id]?.status;
-                        return status && !["REALIZADO", "NÃO SE APLICA", "ATRASADO", "NÃO INICIADO"].includes(status);
+                        return status && !["REALIZADO", "NÃO SE APLICA", "ATRASADO", "NÃO REALIZADO"].includes(status);
                       }).length;
 
                       return (
@@ -379,7 +394,7 @@ const Index = () => {
                             }
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className="text-xs text-muted-foreground">{naoIniciados}</span>
+                            <span className="text-xs text-muted-foreground">{naoRealizados}</span>
                           </TableCell>
                           <TableCell className="text-center">
                             <span className="text-xs text-muted-foreground">{inProgress}</span>
