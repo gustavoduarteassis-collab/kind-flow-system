@@ -108,12 +108,16 @@ const Index = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const totalItems = stores.length * checklistCategories.flatMap((c) => c.items).length;
+  const allChecklistItems = checklistCategories.flatMap((c) => c.items);
+  const totalItems = stores.length * allChecklistItems.length;
   const getStoreStatusSummary = () => {
     const summary: Partial<Record<StatusType, number>> = {};
     stores.forEach((store) => {
-      Object.values(store.checklist).forEach((c) => {
-        summary[c.status] = (summary[c.status] || 0) + 1;
+      allChecklistItems.forEach((item) => {
+        const itemData = store.checklist[item.id];
+        if (itemData) {
+          summary[itemData.status] = (summary[itemData.status] || 0) + 1;
+        }
       });
     });
     return summary;

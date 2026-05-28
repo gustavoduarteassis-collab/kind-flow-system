@@ -64,17 +64,23 @@ const Lojas = () => {
   };
 
   const getProgress = (store: typeof stores[0]) => {
-    const totalItems = checklistCategories.flatMap((c) => c.items).length;
-    const doneItems = Object.values(store.checklist).filter(
-      (c) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA"
-    ).length;
-    return Math.round((doneItems / totalItems) * 100);
+    const allChecklistItems = checklistCategories.flatMap((c) => c.items);
+    const totalItems = allChecklistItems.length;
+    const doneItems = allChecklistItems.filter((item) => {
+      const status = store.checklist[item.id]?.status;
+      return status === "REALIZADO" || status === "NÃO SE APLICA";
+    }).length;
+    return totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
   };
 
   const getStatusCounts = (store: typeof stores[0]) => {
     const counts: Partial<Record<StatusType, number>> = {};
-    Object.values(store.checklist).forEach((c) => {
-      counts[c.status] = (counts[c.status] || 0) + 1;
+    const allChecklistItems = checklistCategories.flatMap((c) => c.items);
+    allChecklistItems.forEach((item) => {
+      const status = store.checklist[item.id]?.status;
+      if (status) {
+        counts[status] = (counts[status] || 0) + 1;
+      }
     });
     return counts;
   };
