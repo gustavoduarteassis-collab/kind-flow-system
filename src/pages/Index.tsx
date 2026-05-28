@@ -342,7 +342,7 @@ const Index = () => {
                       <TableHead className="text-center">Progresso</TableHead>
                       <TableHead className="text-center">Realizados</TableHead>
                       <TableHead className="text-center">Atrasados</TableHead>
-                      <TableHead className="text-center">Não Iniciados</TableHead>
+                      <TableHead className="text-center">Não Realizados</TableHead>
                       <TableHead className="text-center">Em Andamento</TableHead>
                     </TableRow>
                   </TableHeader>
