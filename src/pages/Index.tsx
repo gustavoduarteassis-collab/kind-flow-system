@@ -365,21 +365,21 @@ const Index = () => {
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center gap-2 justify-center">
-                              <Progress value={pct} className="h-1.5 w-16" />
-                              <span className="text-xs font-semibold">{pct}%</span>
+                              <Progress value={progress} className="h-1.5 w-16" />
+                              <span className="text-xs font-semibold">{progress}%</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">{counts["REALIZADO"] || 0}</Badge>
+                            <Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">{doneCount}</Badge>
                           </TableCell>
                           <TableCell className="text-center">
-                            {(counts["ATRASADO"] || 0) > 0
-                              ? <Badge variant="destructive" className="text-xs">{counts["ATRASADO"]}</Badge>
+                            {atrasados > 0
+                              ? <Badge variant="destructive" className="text-xs">{atrasados}</Badge>
                               : <span className="text-xs text-muted-foreground">0</span>
                             }
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className="text-xs text-muted-foreground">{counts["NÃO INICIADO"] || 0}</span>
+                            <span className="text-xs text-muted-foreground">{naoIniciados}</span>
                           </TableCell>
                           <TableCell className="text-center">
                             <span className="text-xs text-muted-foreground">{inProgress}</span>
