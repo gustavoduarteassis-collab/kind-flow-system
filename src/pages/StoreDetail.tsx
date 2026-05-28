@@ -675,160 +675,124 @@ const StoreDetail = () => {
             />
           </TabsContent>
 
-          {checklistCategories.map((cat) => (
-            <TabsContent key={cat.id} value={cat.id} className="mt-4">
-              {isTeamMember && (
-                <div className="mb-3">
-                  <Input
-                    className="h-9 text-sm font-semibold max-w-md"
-                    value={getCategoryName(cat.id, cat.nome)}
-                    onChange={(e) => handleCategoryNameChange(cat.id, e.target.value)}
-                    onBlur={(e) => handleCategoryNameBlur(cat.id, e.target.value)}
-                  />
-                </div>
-              )}
-              <div className="rounded-xl border bg-card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="w-12 text-center">#</TableHead>
-                        <TableHead className="min-w-[350px]">Atividade</TableHead>
-                        <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
-                        {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
-                          <TableHead className="w-[130px]">Prazo Inicial</TableHead>
-                        )}
-                        <TableHead className="w-[130px]">Prazo Final</TableHead>
-                        <TableHead className="w-[170px]">Status</TableHead>
-                        <TableHead className="w-[140px]">Responsável</TableHead>
-                        <TableHead className="min-w-[160px]">Observações</TableHead>
-                        <TableHead className="min-w-[200px]">Passo a Passo</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {cat.items.map((item) => {
-                        const data = store.checklist[item.id] || {
-                          status: "NÃO REALIZADO" as StatusType,
-                          prazoInicial: "",
-                          prazoFinal: "",
-                          observacoes: "",
-                        };
-                        const isImpeditivo = item.atividade.includes("IMPEDITIVO");
-                        
-                        const rowBg = 
-                          data.status === "REALIZADO" ? "bg-[hsl(152,60%,95%)]" :
-                          data.status === "NÃO SE APLICA" ? "bg-muted/30" :
-                          (data.status === "ATRASADO" || data.status === "NÃO REALIZADO") ? "bg-[hsl(0,84%,97%)]" :
-                          "bg-[hsl(38,90%,97%)]"; // Em andamento/Outros
+          {phaseCategories.map((phase) => (
+            <TabsContent key={phase.id} value={phase.id} className="mt-4 space-y-8">
+              {phase.categories.map((catId) => {
+                const cat = checklistCategories.find(c => c.id === catId);
+                if (!cat) return null;
+                return (
+                  <div key={cat.id} className="space-y-3">
+                    <div className="flex items-center justify-between px-1">
+                      <h4 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-[hsl(38,70%,50%)]" />
+                        {getCategoryName(cat.id, cat.nome)}
+                      </h4>
+                      <Badge variant="secondary" className="text-[10px] font-bold">
+                        {getCategoryProgress(cat.id)}% Concluído
+                      </Badge>
+                    </div>
+                    
+                    <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-slate-50">
+                              <TableHead className="w-12 text-center text-[10px] uppercase font-bold text-slate-500">#</TableHead>
+                              <TableHead className="min-w-[350px] text-[10px] uppercase font-bold text-slate-500">Atividade</TableHead>
+                              <TableHead className="w-[130px] text-[10px] uppercase font-bold text-slate-500">Prazo Final</TableHead>
+                              <TableHead className="w-[170px] text-[10px] uppercase font-bold text-slate-500">Status</TableHead>
+                              <TableHead className="w-[140px] text-[10px] uppercase font-bold text-slate-500">Responsável</TableHead>
+                              <TableHead className="min-w-[160px] text-[10px] uppercase font-bold text-slate-500">Observações</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {cat.items.map((item) => {
+                              const data = store.checklist[item.id] || {
+                                status: "NÃO REALIZADO" as StatusType,
+                                prazoInicial: "",
+                                prazoFinal: "",
+                                observacoes: "",
+                              };
+                              const isImpeditivo = item.atividade.includes("IMPEDITIVO");
+                              
+                              const statusStyles: Record<string, string> = {
+                                "REALIZADO": "bg-green-50 text-green-700 border-green-200",
+                                "EM ANDAMENTO": "bg-amber-50 text-amber-700 border-amber-200",
+                                "NÃO REALIZADO": "bg-red-50 text-red-700 border-red-200",
+                                "NÃO SE APLICA": "bg-slate-50 text-slate-500 border-slate-200",
+                              };
 
-                        return (
-                          <TableRow
-                            key={item.id}
-                            className={rowBg}
-                          >
-                            <TableCell className="text-center font-mono text-xs text-muted-foreground">
-                              {item.id}
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm break-words whitespace-normal">
-                                {isTeamMember ? (
-                                  <Textarea
-                                    className="min-h-[36px] text-xs font-medium resize-none overflow-hidden"
-                                    rows={2}
-                                    value={data.atividade || item.atividade}
-                                    onChange={(e) =>
-                                      handleFieldChange(item.id, "atividade", e.target.value)
-                                    }
-                                  />
-                                ) : (
-                                  <span className="whitespace-pre-line">{data.atividade || item.atividade}</span>
-                                )}
-                                {isImpeditivo && (
-                                  <Badge variant="outline" className="ml-2 mt-1 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">
-                                    IMPEDITIVO
-                                  </Badge>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-xs text-muted-foreground">
-                              {item.preRequisito || "—"}
-                            </TableCell>
-                            {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
-                              <TableCell>
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs"
-                                  value={data.prazoInicial}
-                                  onChange={(e) =>
-                                    handleFieldChange(item.id, "prazoInicial", e.target.value)
-                                  }
-                                />
-                              </TableCell>
-                            )}
-                            <TableCell>
-                              <Input
-                                type="date"
-                                className="h-8 text-xs"
-                                value={data.prazoFinal}
-                                onChange={(e) =>
-                                  handleFieldChange(item.id, "prazoFinal", e.target.value)
-                                }
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Select
-                                value={data.status}
-                                onValueChange={(v) =>
-                                  handleStatusChange(item.id, v as StatusType)
-                                }
-                              >
-                                <SelectTrigger className="h-8 text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {cat.statusOptions.map((s) => (
-                                    <SelectItem key={s} value={s}>
-                                      <Badge className={`${statusColors[s]} text-[10px]`}>
-                                        {s}
-                                      </Badge>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell className="text-xs">{item.responsavel}</TableCell>
-                            <TableCell>
-                              <Textarea
-                                className="min-h-[36px] text-xs resize-none overflow-hidden"
-                                rows={2}
-                                placeholder="Obs..."
-                                value={data.observacoes}
-                                onChange={(e) =>
-                                  handleFieldChange(item.id, "observacoes", e.target.value)
-                                }
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Textarea
-                                className="min-h-[36px] text-xs resize-none overflow-hidden"
-                                rows={2}
-                                placeholder="Instruções detalhadas..."
-                                value={data.descricao || ""}
-                                onChange={(e) =>
-                                  handleFieldChange(item.id, "descricao", e.target.value)
-                                }
-                                disabled={!isTeamMember}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
+                              return (
+                                <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                                  <TableCell className="text-center font-mono text-[10px] text-slate-400">
+                                    {item.id}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex flex-col gap-1">
+                                      <p className="text-xs font-medium text-slate-900 leading-tight">
+                                        {data.atividade || item.atividade}
+                                      </p>
+                                      {isImpeditivo && (
+                                        <Badge className="w-fit bg-red-100 text-red-700 text-[8px] font-bold border-none h-4">
+                                          IMPEDITIVO
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input
+                                      type="date"
+                                      className="h-8 text-[10px] border-none bg-slate-50"
+                                      value={data.prazoFinal}
+                                      onChange={(e) => handleFieldChange(item.id, "prazoFinal", e.target.value)}
+                                      disabled={!isTeamMember}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Select
+                                      value={data.status}
+                                      onValueChange={(v: StatusType) => handleStatusChange(item.id, v)}
+                                      disabled={!isTeamMember}
+                                    >
+                                      <SelectTrigger className={`h-8 text-[10px] font-bold ${statusStyles[data.status] || "bg-slate-100"}`}>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="REALIZADO">REALIZADO</SelectItem>
+                                        <SelectItem value="EM ANDAMENTO">EM ANDAMENTO</SelectItem>
+                                        <SelectItem value="NÃO REALIZADO">NÃO REALIZADO</SelectItem>
+                                        <SelectItem value="NÃO SE APLICA">NÃO SE APLICA</SelectItem>
+                                        {cat.statusOptions.filter(o => !["REALIZADO", "EM ANDAMENTO", "NÃO REALIZADO", "NÃO SE APLICA"].includes(o)).map(opt => (
+                                          <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </TableCell>
+                                  <TableCell className="text-[10px] text-slate-500 font-medium">
+                                    {item.responsavel}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Textarea
+                                      className="min-h-[32px] text-[10px] border-none bg-slate-50 resize-none"
+                                      placeholder="Adicionar observação..."
+                                      value={data.observacoes}
+                                      onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)}
+                                      disabled={!isTeamMember}
+                                    />
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </TabsContent>
           ))}
+
         </Tabs>
 
         {/* Dialog for syncing category name to all stores */}
