@@ -179,7 +179,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 66, atividade: "Instalação porta de aço automática (transvision)", responsavel: "Construtora" },
       { id: 67, atividade: "Incêndio (spk)", responsavel: "Construtora" },
       { id: 68, atividade: "Instalação ar condicionado", responsavel: "Construtora" },
-      { id: 69, atividade: "Drywall e forro em gesso", responsavel: "Construtora" },
+      { id: 69, atividade: "Drywall e forro em gesso (Requer Registro de Vistoria de Forro)", responsavel: "Construtora" },
       { id: 70, atividade: "Assentamento porcelanato (Piso Eliane)", responsavel: "Construtora" },
       { id: 71, atividade: "Assentamento piso vinílico", responsavel: "Construtora" },
       { id: 72, atividade: "Pintura", responsavel: "Construtora" },
