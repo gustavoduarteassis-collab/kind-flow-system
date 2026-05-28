@@ -660,8 +660,9 @@ const StoreReport = () => {
                   const s = round.items[i.id]?.status;
                   return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
                 }).length;
-                const libStatus = roundProg >= 95 && impPendentes === 0
-                  ? "LIBERADO" : (roundProg >= 85 && impPendentes === 0 ? "RESSALVAS" : "NAO_LIBERADO");
+                const hasRessalva = !!round.ressalva && round.ressalva.trim().length > 0;
+                const libStatus = roundProg >= 90 && impPendentes === 0
+                  ? "LIBERADO" : (hasRessalva || (roundProg >= 80 && impPendentes === 0) ? "RESSALVAS" : "NAO_LIBERADO");
                 return (
                   <div key={round.id} className="mb-6 break-inside-avoid">
                     <h3 className="text-sm font-bold bg-gray-100 px-2 py-1 border border-black">
@@ -719,6 +720,11 @@ const StoreReport = () => {
                       {libStatus === "NAO_LIBERADO" && "❌ NÃO LIBERADO PARA INAUGURAÇÃO"}
                       {` — ${roundProg}%`}
                     </div>
+                    {hasRessalva && (
+                      <div className="mt-2 p-2 border border-black text-[10px] italic bg-yellow-50">
+                        <strong>Ressalvas:</strong> {round.ressalva}
+                      </div>
+                    )}
                     {/* Signatures */}
                     {round.signatures && (
                       <div className="grid grid-cols-3 gap-8 mt-6 pt-4">
