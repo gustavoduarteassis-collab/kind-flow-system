@@ -29,7 +29,24 @@ const Lojas = () => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterAnalista, setFilterAnalista] = useState(searchParams.get("analista") || "");
-  const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "" as "rua" | "shopping" | "", inauguracaoChecklist: {} as any });
+  const [filterPorte, setFilterPorte] = useState("");
+  const [filterFase, setFilterFase] = useState("");
+  const [form, setForm] = useState({ 
+    nome: "", 
+    filial: "", 
+    franqueado: "", 
+    construtor: "", 
+    analistaObra: "", 
+    inauguracao: "", 
+    tipoLoja: "" as "rua" | "shopping" | "", 
+    razaoSocial: "",
+    porte: "" as "Compacta" | "Padrão" | "Ampliada" | "",
+    cidade: "",
+    uf: "",
+    faseAtual: "Pré-Obra" as any,
+    inauguracaoChecklist: {} as any 
+  });
+
   const [isTeamMember, setIsTeamMember] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ id: "", nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
@@ -58,7 +75,22 @@ const Lojas = () => {
   const handleAdd = async () => {
     if (!form.nome) return;
     const id = await addStore(form);
-    setForm({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "", inauguracaoChecklist: {} });
+    setForm({ 
+      nome: "", 
+      filial: "", 
+      franqueado: "", 
+      construtor: "", 
+      analistaObra: "", 
+      inauguracao: "", 
+      tipoLoja: "", 
+      razaoSocial: "",
+      porte: "",
+      cidade: "",
+      uf: "",
+      faseAtual: "Pré-Obra",
+      inauguracaoChecklist: {} 
+    });
+
     setOpen(false);
     if (id) navigate(`/loja/${id}`);
   };
@@ -91,8 +123,11 @@ const Lojas = () => {
         (s.nome.toLowerCase().includes(search.toLowerCase()) ||
         s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
         s.filial.toLowerCase().includes(search.toLowerCase())) &&
-        (!filterAnalista || s.analistaObra === filterAnalista)
+        (!filterAnalista || s.analistaObra === filterAnalista) &&
+        (!filterPorte || s.porte === filterPorte) &&
+        (!filterFase || s.faseAtual === filterFase)
     )
+
     .sort((a, b) => {
       const aHasChecklist = Object.keys(a.checklist || {}).length > 0;
       const bHasChecklist = Object.keys(b.checklist || {}).length > 0;
@@ -130,17 +165,40 @@ const Lojas = () => {
                     <Label>Nome da Loja *</Label>
                     <Input placeholder="Ex: Shopping Center Norte" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
                   </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Filial</Label>
+                      <Input placeholder="Ex: 001" value={form.filial} onChange={(e) => setForm({ ...form, filial: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Porte</Label>
+                      <Select value={form.porte} onValueChange={(v: any) => setForm({ ...form, porte: v })}>
+                        <SelectTrigger><SelectValue placeholder="Selecione o porte" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Compacta">Compacta</SelectItem>
+                          <SelectItem value="Padrão">Padrão</SelectItem>
+                          <SelectItem value="Ampliada">Ampliada</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                   <div className="space-y-2">
-                    <Label>Filial</Label>
-                    <Input placeholder="Ex: 001" value={form.filial} onChange={(e) => setForm({ ...form, filial: e.target.value })} />
+                    <Label>Razão Social</Label>
+                    <Input placeholder="Razão Social da Loja" value={form.razaoSocial} onChange={(e) => setForm({ ...form, razaoSocial: e.target.value })} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Cidade</Label>
+                      <Input placeholder="Cidade" value={form.cidade} onChange={(e) => setForm({ ...form, cidade: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>UF</Label>
+                      <Input placeholder="Ex: MG" maxLength={2} value={form.uf} onChange={(e) => setForm({ ...form, uf: e.target.value })} />
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Franqueado</Label>
                     <Input placeholder="Nome do franqueado" value={form.franqueado} onChange={(e) => setForm({ ...form, franqueado: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Construtor</Label>
-                    <Input placeholder="Nome do construtor" value={form.construtor} onChange={(e) => setForm({ ...form, construtor: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <Label>Analista de Obra</Label>
@@ -150,7 +208,8 @@ const Lojas = () => {
                     <Label>Data de Inauguração</Label>
                     <Input type="date" value={form.inauguracao} onChange={(e) => setForm({ ...form, inauguracao: e.target.value })} />
                   </div>
-                  <Button onClick={handleAdd} className="w-full">Criar Loja</Button>
+                  <Button onClick={handleAdd} className="w-full bg-[hsl(38,70%,50%)] hover:bg-[hsl(38,70%,45%)] text-white">Criar Loja</Button>
+
                 </div>
               </DialogContent>
             </Dialog>
@@ -160,15 +219,38 @@ const Lojas = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {stores.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1 max-w-md">
+          <div className="flex flex-wrap gap-3 mb-6">
+            <div className="relative flex-1 min-w-[300px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar loja, franqueado..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
+            <Select value={filterPorte} onValueChange={(v) => setFilterPorte(v === "all" ? "" : v)}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Porte" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Portes</SelectItem>
+                <SelectItem value="Compacta">Compacta</SelectItem>
+                <SelectItem value="Padrão">Padrão</SelectItem>
+                <SelectItem value="Ampliada">Ampliada</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filterFase} onValueChange={(v) => setFilterFase(v === "all" ? "" : v)}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Fase" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Fases</SelectItem>
+                <SelectItem value="Pré-Obra">Pré-Obra</SelectItem>
+                <SelectItem value="Obra">Obra</SelectItem>
+                <SelectItem value="Setup">Setup</SelectItem>
+                <SelectItem value="Abertura">Abertura</SelectItem>
+              </SelectContent>
+            </Select>
             {analistas.length > 0 && (
               <Select value={filterAnalista} onValueChange={(v) => setFilterAnalista(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue placeholder="Filtrar por analista" />
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Analista" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as analistas</SelectItem>
@@ -179,6 +261,7 @@ const Lojas = () => {
               </Select>
             )}
           </div>
+
         )}
 
         {stores.length === 0 && (
@@ -209,7 +292,22 @@ const Lojas = () => {
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`h-2.5 w-2.5 rounded-full ${
+                          progress >= 90 ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' :
+                          progress >= 50 ? 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]' :
+                          'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'
+                        }`} />
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{store.faseAtual || 'Pré-Obra'}</span>
+                        {store.porte && (
+                          <>
+                            <span className="text-slate-300">•</span>
+                            <span className="text-[10px] font-medium text-slate-500">{store.porte}</span>
+                          </>
+                        )}
+                      </div>
                       <CardTitle className="text-lg leading-tight">{store.nome}</CardTitle>
+
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         {store.filial && (
                           <span className="flex items-center gap-1">

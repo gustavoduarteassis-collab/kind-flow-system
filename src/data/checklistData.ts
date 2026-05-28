@@ -40,6 +40,11 @@ export interface Store {
   analistaObra: string;
   inauguracao: string;
   tipoLoja: "rua" | "shopping" | "";
+  razaoSocial?: string;
+  porte?: "Compacta" | "Padrão" | "Ampliada" | "";
+  cidade?: string;
+  uf?: string;
+  faseAtual?: "Pré-Obra" | "Obra" | "Setup" | "Abertura";
   checklist: Record<number, {
     status: StatusType;
     prazoInicial: string;
@@ -62,6 +67,7 @@ export interface Store {
   previsaoInauguracaoTexto?: string;
   inicioObraTexto?: string;
 }
+
 
 const defaultStatusOptions: StatusType[] = [
   "NÃO REALIZADO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
@@ -173,7 +179,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 66, atividade: "Instalação porta de aço automática (transvision)", responsavel: "Construtora" },
       { id: 67, atividade: "Incêndio (spk)", responsavel: "Construtora" },
       { id: 68, atividade: "Instalação ar condicionado", responsavel: "Construtora" },
-      { id: 69, atividade: "Drywall e forro em gesso", responsavel: "Construtora" },
+      { id: 69, atividade: "Drywall e forro em gesso (Requer Registro de Vistoria de Forro)", responsavel: "Construtora" },
       { id: 70, atividade: "Assentamento porcelanato (Piso Eliane)", responsavel: "Construtora" },
       { id: 71, atividade: "Assentamento piso vinílico", responsavel: "Construtora" },
       { id: 72, atividade: "Pintura", responsavel: "Construtora" },

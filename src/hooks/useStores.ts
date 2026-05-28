@@ -26,6 +26,11 @@ export function useStores() {
         analistaObra: row.analista_obra || "",
         inauguracao: row.inauguracao || "",
         tipoLoja: row.tipo_loja || "",
+        razaoSocial: row.razao_social || "",
+        porte: row.porte || "",
+        cidade: row.cidade || "",
+        uf: row.uf || "",
+        faseAtual: row.fase_atual || "Pré-Obra",
         checklist: row.checklist || createDefaultChecklist(),
         cronograma: row.cronograma || createDefaultCronograma(),
         custos: row.custos || createDefaultCustos(),
@@ -40,6 +45,7 @@ export function useStores() {
         previsaoInauguracaoTexto: row.previsao_inauguracao_texto || "",
         inicioObraTexto: row.inicio_obra_texto || "",
       })));
+
     }
     setLoading(false);
   }, [user]);
@@ -84,6 +90,11 @@ export function useStores() {
     if (updates.analistaObra !== undefined) dbUpdates.analista_obra = updates.analistaObra;
     if (updates.inauguracao !== undefined) dbUpdates.inauguracao = updates.inauguracao;
     if (updates.tipoLoja !== undefined) dbUpdates.tipo_loja = updates.tipoLoja;
+    if (updates.razaoSocial !== undefined) dbUpdates.razao_social = updates.razaoSocial;
+    if (updates.porte !== undefined) dbUpdates.porte = updates.porte;
+    if (updates.cidade !== undefined) dbUpdates.cidade = updates.cidade;
+    if (updates.uf !== undefined) dbUpdates.uf = updates.uf;
+    if (updates.faseAtual !== undefined) dbUpdates.fase_atual = updates.faseAtual;
     if (updates.checklist !== undefined) dbUpdates.checklist = updates.checklist;
     if (updates.cronograma !== undefined) dbUpdates.cronograma = updates.cronograma;
     if ((updates as any).custos !== undefined) dbUpdates.custos = (updates as any).custos;
@@ -97,6 +108,7 @@ export function useStores() {
     if ((updates as any).localizacao !== undefined) dbUpdates.localizacao = (updates as any).localizacao;
     if ((updates as any).previsaoInauguracaoTexto !== undefined) dbUpdates.previsao_inauguracao_texto = (updates as any).previsaoInauguracaoTexto;
     if ((updates as any).inicioObraTexto !== undefined) dbUpdates.inicio_obra_texto = (updates as any).inicioObraTexto;
+
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
   }, []);
