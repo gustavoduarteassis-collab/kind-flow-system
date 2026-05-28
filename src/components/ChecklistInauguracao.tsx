@@ -261,7 +261,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
   // Progress calculations
   const allItems = checklist.categories.flatMap((c) => c.items);
   const applicableItems = allItems.filter(item => currentRound?.items[item.id]?.status !== "NAO_SE_APLICA");
-  const totalItems = allItems.length;
+  
   const getStatusScore = (status?: InaugStatusType) => {
     switch (status) {
       case "TOTALMENTE_ATENDIDO":
@@ -269,22 +269,26 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
       case "EM_ANDAMENTO":
         return 50;
       case "NAO_SE_APLICA":
-        return 0; // Don't add to score if it's N/A (numerator)
+        return 0;
       default:
         return 0;
     }
   };
-  const doneItems = currentRound
-    ? allItems.filter((item) => {
-        const s = currentRound.items[item.id]?.status;
-        return s === "TOTALMENTE_ATENDIDO";
-      }).length
-    : 0;
+
   const totalScore = currentRound
-    ? allItems.reduce((acc, item) => acc + getStatusScore(currentRound.items[item.id]?.status), 0)
+    ? allItems.reduce((acc, item) => {
+        const s = currentRound.items[item.id]?.status;
+        return acc + getStatusScore(s);
+      }, 0)
     : 0;
+    
   const maxScore = applicableItems.length * 100;
   const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+  
+  const doneItems = currentRound
+    ? allItems.filter((item) => currentRound.items[item.id]?.status === "TOTALMENTE_ATENDIDO").length
+    : 0;
+
   const impeditivos = allItems.filter((i) => i.impeditivo);
   const impeditivosPendentes = currentRound
     ? impeditivos.filter((i) => {
@@ -292,6 +296,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
         return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
       }).length
     : 0;
+
   const hasRessalva = !!currentRound?.ressalva && currentRound.ressalva.trim().length > 0;
   const isLiberado = progress >= 90;
   const isLiberadoComRessalvas = !isLiberado && hasRessalva;

@@ -8,10 +8,10 @@ export const inaugStatusLabels: Record<InaugStatusType, string> = {
 };
 
 export const inaugStatusColors: Record<InaugStatusType, string> = {
-  NAO_ATENDIDO: "bg-[hsl(0,84%,60%)] text-white",
-  EM_ANDAMENTO: "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  TOTALMENTE_ATENDIDO: "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
-  NAO_SE_APLICA: "bg-muted text-muted-foreground",
+  NAO_ATENDIDO: "bg-[#ef4444] text-white", // Red
+  EM_ANDAMENTO: "bg-[#f59e0b] text-white", // Yellow/Amber
+  TOTALMENTE_ATENDIDO: "bg-[#10b981] text-white", // Green
+  NAO_SE_APLICA: "bg-[#94a3b8] text-white", // Gray/Slate
 };
 
 export interface InaugItem {

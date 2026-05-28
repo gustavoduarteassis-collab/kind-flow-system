@@ -60,18 +60,18 @@ import { saveAs } from "file-saver";
 import logoConstanceSvg from "@/assets/logo-constance.svg";
 
 const statusColors: Record<StatusType, string> = {
-  "NÃO REALIZADO": "bg-destructive text-destructive-foreground",
-  "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM TRANSPORTE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "REALIZADO": "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
-  "REALIZANDO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "ATRASADO": "bg-destructive text-destructive-foreground",
-  "NÃO SE APLICA": "bg-muted text-muted-foreground",
-  "CONSTRUTORA": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM ELABORAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM ANÁLISE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM CONTRATAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM ANDAMENTO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "NÃO REALIZADO": "bg-[#ef4444] text-white",
+  "EM COTAÇÃO": "bg-[#f59e0b] text-white",
+  "EM TRANSPORTE": "bg-[#f59e0b] text-white",
+  "REALIZADO": "bg-[#10b981] text-white",
+  "REALIZANDO": "bg-[#f59e0b] text-white",
+  "ATRASADO": "bg-[#ef4444] text-white",
+  "NÃO SE APLICA": "bg-[#94a3b8] text-white",
+  "CONSTRUTORA": "bg-[#f59e0b] text-white",
+  "EM ELABORAÇÃO": "bg-[#f59e0b] text-white",
+  "EM ANÁLISE": "bg-[#f59e0b] text-white",
+  "EM CONTRATAÇÃO": "bg-[#f59e0b] text-white",
+  "EM ANDAMENTO": "bg-[#f59e0b] text-white",
 };
 
 const StoreDetail = () => {
