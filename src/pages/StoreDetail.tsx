@@ -489,14 +489,25 @@ const StoreDetail = () => {
               </Button>
             </div>
           </div>
-          {/* Progress bar */}
-          <div className="flex items-center gap-4">
-            <div className="flex-1">
-              <Progress value={progress} className="h-2.5" />
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                onClick={() => {
+                  const msg = `Olá! Seguem os dados para implantação da loja ${store.nome} (${store.filial}):\nRazão Social: ${store.razaoSocial || 'N/A'}\nCidade/UF: ${store.cidade || 'N/A'}/${store.uf || 'N/A'}\nInauguração: ${store.inauguracao || 'N/A'}`;
+                  navigator.clipboard.writeText(msg);
+                  toast.success("Mensagem padrão copiada!");
+                }}
+              >
+                <svg className="h-4 w-4 fill-green-600" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.588-5.946 0-6.556 5.332-11.891 11.891-11.891 3.181 0 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.481 8.403 0 6.556-5.332 11.891-11.891 11.891-1.992 0-3.951-.499-5.688-1.447l-6.305 1.665zm6.357-3.935c1.513.899 3.178 1.373 4.884 1.373 5.085 0 9.224-4.141 9.224-9.224 0-2.465-.96-4.782-2.704-6.526s-4.061-2.704-6.52-2.704c-5.085 0-9.226 4.141-9.226 9.224 0 1.817.534 3.593 1.543 5.132l-1.011 3.693 3.794-1.001zm11.366-6.143c-.071-.117-.259-.187-.541-.327-.281-.14-.1.664-.819.865-.328.093-.655.023-.843-.047-.187-.07-.79-.292-1.503-.927-.556-.496-.931-1.108-1.041-1.296-.11-.188-.012-.289.082-.382.085-.085.187-.222.281-.334.094-.111.125-.187.188-.313.062-.125.031-.234-.016-.327-.047-.094-.421-1.015-.578-1.393-.153-.367-.308-.317-.421-.323l-.36-.006c-.125 0-.328.047-.5.234-.172.187-.656.641-.656 1.562 0 .921.671 1.812.766 1.937.094.125 1.32 2.015 3.197 2.825.447.192.795.307 1.068.394.448.142.855.122 1.177.074.359-.054 1.107-.452 1.263-.889.155-.437.155-.812.108-.889z"/></svg>
+                Copiar Msg WhatsApp
+              </Button>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <span className="font-semibold">{progress}%</span>
-              <Badge className="bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]">
+              <span className="font-semibold text-slate-700">{progress}%</span>
+              <Badge className="bg-green-500 text-white border-none">
                 ✓ {doneItems}/{totalItems}
               </Badge>
               {atrasados > 0 && (
@@ -504,6 +515,7 @@ const StoreDetail = () => {
               )}
             </div>
           </div>
+
         </div>
       </header>
 
