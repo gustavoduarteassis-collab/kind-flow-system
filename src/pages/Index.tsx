@@ -109,22 +109,28 @@ const Index = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const allChecklistItems = checklistCategories.flatMap((c) => c.items);
-  const totalItems = stores.length * allChecklistItems.length;
-  const getStoreStatusSummary = () => {
-    const summary: Partial<Record<StatusType, number>> = {};
+  
+  const getOverallStats = () => {
+    let totalApplicable = 0;
+    let totalDone = 0;
+    
     stores.forEach((store) => {
       allChecklistItems.forEach((item) => {
         const itemData = store.checklist[item.id];
-        if (itemData) {
-          summary[itemData.status] = (summary[itemData.status] || 0) + 1;
+        if (itemData && itemData.status !== "NÃO SE APLICA") {
+          totalApplicable++;
+          if (itemData.status === "REALIZADO") {
+            totalDone++;
+          }
         }
       });
     });
-    return summary;
+    
+    const progress = totalApplicable > 0 ? Math.round((totalDone / totalApplicable) * 100) : 0;
+    return { totalApplicable, totalDone, progress };
   };
-  const statusSummary = getStoreStatusSummary();
-  const doneItems = (statusSummary["REALIZADO"] || 0) + (statusSummary["NÃO SE APLICA"] || 0);
-  const overallProgress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+
+  const { progress: overallProgress } = getOverallStats();
 
   const pendingTasks = tasks.filter((t) => t.status === "pendente").length;
   const inProgressTasks = tasks.filter((t) => t.status === "em_andamento").length;
@@ -294,7 +300,7 @@ const Index = () => {
           </div>
 
           {/* Progress bar */}
-          {totalItems > 0 && (
+          {stores.length > 0 && (
             <div className="mt-6 bg-white/[0.05] rounded-lg p-3 flex items-center gap-4">
               <span className="text-xs text-white/40 shrink-0">Progresso Geral (Checklists)</span>
               <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden flex-1">
@@ -334,14 +340,16 @@ const Index = () => {
                   </TableHeader>
                   <TableBody>
                     {stores.map((store) => {
-                      const total = checklistCategories.flatMap((c) => c.items).length;
-                      const counts: Partial<Record<StatusType, number>> = {};
-                      Object.values(store.checklist).forEach((c) => {
-                        counts[c.status] = (counts[c.status] || 0) + 1;
-                      });
-                      const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
-                      const pct = Math.round((done / total) * 100);
-                      const inProgress = (counts["EM COTAÇÃO"] || 0) + (counts["EM TRANSPORTE"] || 0) + (counts["EM ELABORAÇÃO"] || 0) + (counts["EM ANÁLISE"] || 0) + (counts["EM CONTRATAÇÃO"] || 0) + (counts["CONSTRUTORA"] || 0);
+                      const applicableItems = allChecklistItems.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
+                      const doneCount = allChecklistItems.filter(item => store.checklist[item.id]?.status === "REALIZADO").length;
+                      const progress = applicableItems.length > 0 ? Math.round((doneCount / applicableItems.length) * 100) : 0;
+                      const atrasados = allChecklistItems.filter(item => store.checklist[item.id]?.status === "ATRASADO").length;
+                      const naoIniciados = allChecklistItems.filter(item => !store.checklist[item.id] || store.checklist[item.id].status === "NÃO INICIADO").length;
+                      const inProgress = allChecklistItems.filter(item => {
+                        const status = store.checklist[item.id]?.status;
+                        return status && !["REALIZADO", "NÃO SE APLICA", "ATRASADO", "NÃO INICIADO"].includes(status);
+                      }).length;
+
                       return (
                         <TableRow key={store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${store.id}`)}>
                           <TableCell className="font-medium">{store.nome}</TableCell>
@@ -357,21 +365,21 @@ const Index = () => {
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex items-center gap-2 justify-center">
-                              <Progress value={pct} className="h-1.5 w-16" />
-                              <span className="text-xs font-semibold">{pct}%</span>
+                              <Progress value={progress} className="h-1.5 w-16" />
+                              <span className="text-xs font-semibold">{progress}%</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">{counts["REALIZADO"] || 0}</Badge>
+                            <Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">{doneCount}</Badge>
                           </TableCell>
                           <TableCell className="text-center">
-                            {(counts["ATRASADO"] || 0) > 0
-                              ? <Badge variant="destructive" className="text-xs">{counts["ATRASADO"]}</Badge>
+                            {atrasados > 0
+                              ? <Badge variant="destructive" className="text-xs">{atrasados}</Badge>
                               : <span className="text-xs text-muted-foreground">0</span>
                             }
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className="text-xs text-muted-foreground">{counts["NÃO INICIADO"] || 0}</span>
+                            <span className="text-xs text-muted-foreground">{naoIniciados}</span>
                           </TableCell>
                           <TableCell className="text-center">
                             <span className="text-xs text-muted-foreground">{inProgress}</span>

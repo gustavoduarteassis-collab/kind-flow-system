@@ -415,8 +415,8 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                           <span className="text-xs text-muted-foreground">
                             ({cat.items.filter((i) => {
                               const s = currentRound.items[i.id]?.status;
-                              return s === "TOTALMENTE_ATENDIDO" || s === "NAO_SE_APLICA";
-                            }).length}/{cat.items.length})
+                              return s === "TOTALMENTE_ATENDIDO";
+                            }).length}/{cat.items.filter(i => currentRound.items[i.id]?.status !== "NAO_SE_APLICA").length})
                           </span>
                         </div>
                       </AccordionTrigger>
