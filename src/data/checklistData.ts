@@ -1,5 +1,5 @@
 export type StatusType =
-  | "NÃO INICIADO"
+  | "NÃO REALIZADO"
   | "EM COTAÇÃO"
   | "EM TRANSPORTE"
   | "REALIZADO"
