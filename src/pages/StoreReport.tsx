@@ -55,18 +55,18 @@ const statusLabels: Record<StatusType, string> = {
 };
 
 const statusPrintColors: Record<StatusType, string> = {
-  "NÃO REALIZADO": "bg-gray-100",
-  "EM COTAÇÃO": "bg-[hsl(38,90%,85%)]",
-  "EM TRANSPORTE": "bg-[hsl(210,80%,88%)]",
-  "REALIZADO": "bg-[hsl(142,60%,88%)]",
-  "REALIZANDO": "bg-[hsl(152,40%,85%)]",
-  "ATRASADO": "bg-[hsl(0,72%,90%)]",
+  "NÃO REALIZADO": "bg-red-50",
+  "EM COTAÇÃO": "bg-[hsl(38,90%,95%)]",
+  "EM TRANSPORTE": "bg-[hsl(38,90%,95%)]",
+  "REALIZADO": "bg-[hsl(142,60%,95%)]",
+  "REALIZANDO": "bg-[hsl(38,90%,95%)]",
+  "ATRASADO": "bg-red-50",
   "NÃO SE APLICA": "bg-gray-50",
-  "CONSTRUTORA": "bg-[hsl(270,50%,90%)]",
-  "EM ELABORAÇÃO": "bg-[hsl(38,70%,88%)]",
-  "EM ANÁLISE": "bg-[hsl(200,60%,88%)]",
-  "EM CONTRATAÇÃO": "bg-[hsl(280,50%,88%)]",
-  "EM ANDAMENTO": "bg-[hsl(45,90%,85%)]",
+  "CONSTRUTORA": "bg-[hsl(38,90%,95%)]",
+  "EM ELABORAÇÃO": "bg-[hsl(38,90%,95%)]",
+  "EM ANÁLISE": "bg-[hsl(38,90%,95%)]",
+  "EM CONTRATAÇÃO": "bg-[hsl(38,90%,95%)]",
+  "EM ANDAMENTO": "bg-[hsl(38,90%,95%)]",
 };
 
 const statusTextColors: Record<StatusType, string> = {
