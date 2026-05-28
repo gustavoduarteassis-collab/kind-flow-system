@@ -109,7 +109,6 @@ const Index = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const allChecklistItems = checklistCategories.flatMap((c) => c.items);
-  const allChecklistItems = checklistCategories.flatMap((c) => c.items);
   
   const getOverallStats = () => {
     let totalApplicable = 0;
@@ -301,7 +300,7 @@ const Index = () => {
           </div>
 
           {/* Progress bar */}
-          {totalItems > 0 && (
+          {stores.length > 0 && (
             <div className="mt-6 bg-white/[0.05] rounded-lg p-3 flex items-center gap-4">
               <span className="text-xs text-white/40 shrink-0">Progresso Geral (Checklists)</span>
               <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden flex-1">
@@ -341,14 +340,16 @@ const Index = () => {
                   </TableHeader>
                   <TableBody>
                     {stores.map((store) => {
-                      const total = checklistCategories.flatMap((c) => c.items).length;
-                      const counts: Partial<Record<StatusType, number>> = {};
-                      Object.values(store.checklist).forEach((c) => {
-                        counts[c.status] = (counts[c.status] || 0) + 1;
-                      });
-                      const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
-                      const pct = Math.round((done / total) * 100);
-                      const inProgress = (counts["EM COTAÇÃO"] || 0) + (counts["EM TRANSPORTE"] || 0) + (counts["EM ELABORAÇÃO"] || 0) + (counts["EM ANÁLISE"] || 0) + (counts["EM CONTRATAÇÃO"] || 0) + (counts["CONSTRUTORA"] || 0);
+                      const applicableItems = allChecklistItems.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
+                      const doneCount = allChecklistItems.filter(item => store.checklist[item.id]?.status === "REALIZADO").length;
+                      const progress = applicableItems.length > 0 ? Math.round((doneCount / applicableItems.length) * 100) : 0;
+                      const atrasados = allChecklistItems.filter(item => store.checklist[item.id]?.status === "ATRASADO").length;
+                      const naoIniciados = allChecklistItems.filter(item => !store.checklist[item.id] || store.checklist[item.id].status === "NÃO INICIADO").length;
+                      const inProgress = allChecklistItems.filter(item => {
+                        const status = store.checklist[item.id]?.status;
+                        return status && !["REALIZADO", "NÃO SE APLICA", "ATRASADO", "NÃO INICIADO"].includes(status);
+                      }).length;
+
                       return (
                         <TableRow key={store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${store.id}`)}>
                           <TableCell className="font-medium">{store.nome}</TableCell>
