@@ -123,8 +123,11 @@ const Lojas = () => {
         (s.nome.toLowerCase().includes(search.toLowerCase()) ||
         s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
         s.filial.toLowerCase().includes(search.toLowerCase())) &&
-        (!filterAnalista || s.analistaObra === filterAnalista)
+        (!filterAnalista || s.analistaObra === filterAnalista) &&
+        (!filterPorte || s.porte === filterPorte) &&
+        (!filterFase || s.faseAtual === filterFase)
     )
+
     .sort((a, b) => {
       const aHasChecklist = Object.keys(a.checklist || {}).length > 0;
       const bHasChecklist = Object.keys(b.checklist || {}).length > 0;
