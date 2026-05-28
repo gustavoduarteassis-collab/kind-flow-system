@@ -11,7 +11,6 @@ import {
   inaugStatusColors,
   migrateInaugData,
   createNewRound,
-  InaugRound,
 } from "@/data/inauguracaoChecklistData";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -538,7 +537,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                         <CheckCircle2 className="h-8 w-8 text-[hsl(38,90%,45%)]" />
                         <div className="text-center">
                           <h3 className="text-lg font-bold text-[hsl(38,90%,35%)]">⚠️ LIBERADO COM RESSALVAS</h3>
-                          <p className="text-sm text-[hsl(38,90%,35%)]">{progress}% do checklist — itens pendentes devem ser resolvidos após inauguração</p>
+                          <p className="text-sm text-[hsl(38,90%,35%)]">{progress}% do checklist — liberação condicionada às observações abaixo</p>
                         </div>
                       </>
                     ) : (
@@ -546,7 +545,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                         <XCircle className="h-8 w-8 text-destructive" />
                         <div className="text-center">
                           <h3 className="text-lg font-bold text-destructive">❌ NÃO LIBERADO PARA INAUGURAÇÃO</h3>
-                          <p className="text-sm text-destructive">{progress}% do checklist — mínimo necessário: 85%</p>
+                          <p className="text-sm text-destructive">{progress}% do checklist — mínimo necessário: 90%</p>
                           {impeditivosPendentes > 0 && (
                             <p className="text-xs text-destructive mt-1">⚠ {impeditivosPendentes} itens impeditivos pendentes</p>
                           )}
@@ -554,6 +553,21 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                       </>
                     )}
                   </div>
+
+                  {progress < 90 && (
+                    <div className="mt-4 pt-4 border-t border-black/5">
+                      <label className="text-sm font-semibold block mb-2">Ressalvas para Liberação (abaixo de 90%)</label>
+                      <Textarea 
+                        placeholder="Descreva as ressalvas ou observações para permitir a inauguração mesmo abaixo de 90%..."
+                        value={currentRound.ressalva || ""}
+                        onChange={(e) => handleRessalvaChange(e.target.value)}
+                        className="bg-white border-muted-foreground/30 min-h-[80px]"
+                      />
+                      <p className="text-[10px] text-muted-foreground mt-1 italic">
+                        Ao preencher este campo, a loja será marcada como "Liberada com Ressalvas".
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
