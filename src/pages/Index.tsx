@@ -154,7 +154,8 @@ const Index = () => {
           <CardContent>
             <div className="space-y-6">
               {members.filter(m => m.role === 'Analista').map((analyst) => {
-                const assignedStores = stores.filter(s => s.analista_obra === analyst.name);
+                const assignedStores = stores.filter(s => s.analistaObra === analyst.name);
+
                 const count = assignedStores.length;
                 const percentage = stores.length > 0 ? (count / stores.length) * 100 : 0;
                 
