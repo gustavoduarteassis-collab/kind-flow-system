@@ -298,8 +298,9 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
 
   const getCatProgress = (cat: InaugCategory) => {
     if (!currentRound) return 0;
+    const applicable = cat.items.filter(i => currentRound.items[i.id]?.status !== "NAO_SE_APLICA");
     const total = cat.items.reduce((acc, i) => acc + getStatusScore(currentRound.items[i.id]?.status), 0);
-    const max = cat.items.length * 100;
+    const max = applicable.length * 100;
     return max > 0 ? Math.round((total / max) * 100) : 0;
   };
 

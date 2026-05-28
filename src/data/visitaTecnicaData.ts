@@ -1,10 +1,10 @@
 export type VisitaStatusType = "NAO_INICIADO" | "EM_ANDAMENTO" | "CONCLUIDO" | "NAO_SE_APLICA";
 
 export const visitaStatusLabels: Record<VisitaStatusType, string> = {
-  NAO_INICIADO: "Não Iniciado",
+  NAO_INICIADO: "Não Realizado",
   EM_ANDAMENTO: "Em Andamento",
-  CONCLUIDO: "Concluído",
-  NAO_SE_APLICA: "N/A",
+  CONCLUIDO: "Realizado",
+  NAO_SE_APLICA: "Não se Aplica",
 };
 
 export const visitaStatusColors: Record<VisitaStatusType, string> = {
