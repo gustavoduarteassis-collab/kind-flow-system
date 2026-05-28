@@ -211,6 +211,8 @@ const ruaCategories: InaugCategory[] = [
       { id: "rua-131", nome: "Rolos de etiquetas e Ribbon", impeditivo: true },
       { id: "rua-132", nome: "Coletor de dados: para auditoria" },
       { id: "rua-133", nome: "Listenx", impeditivo: true },
+      { id: "rua-151", nome: "Agendamento técnico (Data System & Skytef)", impeditivo: true },
+      { id: "rua-152", nome: "Auditoria de Cupom Fiscal com CNPJ validado", impeditivo: true },
     ],
   },
   {
@@ -218,7 +220,7 @@ const ruaCategories: InaugCategory[] = [
     nome: "Finalização",
     items: [
       { id: "rua-134", nome: "Campanha vigente: validar com o Trade Marketing" },
-      { id: "rua-135", nome: "Alarmagem dos produtos", impeditivo: true },
+      { id: "rua-135", nome: "Alarmagem de 100% dos produtos", impeditivo: true },
       { id: "rua-136", nome: "Reposição", impeditivo: true },
       { id: "rua-137", nome: "Kit Visual Merchandising: adesivos, placas de numeração, suporte e expositor acrílico", impeditivo: true },
       { id: "rua-138", nome: "Blocos expositores em MDF" },
