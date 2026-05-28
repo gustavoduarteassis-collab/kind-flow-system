@@ -30,7 +30,7 @@ export function getInaugurationLibStatus(inaugChecklistRaw: any, tipoLoja?: stri
     switch (status) {
       case "TOTALMENTE_ATENDIDO": return 100;
       case "EM_ANDAMENTO": return 50;
-      case "NAO_SE_APLICA": return 100;
+      case "NAO_SE_APLICA": return 0;
       default: return 0;
     }
   };

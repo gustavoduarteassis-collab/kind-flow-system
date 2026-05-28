@@ -661,8 +661,8 @@ const StoreReport = () => {
                   return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
                 }).length;
                 const hasRessalva = !!round.ressalva && round.ressalva.trim().length > 0;
-                const libStatus = roundProg >= 90 && impPendentes === 0
-                  ? "LIBERADO" : (hasRessalva || (roundProg >= 80 && impPendentes === 0) ? "RESSALVAS" : "NAO_LIBERADO");
+                const libStatus = roundProg >= 90
+                  ? "LIBERADO" : (hasRessalva ? "RESSALVAS" : "NAO_LIBERADO");
                 return (
                   <div key={round.id} className="mb-6 break-inside-avoid">
                     <h3 className="text-sm font-bold bg-gray-100 px-2 py-1 border border-black">
