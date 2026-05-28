@@ -446,6 +446,12 @@ const StoreDetail = () => {
                         {new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR")}
                       </span>
                     )}
+                    
+                    {/* Status de Liberação badge */}
+                    <Badge variant="outline" className={cn("ml-2 font-bold px-3 py-1", statusColor)}>
+                      {statusLabel}
+                    </Badge>
+
                     {isTeamMember && (
                       <Button size="sm" variant="ghost" className="h-6 px-1.5" onClick={() => {
                         setHeaderFields({
