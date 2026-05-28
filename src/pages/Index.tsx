@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   TrendingUp,
   Store,
-  Calendar
+  Calendar,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 import { 
   BarChart, 
@@ -197,26 +199,44 @@ const Index = () => {
               .filter(s => s.inauguracao)
               .sort((a, b) => new Date(a.inauguracao!).getTime() - new Date(b.inauguracao!).getTime())
               .slice(0, 3)
-              .map(store => (
-                <div key={store.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors">
-                  <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
-                    <Store className="h-6 w-6 text-slate-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">{store.nome}</p>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(store.inauguracao! + "T00:00:00").toLocaleDateString('pt-BR')}
+              .map(store => {
+                // Calculation for liberation status
+                const allChecklistItems = Object.values(store.checklist || {});
+                const totalScore = allChecklistItems.reduce((acc, item: any) => {
+                  if (item.status === "REALIZADO") return acc + 100;
+                  if (item.status === "NÃO SE APLICA") return acc;
+                  if (!item.status || item.status === "NÃO REALIZADO" || item.status === "ATRASADO") return acc;
+                  return acc + 50;
+                }, 0);
+                const applicableCount = allChecklistItems.filter((item: any) => item.status !== "NÃO SE APLICA").length;
+                const progress = applicableCount > 0 ? Math.round((totalScore / (applicableCount * 100)) * 100) : 0;
+                const isLiberado = progress >= 90;
+
+                return (
+                  <div key={store.id} className="flex items-center gap-4 p-4 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors bg-white shadow-sm">
+                    <div className="h-12 w-12 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
+                      <Store className="h-6 w-6 text-slate-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-slate-900 truncate">{store.nome}</p>
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(store.inauguracao! + "T00:00:00").toLocaleDateString('pt-BR')}
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant="outline" className={cn(
+                        "text-[10px] font-bold uppercase",
+                        isLiberado ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"
+                      )}>
+                        {isLiberado ? <CheckCircle2 className="h-2 w-2 mr-1" /> : <AlertCircle className="h-2 w-2 mr-1" />}
+                        {isLiberado ? "Liberado" : "Não Liberado"}
+                      </Badge>
+                      <span className="text-[10px] font-bold text-slate-400">{progress}%</span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-[10px] font-bold text-blue-600 uppercase tracking-tight">
-                      {store.faseAtual || 'Pré-Obra'}
-                    </span>
-                  </div>
-
-                </div>
-              ))}
+                );
+              })}
           </div>
         </CardContent>
       </Card>
