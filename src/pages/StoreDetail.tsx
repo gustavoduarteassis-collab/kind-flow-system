@@ -607,19 +607,24 @@ const StoreDetail = () => {
               >
                 🎉 Checklist Inauguração
               </TabsTrigger>
-              {checklistCategories.map((cat) => {
-                const catProgress = getCategoryProgress(cat.id);
+              {phaseCategories.map((phase) => {
+                const isCurrentPhase = (store.faseAtual === 'Pré-Obra' && phase.id === 'pre-obra') ||
+                                     (store.faseAtual === 'Obra' && phase.id === 'obra') ||
+                                     (store.faseAtual === 'Setup' && phase.id === 'setup') ||
+                                     (store.faseAtual === 'Abertura' && phase.id === 'abertura');
                 return (
                   <TabsTrigger
-                    key={cat.id}
-                    value={cat.id}
-                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
+                    key={phase.id}
+                    value={phase.id}
+                    className={`data-[state=active]:bg-[hsl(38,70%,50%)] data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-bold ${
+                      isCurrentPhase ? 'border-b-2 border-b-[hsl(38,70%,30%)] shadow-sm' : ''
+                    }`}
                   >
-                    {getCategoryName(cat.id, cat.nome)}
-                    <span className="ml-1.5 text-[10px] opacity-70">{catProgress}%</span>
+                    {phase.label}
                   </TabsTrigger>
                 );
               })}
+
             </TabsList>
           </div>
 
