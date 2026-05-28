@@ -293,8 +293,8 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
       }).length
     : 0;
   const hasRessalva = !!currentRound?.ressalva && currentRound.ressalva.trim().length > 0;
-  const isLiberado = progress >= 90 && impeditivosPendentes === 0;
-  const isLiberadoComRessalvas = !isLiberado && (hasRessalva || (progress >= 80 && impeditivosPendentes === 0));
+  const isLiberado = progress >= 90;
+  const isLiberadoComRessalvas = !isLiberado && hasRessalva;
 
   const getCatProgress = (cat: InaugCategory) => {
     if (!currentRound) return 0;

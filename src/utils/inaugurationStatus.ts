@@ -53,8 +53,8 @@ export function getInaugurationLibStatus(inaugChecklistRaw: any, tipoLoja?: stri
 
   const hasRessalva = !!currentRound.ressalva && currentRound.ressalva.trim().length > 0;
 
-  if (progress >= 90 && impeditivosPendentes === 0) return "LIBERADO";
-  if (hasRessalva || (progress >= 80 && impeditivosPendentes === 0)) return "LIBERADO_COM_RESSALVAS";
+  if (progress >= 90) return "LIBERADO";
+  if (hasRessalva) return "LIBERADO_COM_RESSALVAS";
   return "NAO_LIBERADO";
 }
 
