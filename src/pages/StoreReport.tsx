@@ -160,10 +160,17 @@ const StoreReport = () => {
   const allItemsArr = checklistCategories.flatMap((c) => c.items);
   const applicableItemsArr = allItemsArr.filter(i => store.checklist[i.id]?.status !== "NÃO SE APLICA");
   const totalItems = allItemsArr.length;
-  const doneItems = Object.values(store.checklist).filter(
-    (c) => c.status === "REALIZADO"
-  ).length;
-  const progress = applicableItemsArr.length > 0 ? Math.round((doneItems / applicableItemsArr.length) * 100) : 0;
+  const getStatusScore = (status?: StatusType): number => {
+    if (status === "REALIZADO") return 100;
+    if (status === "NÃO SE APLICA") return 0;
+    if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return 0;
+    return 50;
+  };
+
+  const totalScore = allItemsArr.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
+  const maxScore = applicableItemsArr.length * 100;
+  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+  const doneItems = Object.values(store.checklist).filter(item => item.status === "REALIZADO").length;
   const atrasados = Object.values(store.checklist).filter(
     (c) => c.status === "ATRASADO"
   ).length;
