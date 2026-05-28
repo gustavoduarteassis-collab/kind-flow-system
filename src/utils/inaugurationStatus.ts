@@ -51,8 +51,10 @@ export function getInaugurationLibStatus(inaugChecklistRaw: any, tipoLoja?: stri
     return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
   }).length;
 
-  if (progress >= 95 && impeditivosPendentes === 0) return "LIBERADO";
-  if (progress >= 85 && impeditivosPendentes === 0) return "LIBERADO_COM_RESSALVAS";
+  const hasRessalva = !!currentRound.ressalva && currentRound.ressalva.trim().length > 0;
+
+  if (progress >= 90 && impeditivosPendentes === 0) return "LIBERADO";
+  if (hasRessalva || (progress >= 80 && impeditivosPendentes === 0)) return "LIBERADO_COM_RESSALVAS";
   return "NAO_LIBERADO";
 }
 
