@@ -446,9 +446,11 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                                     className={
                                       itemData.status === "TOTALMENTE_ATENDIDO"
                                         ? "bg-[hsl(152,60%,95%)]"
-                                        : item.impeditivo && itemData.status !== "NAO_SE_APLICA"
-                                        ? "bg-[hsl(0,80%,97%)]"
-                                        : ""
+                                        : itemData.status === "EM_ANDAMENTO"
+                                        ? "bg-[hsl(38,90%,97%)]"
+                                        : itemData.status === "NAO_ATENDIDO"
+                                        ? "bg-[hsl(0,84%,97%)]"
+                                        : "bg-muted/30"
                                     }
                                   >
                                     <TableCell>

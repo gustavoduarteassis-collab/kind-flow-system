@@ -8,7 +8,7 @@ export const inaugStatusLabels: Record<InaugStatusType, string> = {
 };
 
 export const inaugStatusColors: Record<InaugStatusType, string> = {
-  NAO_ATENDIDO: "bg-destructive text-destructive-foreground",
+  NAO_ATENDIDO: "bg-[hsl(0,84%,60%)] text-white",
   EM_ANDAMENTO: "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
   TOTALMENTE_ATENDIDO: "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
   NAO_SE_APLICA: "bg-muted text-muted-foreground",
