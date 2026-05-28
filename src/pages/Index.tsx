@@ -47,15 +47,16 @@ const Index = () => {
     // Logic for risk: e.g., past opening date or many overdue items
     const today = new Date();
     const opening = s.inauguracao ? new Date(s.inauguracao) : null;
-    return opening && opening < today && s.status_geral !== 'REALIZADO';
+    return opening && opening < today && s.statusGeral !== 'REALIZADO';
   }).length;
 
   // Funnel Data
   const funnelData = [
-    { name: 'Pré-Obra', value: stores.filter(s => s.fase_atual === 'Pré-Obra').length, color: '#94A3B8' },
-    { name: 'Obra', value: stores.filter(s => s.fase_atual === 'Obra').length, color: '#3B82F6' },
-    { name: 'Setup', value: stores.filter(s => s.fase_atual === 'Setup').length, color: '#F59E0B' },
-    { name: 'Abertura', value: stores.filter(s => s.fase_atual === 'Abertura').length, color: '#10B981' },
+    { name: 'Pré-Obra', value: stores.filter(s => s.faseAtual === 'Pré-Obra').length, color: '#94A3B8' },
+    { name: 'Obra', value: stores.filter(s => s.faseAtual === 'Obra').length, color: '#3B82F6' },
+    { name: 'Setup', value: stores.filter(s => s.faseAtual === 'Setup').length, color: '#F59E0B' },
+    { name: 'Abertura', value: stores.filter(s => s.faseAtual === 'Abertura').length, color: '#10B981' },
+
   ];
 
   if (loading) return <div className="flex h-96 items-center justify-center text-muted-foreground">Carregando indicadores...</div>;
