@@ -40,17 +40,17 @@ type DiaryPhotoReport = {
 };
 
 const statusLabels: Record<StatusType, string> = {
-  "NÃO REALIZADO": "⬜ Não Iniciado",
+  "NÃO REALIZADO": "⬜ Não Realizado",
   "EM COTAÇÃO": "🟡 Em Cotação",
-  "EM TRANSPORTE": "🔵 Em Transporte",
+  "EM TRANSPORTE": "🟡 Em Transporte",
   "REALIZADO": "✅ Realizado",
-  "REALIZANDO": "🟢 Realizando",
+  "REALIZANDO": "🟡 Realizando",
   "ATRASADO": "🔴 Atrasado",
   "NÃO SE APLICA": "⚪ N/A",
-  "CONSTRUTORA": "🟣 Construtora",
-  "EM ELABORAÇÃO": "🟠 Em Elaboração",
-  "EM ANÁLISE": "🔵 Em Análise",
-  "EM CONTRATAÇÃO": "🟣 Em Contratação",
+  "CONSTRUTORA": "🟡 Construtora",
+  "EM ELABORAÇÃO": "🟡 Em Elaboração",
+  "EM ANÁLISE": "🟡 Em Análise",
+  "EM CONTRATAÇÃO": "🟡 Em Contratação",
   "EM ANDAMENTO": "🟡 Em Andamento",
 };
 
