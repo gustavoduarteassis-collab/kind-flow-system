@@ -75,7 +75,22 @@ const Lojas = () => {
   const handleAdd = async () => {
     if (!form.nome) return;
     const id = await addStore(form);
-    setForm({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "", inauguracaoChecklist: {} });
+    setForm({ 
+      nome: "", 
+      filial: "", 
+      franqueado: "", 
+      construtor: "", 
+      analistaObra: "", 
+      inauguracao: "", 
+      tipoLoja: "", 
+      razaoSocial: "",
+      porte: "",
+      cidade: "",
+      uf: "",
+      faseAtual: "Pré-Obra",
+      inauguracaoChecklist: {} 
+    });
+
     setOpen(false);
     if (id) navigate(`/loja/${id}`);
   };
