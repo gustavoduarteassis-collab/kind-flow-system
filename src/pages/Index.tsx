@@ -3,6 +3,7 @@ import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { 
   Building2, 
   Users, 
@@ -12,9 +13,9 @@ import {
   TrendingUp,
   Store,
   Calendar,
-  CheckCircle2,
   AlertCircle
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { 
   BarChart, 
   Bar, 
