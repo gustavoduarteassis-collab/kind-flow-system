@@ -83,11 +83,17 @@ const StoreDetail = () => {
   const [isTeamMember, setIsTeamMember] = useState(false);
   const [editingHeader, setEditingHeader] = useState(false);
   const [headerFields, setHeaderFields] = useState({
-    franqueado: "",
-    construtor: "",
-    analistaObra: "",
-    inauguracao: "",
+    franqueado: store?.franqueado || "",
+    construtor: store?.construtor || "",
+    analistaObra: store?.analistaObra || "",
+    inauguracao: store?.inauguracao || "",
+    razaoSocial: store?.razaoSocial || "",
+    porte: store?.porte || "",
+    cidade: store?.cidade || "",
+    uf: store?.uf || "",
+    filial: store?.filial || "",
   });
+
   useEffect(() => {
     if (!user?.email) return;
     const check = async () => {
