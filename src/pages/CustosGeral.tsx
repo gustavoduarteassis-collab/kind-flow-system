@@ -203,21 +203,46 @@ const CustosGeral = () => {
     }));
   }, [dashData]);
 
+  // Meta 2026: média das lojas de 2026 — média POR LOJA de R$/m² (não soma total / soma área).
+  // Fallback para projeção a partir de 2025 (escalada para a meta) quando ainda não há lojas 2026 de um tipo.
   const projections2026 = useMemo(() => {
+    const data2026 = allEntries.filter((d) => d.ano === 2026);
     const data2025 = custosGeralData.filter((d) => d.ano === 2025);
-    const rawAvgs = calcAverages(data2025);
-    return rawAvgs.map((d) => {
-      const catKeys = CATEGORIAS.map((c) => c.key);
-      const rawTotal = catKeys.reduce((sum, k) => sum + (d.avgPerM2[k] || 0), 0);
-      if (rawTotal <= 0) return d;
-      const scaleFactor = d.meta / rawTotal;
-      const adjustedPerM2: Record<string, number> = {};
+    const catKeys = CATEGORIAS.map((c) => c.key);
+
+    return TIPOS.map((tipo) => {
+      const meta = META_POR_M2[tipo] || 3350;
+      const lojasTipo = data2026.filter((e) => e.tipo === tipo && e.areaTotal > 0);
+
+      if (lojasTipo.length > 0) {
+        // Média por loja: para cada loja calcula R$/m² da categoria, depois tira a média simples.
+        const avgPerM2: Record<string, number> = {};
+        catKeys.forEach((k) => {
+          const soma = lojasTipo.reduce((s, e) => s + (e[k] / e.areaTotal), 0);
+          avgPerM2[k] = soma / lojasTipo.length;
+        });
+        const avgTotalPerM2 = catKeys.reduce((s, k) => s + avgPerM2[k], 0);
+        const avgArea = lojasTipo.reduce((s, e) => s + e.areaTotal, 0) / lojasTipo.length;
+        return { tipo, count: lojasTipo.length, avgArea, avgPerM2, avgTotalPerM2, meta };
+      }
+
+      // Fallback: projeção a partir de 2025 escalada para a meta
+      const lojas2025 = data2025.filter((e) => e.tipo === tipo && e.areaTotal > 0);
+      const avgPerM2: Record<string, number> = {};
       catKeys.forEach((k) => {
-        adjustedPerM2[k] = (d.avgPerM2[k] || 0) * scaleFactor;
+        avgPerM2[k] = lojas2025.length > 0
+          ? lojas2025.reduce((s, e) => s + (e[k] / e.areaTotal), 0) / lojas2025.length
+          : 0;
       });
-      return { ...d, avgPerM2: adjustedPerM2, avgTotalPerM2: d.meta };
+      const rawTotal = catKeys.reduce((s, k) => s + avgPerM2[k], 0);
+      if (rawTotal > 0) {
+        const scale = meta / rawTotal;
+        catKeys.forEach((k) => { avgPerM2[k] = avgPerM2[k] * scale; });
+      }
+      const avgArea = lojas2025.length > 0 ? lojas2025.reduce((s, e) => s + e.areaTotal, 0) / lojas2025.length : 0;
+      return { tipo, count: 0, avgArea, avgPerM2, avgTotalPerM2: meta, meta };
     });
-  }, []);
+  }, [allEntries]);
 
   const planilhaRegua = useMemo(() => {
     return projections2026.find((d) => d.tipo === planilhaTipo) || projections2026[0];
