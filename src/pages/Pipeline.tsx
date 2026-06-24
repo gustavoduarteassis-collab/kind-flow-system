@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Plus, Trash2, LogOut, CheckCircle2, Clock, AlertCircle,
-  ArrowRightCircle, Search, Pencil, AlertTriangle, CalendarIcon, PartyPopper, Undo2, Hammer,
+  ArrowRightCircle, Search, Pencil, AlertTriangle, CalendarIcon, PartyPopper, Undo2, Hammer, Eye,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -176,6 +176,7 @@ const Pipeline = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editingStore, setEditingStore] = useState<PipelineStore | null>(null);
+  const [historyStore, setHistoryStore] = useState<PipelineStore | null>(null);
   const [search, setSearch] = useState("");
   const [form, setForm] = useState({ ...emptyForm });
 
@@ -540,7 +541,8 @@ const Pipeline = () => {
                   const inaug = isInaugurada(store);
                   const reform = isReforma(store);
                   return (
-                    <Card key={store.id} className={inaug ? "border-emerald-300 bg-emerald-50/30" : ready ? "border-emerald-300 bg-emerald-50/50" : hasOverdue ? "border-destructive/50" : ""}>
+                    <Card key={store.id} className={`${inaug ? "border-emerald-300 bg-emerald-50/30 cursor-pointer hover:bg-emerald-50/60 transition-colors" : ready ? "border-emerald-300 bg-emerald-50/50" : hasOverdue ? "border-destructive/50" : ""}`}
+                      onClick={inaug ? (e) => { if ((e.target as HTMLElement).closest("button")) return; setHistoryStore(store); } : undefined}>
                       <CardContent className="p-4 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
@@ -586,6 +588,12 @@ const Pipeline = () => {
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600" title="Reverter inauguração"
                                 onClick={() => { if (confirm(`Reverter status de inauguração de "${store.local}"?`)) revertInaugurada(store); }}>
                                 <Undo2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {inaug && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-700" title="Ver histórico completo"
+                                onClick={() => setHistoryStore(store)}>
+                                <Eye className="h-4 w-4" />
                               </Button>
                             )}
                             {!inaug && (
@@ -711,6 +719,79 @@ const Pipeline = () => {
                 </div>
                 <Button onClick={saveEdit} className="w-full mt-2">Salvar Alterações</Button>
               </>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* History Dialog (Inauguradas) */}
+        <Dialog open={!!historyStore} onOpenChange={(open) => { if (!open) setHistoryStore(null); }}>
+          <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <PartyPopper className="h-5 w-5 text-emerald-600" />
+                Histórico — {historyStore?.local}
+              </DialogTitle>
+            </DialogHeader>
+            {historyStore && (
+              <div className="space-y-4 text-sm">
+                {/* Dados gerais */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-3 rounded-md border bg-muted/30">
+                  {historyStore.filial && <div><p className="text-[10px] text-muted-foreground uppercase">Filial</p><p className="font-medium">{historyStore.filial}</p></div>}
+                  <div><p className="text-[10px] text-muted-foreground uppercase">Local</p><p className="font-medium">{historyStore.local}</p></div>
+                  {historyStore.cidade && <div><p className="text-[10px] text-muted-foreground uppercase">Cidade/UF</p><p className="font-medium">{historyStore.cidade}{historyStore.estado ? `/${historyStore.estado}` : ""}</p></div>}
+                  {historyStore.franqueado && <div><p className="text-[10px] text-muted-foreground uppercase">Franqueado</p><p className="font-medium">{historyStore.franqueado}</p></div>}
+                  {historyStore.email_franqueado && <div><p className="text-[10px] text-muted-foreground uppercase">E-mail</p><p className="font-medium break-all">{historyStore.email_franqueado}</p></div>}
+                  {historyStore.analista_obra && <div><p className="text-[10px] text-muted-foreground uppercase">Analista</p><p className="font-medium">{historyStore.analista_obra}</p></div>}
+                  {historyStore.padrao && <div><p className="text-[10px] text-muted-foreground uppercase">Padrão</p><p className="font-medium">{historyStore.padrao}</p></div>}
+                  {historyStore.previsao_inauguracao && <div><p className="text-[10px] text-muted-foreground uppercase">Previsão Inauguração</p><p className="font-medium">{historyStore.previsao_inauguracao}</p></div>}
+                  {historyStore.inicio_obra && <div><p className="text-[10px] text-muted-foreground uppercase">Início de Obra</p><p className="font-medium">{historyStore.inicio_obra}</p></div>}
+                </div>
+
+                {/* Fases */}
+                <div>
+                  <h4 className="font-semibold mb-2">Fases do Funil</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {PHASES.map((p) => {
+                      const status = (historyStore as any)[p.key] || "pendente";
+                      const start = (historyStore as any)[p.startKey] || "—";
+                      const deadline = (historyStore as any)[p.deadlineKey] || "—";
+                      return (
+                        <div key={p.key} className="p-2 rounded-md border bg-card">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="text-xs font-medium truncate">{p.label}</p>
+                            <Badge className={`${getPhaseColor(status)} text-[10px]`}>{getPhaseLabel(status)}</Badge>
+                          </div>
+                          <div className="flex gap-4 text-[11px] text-muted-foreground">
+                            <span>Início: <span className="text-foreground">{start}</span></span>
+                            <span>Prazo: <span className="text-foreground">{deadline}</span></span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Status / Observações */}
+                {historyStore.status_geral && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Status Geral / Histórico</h4>
+                    <div className="p-3 rounded-md border bg-muted/30 whitespace-pre-line text-[13px]">{historyStore.status_geral}</div>
+                  </div>
+                )}
+                {historyStore.observacoes && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Observações</h4>
+                    <div className="p-3 rounded-md border bg-muted/30 whitespace-pre-line text-[13px]">{historyStore.observacoes}</div>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button variant="outline" onClick={() => { const s = historyStore; setHistoryStore(null); openEdit(s); }}>
+                    <Pencil className="h-4 w-4 mr-2" /> Editar
+                  </Button>
+                  <Button onClick={() => setHistoryStore(null)}>Fechar</Button>
+                </div>
+              </div>
             )}
           </DialogContent>
         </Dialog>
