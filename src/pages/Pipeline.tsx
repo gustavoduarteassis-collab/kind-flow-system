@@ -551,6 +551,11 @@ const Pipeline = () => {
                               <h3 className="font-semibold text-sm">{store.local}</h3>
                               {inaug && <Badge className="bg-emerald-600 hover:bg-emerald-600 text-[10px] h-5">Inaugurada</Badge>}
                               {reform && <Badge className="bg-amber-600 hover:bg-amber-600 text-[10px] h-5">Reforma</Badge>}
+                              {!inaug && store.previsao_inauguracao && (
+                                <Badge variant="outline" className="text-[10px] h-5 gap-1 border-primary/40 text-primary bg-primary/5">
+                                  <CalendarIcon className="h-3 w-3" /> Previsão: {store.previsao_inauguracao}
+                                </Badge>
+                              )}
                               {hasOverdue && !inaug && <Badge variant="destructive" className="text-[10px] h-5 gap-1"><AlertTriangle className="h-3 w-3" /> Atrasado</Badge>}
                             </div>
                             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
@@ -558,7 +563,6 @@ const Pipeline = () => {
                               {store.franqueado && <span>👤 {store.franqueado}</span>}
                               {store.email_franqueado && <span>✉️ {store.email_franqueado}</span>}
                               {store.analista_obra && <span>📋 {store.analista_obra}</span>}
-                              {store.previsao_inauguracao && <span>📅 {store.previsao_inauguracao}</span>}
                               {store.padrao && <Badge variant="secondary" className="text-[10px] h-5">{store.padrao}</Badge>}
                             </div>
                             {store.status_geral && (
