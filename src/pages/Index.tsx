@@ -23,6 +23,7 @@ import {
 import {
   Building2, Users, ListTodo, Target,
   ChevronRight, LogOut, Calendar, KeyRound, Plus, Trash2, GitBranch, DollarSign, FolderOpen,
+  Eye, EyeOff,
 } from "lucide-react";
 import logoConstance from "@/assets/logo-constance.svg";
 import { useToast } from "@/hooks/use-toast";
