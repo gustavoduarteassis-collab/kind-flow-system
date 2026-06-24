@@ -42,7 +42,13 @@ const FIELD_MAP: Record<string, string> = {
   "gerente regional": "gerente_regional",
   "analista de arquitetura": "analista_arquitetura",
   "implantadora": "implantadora",
+  "reforma": "reforma",
+  "é reforma": "reforma",
+  "e reforma": "reforma",
 };
+
+const TRUTHY = new Set(["sim", "s", "x", "true", "yes", "y", "1", "reforma"]);
+const parseBool = (v: string) => TRUTHY.has(v.toLowerCase().trim());
 
 // Fields the importer is allowed to fill (only when empty in DB)
 const FILLABLE_FIELDS = [
@@ -60,6 +66,7 @@ const FIELD_LABELS: Record<string, string> = {
   analista_arquitetura: "Analista Arquitetura", implantadora: "Implantadora",
   previsao_inauguracao: "Previsão Inauguração", data_inauguracao: "Data Inauguração",
   inicio_obra: "Início Obra", status_geral: "Status", cd_origem: "CD de Origem",
+  reforma: "Reforma",
 };
 
 const normalizeKey = (s: string) =>
@@ -193,13 +200,11 @@ const ImportFunil = () => {
 
       for (const row of rows) {
         const existing = existingByFilial.get(row.filial) || null;
+        const wantsReforma = parseBool(row.data.reforma || "");
         if (!existing) {
-          items.push({
-            row,
-            existingId: null,
-            action: "create",
-            fieldsToFill: Object.keys(row.data).filter((k) => (FILLABLE_FIELDS as readonly string[]).includes(k)),
-          });
+          const fieldsToFill = Object.keys(row.data).filter((k) => (FILLABLE_FIELDS as readonly string[]).includes(k));
+          if (wantsReforma) fieldsToFill.push("reforma");
+          items.push({ row, existingId: null, action: "create", fieldsToFill });
           continue;
         }
         const fieldsToFill: string[] = [];
@@ -208,6 +213,8 @@ const ImportFunil = () => {
           if (!newVal) continue;
           if (isEmpty(existing[key])) fieldsToFill.push(key);
         }
+        // reforma: additive only — false → true never the other way
+        if (wantsReforma && existing.reforma !== true) fieldsToFill.push("reforma");
         items.push({
           row,
           existingId: existing.id,
@@ -234,11 +241,15 @@ const ImportFunil = () => {
           for (const key of FILLABLE_FIELDS) {
             if (item.row.data[key]) insertData[key] = item.row.data[key];
           }
+          if (item.fieldsToFill.includes("reforma")) insertData.reforma = true;
           const { error } = await supabase.from("pipeline_stores").insert(insertData as any);
           if (!error) created++;
         } else if (item.action === "fill") {
           const updateData: Record<string, any> = {};
-          for (const key of item.fieldsToFill) updateData[key] = item.row.data[key];
+          for (const key of item.fieldsToFill) {
+            if (key === "reforma") updateData.reforma = true;
+            else updateData[key] = item.row.data[key];
+          }
           const { error } = await supabase
             .from("pipeline_stores")
             .update(updateData as any)

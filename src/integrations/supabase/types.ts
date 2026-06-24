@@ -624,6 +624,7 @@ export type Database = {
           projeto_eletrico: string
           projeto_estrutural: string
           projeto_incendio: string
+          reforma: boolean
           status_geral: string
           transferido: boolean
           updated_at: string
@@ -674,6 +675,7 @@ export type Database = {
           projeto_eletrico?: string
           projeto_estrutural?: string
           projeto_incendio?: string
+          reforma?: boolean
           status_geral?: string
           transferido?: boolean
           updated_at?: string
@@ -724,6 +726,7 @@ export type Database = {
           projeto_eletrico?: string
           projeto_estrutural?: string
           projeto_incendio?: string
+          reforma?: boolean
           status_geral?: string
           transferido?: boolean
           updated_at?: string
