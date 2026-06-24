@@ -9,7 +9,7 @@ import { format, parse, isValid, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-const METAS_CUSTO: Record<string, number> = { TRADICIONAL: 3250, LIGHT: 3500, OUTLET: 2900 };
+const METAS_CUSTO: Record<string, number> = { TRADICIONAL: 3350, LIGHT: 3500, OUTLET: 2900 };
 
 type MonthlyData = {
   lojasLight: number;
