@@ -23,6 +23,7 @@ import {
 import {
   Building2, Users, ListTodo, Target,
   ChevronRight, LogOut, Calendar, KeyRound, Plus, Trash2, GitBranch, DollarSign, FolderOpen,
+  Eye, EyeOff,
 } from "lucide-react";
 import logoConstance from "@/assets/logo-constance.svg";
 import { useToast } from "@/hooks/use-toast";
@@ -82,6 +83,7 @@ const Index = () => {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
+  const [showReformas, setShowReformas] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
   const [accessForm, setAccessForm] = useState({
     store_id: "", franchisee_email: "", access_type: "franqueado",
@@ -299,9 +301,20 @@ const Index = () => {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">Resumo das Lojas</h2>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/lojas")}>
-                Ver Todas <ChevronRight className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={showReformas ? "default" : "outline"}
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => setShowReformas((v) => !v)}
+                >
+                  {showReformas ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showReformas ? "Ocultar reformas" : "Mostrar reformas"}
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/lojas")}>
+                  Ver Todas <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <Card>
@@ -321,7 +334,7 @@ const Index = () => {
                   <TableBody>
                     {stores
                       .filter((store) => {
-                        if (store.isReforma) return false;
+                        if (store.isReforma && !showReformas) return false;
                         const total = checklistCategories.flatMap((c) => c.items).length;
                         const counts: Partial<Record<StatusType, number>> = {};
                         Object.values(store.checklist).forEach((c) => {
