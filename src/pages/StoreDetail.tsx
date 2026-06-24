@@ -52,27 +52,24 @@ import {
   Check,
   X,
   FileSpreadsheet,
-  AlertTriangle,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import logoConstanceSvg from "@/assets/logo-constance.svg";
 
 const statusColors: Record<StatusType, string> = {
-  "NÃO REALIZADO": "bg-[#ef4444] text-white",
-  "EM COTAÇÃO": "bg-[#f59e0b] text-white",
-  "EM TRANSPORTE": "bg-[#f59e0b] text-white",
-  "REALIZADO": "bg-[#10b981] text-white",
-  "REALIZANDO": "bg-[#f59e0b] text-white",
-  "ATRASADO": "bg-[#ef4444] text-white",
-  "NÃO SE APLICA": "bg-[#94a3b8] text-white",
-  "CONSTRUTORA": "bg-[#f59e0b] text-white",
-  "EM ELABORAÇÃO": "bg-[#f59e0b] text-white",
-  "EM ANÁLISE": "bg-[#f59e0b] text-white",
-  "EM CONTRATAÇÃO": "bg-[#f59e0b] text-white",
-  "EM ANDAMENTO": "bg-[#f59e0b] text-white",
+  "NÃO INICIADO": "bg-secondary text-secondary-foreground",
+  "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM TRANSPORTE": "bg-[hsl(210,80%,55%)] text-[hsl(0,0%,100%)]",
+  "REALIZADO": "bg-[hsl(142,60%,45%)] text-[hsl(0,0%,100%)]",
+  "REALIZANDO": "bg-[hsl(152,50%,28%)] text-[hsl(0,0%,100%)]",
+  "ATRASADO": "bg-destructive text-destructive-foreground",
+  "NÃO SE APLICA": "bg-muted text-muted-foreground",
+  "CONSTRUTORA": "bg-[hsl(270,50%,50%)] text-[hsl(0,0%,100%)]",
+  "EM ELABORAÇÃO": "bg-[hsl(38,70%,60%)] text-[hsl(38,90%,15%)]",
+  "EM ANÁLISE": "bg-[hsl(200,60%,55%)] text-[hsl(0,0%,100%)]",
+  "EM CONTRATAÇÃO": "bg-[hsl(280,50%,55%)] text-[hsl(0,0%,100%)]",
+  "EM ANDAMENTO": "bg-[hsl(45,90%,55%)] text-[hsl(45,90%,15%)]",
 };
 
 const StoreDetail = () => {
@@ -84,26 +81,13 @@ const StoreDetail = () => {
   const [activeTab, setActiveTab] = useState("cronograma");
   const { user } = useAuth();
   const [isTeamMember, setIsTeamMember] = useState(false);
-  const phaseCategories = [
-    { id: 'pre-obra', label: '1. Pré-Obra', categories: ['documental-fiscal', 'projetos'] },
-    { id: 'obra', label: '2. Obra', categories: ['obra-aquisicao', 'obra-execucao'] },
-    { id: 'setup', label: '3. Setup / Contas', categories: ['informatica', 'mobiliario-apoio', 'papelaria-contratos', 'contratacao-pessoal'] },
-    { id: 'abertura', label: '4. Abertura / Campo', categories: ['marketing'] }
-  ];
-
   const [editingHeader, setEditingHeader] = useState(false);
   const [headerFields, setHeaderFields] = useState({
-    franqueado: store?.franqueado || "",
-    construtor: store?.construtor || "",
-    analistaObra: store?.analistaObra || "",
-    inauguracao: store?.inauguracao || "",
-    razaoSocial: store?.razaoSocial || "",
-    porte: store?.porte || "",
-    cidade: store?.cidade || "",
-    uf: store?.uf || "",
-    filial: store?.filial || "",
+    franqueado: "",
+    construtor: "",
+    analistaObra: "",
+    inauguracao: "",
   });
-
   useEffect(() => {
     if (!user?.email) return;
     const check = async () => {
@@ -172,26 +156,12 @@ const StoreDetail = () => {
     );
   }
 
-  const allChecklistItems = checklistCategories.flatMap((c) => c.items);
-  const applicableItems = allChecklistItems.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
-  const totalItems = allChecklistItems.length;
-  const getStatusScore = (status?: StatusType): number => {
-    if (status === "REALIZADO") return 100;
-    if (status === "NÃO SE APLICA") return 0;
-    if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return 0;
-    return 50; // All other "in progress" statuses
-  };
-
-  const totalScore = allChecklistItems.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
-  const maxScore = applicableItems.length * 100;
-  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
-  
-  const isLiberado = progress >= 90;
-  const hasRessalva = !!store.comentariosObras && store.comentariosObras.trim().length > 0;
-  const statusLabel = isLiberado ? "Liberado para Inauguração" : (hasRessalva ? "Liberado com Ressalva" : "Não Liberado para Inauguração");
-  const statusColor = isLiberado ? "bg-green-100 text-green-700 border-green-200" : (hasRessalva ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-red-100 text-red-700 border-red-200");
-  const doneItems = allChecklistItems.filter(item => store.checklist[item.id]?.status === "REALIZADO").length;
-  const atrasados = allChecklistItems.filter((item) => store.checklist[item.id]?.status === "ATRASADO").length;
+  const totalItems = checklistCategories.flatMap((c) => c.items).length;
+  const doneItems = Object.values(store.checklist).filter(
+    (c) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA"
+  ).length;
+  const progress = Math.round((doneItems / totalItems) * 100);
+  const atrasados = Object.values(store.checklist).filter((c) => c.status === "ATRASADO").length;
 
   const handleStatusChange = (itemId: number, status: StatusType) => {
     const newChecklist = { ...store.checklist };
@@ -208,10 +178,12 @@ const StoreDetail = () => {
   const getCategoryProgress = (categoryId: string) => {
     const cat = checklistCategories.find((c) => c.id === categoryId);
     if (!cat) return 0;
-    const applicable = cat.items.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
-    const totalScore = cat.items.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
-    const maxScore = applicable.length * 100;
-    return maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+    const done = cat.items.filter(
+      (item) =>
+        store.checklist[item.id]?.status === "REALIZADO" ||
+        store.checklist[item.id]?.status === "NÃO SE APLICA"
+    ).length;
+    return Math.round((done / cat.items.length) * 100);
   };
 
   const exportChecklistToExcel = async () => {
@@ -225,7 +197,7 @@ const StoreDetail = () => {
       "ATRASADO": { bg: "FFF44336", font: "FFFFFFFF" },
       "EM TRANSPORTE": { bg: "FF2196F3", font: "FFFFFFFF" },
       "EM COTAÇÃO": { bg: "FFFF9800", font: "FF333333" },
-      "NÃO REALIZADO": { bg: "FFE0E0E0", font: "FF555555" },
+      "NÃO INICIADO": { bg: "FFE0E0E0", font: "FF555555" },
       "NÃO SE APLICA": { bg: "FF9E9E9E", font: "FFFFFFFF" },
       "CONSTRUTORA": { bg: "FF7E57C2", font: "FFFFFFFF" },
       "EM ELABORAÇÃO": { bg: "FFFFB74D", font: "FF333333" },
@@ -326,7 +298,7 @@ const StoreDetail = () => {
       // Data rows
       cat.items.forEach((item, idx) => {
         const data = store.checklist[item.id] || {} as any;
-        const status = data.status || "NÃO REALIZADO";
+        const status = data.status || "NÃO INICIADO";
         const rowData = isObra
           ? [item.id, data.atividade || item.atividade, item.responsavel, status, data.prazoInicial || "", data.prazoFinal || "", data.descricao || "", data.observacoes || ""]
           : [item.id, data.atividade || item.atividade, item.responsavel, status, data.prazoFinal || "", data.descricao || "", data.observacoes || ""];
@@ -447,12 +419,6 @@ const StoreDetail = () => {
                         {new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR")}
                       </span>
                     )}
-                    
-                    {/* Status de Liberação badge */}
-                    <Badge variant="outline" className={cn("ml-2 font-bold px-3 py-1", statusColor)}>
-                      {statusLabel}
-                    </Badge>
-
                     {isTeamMember && (
                       <Button size="sm" variant="ghost" className="h-6 px-1.5" onClick={() => {
                         setHeaderFields({
@@ -460,13 +426,7 @@ const StoreDetail = () => {
                           construtor: store.construtor || "",
                           analistaObra: store.analistaObra || "",
                           inauguracao: store.inauguracao || "",
-                          razaoSocial: store.razaoSocial || "",
-                          porte: store.porte || "",
-                          cidade: store.cidade || "",
-                          uf: store.uf || "",
-                          filial: store.filial || "",
                         });
-
                         setEditingHeader(true);
                       }}>
                         <Pencil className="h-3 w-3" />
@@ -503,25 +463,14 @@ const StoreDetail = () => {
               </Button>
             </div>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                onClick={() => {
-                  const msg = `Olá! Seguem os dados para implantação da loja ${store.nome} (${store.filial}):\nRazão Social: ${store.razaoSocial || 'N/A'}\nCidade/UF: ${store.cidade || 'N/A'}/${store.uf || 'N/A'}\nInauguração: ${store.inauguracao || 'N/A'}`;
-                  navigator.clipboard.writeText(msg);
-                  toast.success("Mensagem padrão copiada!");
-                }}
-              >
-                <svg className="h-4 w-4 fill-green-600" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.588-5.946 0-6.556 5.332-11.891 11.891-11.891 3.181 0 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.481 8.403 0 6.556-5.332 11.891-11.891 11.891-1.992 0-3.951-.499-5.688-1.447l-6.305 1.665zm6.357-3.935c1.513.899 3.178 1.373 4.884 1.373 5.085 0 9.224-4.141 9.224-9.224 0-2.465-.96-4.782-2.704-6.526s-4.061-2.704-6.52-2.704c-5.085 0-9.226 4.141-9.226 9.224 0 1.817.534 3.593 1.543 5.132l-1.011 3.693 3.794-1.001zm11.366-6.143c-.071-.117-.259-.187-.541-.327-.281-.14-.1.664-.819.865-.328.093-.655.023-.843-.047-.187-.07-.79-.292-1.503-.927-.556-.496-.931-1.108-1.041-1.296-.11-.188-.012-.289.082-.382.085-.085.187-.222.281-.334.094-.111.125-.187.188-.313.062-.125.031-.234-.016-.327-.047-.094-.421-1.015-.578-1.393-.153-.367-.308-.317-.421-.323l-.36-.006c-.125 0-.328.047-.5.234-.172.187-.656.641-.656 1.562 0 .921.671 1.812.766 1.937.094.125 1.32 2.015 3.197 2.825.447.192.795.307 1.068.394.448.142.855.122 1.177.074.359-.054 1.107-.452 1.263-.889.155-.437.155-.812.108-.889z"/></svg>
-                Copiar Msg WhatsApp
-              </Button>
+          {/* Progress bar */}
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <Progress value={progress} className="h-2.5" />
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <span className="font-semibold text-slate-700">{progress}%</span>
-              <Badge className="bg-green-500 text-white border-none">
+              <span className="font-semibold">{progress}%</span>
+              <Badge className="bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]">
                 ✓ {doneItems}/{totalItems}
               </Badge>
               {atrasados > 0 && (
@@ -529,66 +478,11 @@ const StoreDetail = () => {
               )}
             </div>
           </div>
-
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Phase Timeline */}
-        <div className="bg-white rounded-xl p-6 border shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Pipeline de Implantação</h3>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-slate-500">Fase Atual:</span>
-              <Select 
-                value={store.faseAtual || "Pré-Obra"} 
-                onValueChange={(v) => updateStore(store.id, { faseAtual: v as any })}
-              >
-                <SelectTrigger className="h-8 w-[140px] text-xs font-bold border-none bg-slate-50">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Pré-Obra">Pré-Obra</SelectItem>
-                  <SelectItem value="Obra">Obra</SelectItem>
-                  <SelectItem value="Setup">Setup</SelectItem>
-                  <SelectItem value="Abertura">Abertura</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="relative">
-            {/* Connector line */}
-            <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -translate-y-1/2" />
-            <div className="relative flex justify-between">
-              {['Pré-Obra', 'Obra', 'Setup', 'Abertura'].map((phase, idx) => {
-                const phases = ['Pré-Obra', 'Obra', 'Setup', 'Abertura'];
-                const currentIdx = phases.indexOf(store.faseAtual || "Pré-Obra");
-                const isCompleted = idx < currentIdx;
-                const isCurrent = idx === currentIdx;
-                
-                return (
-                  <div key={phase} className="flex flex-col items-center gap-3 relative z-10">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center border-4 transition-all ${
-                      isCompleted ? 'bg-green-500 border-green-100 text-white' :
-                      isCurrent ? 'bg-[hsl(38,70%,50%)] border-[hsl(38,70%,90%)] text-white scale-110 shadow-lg' :
-                      'bg-white border-slate-100 text-slate-300'
-                    }`}>
-                      {isCompleted ? <Check className="h-5 w-5" /> : <span className="text-sm font-bold">{idx + 1}</span>}
-                    </div>
-                    <span className={`text-[10px] font-bold uppercase tracking-tight ${
-                      isCurrent ? 'text-slate-900' : 'text-slate-400'
-                    }`}>
-                      {phase}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-
           <div className="overflow-x-auto pb-2 -mx-4 px-4">
             <TabsList className="h-auto flex-wrap gap-1 bg-transparent p-0">
               <TabsTrigger
@@ -633,24 +527,19 @@ const StoreDetail = () => {
               >
                 🎉 Checklist Inauguração
               </TabsTrigger>
-              {phaseCategories.map((phase) => {
-                const isCurrentPhase = (store.faseAtual === 'Pré-Obra' && phase.id === 'pre-obra') ||
-                                     (store.faseAtual === 'Obra' && phase.id === 'obra') ||
-                                     (store.faseAtual === 'Setup' && phase.id === 'setup') ||
-                                     (store.faseAtual === 'Abertura' && phase.id === 'abertura');
+              {checklistCategories.map((cat) => {
+                const catProgress = getCategoryProgress(cat.id);
                 return (
                   <TabsTrigger
-                    key={phase.id}
-                    value={phase.id}
-                    className={`data-[state=active]:bg-[hsl(38,70%,50%)] data-[state=active]:text-white rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-bold ${
-                      isCurrentPhase ? 'border-b-2 border-b-[hsl(38,70%,30%)] shadow-sm' : ''
-                    }`}
+                    key={cat.id}
+                    value={cat.id}
+                    className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap"
                   >
-                    {phase.label}
+                    {getCategoryName(cat.id, cat.nome)}
+                    <span className="ml-1.5 text-[10px] opacity-70">{catProgress}%</span>
                   </TabsTrigger>
                 );
               })}
-
             </TabsList>
           </div>
 
@@ -701,140 +590,165 @@ const StoreDetail = () => {
             />
           </TabsContent>
 
-          {phaseCategories.map((phase) => (
-            <TabsContent key={phase.id} value={phase.id} className="mt-4 space-y-8">
-              {phase.categories.map((catId) => {
-                const cat = checklistCategories.find(c => c.id === catId);
-                if (!cat) return null;
-                return (
-                  <div key={cat.id} className="space-y-3">
-                    <div className="flex items-center justify-between px-1">
-                      <h4 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-[hsl(38,70%,50%)]" />
-                        {getCategoryName(cat.id, cat.nome)}
-                      </h4>
-                      <Badge variant="secondary" className="text-[10px] font-bold">
-                        {getCategoryProgress(cat.id)}% Concluído
-                      </Badge>
-                    </div>
-                    
-                    <div className="rounded-xl border bg-white shadow-sm overflow-hidden">
-                      <div className="overflow-x-auto">
-                        <Table>
-                          <TableHeader>
-                            <TableRow className="bg-slate-50">
-                              <TableHead className="w-12 text-center text-[10px] uppercase font-bold text-slate-500">#</TableHead>
-                              <TableHead className="min-w-[350px] text-[10px] uppercase font-bold text-slate-500">Atividade</TableHead>
-                              <TableHead className="w-[130px] text-[10px] uppercase font-bold text-slate-500">Prazo Final</TableHead>
-                              <TableHead className="w-[170px] text-[10px] uppercase font-bold text-slate-500">Status</TableHead>
-                              <TableHead className="w-[140px] text-[10px] uppercase font-bold text-slate-500">Responsável</TableHead>
-                              <TableHead className="min-w-[160px] text-[10px] uppercase font-bold text-slate-500">Observações</TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {cat.items.map((item) => {
-                              const data = store.checklist[item.id] || {
-                                status: "NÃO REALIZADO" as StatusType,
-                                prazoInicial: "",
-                                prazoFinal: "",
-                                observacoes: "",
-                              };
-                              const isImpeditivo = item.atividade.includes("IMPEDITIVO");
-                              
-                              const statusStyles: Record<string, string> = {
-                                "REALIZADO": "bg-green-50 text-green-700 border-green-200",
-                                "EM ANDAMENTO": "bg-amber-50 text-amber-700 border-amber-200",
-                                "NÃO REALIZADO": "bg-red-50 text-red-700 border-red-200",
-                                "NÃO SE APLICA": "bg-slate-50 text-slate-500 border-slate-200",
-                              };
-
-                              return (
-                                <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                                  <TableCell className="text-center font-mono text-[10px] text-slate-400">
-                                    {item.id}
-                                  </TableCell>
-                                  <TableCell>
-                                    <div className="flex flex-col gap-1">
-                                      <p className="text-xs font-medium text-slate-900 leading-tight">
-                                        {data.atividade || item.atividade}
-                                      </p>
-                                  {isImpeditivo && (
-                                    <Badge className="w-fit bg-red-100 text-red-700 text-[8px] font-bold border-none h-4">
-                                      IMPEDITIVO
-                                    </Badge>
-                                  )}
-                                  {(item.id === 5 || item.id === 6) && store.inauguracao && (
-                                    (() => {
-                                      const opening = new Date(store.inauguracao + "T00:00:00");
-                                      const diffDays = Math.ceil((opening.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                                      if (diffDays > 30) {
-                                        return (
-                                          <div className="flex items-center gap-1 mt-1 text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-200 w-fit">
-                                            <AlertTriangle className="h-3 w-3" />
-                                            AGUARDAR (Faltam {diffDays} dias)
-                                          </div>
-                                        );
-                                      }
-                                      return null;
-                                    })()
-                                  )}
-
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Input
-                                      type="date"
-                                      className="h-8 text-[10px] border-none bg-slate-50"
-                                      value={data.prazoFinal}
-                                      onChange={(e) => handleFieldChange(item.id, "prazoFinal", e.target.value)}
-                                      disabled={!isTeamMember}
-                                    />
-                                  </TableCell>
-                                  <TableCell>
-                                    <Select
-                                      value={data.status}
-                                      onValueChange={(v: StatusType) => handleStatusChange(item.id, v)}
-                                      disabled={!isTeamMember}
-                                    >
-                                      <SelectTrigger className={`h-8 text-[10px] font-bold ${statusStyles[data.status] || "bg-slate-100"}`}>
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="REALIZADO">REALIZADO</SelectItem>
-                                        <SelectItem value="EM ANDAMENTO">EM ANDAMENTO</SelectItem>
-                                        <SelectItem value="NÃO REALIZADO">NÃO REALIZADO</SelectItem>
-                                        <SelectItem value="NÃO SE APLICA">NÃO SE APLICA</SelectItem>
-                                        {cat.statusOptions.filter(o => !["REALIZADO", "EM ANDAMENTO", "NÃO REALIZADO", "NÃO SE APLICA"].includes(o)).map(opt => (
-                                          <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                  </TableCell>
-                                  <TableCell className="text-[10px] text-slate-500 font-medium">
-                                    {item.responsavel}
-                                  </TableCell>
-                                  <TableCell>
-                                    <Textarea
-                                      className="min-h-[32px] text-[10px] border-none bg-slate-50 resize-none"
-                                      placeholder="Adicionar observação..."
-                                      value={data.observacoes}
-                                      onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)}
-                                      disabled={!isTeamMember}
-                                    />
-                                  </TableCell>
-                                </TableRow>
-                              );
-                            })}
-                          </TableBody>
-                        </Table>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+          {checklistCategories.map((cat) => (
+            <TabsContent key={cat.id} value={cat.id} className="mt-4">
+              {isTeamMember && (
+                <div className="mb-3">
+                  <Input
+                    className="h-9 text-sm font-semibold max-w-md"
+                    value={getCategoryName(cat.id, cat.nome)}
+                    onChange={(e) => handleCategoryNameChange(cat.id, e.target.value)}
+                    onBlur={(e) => handleCategoryNameBlur(cat.id, e.target.value)}
+                  />
+                </div>
+              )}
+              <div className="rounded-xl border bg-card overflow-hidden">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="w-12 text-center">#</TableHead>
+                        <TableHead className="min-w-[350px]">Atividade</TableHead>
+                        <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
+                        {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
+                          <TableHead className="w-[130px]">Prazo Inicial</TableHead>
+                        )}
+                        <TableHead className="w-[130px]">Prazo Final</TableHead>
+                        <TableHead className="w-[170px]">Status</TableHead>
+                        <TableHead className="w-[140px]">Responsável</TableHead>
+                        <TableHead className="min-w-[160px]">Observações</TableHead>
+                        <TableHead className="min-w-[200px]">Passo a Passo</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {cat.items.map((item) => {
+                        const data = store.checklist[item.id] || {
+                          status: "NÃO INICIADO" as StatusType,
+                          prazoInicial: "",
+                          prazoFinal: "",
+                          observacoes: "",
+                        };
+                        const isImpeditivo = item.atividade.includes("IMPEDITIVO");
+                        return (
+                          <TableRow
+                            key={item.id}
+                            className={
+                              data.status === "ATRASADO"
+                                ? "bg-destructive/5"
+                                : data.status === "REALIZADO"
+                                ? "bg-[hsl(142,60%,95%)]"
+                                : data.status === "REALIZANDO"
+                                ? "bg-[hsl(152,40%,92%)]"
+                                : data.status === "EM ANDAMENTO"
+                                ? "bg-[hsl(45,90%,95%)]"
+                                : isImpeditivo
+                                ? "bg-[hsl(38,90%,97%)]"
+                                : ""
+                            }
+                          >
+                            <TableCell className="text-center font-mono text-xs text-muted-foreground">
+                              {item.id}
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm break-words whitespace-normal">
+                                {isTeamMember ? (
+                                  <Textarea
+                                    className="min-h-[36px] text-xs font-medium resize-none overflow-hidden"
+                                    rows={2}
+                                    value={data.atividade || item.atividade}
+                                    onChange={(e) =>
+                                      handleFieldChange(item.id, "atividade", e.target.value)
+                                    }
+                                  />
+                                ) : (
+                                  <span className="whitespace-pre-line">{data.atividade || item.atividade}</span>
+                                )}
+                                {isImpeditivo && (
+                                  <Badge variant="outline" className="ml-2 mt-1 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">
+                                    IMPEDITIVO
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground">
+                              {item.preRequisito || "—"}
+                            </TableCell>
+                            {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
+                              <TableCell>
+                                <Input
+                                  type="date"
+                                  className="h-8 text-xs"
+                                  value={data.prazoInicial}
+                                  onChange={(e) =>
+                                    handleFieldChange(item.id, "prazoInicial", e.target.value)
+                                  }
+                                />
+                              </TableCell>
+                            )}
+                            <TableCell>
+                              <Input
+                                type="date"
+                                className="h-8 text-xs"
+                                value={data.prazoFinal}
+                                onChange={(e) =>
+                                  handleFieldChange(item.id, "prazoFinal", e.target.value)
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Select
+                                value={data.status}
+                                onValueChange={(v) =>
+                                  handleStatusChange(item.id, v as StatusType)
+                                }
+                              >
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {cat.statusOptions.map((s) => (
+                                    <SelectItem key={s} value={s}>
+                                      <Badge className={`${statusColors[s]} text-[10px]`}>
+                                        {s}
+                                      </Badge>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell className="text-xs">{item.responsavel}</TableCell>
+                            <TableCell>
+                              <Textarea
+                                className="min-h-[36px] text-xs resize-none overflow-hidden"
+                                rows={2}
+                                placeholder="Obs..."
+                                value={data.observacoes}
+                                onChange={(e) =>
+                                  handleFieldChange(item.id, "observacoes", e.target.value)
+                                }
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Textarea
+                                className="min-h-[36px] text-xs resize-none overflow-hidden"
+                                rows={2}
+                                placeholder="Instruções detalhadas..."
+                                value={data.descricao || ""}
+                                onChange={(e) =>
+                                  handleFieldChange(item.id, "descricao", e.target.value)
+                                }
+                                disabled={!isTeamMember}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
             </TabsContent>
           ))}
-
         </Tabs>
 
         {/* Dialog for syncing category name to all stores */}

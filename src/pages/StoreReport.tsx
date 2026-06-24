@@ -40,48 +40,48 @@ type DiaryPhotoReport = {
 };
 
 const statusLabels: Record<StatusType, string> = {
-  "NÃO REALIZADO": "⬜ Não Realizado",
+  "NÃO INICIADO": "⬜ Não Iniciado",
   "EM COTAÇÃO": "🟡 Em Cotação",
-  "EM TRANSPORTE": "🟡 Em Transporte",
+  "EM TRANSPORTE": "🔵 Em Transporte",
   "REALIZADO": "✅ Realizado",
-  "REALIZANDO": "🟡 Realizando",
+  "REALIZANDO": "🟢 Realizando",
   "ATRASADO": "🔴 Atrasado",
   "NÃO SE APLICA": "⚪ N/A",
-  "CONSTRUTORA": "🟡 Construtora",
-  "EM ELABORAÇÃO": "🟡 Em Elaboração",
-  "EM ANÁLISE": "🟡 Em Análise",
-  "EM CONTRATAÇÃO": "🟡 Em Contratação",
+  "CONSTRUTORA": "🟣 Construtora",
+  "EM ELABORAÇÃO": "🟠 Em Elaboração",
+  "EM ANÁLISE": "🔵 Em Análise",
+  "EM CONTRATAÇÃO": "🟣 Em Contratação",
   "EM ANDAMENTO": "🟡 Em Andamento",
 };
 
 const statusPrintColors: Record<StatusType, string> = {
-  "NÃO REALIZADO": "bg-red-50",
-  "EM COTAÇÃO": "bg-[hsl(38,90%,95%)]",
-  "EM TRANSPORTE": "bg-[hsl(38,90%,95%)]",
-  "REALIZADO": "bg-[hsl(142,60%,95%)]",
-  "REALIZANDO": "bg-[hsl(38,90%,95%)]",
-  "ATRASADO": "bg-red-50",
+  "NÃO INICIADO": "bg-gray-100",
+  "EM COTAÇÃO": "bg-[hsl(38,90%,85%)]",
+  "EM TRANSPORTE": "bg-[hsl(210,80%,88%)]",
+  "REALIZADO": "bg-[hsl(142,60%,88%)]",
+  "REALIZANDO": "bg-[hsl(152,40%,85%)]",
+  "ATRASADO": "bg-[hsl(0,72%,90%)]",
   "NÃO SE APLICA": "bg-gray-50",
-  "CONSTRUTORA": "bg-[hsl(38,90%,95%)]",
-  "EM ELABORAÇÃO": "bg-[hsl(38,90%,95%)]",
-  "EM ANÁLISE": "bg-[hsl(38,90%,95%)]",
-  "EM CONTRATAÇÃO": "bg-[hsl(38,90%,95%)]",
-  "EM ANDAMENTO": "bg-[hsl(38,90%,95%)]",
+  "CONSTRUTORA": "bg-[hsl(270,50%,90%)]",
+  "EM ELABORAÇÃO": "bg-[hsl(38,70%,88%)]",
+  "EM ANÁLISE": "bg-[hsl(200,60%,88%)]",
+  "EM CONTRATAÇÃO": "bg-[hsl(280,50%,88%)]",
+  "EM ANDAMENTO": "bg-[hsl(45,90%,85%)]",
 };
 
 const statusTextColors: Record<StatusType, string> = {
-  "NÃO REALIZADO": "text-red-700",
-  "EM COTAÇÃO": "text-[hsl(38,90%,35%)]",
-  "EM TRANSPORTE": "text-[hsl(38,90%,35%)]",
-  "REALIZADO": "text-[hsl(142,60%,30%)]",
-  "REALIZANDO": "text-[hsl(38,90%,35%)]",
-  "ATRASADO": "text-red-700",
+  "NÃO INICIADO": "text-gray-600",
+  "EM COTAÇÃO": "text-[hsl(38,90%,30%)]",
+  "EM TRANSPORTE": "text-[hsl(210,80%,35%)]",
+  "REALIZADO": "text-[hsl(142,60%,25%)]",
+  "REALIZANDO": "text-[hsl(152,50%,20%)]",
+  "ATRASADO": "text-[hsl(0,72%,35%)]",
   "NÃO SE APLICA": "text-gray-400",
-  "CONSTRUTORA": "text-[hsl(38,90%,35%)]",
-  "EM ELABORAÇÃO": "text-[hsl(38,90%,35%)]",
-  "EM ANÁLISE": "text-[hsl(38,90%,35%)]",
-  "EM CONTRATAÇÃO": "text-[hsl(38,90%,35%)]",
-  "EM ANDAMENTO": "text-[hsl(38,90%,35%)]",
+  "CONSTRUTORA": "text-[hsl(270,50%,35%)]",
+  "EM ELABORAÇÃO": "text-[hsl(38,70%,30%)]",
+  "EM ANÁLISE": "text-[hsl(200,60%,30%)]",
+  "EM CONTRATAÇÃO": "text-[hsl(280,50%,30%)]",
+  "EM ANDAMENTO": "text-[hsl(45,90%,25%)]",
 };
 
 const formatCurrency = (v: number) =>
@@ -157,20 +157,11 @@ const StoreReport = () => {
     );
   }
 
-  const allItemsArr = checklistCategories.flatMap((c) => c.items);
-  const applicableItemsArr = allItemsArr.filter(i => store.checklist[i.id]?.status !== "NÃO SE APLICA");
-  const totalItems = allItemsArr.length;
-  const getStatusScore = (status?: StatusType): number => {
-    if (status === "REALIZADO") return 100;
-    if (status === "NÃO SE APLICA") return 0;
-    if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return 0;
-    return 50;
-  };
-
-  const totalScore = allItemsArr.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
-  const maxScore = applicableItemsArr.length * 100;
-  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
-  const doneItems = Object.values(store.checklist).filter(item => item.status === "REALIZADO").length;
+  const totalItems = checklistCategories.flatMap((c) => c.items).length;
+  const doneItems = Object.values(store.checklist).filter(
+    (c) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA"
+  ).length;
+  const progress = Math.round((doneItems / totalItems) * 100);
   const atrasados = Object.values(store.checklist).filter(
     (c) => c.status === "ATRASADO"
   ).length;
@@ -178,20 +169,16 @@ const StoreReport = () => {
     (c) =>
       c.status !== "REALIZADO" &&
       c.status !== "NÃO SE APLICA" &&
-      c.status !== "NÃO REALIZADO" &&
+      c.status !== "NÃO INICIADO" &&
       c.status !== "ATRASADO"
   ).length;
   const naoIniciados = Object.values(store.checklist).filter(
-    (c) => c.status === "NÃO REALIZADO"
+    (c) => c.status === "NÃO INICIADO"
   ).length;
 
   const today = new Date().toLocaleDateString("pt-BR");
 
-  const cronograma = {
-    cells: store.cronograma?.cells || {},
-    startDate: store.cronograma?.startDate || "",
-    itemDates: store.cronograma?.itemDates || {},
-  };
+  const cronograma = store.cronograma || { cells: {}, startDate: "", itemDates: {} };
   const cronStartDate = cronograma.startDate
     ? new Date(cronograma.startDate + "T00:00:00")
     : null;
@@ -449,7 +436,7 @@ const StoreReport = () => {
                   <tbody>
                     {cat.items.map((item) => {
                       const data = store.checklist[item.id] || {
-                        status: "NÃO REALIZADO" as StatusType,
+                        status: "NÃO INICIADO" as StatusType,
                         prazoInicial: "",
                         prazoFinal: "",
                         observacoes: "",
@@ -640,36 +627,33 @@ const StoreReport = () => {
             (store as any).inauguracaoChecklist || {},
             tipoLoja
           );
+          if (inaugData.rounds.length === 0) return null;
           const inaugChecklist = getInaugChecklist(tipoLoja);
           return (
             <section className={`mb-6 ${secao ? "" : "break-before-page"}`}>
               <h2 className="text-lg font-bold border-b border-black mb-3">
                 {secao ? "" : "6. "}CHECKLIST DE INAUGURAÇÃO — {tipoLoja === "rua" ? "Loja de Rua" : "Loja de Shopping"}
               </h2>
-              {inaugData.rounds.length === 0 && (
-                <p className="text-sm italic text-gray-500">Nenhuma conferência realizada até o momento.</p>
-              )}
               {inaugData.rounds.map((round) => {
                 const allItems = inaugChecklist.categories.flatMap(c => c.items);
-                const applicableItems = allItems.filter(i => round.items[i.id]?.status !== "NAO_SE_APLICA");
                 const getStatusScore = (status?: string): number => {
                   switch (status) {
                     case "TOTALMENTE_ATENDIDO": return 100;
                     case "EM_ANDAMENTO": return 50;
+                    case "NAO_SE_APLICA": return 100;
                     default: return 0;
                   }
                 };
                 const totalScore = allItems.reduce((acc, i) => acc + getStatusScore(round.items[i.id]?.status), 0);
-                const maxScore = applicableItems.length * 100;
+                const maxScore = allItems.length * 100;
                 const roundProg = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
                 const impItems = allItems.filter(i => i.impeditivo);
                 const impPendentes = impItems.filter(i => {
                   const s = round.items[i.id]?.status;
                   return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
                 }).length;
-                const hasRessalva = !!round.ressalva && round.ressalva.trim().length > 0;
-                const libStatus = roundProg >= 90
-                  ? "LIBERADO" : (hasRessalva ? "RESSALVAS" : "NAO_LIBERADO");
+                const libStatus = roundProg >= 95 && impPendentes === 0
+                  ? "LIBERADO" : (roundProg >= 85 && impPendentes === 0 ? "RESSALVAS" : "NAO_LIBERADO");
                 return (
                   <div key={round.id} className="mb-6 break-inside-avoid">
                     <h3 className="text-sm font-bold bg-gray-100 px-2 py-1 border border-black">
@@ -678,12 +662,16 @@ const StoreReport = () => {
                       {round.deadline && ` | Prazo: ${new Date(round.deadline + "T00:00:00").toLocaleDateString("pt-BR")}`}
                     </h3>
                     {inaugChecklist.categories.map(cat => {
-                      const catItems = cat.items;
-                      if (catItems.length === 0) return null;
+                      // Filter only pending items (not completed, not N/A)
+                      const pendingItems = cat.items.filter(item => {
+                        const s = round.items[item.id]?.status;
+                        return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
+                      });
+                      if (pendingItems.length === 0) return null;
                       return (
                         <div key={cat.id} className="mb-2">
                           <h4 className="text-xs font-bold bg-gray-50 px-2 py-0.5 border-x border-black">
-                            {cat.nome}
+                            {cat.nome} ({pendingItems.length} pendentes de {cat.items.length})
                           </h4>
                           <table className="w-full text-[10px] border-collapse">
                             <thead>
@@ -695,18 +683,10 @@ const StoreReport = () => {
                               </tr>
                             </thead>
                             <tbody>
-                              {cat.items.map(item => {
+                              {pendingItems.map(item => {
                                 const iData = round.items[item.id] || { status: "NAO_ATENDIDO" as InaugStatusType, observacoes: "", photos: [] };
                                 return (
-                                  <tr key={item.id} className={
-                                    iData.status === "TOTALMENTE_ATENDIDO" || iData.status === "CONCLUIDO" as any
-                                      ? "bg-green-50"
-                                      : iData.status === "EM_ANDAMENTO"
-                                      ? "bg-yellow-50"
-                                      : iData.status === "NAO_ATENDIDO" || iData.status === "NAO_INICIADO" as any
-                                      ? "bg-red-50"
-                                      : "bg-gray-50"
-                                  }>
+                                  <tr key={item.id} className={item.impeditivo ? "bg-red-50" : ""}>
                                     <td className="border border-black px-1 py-0.5">
                                       {item.nome}
                                       {item.impeditivo && " ⚠"}
@@ -735,11 +715,6 @@ const StoreReport = () => {
                       {libStatus === "NAO_LIBERADO" && "❌ NÃO LIBERADO PARA INAUGURAÇÃO"}
                       {` — ${roundProg}%`}
                     </div>
-                    {hasRessalva && (
-                      <div className="mt-2 p-2 border border-black text-[10px] italic bg-yellow-50">
-                        <strong>Ressalvas:</strong> {round.ressalva}
-                      </div>
-                    )}
                     {/* Signatures */}
                     {round.signatures && (
                       <div className="grid grid-cols-3 gap-8 mt-6 pt-4">

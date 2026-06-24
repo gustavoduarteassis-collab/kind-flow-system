@@ -26,7 +26,7 @@ const statusCycle: CronogramaDayStatus[] = ["none", "planned", "done", "delayed"
 
 const cellColors: Record<CronogramaDayStatus, string> = {
   none: "",
-  planned: "bg-[hsl(38,90%,55%)]",
+  planned: "bg-[hsl(200,70%,50%)]",
   done: "bg-[hsl(152,60%,40%)]",
   delayed: "bg-destructive",
 };

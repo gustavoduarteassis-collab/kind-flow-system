@@ -24,7 +24,7 @@ const formatCurrency = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const parseCurrency = (v: string) => {
-  const num = parseFloat(v.replace(/[^\d.,-]/g, "").replace(",", "."));
+  const num = parseFloat(v.replace(/[^\d.,\-]/g, "").replace(",", "."));
   return isNaN(num) ? 0 : num;
 };
 

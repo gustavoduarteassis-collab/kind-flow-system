@@ -15,7 +15,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -212,14 +211,6 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
     });
   };
 
-  const handleRessalvaChange = (value: string) => {
-    if (!currentRound) return;
-    updateCurrentRound({
-      ...currentRound,
-      ressalva: value,
-    });
-  };
-
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !uploadingItemId || !currentRound) return;
     const file = e.target.files[0];
@@ -260,8 +251,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
 
   // Progress calculations
   const allItems = checklist.categories.flatMap((c) => c.items);
-  const applicableItems = allItems.filter(item => currentRound?.items[item.id]?.status !== "NAO_SE_APLICA");
-  
+  const totalItems = allItems.length;
   const getStatusScore = (status?: InaugStatusType) => {
     switch (status) {
       case "TOTALMENTE_ATENDIDO":
@@ -269,26 +259,22 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
       case "EM_ANDAMENTO":
         return 50;
       case "NAO_SE_APLICA":
-        return 0;
+        return 100;
       default:
         return 0;
     }
   };
-
-  const totalScore = currentRound
-    ? allItems.reduce((acc, item) => {
-        const s = currentRound.items[item.id]?.status;
-        return acc + getStatusScore(s);
-      }, 0)
-    : 0;
-    
-  const maxScore = applicableItems.length * 100;
-  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
-  
   const doneItems = currentRound
-    ? allItems.filter((item) => currentRound.items[item.id]?.status === "TOTALMENTE_ATENDIDO").length
+    ? allItems.filter((item) => {
+        const s = currentRound.items[item.id]?.status;
+        return s === "TOTALMENTE_ATENDIDO" || s === "NAO_SE_APLICA";
+      }).length
     : 0;
-
+  const totalScore = currentRound
+    ? allItems.reduce((acc, item) => acc + getStatusScore(currentRound.items[item.id]?.status), 0)
+    : 0;
+  const maxScore = totalItems * 100;
+  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
   const impeditivos = allItems.filter((i) => i.impeditivo);
   const impeditivosPendentes = currentRound
     ? impeditivos.filter((i) => {
@@ -296,16 +282,13 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
         return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
       }).length
     : 0;
-
-  const hasRessalva = !!currentRound?.ressalva && currentRound.ressalva.trim().length > 0;
-  const isLiberado = progress >= 90;
-  const isLiberadoComRessalvas = !isLiberado && hasRessalva;
+  const isLiberado = progress >= 95 && impeditivosPendentes === 0;
+  const isLiberadoComRessalvas = !isLiberado && progress >= 85 && impeditivosPendentes === 0;
 
   const getCatProgress = (cat: InaugCategory) => {
     if (!currentRound) return 0;
-    const applicable = cat.items.filter(i => currentRound.items[i.id]?.status !== "NAO_SE_APLICA");
     const total = cat.items.reduce((acc, i) => acc + getStatusScore(currentRound.items[i.id]?.status), 0);
-    const max = applicable.length * 100;
+    const max = cat.items.length * 100;
     return max > 0 ? Math.round((total / max) * 100) : 0;
   };
 
@@ -387,7 +370,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                       <Calendar mode="single" selected={deadlineDate} onSelect={handleDeadlineChange} initialFocus className="p-3 pointer-events-auto" />
                     </PopoverContent>
                   </Popover>
-                  <span className="text-sm text-muted-foreground">{doneItems}/{allItems.length} itens</span>
+                  <span className="text-sm text-muted-foreground">{doneItems}/{totalItems} itens</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {impeditivosPendentes > 0 && (
@@ -399,50 +382,13 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                 </div>
               </div>
 
-              {/* Status & Progress Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card className={cn(
-                  "border-2",
-                  isLiberado ? "border-green-200 bg-green-50/50" : (isLiberadoComRessalvas ? "border-amber-200 bg-amber-50/50" : "border-red-200 bg-red-50/50")
-                )}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-4">
-                      <div className={cn(
-                        "h-12 w-12 rounded-full flex items-center justify-center shrink-0",
-                        isLiberado ? "bg-green-500" : (isLiberadoComRessalvas ? "bg-amber-500" : "bg-red-500")
-                      )}>
-                        {isLiberado ? <CheckCircle2 className="h-6 w-6 text-white" /> : <XCircle className="h-6 w-6 text-white" />}
-                      </div>
-                      <div>
-                        <h4 className={cn(
-                          "text-lg font-bold leading-tight",
-                          isLiberado ? "text-green-700" : (isLiberadoComRessalvas ? "text-amber-700" : "text-red-700")
-                        )}>
-                          {isLiberado ? "Liberado para Inauguração" : (isLiberadoComRessalvas ? "Liberado com Ressalva" : "Não Liberado para Inauguração")}
-                        </h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {isLiberado 
-                            ? "A loja atingiu o percentual mínimo de 90% para inauguração." 
-                            : (isLiberadoComRessalvas 
-                                ? "Percentual abaixo de 90%, porém liberado com ressalvas documentadas." 
-                                : "A loja ainda não atingiu o percentual mínimo de 90%.")}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <div className="space-y-3 pt-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="font-semibold text-muted-foreground uppercase tracking-wider text-[10px]">Progresso da Conferência</span>
-                    <span className="font-bold text-lg">{progress}%</span>
-                  </div>
-                  <Progress value={progress} className="h-3" />
-                  <div className="flex gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-green-500"></span> Realizados: {doneItems}</span>
-                    <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-red-500"></span> Pendentes: {allItems.length - doneItems}</span>
-                  </div>
+              {/* Progress */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Progresso</span>
+                  <span className="font-bold">{progress}%</span>
                 </div>
+                <Progress value={progress} className="h-3" />
               </div>
 
               {/* Categories */}
@@ -458,8 +404,8 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                           <span className="text-xs text-muted-foreground">
                             ({cat.items.filter((i) => {
                               const s = currentRound.items[i.id]?.status;
-                              return s === "TOTALMENTE_ATENDIDO";
-                            }).length}/{cat.items.filter(i => currentRound.items[i.id]?.status !== "NAO_SE_APLICA").length})
+                              return s === "TOTALMENTE_ATENDIDO" || s === "NAO_SE_APLICA";
+                            }).length}/{cat.items.length})
                           </span>
                         </div>
                       </AccordionTrigger>
@@ -489,11 +435,9 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                                     className={
                                       itemData.status === "TOTALMENTE_ATENDIDO"
                                         ? "bg-[hsl(152,60%,95%)]"
-                                        : itemData.status === "EM_ANDAMENTO"
-                                        ? "bg-[hsl(38,90%,97%)]"
-                                        : itemData.status === "NAO_ATENDIDO"
-                                        ? "bg-[hsl(0,84%,97%)]"
-                                        : "bg-muted/30"
+                                        : item.impeditivo && itemData.status !== "NAO_SE_APLICA"
+                                        ? "bg-[hsl(0,80%,97%)]"
+                                        : ""
                                     }
                                   >
                                     <TableCell>
@@ -582,7 +526,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                         <CheckCircle2 className="h-8 w-8 text-[hsl(38,90%,45%)]" />
                         <div className="text-center">
                           <h3 className="text-lg font-bold text-[hsl(38,90%,35%)]">⚠️ LIBERADO COM RESSALVAS</h3>
-                          <p className="text-sm text-[hsl(38,90%,35%)]">{progress}% do checklist — liberação condicionada às observações abaixo</p>
+                          <p className="text-sm text-[hsl(38,90%,35%)]">{progress}% do checklist — itens pendentes devem ser resolvidos após inauguração</p>
                         </div>
                       </>
                     ) : (
@@ -590,7 +534,7 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                         <XCircle className="h-8 w-8 text-destructive" />
                         <div className="text-center">
                           <h3 className="text-lg font-bold text-destructive">❌ NÃO LIBERADO PARA INAUGURAÇÃO</h3>
-                          <p className="text-sm text-destructive">{progress}% do checklist — mínimo necessário: 90%</p>
+                          <p className="text-sm text-destructive">{progress}% do checklist — mínimo necessário: 85%</p>
                           {impeditivosPendentes > 0 && (
                             <p className="text-xs text-destructive mt-1">⚠ {impeditivosPendentes} itens impeditivos pendentes</p>
                           )}
@@ -598,21 +542,6 @@ const ChecklistInauguracao = ({ tipoLoja, data, onTipoChange, onDataChange }: Pr
                       </>
                     )}
                   </div>
-
-                  {progress < 90 && (
-                    <div className="mt-4 pt-4 border-t border-black/5">
-                      <label className="text-sm font-semibold block mb-2">Ressalvas para Liberação (abaixo de 90%)</label>
-                      <Textarea 
-                        placeholder="Descreva as ressalvas ou observações para permitir a inauguração mesmo abaixo de 90%..."
-                        value={currentRound.ressalva || ""}
-                        onChange={(e) => handleRessalvaChange(e.target.value)}
-                        className="bg-white border-muted-foreground/30 min-h-[80px]"
-                      />
-                      <p className="text-[10px] text-muted-foreground mt-1 italic">
-                        Ao preencher este campo, a loja será marcada como "Liberada com Ressalvas".
-                      </p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 

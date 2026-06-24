@@ -330,7 +330,7 @@ export function MatrizResultados({ year }: { year: number }) {
                       </Badge>
                     </td>
                     {row.values.map((v, ci) => {
-                      const colorClass = "";
+                      let colorClass = "";
                       if (!isMeta && v !== "-" && row.label === "Realizado") {
                         // Check if realizado exceeds meta for custo indicators
                         const numVal = parseFloat(v.replace(/[R$\s.]/g, "").replace(",", "."));

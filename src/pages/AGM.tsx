@@ -100,7 +100,6 @@ type ActionPlan = {
   causa: string; fenomeno: string; acao: string; como: string;
   responsavel: string; prazo_inicial: string; prazo_final: string;
   farol: string; ai_generated: boolean; created_at: string;
-  realizado?: string; status_concluido?: boolean;
 };
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -139,7 +138,6 @@ const AGM = () => {
   const [mesRef, setMesRef] = useState(getCurrentMonth());
   const [entries, setEntries] = useState<AgmEntry[]>([]);
   const [plans, setPlans] = useState<ActionPlan[]>([]);
-  const [gustavoPlans, setGustavoPlans] = useState<ActionPlan[]>([]);
   const [storesData, setStoresData] = useState<StoreAGMData[]>([]);
   const [fornecedoresCount, setFornecedoresCount] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -267,10 +265,9 @@ const AGM = () => {
 
   const fetchAGMData = useCallback(async () => {
     if (!user) return;
-    const [e, p, g] = await Promise.all([
+    const [e, p] = await Promise.all([
       supabase.from("agm_entries").select("*").eq("mes_referencia", mesRef).order("created_at"),
       supabase.from("agm_action_plans").select("*").eq("mes_referencia", mesRef).order("created_at"),
-      supabase.from("agm_action_plans").select("*").ilike("responsavel", "%Gustavo%").order("prazo_final"),
     ]);
     if (e.data) {
       setEntries(e.data as AgmEntry[]);
@@ -281,7 +278,6 @@ const AGM = () => {
       setEditingEntry(edit);
     }
     if (p.data) setPlans(p.data as ActionPlan[]);
-    if (g.data) setGustavoPlans(g.data as ActionPlan[]);
   }, [user, mesRef]);
 
   // Check if user is authorized team member
@@ -421,15 +417,6 @@ const AGM = () => {
   const updatePlanFarol = async (id: string, farol: string) => {
     await supabase.from("agm_action_plans").update({ farol }).eq("id", id);
     fetchAGMData();
-  };
-
-  const updateGustavoPlan = async (id: string, updates: { realizado?: string; status_concluido?: boolean }) => {
-    const { error } = await supabase.from("agm_action_plans").update(updates).eq("id", id);
-    if (error) {
-      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
-    } else {
-      fetchAGMData();
-    }
   };
 
   const generatePDF = () => {
@@ -612,89 +599,14 @@ const AGM = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="gustavo" className="space-y-6">
+        <Tabs defaultValue="lojas" className="space-y-6">
           <TabsList>
-            <TabsTrigger value="gustavo" className="bg-primary/10 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground font-bold">
-              Ações Gustavo Duarte
-            </TabsTrigger>
             <TabsTrigger value="lojas">Lojas do Mês</TabsTrigger>
             <TabsTrigger value="matriz">Matriz de Resultados</TabsTrigger>
             <TabsTrigger value="analistas">Metas Analistas</TabsTrigger>
             <TabsTrigger value="indicadores">Indicadores Extras</TabsTrigger>
             <TabsTrigger value="planos">Planos de Ação ({plans.length})</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="gustavo" className="space-y-4">
-            <h3 className="text-lg font-bold flex items-center gap-2 pt-2 text-primary">
-              <Users className="h-5 w-5" /> Ações Gustavo Duarte ({gustavoPlans.length})
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {gustavoPlans.map((plan) => (
-                <Card key={plan.id} className={`border-l-4 ${plan.status_concluido ? 'border-l-green-500 opacity-80' : 'border-l-primary'} shadow-sm hover:shadow-md transition-all`}>
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start gap-2">
-                      <Badge variant="outline" className="text-[10px] uppercase truncate">{plan.indicador}</Badge>
-                      <div className="flex items-center gap-2">
-                        {plan.status_concluido && (
-                          <Badge className="bg-green-500 text-white flex items-center gap-1">
-                            <CheckCircle2 className="h-3 w-3" /> Realizado
-                          </Badge>
-                        )}
-                        <Badge className={`${farolColors[plan.farol]} text-[9px]`}>{plan.farol}</Badge>
-                      </div>
-                    </div>
-                    <CardTitle className={`text-sm mt-2 ${plan.status_concluido ? 'line-through text-muted-foreground' : ''}`}>
-                      {plan.acao}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3 pb-4">
-                    <div className="text-xs space-y-1">
-                      <p className="font-semibold text-muted-foreground uppercase text-[9px]">Como fazer:</p>
-                      <p className="text-foreground italic leading-relaxed">"{plan.como}"</p>
-                    </div>
-                    
-                    <div className="space-y-2 pt-2 border-t">
-                      <Label className="text-[10px] uppercase text-muted-foreground font-semibold">O que foi feito:</Label>
-                      <Textarea 
-                        placeholder="Descreva o que foi realizado..."
-                        className="text-xs min-h-[60px] bg-muted/30"
-                        defaultValue={plan.realizado || ""}
-                        onBlur={(e) => {
-                          if (e.target.value !== plan.realizado) {
-                            updateGustavoPlan(plan.id, { realizado: e.target.value });
-                          }
-                        }}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between pt-2 text-[10px]">
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          <span>Prazo: {plan.prazo_final || 'N/A'}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm" 
-                          variant={plan.status_concluido ? "outline" : "default"}
-                          className={`h-7 px-2 text-[10px] ${plan.status_concluido ? 'text-green-600' : ''}`}
-                          onClick={() => updateGustavoPlan(plan.id, { status_concluido: !plan.status_concluido })}
-                        >
-                          {plan.status_concluido ? "Reabrir" : "Concluir"}
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {gustavoPlans.length === 0 && (
-                <Card className="col-span-full py-12 text-center text-muted-foreground">
-                  Nenhum plano de ação encontrado para Gustavo Duarte.
-                </Card>
-              )}
-            </div>
-          </TabsContent>
 
           <TabsContent value="lojas" className="space-y-4">
             {loading && (

@@ -25,18 +25,18 @@ import {
 import { LogOut, ClipboardCheck } from "lucide-react";
 
 const statusColors: Record<StatusType, string> = {
-  "NÃO REALIZADO": "bg-destructive text-destructive-foreground",
+  "NÃO INICIADO": "bg-secondary text-secondary-foreground",
   "EM COTAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM TRANSPORTE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "REALIZADO": "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
-  "REALIZANDO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "EM TRANSPORTE": "bg-[hsl(210,80%,55%)] text-[hsl(0,0%,100%)]",
+  "REALIZADO": "bg-[hsl(142,60%,45%)] text-[hsl(0,0%,100%)]",
+  "REALIZANDO": "bg-[hsl(152,50%,28%)] text-[hsl(0,0%,100%)]",
   "ATRASADO": "bg-destructive text-destructive-foreground",
   "NÃO SE APLICA": "bg-muted text-muted-foreground",
-  "CONSTRUTORA": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM ELABORAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM ANÁLISE": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM CONTRATAÇÃO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
-  "EM ANDAMENTO": "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  "CONSTRUTORA": "bg-[hsl(270,50%,50%)] text-[hsl(0,0%,100%)]",
+  "EM ELABORAÇÃO": "bg-[hsl(38,70%,60%)] text-[hsl(38,90%,15%)]",
+  "EM ANÁLISE": "bg-[hsl(200,60%,55%)] text-[hsl(0,0%,100%)]",
+  "EM CONTRATAÇÃO": "bg-[hsl(280,50%,55%)] text-[hsl(0,0%,100%)]",
+  "EM ANDAMENTO": "bg-[hsl(45,90%,55%)] text-[hsl(45,90%,15%)]",
 };
 
 type AccessType = "franqueado" | "construtor";
@@ -132,20 +132,11 @@ const FranqueadoPortal = () => {
   const canEditDiario = isFranqueado;
   const canEditCustos = isFranqueado;
 
-  const allItems = checklistCategories.flatMap((c) => c.items);
-  const applicableItems = allItems.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
-  
-  const getStatusScore = (status?: StatusType): number => {
-    if (status === "REALIZADO") return 100;
-    if (status === "NÃO SE APLICA") return 0;
-    if (!status || status === "NÃO REALIZADO" || status === "ATRASADO") return 0;
-    return 50;
-  };
-
-  const totalScore = allItems.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
-  const maxScore = applicableItems.length * 100;
-  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
-  const doneItems = Object.values(store.checklist).filter(c => c.status === "REALIZADO").length;
+  const totalItems = checklistCategories.flatMap((c) => c.items).length;
+  const doneItems = Object.values(store.checklist).filter(
+    (c) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA"
+  ).length;
+  const progress = Math.round((doneItems / totalItems) * 100);
 
   const handleStatusChange = (itemId: number, status: StatusType) => {
     if (!canEditChecklist) return;
@@ -164,10 +155,10 @@ const FranqueadoPortal = () => {
   const getCategoryProgress = (categoryId: string) => {
     const cat = checklistCategories.find((c) => c.id === categoryId);
     if (!cat) return 0;
-    const applicable = cat.items.filter(item => store.checklist[item.id]?.status !== "NÃO SE APLICA");
-    const totalScore = cat.items.reduce((acc, item) => acc + getStatusScore(store.checklist[item.id]?.status), 0);
-    const maxScore = applicable.length * 100;
-    return maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+    const done = cat.items.filter(
+      (item) => store.checklist[item.id]?.status === "REALIZADO" || store.checklist[item.id]?.status === "NÃO SE APLICA"
+    ).length;
+    return Math.round((done / cat.items.length) * 100);
   };
 
   const portalLabel = isConstrutor ? "Portal do Construtor" : "Portal do Franqueado";
@@ -195,7 +186,7 @@ const FranqueadoPortal = () => {
             <div className="flex items-center gap-4">
               <Progress value={progress} className="h-2.5 flex-1" />
               <span className="font-semibold text-sm">{progress}%</span>
-              <Badge className="bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]">✓ {doneItems}/{allItems.length}</Badge>
+              <Badge className="bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]">✓ {doneItems}/{totalItems}</Badge>
             </div>
           )}
         </div>
@@ -308,7 +299,7 @@ const FranqueadoPortal = () => {
                         </TableHeader>
                         <TableBody>
                           {cat.items.map((item) => {
-                            const data = store.checklist[item.id] || { status: "NÃO REALIZADO" as StatusType, prazoInicial: "", prazoFinal: "", observacoes: "" };
+                            const data = store.checklist[item.id] || { status: "NÃO INICIADO" as StatusType, prazoInicial: "", prazoFinal: "", observacoes: "" };
                             const isImpeditivo = item.atividade.includes("IMPEDITIVO");
                             return (
                               <TableRow key={item.id} className={

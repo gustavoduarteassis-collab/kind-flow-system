@@ -1,17 +1,17 @@
 export type InaugStatusType = "NAO_ATENDIDO" | "EM_ANDAMENTO" | "TOTALMENTE_ATENDIDO" | "NAO_SE_APLICA";
 
 export const inaugStatusLabels: Record<InaugStatusType, string> = {
-  NAO_ATENDIDO: "Não Realizado",
+  NAO_ATENDIDO: "Não Atendido",
   EM_ANDAMENTO: "Em Andamento",
   TOTALMENTE_ATENDIDO: "Realizado",
   NAO_SE_APLICA: "Não se Aplica",
 };
 
 export const inaugStatusColors: Record<InaugStatusType, string> = {
-  NAO_ATENDIDO: "bg-[#ef4444] text-white", // Red
-  EM_ANDAMENTO: "bg-[#f59e0b] text-white", // Yellow/Amber
-  TOTALMENTE_ATENDIDO: "bg-[#10b981] text-white", // Green
-  NAO_SE_APLICA: "bg-[#94a3b8] text-white", // Gray/Slate
+  NAO_ATENDIDO: "bg-destructive text-destructive-foreground",
+  EM_ANDAMENTO: "bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)]",
+  TOTALMENTE_ATENDIDO: "bg-[hsl(152,60%,40%)] text-[hsl(0,0%,100%)]",
+  NAO_SE_APLICA: "bg-muted text-muted-foreground",
 };
 
 export interface InaugItem {
@@ -42,7 +42,7 @@ const ruaCategories: InaugCategory[] = [
       { id: "rua-4", nome: "Totem: acabamento, dimensão e iluminação" },
       { id: "rua-5", nome: "Toldo: fixação, material e cor" },
       { id: "rua-6", nome: "Tapete: dimensão" },
-      { id: "rua-7", nome: "Brise: acabamento e espaçamento (conforme projeto)" },
+      { id: "rua-7", nome: "Brise: acabamento e espaçamento" },
       { id: "rua-8", nome: "ACM: instalação, pintura e acabamento" },
       { id: "rua-9", nome: "Pintura: textura" },
       { id: "rua-10", nome: "Vidro: verificar aplicação do silicone nas juntas" },
@@ -58,7 +58,7 @@ const ruaCategories: InaugCategory[] = [
       { id: "rua-20", nome: "Portão de enrolar: instalação" },
       { id: "rua-21", nome: "Portão de enrolar: pintura do portão e perfil guia" },
       { id: "rua-22", nome: "Alçapão: acesso ao motor do portão de enrolar" },
-      { id: "rua-23", nome: "Pintura interna: preenchimento lateral e forro (Cor: Branco Neve Suvinil)" },
+      { id: "rua-23", nome: "Pintura interna: preenchimento lateral e forro" },
       { id: "rua-24", nome: "Trilho VM: cor e local" },
       { id: "rua-25", nome: "Iluminação: refletor" },
       { id: "rua-26", nome: "Iluminação: forro" },
@@ -80,7 +80,7 @@ const ruaCategories: InaugCategory[] = [
       { id: "rua-36", nome: "Teca" },
       { id: "rua-37", nome: "Virada da testeira com forro: acabamento" },
       { id: "rua-38", nome: "Pintura: forro" },
-      { id: "rua-39", nome: "Pintura: paredes (Cor: Branco Neve Suvinil)" },
+      { id: "rua-39", nome: "Pintura: paredes" },
       { id: "rua-40", nome: "Perfil de iluminação: cor e dimensão nos closets" },
       { id: "rua-41", nome: "Spots: direcionamento" },
       { id: "rua-42", nome: "Luminárias de embutir: iluminar a teca e corredor da loja" },
@@ -211,8 +211,6 @@ const ruaCategories: InaugCategory[] = [
       { id: "rua-131", nome: "Rolos de etiquetas e Ribbon", impeditivo: true },
       { id: "rua-132", nome: "Coletor de dados: para auditoria" },
       { id: "rua-133", nome: "Listenx", impeditivo: true },
-      { id: "rua-151", nome: "Agendamento técnico (Data System & Skytef)", impeditivo: true },
-      { id: "rua-152", nome: "Auditoria de Cupom Fiscal com CNPJ validado", impeditivo: true },
     ],
   },
   {
@@ -220,7 +218,7 @@ const ruaCategories: InaugCategory[] = [
     nome: "Finalização",
     items: [
       { id: "rua-134", nome: "Campanha vigente: validar com o Trade Marketing" },
-      { id: "rua-135", nome: "Alarmagem de 100% dos produtos", impeditivo: true },
+      { id: "rua-135", nome: "Alarmagem dos produtos", impeditivo: true },
       { id: "rua-136", nome: "Reposição", impeditivo: true },
       { id: "rua-137", nome: "Kit Visual Merchandising: adesivos, placas de numeração, suporte e expositor acrílico", impeditivo: true },
       { id: "rua-138", nome: "Blocos expositores em MDF" },
@@ -280,7 +278,7 @@ const shoppingCategories: InaugCategory[] = [
       { id: "shop-27", nome: "Teca" },
       { id: "shop-28", nome: "Virada da testeira com forro: acabamento" },
       { id: "shop-29", nome: "Pintura: forro" },
-      { id: "shop-30", nome: "Pintura: paredes (Cor: Branco Neve Suvinil)" },
+      { id: "shop-30", nome: "Pintura: paredes" },
       { id: "shop-31", nome: "Perfil de iluminação: cor e dimensão nos closets" },
       { id: "shop-32", nome: "Spots: direcionamento" },
       { id: "shop-33", nome: "Luminárias de embutir: iluminar a teca e corredor da loja" },
@@ -408,8 +406,6 @@ const shoppingCategories: InaugCategory[] = [
       { id: "shop-119", nome: "Rolos de etiquetas e Ribbon", impeditivo: true },
       { id: "shop-120", nome: "Coletor de dados: para auditoria" },
       { id: "shop-121", nome: "Listenx", impeditivo: true },
-      { id: "shop-151", nome: "Agendamento técnico (Data System & Skytef)", impeditivo: true },
-      { id: "shop-152", nome: "Auditoria de Cupom Fiscal com CNPJ validado", impeditivo: true },
     ],
   },
   {
@@ -417,7 +413,7 @@ const shoppingCategories: InaugCategory[] = [
     nome: "Finalização",
     items: [
       { id: "shop-122", nome: "Campanha vigente: validar com o Trade Marketing" },
-      { id: "shop-123", nome: "Alarmagem de 100% dos produtos", impeditivo: true },
+      { id: "shop-123", nome: "Alarmagem dos produtos", impeditivo: true },
       { id: "shop-124", nome: "Reposição", impeditivo: true },
       { id: "shop-125", nome: "Kit Visual Merchandising: adesivos, placas de numeração, suporte e expositor acrílico", impeditivo: true },
       { id: "shop-126", nome: "Blocos expositores em MDF" },
@@ -479,7 +475,6 @@ export type InaugRound = {
   label: string; // e.g. "1ª Conferência"
   items: Record<string, InaugItemData>;
   signatures?: InaugSignatures;
-  ressalva?: string; // Observação para liberação com ressalva
 };
 
 // V2 data format: multiple rounds

@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -22,14 +21,12 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
-  ChevronLeft, ChevronRight, Calendar, KeyRound, Sun, User,
-  FileDown
+  ChevronLeft, ChevronRight, Calendar, KeyRound,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { exportFeriasGustavoExcel } from "@/lib/exportFeriasGustavoExcel";
 
 type TeamMember = {
   id: string; name: string; role: string; email: string | null; phone: string | null;
@@ -631,12 +628,10 @@ const Equipe = () => {
         <Tabs defaultValue="tarefas">
           <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="tarefas" className="gap-2"><ListTodo className="h-4 w-4" /> Tarefas</TabsTrigger>
-            <TabsTrigger value="lojas_principal" className="gap-2"><Plus className="h-4 w-4" /> Lojas Principal</TabsTrigger>
             <TabsTrigger value="habitos" className="gap-2"><Target className="h-4 w-4" /> Hábitos</TabsTrigger>
             <TabsTrigger value="programacao" className="gap-2"><Calendar className="h-4 w-4" /> Programação</TabsTrigger>
             <TabsTrigger value="calendario" className="gap-2"><Calendar className="h-4 w-4" /> Calendário</TabsTrigger>
             <TabsTrigger value="equipe" className="gap-2"><Users className="h-4 w-4" /> Equipe</TabsTrigger>
-            <TabsTrigger value="ferias_gustavo" className="gap-2 text-[hsl(38,90%,55%)]"><Sun className="h-4 w-4" /> Férias Gustavo</TabsTrigger>
           </TabsList>
 
           {/* === TAREFAS === */}
@@ -1806,237 +1801,6 @@ const Equipe = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="lojas_principal">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <div>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <ListTodo className="h-5 w-5" /> Acompanhamento de Obras (Principal)
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">Status detalhado de todas as filiais e locais.</p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={async () => {
-                    const confirm = window.confirm("Deseja sincronizar os dados da planilha novamente?");
-                    if (confirm) {
-                      // Logic is server-side/internal usually, but we could trigger a refetch
-                      toast({ title: "Sincronizando...", description: "Recarregando dados do banco." });
-                      // fetchAll is already called in useEffect, but we can call it again
-                      fetchAll();
-                    }
-                  }}
-                >
-                  Sincronizar Planilha
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[100px]">Filial</TableHead>
-                        <TableHead className="min-w-[200px]">Local</TableHead>
-                        <TableHead className="min-w-[150px]">Status Geral</TableHead>
-                        <TableHead className="min-w-[200px]">Início Obra</TableHead>
-                        <TableHead className="min-w-[120px]">Inauguração</TableHead>
-                        <TableHead className="min-w-[300px]">Comentários Recentes</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {stores.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={6} className="text-center py-12 text-muted-foreground italic">Nenhuma loja encontrada.</TableCell>
-                        </TableRow>
-                      ) : (
-                        stores.map(store => (
-                          <TableRow 
-                            key={store.id} 
-                            className="hover:bg-muted/30 cursor-pointer transition-colors"
-                            onClick={() => navigate(`/loja/${store.id}`)}
-                          >
-                            <TableCell className="font-mono text-xs font-bold">{store.filial || "—"}</TableCell>
-                            <TableCell>
-                              <div>
-                                <p className="font-semibold text-sm">{store.nome}</p>
-                                <p className="text-[10px] text-muted-foreground truncate max-w-[180px]">{store.localizacao}</p>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-col gap-1">
-                                <Badge variant="secondary" className="text-[10px] w-fit">
-                                  {store.statusGeral || "NÃO INICIADO"}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-xs">
-                              <ScrollArea className="h-10">
-                                <p className="whitespace-pre-wrap">{store.inicioObraTexto || "—"}</p>
-                              </ScrollArea>
-                            </TableCell>
-                            <TableCell className="text-xs font-medium">{store.previsaoInauguracaoTexto || "—"}</TableCell>
-                            <TableCell className="text-xs">
-                              <ScrollArea className="h-12">
-                                <p className="text-muted-foreground leading-relaxed">
-                                  {store.comentariosObras || "Nenhum comentário registrado."}
-                                </p>
-                              </ScrollArea>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="ferias_gustavo">
-            <div className="grid gap-6">
-              <Card className="border-[hsl(38,90%,55%)]/30">
-                <CardHeader className="bg-[hsl(38,90%,55%)]/5">
-                  <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div className="space-y-1">
-                      <CardTitle className="flex items-center gap-2 text-[hsl(38,90%,55%)] text-lg">
-                        <Sun className="h-5 w-5" /> Dashboard de Cobrança — Férias Gustavo
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground">Monitoramento de pendências e ações críticas em lojas.</p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {(() => {
-                      const criticalStores = stores.filter(store => {
-                        const statusStr = (store.statusGeral || "").toLowerCase();
-                        const commentStr = (store.comentariosObras || "").toLowerCase();
-                        const terms = ["atraso", "cobrar", "pendente", "aguardando"];
-                        return terms.some(term => statusStr.includes(term) || commentStr.includes(term));
-                      });
-                      
-                      return criticalStores.length === 0 ? (
-                        <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
-                          Nenhuma pendência crítica ou atraso detectado nos status das lojas.
-                        </div>
-                      ) : (
-                        criticalStores.map(store => (
-                          <Card key={store.id} className="border-destructive/20 hover:border-destructive/40 transition-colors shadow-sm">
-                            <CardHeader className="pb-2">
-                              <div className="flex justify-between items-start">
-                                <CardTitle className="text-sm font-bold truncate pr-2">{store.nome}</CardTitle>
-                                <Badge variant="destructive" className="text-[10px] shrink-0">Cobrar</Badge>
-                              </div>
-                              <p className="text-[10px] text-muted-foreground">{store.analistaObra || "Sem analista"}</p>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground uppercase font-bold">Último Status / Comentário</Label>
-                                <div className="p-2 bg-muted/30 rounded text-xs italic">
-                                  {store.statusGeral || store.comentariosObras || "Sem comentários recentes"}
-                                </div>
-                              </div>
-                              <div className="space-y-1">
-                                <Label className="text-[10px] text-muted-foreground uppercase font-bold">Minha Nota de Cobrança</Label>
-                                <Textarea 
-                                  className="text-xs min-h-[60px] resize-none" 
-                                  placeholder="Escreva sua orientação para a equipe..."
-                                  value={store.cobrancaNota || ""}
-                                  onChange={(e) => updateStore(store.id, { cobrancaNota: e.target.value } as any)}
-                                />
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))
-                      );
-                    })()}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader className="pb-3 border-b">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Users className="h-4 w-4 text-blue-500" /> Ações Deise & Gizelia
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 px-0">
-                    <div className="max-h-[400px] overflow-y-auto px-4 space-y-3">
-                      {(() => {
-                        const filteredStores = stores.filter(s => 
-                          (s.comentariosObras || "").toLowerCase().includes("deise") || 
-                          (s.comentariosObras || "").toLowerCase().includes("gizelia") ||
-                          (s.statusGeral || "").toLowerCase().includes("deise") ||
-                          (s.statusGeral || "").toLowerCase().includes("gizelia")
-                        );
-
-                        return filteredStores.length === 0 ? (
-                          <p className="text-sm text-center py-8 text-muted-foreground italic">Nenhuma ação mencionando Deise ou Gizelia.</p>
-                        ) : (
-                          filteredStores.map(store => (
-                            <div key={store.id} className="p-3 rounded-lg border bg-muted/20 flex flex-col gap-1 relative overflow-hidden">
-                              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500" />
-                              <div className="flex justify-between items-start mb-1">
-                                <span className="text-[10px] font-bold text-blue-600 uppercase">
-                                  {store.nome}
-                                </span>
-                              </div>
-                              <p className="text-xs font-medium">{store.statusGeral || store.comentariosObras}</p>
-                              <div className="mt-2 pt-2 border-t border-muted/50">
-                                <Label className="text-[9px] text-muted-foreground uppercase">Nota de Cobrança</Label>
-                                <Textarea 
-                                  className="text-xs min-h-[40px] mt-1" 
-                                  placeholder="Nota de cobrança..."
-                                  value={store.cobrancaNota || ""}
-                                  onChange={(e) => updateStore(store.id, { cobrancaNota: e.target.value } as any)}
-                                />
-                              </div>
-                            </div>
-                          ))
-                        );
-                      })()}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader className="pb-3 border-b">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <ListTodo className="h-4 w-4 text-orange-500" /> Todas as Lojas (Acompanhamento)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 px-0">
-                    <div className="max-h-[400px] overflow-y-auto px-4 space-y-4">
-                      {stores.map(store => (
-                        <div key={store.id} className="space-y-2 pb-4 border-b last:border-0">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm font-bold">{store.nome}</span>
-                            <span className="text-[10px] text-muted-foreground">Filial: {store.filial}</span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-[10px]">
-                            <div className="bg-muted/30 p-1 rounded">
-                              <strong>Previsão:</strong> {store.previsaoInauguracaoTexto}
-                            </div>
-                            <div className="bg-muted/30 p-1 rounded">
-                              <strong>Status:</strong> {store.statusGeral?.substring(0, 30)}...
-                            </div>
-                          </div>
-                          <Textarea 
-                            className="text-xs min-h-[50px] bg-muted/10" 
-                            placeholder="Adicionar nota de cobrança para a equipe..."
-                            value={store.cobrancaNota || ""}
-                            onChange={(e) => updateStore(store.id, { cobrancaNota: e.target.value } as any)}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
         </Tabs>
       </main>
     </div>

@@ -1,5 +1,5 @@
 export type StatusType =
-  | "NÃO REALIZADO"
+  | "NÃO INICIADO"
   | "EM COTAÇÃO"
   | "EM TRANSPORTE"
   | "REALIZADO"
@@ -40,11 +40,6 @@ export interface Store {
   analistaObra: string;
   inauguracao: string;
   tipoLoja: "rua" | "shopping" | "";
-  razaoSocial?: string;
-  porte?: "Compacta" | "Padrão" | "Ampliada" | "";
-  cidade?: string;
-  uf?: string;
-  faseAtual?: "Pré-Obra" | "Obra" | "Setup" | "Abertura";
   checklist: Record<number, {
     status: StatusType;
     prazoInicial: string;
@@ -58,27 +53,18 @@ export interface Store {
   custos?: any;
   solicitacoes?: any;
   visitaTecnica?: any;
-  actionPlans?: any[];
-  _categoryNames?: Record<string, string>;
-  statusGeral?: string;
-  comentariosObras?: string;
-  cobrancaNota?: string;
-  localizacao?: string;
-  previsaoInauguracaoTexto?: string;
-  inicioObraTexto?: string;
 }
 
-
 const defaultStatusOptions: StatusType[] = [
-  "NÃO REALIZADO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+  "NÃO INICIADO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
 ];
 
 const burocraticStatusOptions: StatusType[] = [
-  "NÃO REALIZADO", "EM ANDAMENTO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+  "NÃO INICIADO", "EM ANDAMENTO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
 ];
 
 const obraExecucaoStatusOptions: StatusType[] = [
-  "NÃO REALIZADO", "EM ANDAMENTO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
+  "NÃO INICIADO", "EM ANDAMENTO", "EM COTAÇÃO", "EM TRANSPORTE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"
 ];
 
 export const checklistCategories: ChecklistCategory[] = [
@@ -114,7 +100,7 @@ export const checklistCategories: ChecklistCategory[] = [
   {
     id: "projetos",
     nome: "Projetos",
-    statusOptions: ["NÃO REALIZADO", "EM ELABORAÇÃO", "EM ANÁLISE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"],
+    statusOptions: ["NÃO INICIADO", "EM ELABORAÇÃO", "EM ANÁLISE", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA", "CONSTRUTORA"],
     items: [
       { id: 23, atividade: "Solicitar ao shopping/proprietário a planta da loja e caderno técnico", responsavel: "Supervisor de Projetos" },
       { id: 24, atividade: "Medição da Loja in-loco", responsavel: "Supervisor de Projetos" },
@@ -125,7 +111,6 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 29, atividade: "Envio e aprovação do projeto arquitetônico para Shopping / Proprietário", responsavel: "Supervisor de Projetos" },
       { id: 30, atividade: "Projeto estrutural", responsavel: "Analista de arquitetura" },
       { id: 31, atividade: "Projeto elétrico", responsavel: "Analista de arquitetura" },
-      { id: 154, atividade: "Projeto de Dados e Voz", responsavel: "Analista de arquitetura" },
       { id: 32, atividade: "Projeto incêndio", responsavel: "Analista de arquitetura" },
       { id: 33, atividade: "Projeto Ar condicionado", responsavel: "Analista de arquitetura" },
       { id: 34, atividade: "Medição da Loja pós finalização de Drywall (móveis)", responsavel: "Franqueado" },
@@ -158,8 +143,6 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 54, atividade: "Lâmpadas", responsavel: "Franqueado", observacoes: "Thor Iluminação, Agopal ou fornecedor local" },
       { id: 55, atividade: "Portas em MDF", responsavel: "Franqueado" },
       { id: 56, atividade: "Letreiros + ACM fachada", responsavel: "Franqueado" },
-      { id: 151, atividade: "Telas de Vitrine (Led)", responsavel: "Franqueado" },
-      { id: 152, atividade: "Totem (Loja de Rua)", responsavel: "Franqueado" },
       { id: 57, atividade: "Aquisição do Contador de Fluxo - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado", observacoes: "Virtual Gate" },
       { id: 58, atividade: "Extintores e placas de sinalização", responsavel: "Franqueado" },
       { id: 59, atividade: "Vaso - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado" },
@@ -179,7 +162,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 66, atividade: "Instalação porta de aço automática (transvision)", responsavel: "Construtora" },
       { id: 67, atividade: "Incêndio (spk)", responsavel: "Construtora" },
       { id: 68, atividade: "Instalação ar condicionado", responsavel: "Construtora" },
-      { id: 69, atividade: "Drywall e forro em gesso (Requer Registro de Vistoria de Forro)", responsavel: "Construtora" },
+      { id: 69, atividade: "Drywall e forro em gesso", responsavel: "Construtora" },
       { id: 70, atividade: "Assentamento porcelanato (Piso Eliane)", responsavel: "Construtora" },
       { id: 71, atividade: "Assentamento piso vinílico", responsavel: "Construtora" },
       { id: 72, atividade: "Pintura", responsavel: "Construtora" },
@@ -222,7 +205,6 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 102, atividade: "Impressora Térmica não fiscal Bematech MP 4200", responsavel: "Franqueado" },
       { id: 103, atividade: "Impressora laser Multifuncional HP modelo 127FN", responsavel: "Franqueado" },
       { id: 138, atividade: "TV 65''", responsavel: "Franqueado" },
-      { id: 155, atividade: "Tablet (Relatório de Vendas)", responsavel: "Franqueado" },
       { id: 104, atividade: "Coletor de Dados - C3tech leitor wireless - IMPEDITIVO", responsavel: "Franqueado" },
       { id: 105, atividade: "Configuração da rede de internet e montagem do rack", responsavel: "Franqueado" },
       { id: 106, atividade: "Configuração do sistema USE pela Data System", responsavel: "Implantadoras" },
@@ -276,7 +258,6 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 140, atividade: "Compra do Kit VM (CABIDES) - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado" },
       { id: 141, atividade: "Itens opcionais para Visual Merchandising", responsavel: "Franqueado" },
       { id: 142, atividade: "Tapete - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado" },
-      { id: 153, atividade: "Adesivo 'Seja um Franqueado' - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado" },
       { id: 143, atividade: "Trilho Sulço Simples Alumínio (verificar especificação no projeto)", responsavel: "Franqueado" },
       { id: 144, atividade: "Livro Procon", responsavel: "Franqueado" },
       { id: 145, atividade: "Divulgação da nova loja nas redes sociais", responsavel: "Franqueado / Marketing" },
@@ -290,7 +271,7 @@ export const checklistCategories: ChecklistCategory[] = [
   {
     id: "contratacao-pessoal",
     nome: "Contratação Pessoal",
-    statusOptions: ["NÃO REALIZADO", "EM CONTRATAÇÃO", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA"],
+    statusOptions: ["NÃO INICIADO", "EM CONTRATAÇÃO", "REALIZADO", "REALIZANDO", "ATRASADO", "NÃO SE APLICA"],
     items: [
       { id: 128, atividade: "Verificar convenção coletiva da cidade", responsavel: "Franqueado" },
       { id: 129, atividade: "Recrutar e admitir equipe da loja - IMPEDITIVO", responsavel: "Franqueado" },
@@ -306,7 +287,7 @@ export function createDefaultChecklist(): Store["checklist"] {
   const checklist: Store["checklist"] = {};
   allItems.forEach((item) => {
     checklist[item.id] = {
-      status: "NÃO REALIZADO",
+      status: "NÃO INICIADO",
       prazoInicial: "",
       prazoFinal: "",
       observacoes: item.observacoes || "",

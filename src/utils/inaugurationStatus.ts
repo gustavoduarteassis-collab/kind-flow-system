@@ -30,19 +30,16 @@ export function getInaugurationLibStatus(inaugChecklistRaw: any, tipoLoja?: stri
     switch (status) {
       case "TOTALMENTE_ATENDIDO": return 100;
       case "EM_ANDAMENTO": return 50;
-      case "NAO_SE_APLICA": return 0;
+      case "NAO_SE_APLICA": return 100;
       default: return 0;
     }
   };
 
-  const applicableItems = allItems.filter(item => currentRound.items[item.id]?.status !== "NAO_SE_APLICA");
   const totalScore = allItems.reduce(
     (acc, item) => acc + getStatusScore(currentRound.items[item.id]?.status),
     0
   );
-  
-  // Exclude NAO_SE_APLICA from max possible score
-  const maxScore = applicableItems.length * 100;
+  const maxScore = totalItems * 100;
   const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
 
   const impeditivos = allItems.filter((i) => i.impeditivo);
@@ -51,10 +48,8 @@ export function getInaugurationLibStatus(inaugChecklistRaw: any, tipoLoja?: stri
     return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
   }).length;
 
-  const hasRessalva = !!currentRound.ressalva && currentRound.ressalva.trim().length > 0;
-
-  if (progress >= 90) return "LIBERADO";
-  if (hasRessalva) return "LIBERADO_COM_RESSALVAS";
+  if (progress >= 95 && impeditivosPendentes === 0) return "LIBERADO";
+  if (progress >= 85 && impeditivosPendentes === 0) return "LIBERADO_COM_RESSALVAS";
   return "NAO_LIBERADO";
 }
 

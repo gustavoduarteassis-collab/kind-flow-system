@@ -119,33 +119,19 @@ const ChecklistVisitaTecnica = ({ storeId, storeInauguracao, data: rawData, onDa
 
   // Progress
   const allItems = visitaTecnicaCategories.flatMap((c) => c.items);
-  const applicableItems = allItems.filter(item => vtData.items[item.id]?.status !== "NAO_SE_APLICA");
   const totalItems = allItems.length;
   const doneItems = allItems.filter((item) => {
     const s = vtData.items[item.id]?.status;
-    return s === "CONCLUIDO";
+    return s === "CONCLUIDO" || s === "NAO_SE_APLICA";
   }).length;
-  
-  const totalScore = allItems.reduce((acc, item) => {
-    const s = vtData.items[item.id]?.status;
-    if (s === "CONCLUIDO") return acc + 100;
-    if (s === "EM_ANDAMENTO") return acc + 50;
-    return acc;
-  }, 0);
-
-  const maxScore = applicableItems.length * 100;
-  const progress = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+  const progress = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
 
   const getCatProgress = (cat: VisitaCategory) => {
-    const applicable = cat.items.filter(i => vtData.items[i.id]?.status !== "NAO_SE_APLICA");
-    const doneScore = cat.items.reduce((acc, i) => {
+    const done = cat.items.filter((i) => {
       const s = vtData.items[i.id]?.status;
-      if (s === "CONCLUIDO") return acc + 100;
-      if (s === "EM_ANDAMENTO") return acc + 50;
-      return acc;
-    }, 0);
-    const max = applicable.length * 100;
-    return max > 0 ? Math.round((doneScore / max) * 100) : 0;
+      return s === "CONCLUIDO" || s === "NAO_SE_APLICA";
+    }).length;
+    return Math.round((done / cat.items.length) * 100);
   };
 
   const formatDateBR = (d: string) => d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—";
@@ -244,9 +230,7 @@ const ChecklistVisitaTecnica = ({ storeId, storeInauguracao, data: rawData, onDa
                                 ? "bg-[hsl(152,60%,95%)]"
                                 : itemData.status === "EM_ANDAMENTO"
                                 ? "bg-[hsl(38,90%,97%)]"
-                                : itemData.status === "NAO_INICIADO"
-                                ? "bg-[hsl(0,84%,97%)]"
-                                : "bg-muted/30"
+                                : ""
                             }
                           >
                             <TableCell className="text-sm font-medium">{item.nome}</TableCell>
