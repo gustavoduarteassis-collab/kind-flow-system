@@ -470,6 +470,42 @@ export type Database = {
           },
         ]
       }
+      funil_import_logs: {
+        Row: {
+          created_at: string
+          created_count: number
+          details: Json
+          file_name: string
+          id: string
+          ignored_count: number
+          skipped_count: number
+          updated_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_count?: number
+          details?: Json
+          file_name: string
+          id?: string
+          ignored_count?: number
+          skipped_count?: number
+          updated_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_count?: number
+          details?: Json
+          file_name?: string
+          id?: string
+          ignored_count?: number
+          skipped_count?: number
+          updated_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       habit_completions: {
         Row: {
           completed: boolean
@@ -544,7 +580,9 @@ export type Database = {
       }
       pipeline_stores: {
         Row: {
+          analista_arquitetura: string
           analista_obra: string
+          area_total: string
           cd_origem: string
           cidade: string
           contato_franqueado: string
@@ -556,7 +594,9 @@ export type Database = {
           estado: string
           filial: string
           franqueado: string
+          gerente_regional: string
           id: string
+          implantadora: string
           inicio_contratos: string
           inicio_obra: string
           inicio_orcamento_obra: string
@@ -590,7 +630,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          analista_arquitetura?: string
           analista_obra?: string
+          area_total?: string
           cd_origem?: string
           cidade?: string
           contato_franqueado?: string
@@ -602,7 +644,9 @@ export type Database = {
           estado?: string
           filial?: string
           franqueado?: string
+          gerente_regional?: string
           id?: string
+          implantadora?: string
           inicio_contratos?: string
           inicio_obra?: string
           inicio_orcamento_obra?: string
@@ -636,7 +680,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          analista_arquitetura?: string
           analista_obra?: string
+          area_total?: string
           cd_origem?: string
           cidade?: string
           contato_franqueado?: string
@@ -648,7 +694,9 @@ export type Database = {
           estado?: string
           filial?: string
           franqueado?: string
+          gerente_regional?: string
           id?: string
+          implantadora?: string
           inicio_contratos?: string
           inicio_obra?: string
           inicio_orcamento_obra?: string
