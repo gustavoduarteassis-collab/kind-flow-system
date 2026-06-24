@@ -200,13 +200,11 @@ const ImportFunil = () => {
 
       for (const row of rows) {
         const existing = existingByFilial.get(row.filial) || null;
+        const wantsReforma = parseBool(row.data.reforma || "");
         if (!existing) {
-          items.push({
-            row,
-            existingId: null,
-            action: "create",
-            fieldsToFill: Object.keys(row.data).filter((k) => (FILLABLE_FIELDS as readonly string[]).includes(k)),
-          });
+          const fieldsToFill = Object.keys(row.data).filter((k) => (FILLABLE_FIELDS as readonly string[]).includes(k));
+          if (wantsReforma) fieldsToFill.push("reforma");
+          items.push({ row, existingId: null, action: "create", fieldsToFill });
           continue;
         }
         const fieldsToFill: string[] = [];
@@ -215,6 +213,8 @@ const ImportFunil = () => {
           if (!newVal) continue;
           if (isEmpty(existing[key])) fieldsToFill.push(key);
         }
+        // reforma: additive only — false → true never the other way
+        if (wantsReforma && existing.reforma !== true) fieldsToFill.push("reforma");
         items.push({
           row,
           existingId: existing.id,
