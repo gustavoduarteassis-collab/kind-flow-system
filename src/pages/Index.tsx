@@ -83,6 +83,7 @@ const Index = () => {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
+  const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
   const [showReformas, setShowReformas] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
   const [accessForm, setAccessForm] = useState({
