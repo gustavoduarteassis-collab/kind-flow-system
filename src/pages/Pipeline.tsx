@@ -569,6 +569,17 @@ const Pipeline = () => {
                                 <ArrowRightCircle className="h-4 w-4" />
                               </Button>
                             )}
+                            {!inaug ? (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Marcar como Inaugurada"
+                                onClick={() => { if (confirm(`Marcar "${store.local}" como Inaugurada? O histórico atual será preservado.`)) markInaugurada(store); }}>
+                                <PartyPopper className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600" title="Reverter inauguração"
+                                onClick={() => { if (confirm(`Reverter status de inauguração de "${store.local}"?`)) revertInaugurada(store); }}>
+                                <Undo2 className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteStore(store.id); }}>
                               <Trash2 className="h-3.5 w-3.5 text-destructive" />
                             </Button>
