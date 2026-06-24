@@ -97,16 +97,26 @@ const Index = () => {
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-    const [t, m, h, fa] = await Promise.all([
+    const [t, m, h, fa, ps] = await Promise.all([
       supabase.from("tasks").select("id, title, status, priority, assigned_to, due_date, start_date").order("created_at", { ascending: false }).limit(10),
       supabase.from("team_members").select("id, name"),
       supabase.from("habits").select("id, name"),
       supabase.from("franchisee_access").select("*"),
+      supabase.from("pipeline_stores").select("filial, status_geral"),
     ]);
     if (t.data) setTasks(t.data as Task[]);
     if (m.data) setMembers(m.data);
     if (h.data) setHabits(h.data);
     if (fa.data) setFranchiseeAccess(fa.data as FranchiseeAccess[]);
+    if (ps.data) {
+      const set = new Set<string>();
+      (ps.data as { filial: string | null; status_geral: string | null }[]).forEach((r) => {
+        if (r.filial && (r.status_geral || "").toLowerCase().startsWith("inaugurada")) {
+          set.add(String(r.filial));
+        }
+      });
+      setInauguradasFiliais(set);
+    }
   }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
