@@ -109,13 +109,11 @@ const Index = () => {
     if (h.data) setHabits(h.data);
     if (fa.data) setFranchiseeAccess(fa.data as FranchiseeAccess[]);
     if (ps.data) {
-      const set = new Set<string>();
-      (ps.data as { filial: string | null; status_geral: string | null }[]).forEach((r) => {
-        if (r.filial && (r.status_geral || "").toLowerCase().startsWith("inaugurada")) {
-          set.add(String(r.filial));
-        }
-      });
-      setInauguradasFiliais(set);
+      setInauguradasFiliais(
+        buildInauguradasFiliais(
+          ps.data as { filial: string | null; status_geral: string | null }[]
+        )
+      );
     }
   }, [user]);
 
