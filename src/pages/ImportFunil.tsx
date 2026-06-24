@@ -239,11 +239,15 @@ const ImportFunil = () => {
         for (const key of FILLABLE_FIELDS) {
           const newVal = row.data[key];
           if (!newVal) continue;
-          if (ALWAYS_UPDATE_FIELDS.has(key)) {
-            if (String(existing[key] || "").trim() !== newVal) fieldsToFill.push(key);
-          } else if (isEmpty(existing[key])) {
-            fieldsToFill.push(key);
-          }
+          // Regra: nunca sobrescreve dado já preenchido — preserva todo histórico.
+          if (isEmpty(existing[key])) fieldsToFill.push(key);
+        }
+        // Se "Previsão inicial de inauguração" existe na planilha e
+        // a "Data de Inauguração" ainda está vazia no banco, preenche também.
+        if (row.data.previsao_inauguracao && isEmpty(existing.data_inauguracao)
+            && !fieldsToFill.includes("data_inauguracao")) {
+          row.data.data_inauguracao = row.data.previsao_inauguracao;
+          fieldsToFill.push("data_inauguracao");
         }
         // reforma: additive only — false → true never the other way
         if (wantsReforma && existing.reforma !== true) fieldsToFill.push("reforma");
