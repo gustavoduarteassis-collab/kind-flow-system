@@ -334,7 +334,7 @@ const Index = () => {
                   <TableBody>
                     {stores
                       .filter((store) => {
-                        if (store.isReforma) return false;
+                        if (store.isReforma && !showReformas) return false;
                         const total = checklistCategories.flatMap((c) => c.items).length;
                         const counts: Partial<Record<StatusType, number>> = {};
                         Object.values(store.checklist).forEach((c) => {
