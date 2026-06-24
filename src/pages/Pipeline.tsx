@@ -327,12 +327,19 @@ const Pipeline = () => {
 
   const sorted = [...stores].sort((a, b) => parseDateForSort(a.previsao_inauguracao).getTime() - parseDateForSort(b.previsao_inauguracao).getTime());
 
-  const filtered = sorted.filter((s) =>
+  const matchesSearch = (s: PipelineStore) =>
     s.local.toLowerCase().includes(search.toLowerCase()) ||
     s.filial.toLowerCase().includes(search.toLowerCase()) ||
     s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
-    s.cidade.toLowerCase().includes(search.toLowerCase())
-  );
+    s.cidade.toLowerCase().includes(search.toLowerCase());
+
+  const isInaugurada = (s: PipelineStore) => (s.status_geral || "").toLowerCase().startsWith("inaugurada");
+  const isReforma = (s: PipelineStore) => (s as any).reforma === true && !isInaugurada(s);
+  const isNova = (s: PipelineStore) => !isInaugurada(s) && !isReforma(s);
+
+  const filteredNovas = sorted.filter((s) => isNova(s) && matchesSearch(s));
+  const filteredReformas = sorted.filter((s) => isReforma(s) && matchesSearch(s));
+  const filteredInauguradas = sorted.filter((s) => isInaugurada(s) && matchesSearch(s));
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Carregando...</div>;
 
