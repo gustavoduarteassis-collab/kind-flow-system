@@ -241,11 +241,15 @@ const ImportFunil = () => {
           for (const key of FILLABLE_FIELDS) {
             if (item.row.data[key]) insertData[key] = item.row.data[key];
           }
+          if (item.fieldsToFill.includes("reforma")) insertData.reforma = true;
           const { error } = await supabase.from("pipeline_stores").insert(insertData as any);
           if (!error) created++;
         } else if (item.action === "fill") {
           const updateData: Record<string, any> = {};
-          for (const key of item.fieldsToFill) updateData[key] = item.row.data[key];
+          for (const key of item.fieldsToFill) {
+            if (key === "reforma") updateData.reforma = true;
+            else updateData[key] = item.row.data[key];
+          }
           const { error } = await supabase
             .from("pipeline_stores")
             .update(updateData as any)
