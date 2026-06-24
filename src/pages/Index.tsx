@@ -83,6 +83,7 @@ const Index = () => {
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
+  const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
   const [showReformas, setShowReformas] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
   const [accessForm, setAccessForm] = useState({
@@ -96,16 +97,26 @@ const Index = () => {
 
   const fetchData = useCallback(async () => {
     if (!user) return;
-    const [t, m, h, fa] = await Promise.all([
+    const [t, m, h, fa, ps] = await Promise.all([
       supabase.from("tasks").select("id, title, status, priority, assigned_to, due_date, start_date").order("created_at", { ascending: false }).limit(10),
       supabase.from("team_members").select("id, name"),
       supabase.from("habits").select("id, name"),
       supabase.from("franchisee_access").select("*"),
+      supabase.from("pipeline_stores").select("filial, status_geral"),
     ]);
     if (t.data) setTasks(t.data as Task[]);
     if (m.data) setMembers(m.data);
     if (h.data) setHabits(h.data);
     if (fa.data) setFranchiseeAccess(fa.data as FranchiseeAccess[]);
+    if (ps.data) {
+      const set = new Set<string>();
+      (ps.data as { filial: string | null; status_geral: string | null }[]).forEach((r) => {
+        if (r.filial && (r.status_geral || "").toLowerCase().startsWith("inaugurada")) {
+          set.add(String(r.filial));
+        }
+      });
+      setInauguradasFiliais(set);
+    }
   }, [user]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -335,6 +346,7 @@ const Index = () => {
                     {stores
                       .filter((store) => {
                         if (store.isReforma && !showReformas) return false;
+                        if (store.filial && inauguradasFiliais.has(String(store.filial))) return false;
                          const total = checklistCategories.flatMap((c) => c.items).length;
                          const counts: Partial<Record<StatusType, number>> = {};
                          Object.values(store.checklist).forEach((c) => {
@@ -342,7 +354,7 @@ const Index = () => {
                          });
                          const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
                          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-                         return pct > 0 && pct < 100;
+                         return pct < 100;
                       })
                       .map((store) => {
                       const total = checklistCategories.flatMap((c) => c.items).length;
