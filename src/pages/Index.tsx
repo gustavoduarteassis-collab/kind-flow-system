@@ -319,7 +319,19 @@ const Index = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {stores.map((store) => {
+                    {stores
+                      .filter((store) => {
+                        if (store.isReforma) return false;
+                        const total = checklistCategories.flatMap((c) => c.items).length;
+                        const counts: Partial<Record<StatusType, number>> = {};
+                        Object.values(store.checklist).forEach((c) => {
+                          counts[c.status] = (counts[c.status] || 0) + 1;
+                        });
+                        const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
+                        const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+                        return pct < 100;
+                      })
+                      .map((store) => {
                       const total = checklistCategories.flatMap((c) => c.items).length;
                       const counts: Partial<Record<StatusType, number>> = {};
                       Object.values(store.checklist).forEach((c) => {

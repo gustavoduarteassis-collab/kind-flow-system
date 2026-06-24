@@ -53,6 +53,7 @@ export interface Store {
   custos?: any;
   solicitacoes?: any;
   visitaTecnica?: any;
+  isReforma?: boolean;
 }
 
 const defaultStatusOptions: StatusType[] = [

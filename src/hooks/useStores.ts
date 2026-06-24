@@ -32,6 +32,7 @@ export function useStores() {
         inauguracaoChecklist: row.inauguracao_checklist || {},
         solicitacoes: row.solicitacoes || {},
         visitaTecnica: row.visita_tecnica || {},
+        isReforma: row.is_reforma === true,
       })));
     }
     setLoading(false);
