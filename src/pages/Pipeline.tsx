@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Plus, Trash2, LogOut, CheckCircle2, Clock, AlertCircle,
-  ArrowRightCircle, Search, Pencil, AlertTriangle, CalendarIcon, PartyPopper, Undo2,
+  ArrowRightCircle, Search, Pencil, AlertTriangle, CalendarIcon, PartyPopper, Undo2, Hammer,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -258,6 +258,14 @@ const Pipeline = () => {
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     setStores((p) => p.map((s) => s.id === store.id ? { ...s, status_geral: newStatus } : s));
     toast({ title: "Status de inauguração revertido" });
+  };
+
+  const toggleReforma = async (store: PipelineStore) => {
+    const next = !((store as any).reforma === true);
+    const { error } = await supabase.from("pipeline_stores").update({ reforma: next } as any).eq("id", store.id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    setStores((p) => p.map((s) => s.id === store.id ? { ...s, reforma: next } as any : s));
+    toast({ title: next ? "Marcada como Reforma 🔨" : "Reforma desmarcada" });
   };
 
   const getProgress = (store: PipelineStore) => {
@@ -578,6 +586,13 @@ const Pipeline = () => {
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600" title="Reverter inauguração"
                                 onClick={() => { if (confirm(`Reverter status de inauguração de "${store.local}"?`)) revertInaugurada(store); }}>
                                 <Undo2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {!inaug && (
+                              <Button variant="ghost" size="icon" className={`h-8 w-8 ${reform ? "text-amber-700" : "text-amber-600"}`}
+                                title={reform ? "Desmarcar Reforma" : "Marcar como Reforma"}
+                                onClick={() => toggleReforma(store)}>
+                                <Hammer className="h-4 w-4" />
                               </Button>
                             )}
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteStore(store.id); }}>
