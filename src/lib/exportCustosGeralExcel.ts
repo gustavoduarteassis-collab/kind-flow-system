@@ -543,7 +543,7 @@ export async function exportCustosGeralExcel(
 
   // 2. PLANILHAS POR MODELO (separadas)
   const MODELOS = ["LIGHT", "TRADICIONAL", "OUTLET"] as const;
-  const META_DEFAULT: Record<string, number> = { LIGHT: 3500, TRADICIONAL: 3250, OUTLET: 2900 };
+  const META_DEFAULT: Record<string, number> = { LIGHT: 3500, TRADICIONAL: 3350, OUTLET: 2900 };
   MODELOS.forEach((modelo) => {
     const lojas = reportData.byLoja.filter((l) => l.tipo === modelo);
     if (lojas.length > 0) {

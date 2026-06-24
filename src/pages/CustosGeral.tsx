@@ -63,7 +63,7 @@ function calcAverages(data: StoreCostEntry[]) {
       avgPerM2[key] = b.totalArea > 0 ? b.sums[key] / b.totalArea : 0;
     });
     const avgTotalPerM2 = b.totalArea > 0 ? b.totalGeral / b.totalArea : 0;
-    return { tipo, count: b.count, avgArea, avgPerM2, avgTotalPerM2, meta: META_POR_M2[tipo] || 3250 };
+    return { tipo, count: b.count, avgArea, avgPerM2, avgTotalPerM2, meta: META_POR_M2[tipo] || 3350 };
   });
 }
 
@@ -163,7 +163,7 @@ const CustosGeral = () => {
     let ok = 0, over = 0;
     filtered.forEach((entry) => {
       const custoM2 = getStoreCostPerM2(entry);
-      const meta = META_POR_M2[entry.tipo] || 3250;
+      const meta = META_POR_M2[entry.tipo] || 3350;
       if (custoM2 <= meta) ok++; else over++;
     });
     return { ok, over, total: filtered.length };
@@ -183,7 +183,7 @@ const CustosGeral = () => {
     let ok = 0, over = 0;
     yearData.forEach((e) => {
       const cm2 = getStoreCostPerM2(e);
-      const meta = META_POR_M2[e.tipo] || 3250;
+      const meta = META_POR_M2[e.tipo] || 3350;
       if (cm2 <= meta) ok++; else over++;
     });
     return { totalLojas, totalInvestido, totalArea, avgM2, ok, over };
@@ -266,7 +266,7 @@ const CustosGeral = () => {
       const previstoTotal = categorias.reduce((s, c) => s + c.previsto, 0);
       const realizadoTotal = categorias.reduce((s, c) => s + c.realizado, 0);
       const diferencaTotal = realizadoTotal - previstoTotal;
-      const meta = META_POR_M2[e.tipo] || 3250;
+      const meta = META_POR_M2[e.tipo] || 3350;
       return {
         nome: e.nome,
         tipo: e.tipo,
@@ -305,7 +305,7 @@ const CustosGeral = () => {
     let ok = 0, over = 0;
     data.forEach((e) => {
       const cm2 = getStoreCostPerM2(e);
-      const meta = META_POR_M2[e.tipo] || 3250;
+      const meta = META_POR_M2[e.tipo] || 3350;
       if (cm2 <= meta) ok++; else over++;
     });
 
@@ -313,7 +313,7 @@ const CustosGeral = () => {
     const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
     const mensalPorTipo = TIPOS.map((tipo) => {
       const dataDoTipo = data.filter((e) => e.tipo === tipo);
-      const meta = META_POR_M2[tipo] || 3250;
+      const meta = META_POR_M2[tipo] || 3350;
       // Agrupa por mês de createdAt
       const meses = MESES.map((mesLabel, i) => {
         const noMes = dataDoTipo.filter((e) => {
@@ -348,7 +348,7 @@ const CustosGeral = () => {
 
   const getStatusInfo = (entry: StoreCostEntry) => {
     const custoM2 = getStoreCostPerM2(entry);
-    const meta = META_POR_M2[entry.tipo] || 3250;
+    const meta = META_POR_M2[entry.tipo] || 3350;
     return { custoM2, meta, isOver: custoM2 > meta };
   };
 

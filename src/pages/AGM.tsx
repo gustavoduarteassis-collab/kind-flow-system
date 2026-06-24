@@ -36,7 +36,7 @@ import { isStoreLiberated } from "@/utils/inaugurationStatus";
 
 
 const METAS_CUSTO: Record<string, number> = {
-  TRADICIONAL: 3250,
+  TRADICIONAL: 3350,
   LIGHT: 3500,
   OUTLET: 2900,
 };
@@ -200,7 +200,7 @@ const AGM = () => {
         storeDataList.push({
           nome, tipo: tipoKey, custoTotal, areaLoja,
           custoM2: areaLoja > 0 ? Math.round(custoTotal / areaLoja) : 0,
-          metaCustoM2: METAS_CUSTO[tipoKey] || 3250,
+          metaCustoM2: METAS_CUSTO[tipoKey] || 3350,
           inicioObra, dataInauguracao,
           prazoDias: inicioDate && inaugDate ? differenceInDays(inaugDate, inicioDate) : 0,
           dataLiberacaoOrcamento: pipeMatch?.data_liberacao_orcamento || "",
@@ -230,7 +230,7 @@ const AGM = () => {
         storeDataList.push({
           nome, tipo: tipoKey, custoTotal, areaLoja,
           custoM2: areaLoja > 0 ? Math.round(custoTotal / areaLoja) : 0,
-          metaCustoM2: METAS_CUSTO[tipoKey] || 3250,
+          metaCustoM2: METAS_CUSTO[tipoKey] || 3350,
           inicioObra: p.inicio_obra || "",
           dataInauguracao: p.data_inauguracao || "",
           prazoDias: inicioDate && inaugDate ? differenceInDays(inaugDate, inicioDate) : 0,
@@ -590,7 +590,7 @@ const AGM = () => {
               {Object.entries(summary.custoMediaByTipo).map(([tipo, media]) => (
                 <div key={tipo} className="flex items-center justify-between text-sm">
                   <span className="text-xs text-muted-foreground">{tipo}</span>
-                  <span className={`font-semibold ${media > (METAS_CUSTO[tipo] || 3250) ? "text-destructive" : "text-[hsl(var(--success))]"}`}>
+                  <span className={`font-semibold ${media > (METAS_CUSTO[tipo] || 3350) ? "text-destructive" : "text-[hsl(var(--success))]"}`}>
                     R$ {media.toLocaleString("pt-BR")}
                   </span>
                 </div>

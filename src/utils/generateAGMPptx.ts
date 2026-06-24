@@ -25,7 +25,7 @@ const TABLE_HEADER_BG = "999999";
 const GREEN = "22C55E";
 const RED = "EF4444";
 
-const METAS: Record<string, number> = { TRADICIONAL: 3250, LIGHT: 3500, OUTLET: 2900 };
+const METAS: Record<string, number> = { TRADICIONAL: 3350, LIGHT: 3500, OUTLET: 2900 };
 
 function addDarkHeader(slide: PptxGenJS.Slide, title: string, subtitle?: string) {
   slide.addShape("rect", { x: 0, y: 0, w: "100%", h: 0.9, fill: { color: HEADER_BG } });
@@ -125,7 +125,7 @@ export function generateAGMPptx(
 
   let yPos = 1.3;
   Object.entries(byTipo).forEach(([tipo, stores]) => {
-    const meta = METAS[tipo] || 3250;
+    const meta = METAS[tipo] || 3350;
     const tipoLabel = tipo === "LIGHT" ? "LOJA LIGHT - LOJA FRANQUEADO" : tipo === "OUTLET" ? "LOJA OUTLET" : "LOJA TRADICIONAL - LOJA PRÓPRIA";
 
     const rows: PptxGenJS.TableRow[] = [

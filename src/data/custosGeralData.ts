@@ -17,10 +17,11 @@ export interface StoreCostEntry {
 }
 
 export const META_POR_M2: Record<string, number> = {
-  TRADICIONAL: 3250,
+  TRADICIONAL: 3350,
   LIGHT: 3500,
   OUTLET: 2900,
 };
+
 
 function s(
   nome: string, ano: number, tipo: StoreCostEntry["tipo"], local: StoreCostEntry["local"],
