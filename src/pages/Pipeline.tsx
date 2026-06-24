@@ -495,113 +495,125 @@ const Pipeline = () => {
           </CardContent></Card>
         </div>
 
-        {/* Store cards */}
-        {filtered.length === 0 ? (
-          <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhuma loja no funil.</CardContent></Card>
-        ) : (
-          <div className="space-y-4">
-            {filtered.map((store) => {
-              const progress = getProgress(store);
-              const ready = isReadyToTransfer(store);
-              const hasOverdue = PHASES.some((p) => isOverdue((store as any)[p.deadlineKey], (store as any)[p.key]));
-              return (
-                <Card key={store.id} className={ready ? "border-emerald-300 bg-emerald-50/50" : hasOverdue ? "border-destructive/50" : ""}>
-                  <CardContent className="p-4 space-y-3">
-                    {/* Header row */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {store.filial && <Badge variant="outline" className="font-mono text-xs">{store.filial}</Badge>}
-                          <h3 className="font-semibold text-sm">{store.local}</h3>
-                          {hasOverdue && <Badge variant="destructive" className="text-[10px] h-5 gap-1"><AlertTriangle className="h-3 w-3" /> Atrasado</Badge>}
-                        </div>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
-                          <span>{store.cidade}{store.estado ? `/${store.estado}` : ""}</span>
-                          {store.franqueado && <span>👤 {store.franqueado}</span>}
-                          {store.email_franqueado && <span>✉️ {store.email_franqueado}</span>}
-                          {store.analista_obra && <span>📋 {store.analista_obra}</span>}
-                          {store.previsao_inauguracao && <span>📅 {store.previsao_inauguracao}</span>}
-                          {store.padrao && <Badge variant="secondary" className="text-[10px] h-5">{store.padrao}</Badge>}
-                        </div>
-                        {store.status_geral && (
-                          <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{store.status_geral}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <div className="flex items-center gap-1 mr-2">
-                          <Progress value={progress} className="h-2 w-16" />
-                          <span className="text-xs font-bold">{progress}%</span>
-                        </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(store)} title="Editar">
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        {ready && (
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Transferir para Lojas"
-                            onClick={() => { if (confirm(`Transferir "${store.local}" para Lojas?`)) transferToLojas(store); }}>
-                            <ArrowRightCircle className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteStore(store.id); }}>
-                          <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Phases grid with deadlines */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-                      {PHASES.map((p) => {
-                        const status = (store as any)[p.key];
-                        const deadline = (store as any)[p.deadlineKey] || "";
-                        const overdue = isOverdue(deadline, status);
-                        return (
-                          <div key={p.key} className={`space-y-1 p-2 rounded-md border ${overdue ? "border-destructive/50 bg-destructive/5" : "border-border/50"}`}>
-                            <p className="text-[10px] font-medium text-muted-foreground truncate">{p.label}</p>
-                            <Select value={status} onValueChange={(v) => updatePhase(store.id, p.key, v)}>
-                              <SelectTrigger className="h-7 text-[10px] px-2">
-                                <Badge className={`${getPhaseColor(status)} text-[9px] px-1.5`}>
-                                  {getPhaseLabel(status)}
-                                </Badge>
-                              </SelectTrigger>
-                              <SelectContent>
-                                {PHASE_STATUSES.map((s) => (
-                                  <SelectItem key={s.value} value={s.value}>
-                                    <Badge className={`${s.color} text-[10px]`}>{s.label}</Badge>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <div>
-                              <p className="text-[9px] text-muted-foreground">Início</p>
-                              <DeadlinePicker
-                                compact
-                                value={(store as any)[p.startKey] || ""}
-                                onChange={(v) => updateDeadline(store.id, p.startKey, v)}
-                              />
+        {(() => {
+          const renderList = (list: PipelineStore[], emptyLabel: string) => (
+            list.length === 0 ? (
+              <Card><CardContent className="py-12 text-center text-muted-foreground">{emptyLabel}</CardContent></Card>
+            ) : (
+              <div className="space-y-4">
+                {list.map((store) => {
+                  const progress = getProgress(store);
+                  const ready = isReadyToTransfer(store);
+                  const hasOverdue = PHASES.some((p) => isOverdue((store as any)[p.deadlineKey], (store as any)[p.key]));
+                  const inaug = isInaugurada(store);
+                  const reform = isReforma(store);
+                  return (
+                    <Card key={store.id} className={inaug ? "border-emerald-300 bg-emerald-50/30" : ready ? "border-emerald-300 bg-emerald-50/50" : hasOverdue ? "border-destructive/50" : ""}>
+                      <CardContent className="p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {store.filial && <Badge variant="outline" className="font-mono text-xs">{store.filial}</Badge>}
+                              <h3 className="font-semibold text-sm">{store.local}</h3>
+                              {inaug && <Badge className="bg-emerald-600 hover:bg-emerald-600 text-[10px] h-5">Inaugurada</Badge>}
+                              {reform && <Badge className="bg-amber-600 hover:bg-amber-600 text-[10px] h-5">Reforma</Badge>}
+                              {hasOverdue && !inaug && <Badge variant="destructive" className="text-[10px] h-5 gap-1"><AlertTriangle className="h-3 w-3" /> Atrasado</Badge>}
                             </div>
-                            <div>
-                              <p className="text-[9px] text-muted-foreground">Prazo</p>
-                              <DeadlinePicker
-                                compact
-                                value={deadline}
-                                onChange={(v) => updateDeadline(store.id, p.deadlineKey, v)}
-                              />
+                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
+                              <span>{store.cidade}{store.estado ? `/${store.estado}` : ""}</span>
+                              {store.franqueado && <span>👤 {store.franqueado}</span>}
+                              {store.email_franqueado && <span>✉️ {store.email_franqueado}</span>}
+                              {store.analista_obra && <span>📋 {store.analista_obra}</span>}
+                              {store.previsao_inauguracao && <span>📅 {store.previsao_inauguracao}</span>}
+                              {store.padrao && <Badge variant="secondary" className="text-[10px] h-5">{store.padrao}</Badge>}
                             </div>
-                            {overdue && (
-                              <div className="flex items-center gap-1 text-destructive">
-                                <AlertTriangle className="h-3 w-3" />
-                                <span className="text-[9px] font-semibold">ATRASADO</span>
-                              </div>
+                            {store.status_geral && (
+                              <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{store.status_geral}</p>
                             )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <div className="flex items-center gap-1 mr-2">
+                              <Progress value={progress} className="h-2 w-16" />
+                              <span className="text-xs font-bold">{progress}%</span>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(store)} title="Editar">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            {ready && !inaug && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Transferir para Lojas"
+                                onClick={() => { if (confirm(`Transferir "${store.local}" para Lojas?`)) transferToLojas(store); }}>
+                                <ArrowRightCircle className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteStore(store.id); }}>
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {!inaug && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+                            {PHASES.map((p) => {
+                              const status = (store as any)[p.key];
+                              const deadline = (store as any)[p.deadlineKey] || "";
+                              const overdue = isOverdue(deadline, status);
+                              return (
+                                <div key={p.key} className={`space-y-1 p-2 rounded-md border ${overdue ? "border-destructive/50 bg-destructive/5" : "border-border/50"}`}>
+                                  <p className="text-[10px] font-medium text-muted-foreground truncate">{p.label}</p>
+                                  <Select value={status} onValueChange={(v) => updatePhase(store.id, p.key, v)}>
+                                    <SelectTrigger className="h-7 text-[10px] px-2">
+                                      <Badge className={`${getPhaseColor(status)} text-[9px] px-1.5`}>
+                                        {getPhaseLabel(status)}
+                                      </Badge>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {PHASE_STATUSES.map((s) => (
+                                        <SelectItem key={s.value} value={s.value}>
+                                          <Badge className={`${s.color} text-[10px]`}>{s.label}</Badge>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                  <div>
+                                    <p className="text-[9px] text-muted-foreground">Início</p>
+                                    <DeadlinePicker compact value={(store as any)[p.startKey] || ""} onChange={(v) => updateDeadline(store.id, p.startKey, v)} />
+                                  </div>
+                                  <div>
+                                    <p className="text-[9px] text-muted-foreground">Prazo</p>
+                                    <DeadlinePicker compact value={deadline} onChange={(v) => updateDeadline(store.id, p.deadlineKey, v)} />
+                                  </div>
+                                  {overdue && (
+                                    <div className="flex items-center gap-1 text-destructive">
+                                      <AlertTriangle className="h-3 w-3" />
+                                      <span className="text-[9px] font-semibold">ATRASADO</span>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )
+          );
+
+          return (
+            <Tabs defaultValue="novas">
+              <TabsList>
+                <TabsTrigger value="novas">Novas Lojas ({filteredNovas.length})</TabsTrigger>
+                <TabsTrigger value="reformas">Reformas ({filteredReformas.length})</TabsTrigger>
+                <TabsTrigger value="inauguradas">Inauguradas ({filteredInauguradas.length})</TabsTrigger>
+              </TabsList>
+              <TabsContent value="novas" className="mt-4">{renderList(filteredNovas, "Nenhuma loja nova no funil.")}</TabsContent>
+              <TabsContent value="reformas" className="mt-4">{renderList(filteredReformas, "Nenhuma reforma cadastrada.")}</TabsContent>
+              <TabsContent value="inauguradas" className="mt-4">{renderList(filteredInauguradas, "Nenhuma loja inaugurada.")}</TabsContent>
+            </Tabs>
+          );
+        })()}
 
         {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={(open) => { setEditOpen(open); if (!open) setEditingStore(null); }}>
