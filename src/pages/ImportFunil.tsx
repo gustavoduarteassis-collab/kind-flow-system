@@ -58,6 +58,9 @@ const FILLABLE_FIELDS = [
   "previsao_inauguracao", "data_inauguracao", "inicio_obra", "status_geral", "cd_origem",
 ] as const;
 
+// Fields that ALWAYS update from the spreadsheet (overwrite existing value).
+const ALWAYS_UPDATE_FIELDS = new Set(["previsao_inauguracao", "data_inauguracao"]);
+
 const FIELD_LABELS: Record<string, string> = {
   filial: "Filial", local: "Local", cidade: "Cidade", estado: "Estado",
   padrao: "Padrão", localizacao: "Localização", franqueado: "Franqueado",
