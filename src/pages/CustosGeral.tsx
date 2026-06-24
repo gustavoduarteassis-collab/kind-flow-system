@@ -221,9 +221,14 @@ const CustosGeral = () => {
           const soma = lojasTipo.reduce((s, e) => s + (e[k] / e.areaTotal), 0);
           avgPerM2[k] = soma / lojasTipo.length;
         });
-        const avgTotalPerM2 = catKeys.reduce((s, k) => s + avgPerM2[k], 0);
+        // Escala proporcional para fechar exatamente na meta (mantém as proporções entre categorias).
+        const rawTotal = catKeys.reduce((s, k) => s + avgPerM2[k], 0);
+        if (rawTotal > 0) {
+          const scale = meta / rawTotal;
+          catKeys.forEach((k) => { avgPerM2[k] = avgPerM2[k] * scale; });
+        }
         const avgArea = lojasTipo.reduce((s, e) => s + e.areaTotal, 0) / lojasTipo.length;
-        return { tipo, count: lojasTipo.length, avgArea, avgPerM2, avgTotalPerM2, meta };
+        return { tipo, count: lojasTipo.length, avgArea, avgPerM2, avgTotalPerM2: meta, meta };
       }
 
       // Fallback: projeção a partir de 2025 escalada para a meta
