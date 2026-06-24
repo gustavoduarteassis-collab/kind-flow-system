@@ -230,6 +230,10 @@ const ImportFunil = () => {
         const existing = existingByFilial.get(row.filial) || null;
         const wantsReforma = parseBool(row.data.reforma || "");
         if (!existing) {
+          // Nova loja: também espelha a previsão como data de inauguração.
+          if (row.data.previsao_inauguracao && !row.data.data_inauguracao) {
+            row.data.data_inauguracao = row.data.previsao_inauguracao;
+          }
           const fieldsToFill = Object.keys(row.data).filter((k) => (FILLABLE_FIELDS as readonly string[]).includes(k));
           if (wantsReforma) fieldsToFill.push("reforma");
           items.push({ row, existingId: null, action: "create", fieldsToFill });
