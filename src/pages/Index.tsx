@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import logoConstance from "@/assets/logo-constance.svg";
 import { useToast } from "@/hooks/use-toast";
+import { buildInauguradasFiliais } from "@/utils/inauguradaFilter";
 
 type Task = {
   id: string; title: string; status: string; priority: string;
