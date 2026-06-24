@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Plus, Trash2, LogOut, CheckCircle2, Clock, AlertCircle,
-  ArrowRightCircle, Search, Pencil, AlertTriangle, CalendarIcon,
+  ArrowRightCircle, Search, Pencil, AlertTriangle, CalendarIcon, PartyPopper, Undo2,
 } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -234,6 +234,30 @@ const Pipeline = () => {
   const deleteStore = async (id: string) => {
     await supabase.from("pipeline_stores").delete().eq("id", id);
     setStores((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const markInaugurada = async (store: PipelineStore) => {
+    const dateStr = format(new Date(), "dd/MM/yyyy");
+    const prefix = `Inaugurada em ${dateStr}`;
+    const prev = (store.status_geral || "").trim();
+    // Preserva histórico anterior abaixo do marcador
+    const newStatus = prev
+      ? `${prefix}\n---\n${prev}`
+      : prefix;
+    const { error } = await supabase.from("pipeline_stores").update({ status_geral: newStatus } as any).eq("id", store.id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    setStores((p) => p.map((s) => s.id === store.id ? { ...s, status_geral: newStatus } : s));
+    toast({ title: "Loja marcada como Inaugurada 🎉", description: "Histórico preservado." });
+  };
+
+  const revertInaugurada = async (store: PipelineStore) => {
+    const cur = store.status_geral || "";
+    // Remove o primeiro bloco "Inaugurada em ...\n---\n" (ou só a linha)
+    const newStatus = cur.replace(/^Inaugurada em \d{2}\/\d{2}\/\d{4}(\n---\n)?/, "").trim();
+    const { error } = await supabase.from("pipeline_stores").update({ status_geral: newStatus } as any).eq("id", store.id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    setStores((p) => p.map((s) => s.id === store.id ? { ...s, status_geral: newStatus } : s));
+    toast({ title: "Status de inauguração revertido" });
   };
 
   const getProgress = (store: PipelineStore) => {
@@ -543,6 +567,17 @@ const Pipeline = () => {
                               <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Transferir para Lojas"
                                 onClick={() => { if (confirm(`Transferir "${store.local}" para Lojas?`)) transferToLojas(store); }}>
                                 <ArrowRightCircle className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {!inaug ? (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Marcar como Inaugurada"
+                                onClick={() => { if (confirm(`Marcar "${store.local}" como Inaugurada? O histórico atual será preservado.`)) markInaugurada(store); }}>
+                                <PartyPopper className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600" title="Reverter inauguração"
+                                onClick={() => { if (confirm(`Reverter status de inauguração de "${store.local}"?`)) revertInaugurada(store); }}>
+                                <Undo2 className="h-4 w-4" />
                               </Button>
                             )}
                             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteStore(store.id); }}>
