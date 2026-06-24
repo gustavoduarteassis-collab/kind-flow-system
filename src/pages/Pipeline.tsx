@@ -260,6 +260,14 @@ const Pipeline = () => {
     toast({ title: "Status de inauguração revertido" });
   };
 
+  const toggleReforma = async (store: PipelineStore) => {
+    const next = !((store as any).reforma === true);
+    const { error } = await supabase.from("pipeline_stores").update({ reforma: next } as any).eq("id", store.id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    setStores((p) => p.map((s) => s.id === store.id ? { ...s, reforma: next } as any : s));
+    toast({ title: next ? "Marcada como Reforma 🔨" : "Reforma desmarcada" });
+  };
+
   const getProgress = (store: PipelineStore) => {
     const done = PHASES.filter((p) => {
       const s = (store as any)[p.key];
