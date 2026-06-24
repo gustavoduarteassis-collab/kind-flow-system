@@ -28,7 +28,9 @@ export type Database = {
           mes_referencia: string
           prazo_final: string
           prazo_inicial: string
+          realizado: string | null
           responsavel: string
+          status_concluido: boolean | null
           updated_at: string
           user_id: string
         }
@@ -45,7 +47,9 @@ export type Database = {
           mes_referencia?: string
           prazo_final?: string
           prazo_inicial?: string
+          realizado?: string | null
           responsavel?: string
+          status_concluido?: boolean | null
           updated_at?: string
           user_id: string
         }
@@ -62,7 +66,9 @@ export type Database = {
           mes_referencia?: string
           prazo_final?: string
           prazo_inicial?: string
+          realizado?: string | null
           responsavel?: string
+          status_concluido?: boolean | null
           updated_at?: string
           user_id?: string
         }
@@ -679,58 +685,97 @@ export type Database = {
       }
       stores: {
         Row: {
+          action_plans: Json | null
           analista_obra: string
           checklist: Json
+          cidade: string | null
+          cobranca_nota: string | null
+          comentarios_obras: string | null
           construtor: string
           created_at: string
           cronograma: Json
           custos: Json
+          fase_atual: string | null
           filial: string
           franqueado: string
           id: string
           inauguracao: string
           inauguracao_checklist: Json
+          inicio_obra_texto: string | null
+          is_reforma: boolean | null
+          localizacao: string | null
           nome: string
+          porte: string | null
+          previsao_inauguracao_texto: string | null
+          razao_social: string | null
           solicitacoes: Json
+          status_geral: string | null
           tipo_loja: string
+          uf: string | null
           updated_at: string
           user_id: string
           visita_tecnica: Json
         }
         Insert: {
+          action_plans?: Json | null
           analista_obra?: string
           checklist?: Json
+          cidade?: string | null
+          cobranca_nota?: string | null
+          comentarios_obras?: string | null
           construtor?: string
           created_at?: string
           cronograma?: Json
           custos?: Json
+          fase_atual?: string | null
           filial?: string
           franqueado?: string
           id?: string
           inauguracao?: string
           inauguracao_checklist?: Json
+          inicio_obra_texto?: string | null
+          is_reforma?: boolean | null
+          localizacao?: string | null
           nome: string
+          porte?: string | null
+          previsao_inauguracao_texto?: string | null
+          razao_social?: string | null
           solicitacoes?: Json
+          status_geral?: string | null
           tipo_loja?: string
+          uf?: string | null
           updated_at?: string
           user_id: string
           visita_tecnica?: Json
         }
         Update: {
+          action_plans?: Json | null
           analista_obra?: string
           checklist?: Json
+          cidade?: string | null
+          cobranca_nota?: string | null
+          comentarios_obras?: string | null
           construtor?: string
           created_at?: string
           cronograma?: Json
           custos?: Json
+          fase_atual?: string | null
           filial?: string
           franqueado?: string
           id?: string
           inauguracao?: string
           inauguracao_checklist?: Json
+          inicio_obra_texto?: string | null
+          is_reforma?: boolean | null
+          localizacao?: string | null
           nome?: string
+          porte?: string | null
+          previsao_inauguracao_texto?: string | null
+          razao_social?: string | null
           solicitacoes?: Json
+          status_geral?: string | null
           tipo_loja?: string
+          uf?: string | null
           updated_at?: string
           user_id?: string
           visita_tecnica?: Json
