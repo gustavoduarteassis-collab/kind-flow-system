@@ -236,6 +236,30 @@ const Pipeline = () => {
     setStores((prev) => prev.filter((s) => s.id !== id));
   };
 
+  const markInaugurada = async (store: PipelineStore) => {
+    const dateStr = format(new Date(), "dd/MM/yyyy");
+    const prefix = `Inaugurada em ${dateStr}`;
+    const prev = (store.status_geral || "").trim();
+    // Preserva histórico anterior abaixo do marcador
+    const newStatus = prev
+      ? `${prefix}\n---\n${prev}`
+      : prefix;
+    const { error } = await supabase.from("pipeline_stores").update({ status_geral: newStatus } as any).eq("id", store.id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    setStores((p) => p.map((s) => s.id === store.id ? { ...s, status_geral: newStatus } : s));
+    toast({ title: "Loja marcada como Inaugurada 🎉", description: "Histórico preservado." });
+  };
+
+  const revertInaugurada = async (store: PipelineStore) => {
+    const cur = store.status_geral || "";
+    // Remove o primeiro bloco "Inaugurada em ...\n---\n" (ou só a linha)
+    const newStatus = cur.replace(/^Inaugurada em \d{2}\/\d{2}\/\d{4}(\n---\n)?/, "").trim();
+    const { error } = await supabase.from("pipeline_stores").update({ status_geral: newStatus } as any).eq("id", store.id);
+    if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
+    setStores((p) => p.map((s) => s.id === store.id ? { ...s, status_geral: newStatus } : s));
+    toast({ title: "Status de inauguração revertido" });
+  };
+
   const getProgress = (store: PipelineStore) => {
     const done = PHASES.filter((p) => {
       const s = (store as any)[p.key];
