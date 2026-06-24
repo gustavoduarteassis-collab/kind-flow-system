@@ -55,18 +55,22 @@ const CronogramaLojasProprias = () => {
         .order('nome');
 
       if (data) {
-        setStores(data.map(row => ({
-          id: row.id,
-          nome: row.nome,
-          filial: row.filial || "S/F",
-          inauguracao: row.inauguracao ? row.inauguracao.split('T')[0] : "2026-12-31",
-          data_inicio: row.inauguracao ? addDays(new Date(row.inauguracao), -60).toISOString().split('T')[0] : "2026-10-01",
-          tipo_loja: row.tipo_loja || (row.is_reforma ? "reforma" : "nova"),
-          status: row.is_reforma ? "Em Reforma" : "Em Andamento",
-          is_propria: true,
-          is_reforma: row.is_reforma || false,
-          dbData: row
-        })));
+        setStores(data.map(row => {
+          const parsed = row.inauguracao ? new Date(row.inauguracao) : null;
+          const validInaug = parsed && !isNaN(parsed.getTime()) ? parsed : null;
+          return {
+            id: row.id,
+            nome: row.nome,
+            filial: row.filial || "S/F",
+            inauguracao: validInaug ? validInaug.toISOString().split('T')[0] : "2026-12-31",
+            data_inicio: validInaug ? addDays(validInaug, -60).toISOString().split('T')[0] : "2026-10-01",
+            tipo_loja: row.tipo_loja || (row.is_reforma ? "reforma" : "nova"),
+            status: row.is_reforma ? "Em Reforma" : "Em Andamento",
+            is_propria: true,
+            is_reforma: row.is_reforma || false,
+            dbData: row
+          };
+        }));
       }
       setLoading(false);
     };
