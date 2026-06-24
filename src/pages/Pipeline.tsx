@@ -176,6 +176,7 @@ const Pipeline = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editingStore, setEditingStore] = useState<PipelineStore | null>(null);
+  const [historyStore, setHistoryStore] = useState<PipelineStore | null>(null);
   const [search, setSearch] = useState("");
   const [form, setForm] = useState({ ...emptyForm });
 
