@@ -551,10 +551,28 @@ const Pipeline = () => {
                               <h3 className="font-semibold text-sm">{store.local}</h3>
                               {inaug && <Badge className="bg-emerald-600 hover:bg-emerald-600 text-[10px] h-5">Inaugurada</Badge>}
                               {reform && <Badge className="bg-amber-600 hover:bg-amber-600 text-[10px] h-5">Reforma</Badge>}
-                              {!inaug && store.previsao_inauguracao && (
-                                <Badge variant="outline" className="text-[10px] h-5 gap-1 border-primary/40 text-primary bg-primary/5">
-                                  <CalendarIcon className="h-3 w-3" /> Previsão: {store.previsao_inauguracao}
-                                </Badge>
+                              {!inaug && (
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Badge
+                                      variant="outline"
+                                      className="text-[10px] h-5 gap-1 border-primary/40 text-primary bg-primary/5 cursor-pointer hover:bg-primary/10"
+                                      title="Clique para alterar previsão de inauguração"
+                                    >
+                                      <CalendarIcon className="h-3 w-3" />
+                                      Previsão: {store.previsao_inauguracao || "definir"}
+                                    </Badge>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                      mode="single"
+                                      selected={ddmmToDate(store.previsao_inauguracao)}
+                                      onSelect={(d) => updateDeadline(store.id, "previsao_inauguracao", dateToDdmm(d))}
+                                      initialFocus
+                                      className="p-3 pointer-events-auto"
+                                    />
+                                  </PopoverContent>
+                                </Popover>
                               )}
                               {hasOverdue && !inaug && <Badge variant="destructive" className="text-[10px] h-5 gap-1"><AlertTriangle className="h-3 w-3" /> Atrasado</Badge>}
                             </div>
