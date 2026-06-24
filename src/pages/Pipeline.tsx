@@ -541,7 +541,8 @@ const Pipeline = () => {
                   const inaug = isInaugurada(store);
                   const reform = isReforma(store);
                   return (
-                    <Card key={store.id} className={inaug ? "border-emerald-300 bg-emerald-50/30" : ready ? "border-emerald-300 bg-emerald-50/50" : hasOverdue ? "border-destructive/50" : ""}>
+                    <Card key={store.id} className={`${inaug ? "border-emerald-300 bg-emerald-50/30 cursor-pointer hover:bg-emerald-50/60 transition-colors" : ready ? "border-emerald-300 bg-emerald-50/50" : hasOverdue ? "border-destructive/50" : ""}`}
+                      onClick={inaug ? (e) => { if ((e.target as HTMLElement).closest("button")) return; setHistoryStore(store); } : undefined}>
                       <CardContent className="p-4 space-y-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
