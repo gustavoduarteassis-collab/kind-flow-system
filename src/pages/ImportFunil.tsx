@@ -70,26 +70,31 @@ const FIELD_MAP: Record<string, string> = {
 const TRUTHY = new Set(["sim", "s", "x", "true", "yes", "y", "1", "reforma"]);
 const parseBool = (v: string) => TRUTHY.has(v.toLowerCase().trim());
 
-// Fields the importer is allowed to fill (only when empty in DB)
+// Fields the importer is allowed to fill (ONLY when empty in DB — never overwrites existing data)
 const FILLABLE_FIELDS = [
   "filial", "local", "cidade", "estado", "padrao", "localizacao",
-  "franqueado", "contato_franqueado", "email_franqueado",
-  "area_total", "gerente_regional", "analista_arquitetura", "implantadora",
-  "previsao_inauguracao", "data_inauguracao", "inicio_obra", "status_geral", "cd_origem",
+  "franqueado", "contato_franqueado", "telefone_franqueado", "email_franqueado",
+  "cnpj", "razao_social", "endereco", "cep",
+  "area_total", "capex_previsto",
+  "gerente_regional", "analista_arquitetura", "responsavel_interno",
+  "implantadora", "construtora",
+  "previsao_inauguracao", "data_inauguracao", "inicio_obra",
+  "data_contrato_franquia", "status_geral", "cd_origem",
 ] as const;
-
-// Fields that ALWAYS update from the spreadsheet (overwrite existing value).
-const ALWAYS_UPDATE_FIELDS = new Set(["previsao_inauguracao", "data_inauguracao"]);
 
 const FIELD_LABELS: Record<string, string> = {
   filial: "Filial", local: "Local", cidade: "Cidade", estado: "Estado",
   padrao: "Padrão", localizacao: "Localização", franqueado: "Franqueado",
-  contato_franqueado: "Contato", email_franqueado: "E-mail",
-  area_total: "Área Total", gerente_regional: "Gerente Regional",
-  analista_arquitetura: "Analista Arquitetura", implantadora: "Implantadora",
+  contato_franqueado: "Contato", telefone_franqueado: "Telefone",
+  email_franqueado: "E-mail", cnpj: "CNPJ", razao_social: "Razão Social",
+  endereco: "Endereço", cep: "CEP",
+  area_total: "Área Total", capex_previsto: "CAPEX Previsto",
+  gerente_regional: "Gerente Regional", analista_arquitetura: "Analista Arquitetura",
+  responsavel_interno: "Responsável Interno",
+  implantadora: "Implantadora", construtora: "Construtora",
   previsao_inauguracao: "Previsão Inauguração", data_inauguracao: "Data Inauguração",
-  inicio_obra: "Início Obra", status_geral: "Status", cd_origem: "CD de Origem",
-  reforma: "Reforma",
+  inicio_obra: "Início Obra", data_contrato_franquia: "Data Contrato",
+  status_geral: "Status", cd_origem: "CD de Origem", reforma: "Reforma",
 };
 
 const normalizeKey = (s: string) =>
