@@ -589,6 +589,12 @@ const Pipeline = () => {
                                 <Undo2 className="h-4 w-4" />
                               </Button>
                             )}
+                            {inaug && (
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-700" title="Ver histórico completo"
+                                onClick={() => setHistoryStore(store)}>
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            )}
                             {!inaug && (
                               <Button variant="ghost" size="icon" className={`h-8 w-8 ${reform ? "text-amber-700" : "text-amber-600"}`}
                                 title={reform ? "Desmarcar Reforma" : "Marcar como Reforma"}
