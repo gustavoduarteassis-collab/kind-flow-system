@@ -42,7 +42,13 @@ const FIELD_MAP: Record<string, string> = {
   "gerente regional": "gerente_regional",
   "analista de arquitetura": "analista_arquitetura",
   "implantadora": "implantadora",
+  "reforma": "reforma",
+  "é reforma": "reforma",
+  "e reforma": "reforma",
 };
+
+const TRUTHY = new Set(["sim", "s", "x", "true", "yes", "y", "1", "reforma"]);
+const parseBool = (v: string) => TRUTHY.has(v.toLowerCase().trim());
 
 // Fields the importer is allowed to fill (only when empty in DB)
 const FILLABLE_FIELDS = [
@@ -60,6 +66,7 @@ const FIELD_LABELS: Record<string, string> = {
   analista_arquitetura: "Analista Arquitetura", implantadora: "Implantadora",
   previsao_inauguracao: "Previsão Inauguração", data_inauguracao: "Data Inauguração",
   inicio_obra: "Início Obra", status_geral: "Status", cd_origem: "CD de Origem",
+  reforma: "Reforma",
 };
 
 const normalizeKey = (s: string) =>
