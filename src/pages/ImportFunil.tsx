@@ -214,7 +214,11 @@ const ImportFunil = () => {
         for (const key of FILLABLE_FIELDS) {
           const newVal = row.data[key];
           if (!newVal) continue;
-          if (isEmpty(existing[key])) fieldsToFill.push(key);
+          if (ALWAYS_UPDATE_FIELDS.has(key)) {
+            if (String(existing[key] || "").trim() !== newVal) fieldsToFill.push(key);
+          } else if (isEmpty(existing[key])) {
+            fieldsToFill.push(key);
+          }
         }
         // reforma: additive only — false → true never the other way
         if (wantsReforma && existing.reforma !== true) fieldsToFill.push("reforma");
