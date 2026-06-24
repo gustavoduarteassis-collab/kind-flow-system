@@ -346,6 +346,7 @@ const Index = () => {
                     {stores
                       .filter((store) => {
                         if (store.isReforma && !showReformas) return false;
+                        if (store.filial && inauguradasFiliais.has(String(store.filial))) return false;
                          const total = checklistCategories.flatMap((c) => c.items).length;
                          const counts: Partial<Record<StatusType, number>> = {};
                          Object.values(store.checklist).forEach((c) => {
@@ -353,7 +354,7 @@ const Index = () => {
                          });
                          const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
                          const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-                         return pct > 0 && pct < 100;
+                         return pct < 100;
                       })
                       .map((store) => {
                       const total = checklistCategories.flatMap((c) => c.items).length;
