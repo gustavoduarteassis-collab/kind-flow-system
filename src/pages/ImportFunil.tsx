@@ -20,13 +20,23 @@ const FIELD_MAP: Record<string, string> = {
   "local": "local",
   "cidade": "cidade",
   "estado": "estado",
+  "uf": "estado",
   "padrao": "padrao",
   "padrão": "padrao",
   "localizacao": "localizacao",
   "localização": "localizacao",
   "franqueado": "franqueado",
+  "razao social": "razao_social",
+  "razão social": "razao_social",
+  "cnpj": "cnpj",
+  "endereco": "endereco",
+  "endereço": "endereco",
+  "cep": "cep",
   "contato franqueados": "contato_franqueado",
   "contato franqueado": "contato_franqueado",
+  "telefone": "telefone_franqueado",
+  "telefone franqueado": "telefone_franqueado",
+  "celular": "telefone_franqueado",
   "e-mail": "email_franqueado",
   "email": "email_franqueado",
   "previsao inicial de inauguracao": "previsao_inauguracao",
@@ -35,13 +45,23 @@ const FIELD_MAP: Record<string, string> = {
   "data de inauguração": "data_inauguracao",
   "inicio da obra": "inicio_obra",
   "início da obra": "inicio_obra",
+  "data do contrato": "data_contrato_franquia",
+  "data contrato franquia": "data_contrato_franquia",
   "status": "status_geral",
   "cd de origem": "cd_origem",
   "area total": "area_total",
   "área total": "area_total",
+  "capex": "capex_previsto",
+  "capex previsto": "capex_previsto",
+  "investimento": "capex_previsto",
+  "valor investimento": "capex_previsto",
   "gerente regional": "gerente_regional",
   "analista de arquitetura": "analista_arquitetura",
+  "responsavel interno": "responsavel_interno",
+  "responsável interno": "responsavel_interno",
   "implantadora": "implantadora",
+  "construtora": "construtora",
+  "empreiteira": "construtora",
   "reforma": "reforma",
   "é reforma": "reforma",
   "e reforma": "reforma",
@@ -50,26 +70,31 @@ const FIELD_MAP: Record<string, string> = {
 const TRUTHY = new Set(["sim", "s", "x", "true", "yes", "y", "1", "reforma"]);
 const parseBool = (v: string) => TRUTHY.has(v.toLowerCase().trim());
 
-// Fields the importer is allowed to fill (only when empty in DB)
+// Fields the importer is allowed to fill (ONLY when empty in DB — never overwrites existing data)
 const FILLABLE_FIELDS = [
   "filial", "local", "cidade", "estado", "padrao", "localizacao",
-  "franqueado", "contato_franqueado", "email_franqueado",
-  "area_total", "gerente_regional", "analista_arquitetura", "implantadora",
-  "previsao_inauguracao", "data_inauguracao", "inicio_obra", "status_geral", "cd_origem",
+  "franqueado", "contato_franqueado", "telefone_franqueado", "email_franqueado",
+  "cnpj", "razao_social", "endereco", "cep",
+  "area_total", "capex_previsto",
+  "gerente_regional", "analista_arquitetura", "responsavel_interno",
+  "implantadora", "construtora",
+  "previsao_inauguracao", "data_inauguracao", "inicio_obra",
+  "data_contrato_franquia", "status_geral", "cd_origem",
 ] as const;
-
-// Fields that ALWAYS update from the spreadsheet (overwrite existing value).
-const ALWAYS_UPDATE_FIELDS = new Set(["previsao_inauguracao", "data_inauguracao"]);
 
 const FIELD_LABELS: Record<string, string> = {
   filial: "Filial", local: "Local", cidade: "Cidade", estado: "Estado",
   padrao: "Padrão", localizacao: "Localização", franqueado: "Franqueado",
-  contato_franqueado: "Contato", email_franqueado: "E-mail",
-  area_total: "Área Total", gerente_regional: "Gerente Regional",
-  analista_arquitetura: "Analista Arquitetura", implantadora: "Implantadora",
+  contato_franqueado: "Contato", telefone_franqueado: "Telefone",
+  email_franqueado: "E-mail", cnpj: "CNPJ", razao_social: "Razão Social",
+  endereco: "Endereço", cep: "CEP",
+  area_total: "Área Total", capex_previsto: "CAPEX Previsto",
+  gerente_regional: "Gerente Regional", analista_arquitetura: "Analista Arquitetura",
+  responsavel_interno: "Responsável Interno",
+  implantadora: "Implantadora", construtora: "Construtora",
   previsao_inauguracao: "Previsão Inauguração", data_inauguracao: "Data Inauguração",
-  inicio_obra: "Início Obra", status_geral: "Status", cd_origem: "CD de Origem",
-  reforma: "Reforma",
+  inicio_obra: "Início Obra", data_contrato_franquia: "Data Contrato",
+  status_geral: "Status", cd_origem: "CD de Origem", reforma: "Reforma",
 };
 
 const normalizeKey = (s: string) =>
@@ -205,6 +230,10 @@ const ImportFunil = () => {
         const existing = existingByFilial.get(row.filial) || null;
         const wantsReforma = parseBool(row.data.reforma || "");
         if (!existing) {
+          // Nova loja: também espelha a previsão como data de inauguração.
+          if (row.data.previsao_inauguracao && !row.data.data_inauguracao) {
+            row.data.data_inauguracao = row.data.previsao_inauguracao;
+          }
           const fieldsToFill = Object.keys(row.data).filter((k) => (FILLABLE_FIELDS as readonly string[]).includes(k));
           if (wantsReforma) fieldsToFill.push("reforma");
           items.push({ row, existingId: null, action: "create", fieldsToFill });
@@ -214,11 +243,15 @@ const ImportFunil = () => {
         for (const key of FILLABLE_FIELDS) {
           const newVal = row.data[key];
           if (!newVal) continue;
-          if (ALWAYS_UPDATE_FIELDS.has(key)) {
-            if (String(existing[key] || "").trim() !== newVal) fieldsToFill.push(key);
-          } else if (isEmpty(existing[key])) {
-            fieldsToFill.push(key);
-          }
+          // Regra: nunca sobrescreve dado já preenchido — preserva todo histórico.
+          if (isEmpty(existing[key])) fieldsToFill.push(key);
+        }
+        // Se "Previsão inicial de inauguração" existe na planilha e
+        // a "Data de Inauguração" ainda está vazia no banco, preenche também.
+        if (row.data.previsao_inauguracao && isEmpty(existing.data_inauguracao)
+            && !fieldsToFill.includes("data_inauguracao")) {
+          row.data.data_inauguracao = row.data.previsao_inauguracao;
+          fieldsToFill.push("data_inauguracao");
         }
         // reforma: additive only — false → true never the other way
         if (wantsReforma && existing.reforma !== true) fieldsToFill.push("reforma");

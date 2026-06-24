@@ -583,14 +583,20 @@ export type Database = {
           analista_arquitetura: string
           analista_obra: string
           area_total: string
+          capex_previsto: string | null
           cd_origem: string
+          cep: string | null
           cidade: string
+          cnpj: string | null
+          construtora: string | null
           contato_franqueado: string
           contratos: string
           created_at: string
+          data_contrato_franquia: string | null
           data_inauguracao: string
           data_liberacao_orcamento: string
           email_franqueado: string
+          endereco: string | null
           estado: string
           filial: string
           franqueado: string
@@ -624,8 +630,11 @@ export type Database = {
           projeto_eletrico: string
           projeto_estrutural: string
           projeto_incendio: string
+          razao_social: string | null
           reforma: boolean
+          responsavel_interno: string | null
           status_geral: string
+          telefone_franqueado: string | null
           transferido: boolean
           updated_at: string
           user_id: string
@@ -634,14 +643,20 @@ export type Database = {
           analista_arquitetura?: string
           analista_obra?: string
           area_total?: string
+          capex_previsto?: string | null
           cd_origem?: string
+          cep?: string | null
           cidade?: string
+          cnpj?: string | null
+          construtora?: string | null
           contato_franqueado?: string
           contratos?: string
           created_at?: string
+          data_contrato_franquia?: string | null
           data_inauguracao?: string
           data_liberacao_orcamento?: string
           email_franqueado?: string
+          endereco?: string | null
           estado?: string
           filial?: string
           franqueado?: string
@@ -675,8 +690,11 @@ export type Database = {
           projeto_eletrico?: string
           projeto_estrutural?: string
           projeto_incendio?: string
+          razao_social?: string | null
           reforma?: boolean
+          responsavel_interno?: string | null
           status_geral?: string
+          telefone_franqueado?: string | null
           transferido?: boolean
           updated_at?: string
           user_id: string
@@ -685,14 +703,20 @@ export type Database = {
           analista_arquitetura?: string
           analista_obra?: string
           area_total?: string
+          capex_previsto?: string | null
           cd_origem?: string
+          cep?: string | null
           cidade?: string
+          cnpj?: string | null
+          construtora?: string | null
           contato_franqueado?: string
           contratos?: string
           created_at?: string
+          data_contrato_franquia?: string | null
           data_inauguracao?: string
           data_liberacao_orcamento?: string
           email_franqueado?: string
+          endereco?: string | null
           estado?: string
           filial?: string
           franqueado?: string
@@ -726,8 +750,11 @@ export type Database = {
           projeto_eletrico?: string
           projeto_estrutural?: string
           projeto_incendio?: string
+          razao_social?: string | null
           reforma?: boolean
+          responsavel_interno?: string | null
           status_geral?: string
+          telefone_franqueado?: string | null
           transferido?: boolean
           updated_at?: string
           user_id?: string
