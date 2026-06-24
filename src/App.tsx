@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import Equipe from "./pages/Equipe";
 import FranqueadoPortal from "./pages/FranqueadoPortal";
 import Pipeline from "./pages/Pipeline";
+import ImportFunil from "./pages/ImportFunil";
 import CustosGeral from "./pages/CustosGeral";
 import Diversos from "./pages/Diversos";
 import AGM from "./pages/AGM";
@@ -107,6 +108,7 @@ function AppRoutes() {
       <Route path="/loja/:id/relatorio" element={<StoreReport />} />
       <Route path="/equipe" element={<Equipe />} />
       <Route path="/pipeline" element={<Pipeline />} />
+      <Route path="/funil-importar" element={<ImportFunil />} />
       <Route path="/custos-geral" element={<CustosGeral />} />
       <Route path="/diversos" element={<Diversos />} />
       <Route path="/agm" element={<AGM />} />

@@ -439,6 +439,9 @@ const Pipeline = () => {
             <Input placeholder="Buscar loja..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="flex gap-2 flex-wrap">
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/funil-importar")}>
+              <Plus className="h-4 w-4" /> Importar Funil (.xlsx)
+            </Button>
             <Button variant="outline" size="sm" className="gap-2" onClick={removeDuplicates}>
               <Trash2 className="h-4 w-4" /> Remover Duplicatas
             </Button>
