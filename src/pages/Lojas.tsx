@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { buildInauguradasFiliais } from "@/utils/inauguradaFilter";
 
 const Lojas = () => {
   const { stores, addStore, deleteStore, updateStore } = useStores();
@@ -31,6 +32,8 @@ const Lojas = () => {
   const [filterAnalista, setFilterAnalista] = useState(searchParams.get("analista") || "");
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "" as "rua" | "shopping" | "", inauguracaoChecklist: {} as any });
   const [isTeamMember, setIsTeamMember] = useState(false);
+  const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
+  const [showInauguradas, setShowInauguradas] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ id: "", nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
 
@@ -42,6 +45,14 @@ const Lojas = () => {
     };
     check();
   }, [user]);
+
+  useEffect(() => {
+    const loadInauguradas = async () => {
+      const { data } = await supabase.from("pipeline_stores").select("filial,status_geral");
+      setInauguradasFiliais(buildInauguradasFiliais(data as any));
+    };
+    loadInauguradas();
+  }, []);
 
   const openEditStore = (store: typeof stores[0]) => {
     setEditForm({ id: store.id, nome: store.nome, filial: store.filial, franqueado: store.franqueado, construtor: store.construtor, analistaObra: store.analistaObra, inauguracao: store.inauguracao });
@@ -84,8 +95,10 @@ const Lojas = () => {
       (s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
       s.filial.toLowerCase().includes(search.toLowerCase())) &&
-      (!filterAnalista || s.analistaObra === filterAnalista)
+      (!filterAnalista || s.analistaObra === filterAnalista) &&
+      (showInauguradas || !inauguradasFiliais.has(String(s.filial)))
   );
+  const hiddenInauguradasCount = stores.filter((s) => inauguradasFiliais.has(String(s.filial))).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -163,6 +176,15 @@ const Lojas = () => {
                   ))}
                 </SelectContent>
               </Select>
+            )}
+            {hiddenInauguradasCount > 0 && (
+              <Button
+                variant={showInauguradas ? "default" : "outline"}
+                onClick={() => setShowInauguradas((v) => !v)}
+                className="gap-2"
+              >
+                {showInauguradas ? "Ocultar inauguradas" : `Mostrar inauguradas (${hiddenInauguradasCount})`}
+              </Button>
             )}
           </div>
         )}
