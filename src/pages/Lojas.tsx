@@ -95,8 +95,10 @@ const Lojas = () => {
       (s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
       s.filial.toLowerCase().includes(search.toLowerCase())) &&
-      (!filterAnalista || s.analistaObra === filterAnalista)
+      (!filterAnalista || s.analistaObra === filterAnalista) &&
+      (showInauguradas || !inauguradasFiliais.has(String(s.filial)))
   );
+  const hiddenInauguradasCount = stores.filter((s) => inauguradasFiliais.has(String(s.filial))).length;
 
   return (
     <div className="min-h-screen bg-background">
