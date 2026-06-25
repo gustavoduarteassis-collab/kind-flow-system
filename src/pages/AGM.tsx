@@ -51,6 +51,37 @@ const farolColors: Record<string, string> = {
 
 const getCurrentMonth = () => format(new Date(), "yyyy-MM");
 
+function buildAssistantContext(
+  mesRef: string,
+  stores: any[],
+  plans: any[],
+  fornecedoresCount: number,
+  summary: { totalLojas: number; prazoMedio: number; custoMediaByTipo: Record<string, number> },
+): string {
+  const lines: string[] = [];
+  lines.push(`Mês de referência: ${mesRef}`);
+  lines.push(`Lojas inauguradas no mês: ${summary.totalLojas}`);
+  lines.push(`Prazo médio de implantação: ${summary.prazoMedio} dias`);
+  lines.push(`Novos fornecedores prospectados: ${fornecedoresCount}`);
+  lines.push(`Custo/m² médio por tipo: ${Object.entries(summary.custoMediaByTipo).map(([t, v]) => `${t}=R$ ${v.toLocaleString("pt-BR")}`).join(" | ") || "—"}`);
+  lines.push(`Metas: TRADICIONAL=R$ 3.350 | LIGHT=R$ 3.500 | OUTLET=R$ 2.900`);
+  lines.push("");
+  lines.push("LOJAS DO MÊS:");
+  stores.forEach((s) => {
+    lines.push(
+      `- ${s.nome} [${s.tipo}] origem=${s.origem} | área=${s.areaLoja}m² | custo total=R$ ${s.custoTotal.toLocaleString("pt-BR")} | custo/m²=R$ ${s.custoM2.toLocaleString("pt-BR")} (meta R$ ${s.metaCustoM2}) | início obra=${s.inicioObra || "-"} | inauguração=${s.dataInauguracao || s.previsaoInauguracao || "-"} | prazo=${s.prazoDias}d | status=${s.statusGeral || "-"} | franqueado=${s.franqueado || "-"} | analista=${s.analistaObra || "-"}`,
+    );
+  });
+  lines.push("");
+  lines.push("PLANOS DE AÇÃO DO MÊS:");
+  if (plans.length === 0) lines.push("(nenhum)");
+  plans.forEach((p) => {
+    lines.push(`- [${p.farol}] ${p.indicador}: causa="${p.causa}" | ação="${p.acao}" | resp=${p.responsavel} | prazo=${p.prazo_final}`);
+  });
+  return lines.join("\n");
+}
+
+
 type CustoEntry = {
   id: string; nome: string; tipo: string; area_loja: number; area_total: number;
   mao_de_obra: number; moveis: number; piso: number; iluminacao: number;
