@@ -46,6 +46,14 @@ const Lojas = () => {
     check();
   }, [user]);
 
+  useEffect(() => {
+    const loadInauguradas = async () => {
+      const { data } = await supabase.from("pipeline_stores").select("filial,status_geral");
+      setInauguradasFiliais(buildInauguradasFiliais(data as any));
+    };
+    loadInauguradas();
+  }, []);
+
   const openEditStore = (store: typeof stores[0]) => {
     setEditForm({ id: store.id, nome: store.nome, filial: store.filial, franqueado: store.franqueado, construtor: store.construtor, analistaObra: store.analistaObra, inauguracao: store.inauguracao });
     setEditOpen(true);
