@@ -56,6 +56,8 @@ import {
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import logoConstanceSvg from "@/assets/logo-constance.svg";
+import StorePhaseProgress from "@/components/StorePhaseProgress";
+import { useAutoMarkInaugurada } from "@/hooks/useAutoMarkInaugurada";
 
 const statusColors: Record<StatusType, string> = {
   "NÃO INICIADO": "bg-secondary text-secondary-foreground",
@@ -96,6 +98,33 @@ const StoreDetail = () => {
     };
     check();
   }, [user]);
+
+  // Lê marcação de Inaugurada no Funil (pipeline_stores) para a barra de fases
+  const [inauguradaInPipeline, setInauguradaInPipeline] = useState(false);
+  useEffect(() => {
+    if (!store?.filial) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("pipeline_stores")
+        .select("status_geral")
+        .eq("filial", store.filial)
+        .maybeSingle();
+      if (cancelled) return;
+      const sg = (data?.status_geral || "").toLowerCase();
+      setInauguradaInPipeline(sg.startsWith("inaugurada"));
+    })();
+    return () => { cancelled = true; };
+  }, [store?.filial]);
+
+  // Auto-marca como Inaugurada no Funil quando o checklist atinge LIBERADO
+  // (somente append; nunca apaga histórico)
+  useAutoMarkInaugurada({
+    filial: store?.filial,
+    inauguracaoChecklist: store?.inauguracaoChecklist,
+    tipoLoja: store?.tipoLoja,
+    onMarked: () => setInauguradaInPipeline(true),
+  });
 
   // Category name editing with sync-to-all dialog
   const [pendingCatRename, setPendingCatRename] = useState<{ catId: string; newName: string } | null>(null);
@@ -462,6 +491,10 @@ const StoreDetail = () => {
                 <FileSpreadsheet className="h-4 w-4" /> Excel Checklist
               </Button>
             </div>
+          </div>
+          {/* Barra de Fases (Funil → Inaugurada) */}
+          <div className="mb-3 px-1">
+            <StorePhaseProgress store={store} inauguradaInPipeline={inauguradaInPipeline} />
           </div>
           {/* Progress bar */}
           <div className="flex items-center gap-4">
