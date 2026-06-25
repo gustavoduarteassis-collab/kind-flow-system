@@ -121,6 +121,10 @@ const StoreDetail = () => {
   // (somente append; nunca apaga histórico)
   useAutoMarkInaugurada({
     filial: store?.filial,
+    storeName: store?.nome,
+    franqueado: store?.franqueado,
+    analistaObra: store?.analistaObra,
+    inauguracao: store?.inauguracao,
     inauguracaoChecklist: store?.inauguracaoChecklist,
     tipoLoja: store?.tipoLoja,
     onMarked: () => setInauguradaInPipeline(true),
