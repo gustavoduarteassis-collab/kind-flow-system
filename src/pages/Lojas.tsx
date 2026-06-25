@@ -177,6 +177,15 @@ const Lojas = () => {
                 </SelectContent>
               </Select>
             )}
+            {hiddenInauguradasCount > 0 && (
+              <Button
+                variant={showInauguradas ? "default" : "outline"}
+                onClick={() => setShowInauguradas((v) => !v)}
+                className="gap-2"
+              >
+                {showInauguradas ? "Ocultar inauguradas" : `Mostrar inauguradas (${hiddenInauguradasCount})`}
+              </Button>
+            )}
           </div>
         )}
 
