@@ -113,6 +113,101 @@ export type Database = {
         }
         Relationships: []
       }
+      agm_plano_updates: {
+        Row: {
+          autor: string | null
+          created_at: string
+          data: string
+          id: string
+          plano_id: string
+          texto: string
+        }
+        Insert: {
+          autor?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          plano_id: string
+          texto: string
+        }
+        Update: {
+          autor?: string | null
+          created_at?: string
+          data?: string
+          id?: string
+          plano_id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agm_plano_updates_plano_id_fkey"
+            columns: ["plano_id"]
+            isOneToOne: false
+            referencedRelation: "agm_planos_acao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agm_planos_acao: {
+        Row: {
+          acao: string
+          causa: string
+          codigo: string
+          como: string | null
+          created_at: string
+          created_by: string | null
+          data_conclusao: string | null
+          id: string
+          mes_criacao: string
+          origem: string
+          prazo_final: string
+          prazo_inicial: string | null
+          responsavel: string
+          status: string
+          ultima_atualizacao_data: string | null
+          ultima_atualizacao_texto: string | null
+          updated_at: string
+        }
+        Insert: {
+          acao: string
+          causa: string
+          codigo?: string
+          como?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_conclusao?: string | null
+          id?: string
+          mes_criacao: string
+          origem: string
+          prazo_final: string
+          prazo_inicial?: string | null
+          responsavel: string
+          status?: string
+          ultima_atualizacao_data?: string | null
+          ultima_atualizacao_texto?: string | null
+          updated_at?: string
+        }
+        Update: {
+          acao?: string
+          causa?: string
+          codigo?: string
+          como?: string | null
+          created_at?: string
+          created_by?: string | null
+          data_conclusao?: string | null
+          id?: string
+          mes_criacao?: string
+          origem?: string
+          prazo_final?: string
+          prazo_inicial?: string | null
+          responsavel?: string
+          status?: string
+          ultima_atualizacao_data?: string | null
+          ultima_atualizacao_texto?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       analyst_goals: {
         Row: {
           analyst_name: string
