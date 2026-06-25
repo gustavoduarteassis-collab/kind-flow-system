@@ -32,6 +32,8 @@ const Lojas = () => {
   const [filterAnalista, setFilterAnalista] = useState(searchParams.get("analista") || "");
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "" as "rua" | "shopping" | "", inauguracaoChecklist: {} as any });
   const [isTeamMember, setIsTeamMember] = useState(false);
+  const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
+  const [showInauguradas, setShowInauguradas] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ id: "", nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
 
