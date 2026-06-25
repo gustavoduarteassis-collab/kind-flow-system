@@ -14,7 +14,7 @@ import {
 
 const MONTHS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 const MONTH_LABELS = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
-const ANALYSTS = ["Thainara", "Deise", "Gizelia"];
+const ANALYSTS = ["Thainara Araújo", "Deise Medeiros", "Gizelia Gomide"];
 
 type GoalRow = {
   id: string;
