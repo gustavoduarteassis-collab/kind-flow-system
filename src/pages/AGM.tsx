@@ -32,6 +32,8 @@ import { generateAGMPptx } from "@/utils/generateAGMPptx";
 import { MatrizResultados } from "@/components/MatrizResultados";
 import { MatrizAnalistas } from "@/components/MatrizAnalistas";
 import { isStoreLiberated } from "@/utils/inaugurationStatus";
+import { PlanosAcumulados } from "@/components/agm/PlanosAcumulados";
+import { AGMAssistant } from "@/components/agm/AGMAssistant";
 
 
 
