@@ -33,6 +33,7 @@ const Lojas = () => {
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "" as "rua" | "shopping" | "", inauguracaoChecklist: {} as any });
   const [isTeamMember, setIsTeamMember] = useState(false);
   const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
+  const [inauguradasNomes, setInauguradasNomes] = useState<Set<string>>(new Set());
   const [showInauguradas, setShowInauguradas] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ id: "", nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
@@ -48,8 +49,18 @@ const Lojas = () => {
 
   useEffect(() => {
     const loadInauguradas = async () => {
-      const { data } = await supabase.from("pipeline_stores").select("filial,status_geral");
+      const { data } = await supabase.from("pipeline_stores").select("filial,local,status_geral");
       setInauguradasFiliais(buildInauguradasFiliais(data as any));
+      const norm = (s: string) =>
+        s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+      const nomes = new Set<string>();
+      (data || []).forEach((r: any) => {
+        const status = String(r.status_geral || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+        if (status.startsWith("inaugurada") && r.local) {
+          nomes.add(norm(String(r.local)));
+        }
+      });
+      setInauguradasNomes(nomes);
     };
     loadInauguradas();
   }, []);
@@ -90,15 +101,28 @@ const Lojas = () => {
     return counts;
   };
 
+  const normName = (s: string) =>
+    s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const isInaugurada = (s: typeof stores[0]) => {
+    if (s.filial && inauguradasFiliais.has(String(s.filial))) return true;
+    if (s.nome) {
+      const n = normName(s.nome);
+      for (const pn of inauguradasNomes) {
+        if (pn.includes(n) || n.includes(pn)) return true;
+      }
+    }
+    return false;
+  };
+
   const filtered = stores.filter(
     (s) =>
       (s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
       s.filial.toLowerCase().includes(search.toLowerCase())) &&
       (!filterAnalista || s.analistaObra === filterAnalista) &&
-      (showInauguradas || !inauguradasFiliais.has(String(s.filial)))
+      (showInauguradas || !isInaugurada(s))
   );
-  const hiddenInauguradasCount = stores.filter((s) => inauguradasFiliais.has(String(s.filial))).length;
+  const hiddenInauguradasCount = stores.filter(isInaugurada).length;
 
   return (
     <div className="min-h-screen bg-background">
