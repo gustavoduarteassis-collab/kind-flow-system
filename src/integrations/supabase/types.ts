@@ -155,6 +155,42 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string | null
+          table_name: string
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string | null
+          table_name?: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       authorized_team_emails: {
         Row: {
           created_at: string
@@ -638,6 +674,7 @@ export type Database = {
           transferido: boolean
           updated_at: string
           user_id: string
+          version: number
         }
         Insert: {
           analista_arquitetura?: string
@@ -698,6 +735,7 @@ export type Database = {
           transferido?: boolean
           updated_at?: string
           user_id: string
+          version?: number
         }
         Update: {
           analista_arquitetura?: string
@@ -758,6 +796,7 @@ export type Database = {
           transferido?: boolean
           updated_at?: string
           user_id?: string
+          version?: number
         }
         Relationships: []
       }
@@ -792,6 +831,7 @@ export type Database = {
           uf: string | null
           updated_at: string
           user_id: string
+          version: number
           visita_tecnica: Json
         }
         Insert: {
@@ -824,6 +864,7 @@ export type Database = {
           uf?: string | null
           updated_at?: string
           user_id: string
+          version?: number
           visita_tecnica?: Json
         }
         Update: {
@@ -856,6 +897,7 @@ export type Database = {
           uf?: string | null
           updated_at?: string
           user_id?: string
+          version?: number
           visita_tecnica?: Json
         }
         Relationships: []
