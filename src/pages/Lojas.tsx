@@ -49,8 +49,18 @@ const Lojas = () => {
 
   useEffect(() => {
     const loadInauguradas = async () => {
-      const { data } = await supabase.from("pipeline_stores").select("filial,status_geral");
+      const { data } = await supabase.from("pipeline_stores").select("filial,local,status_geral");
       setInauguradasFiliais(buildInauguradasFiliais(data as any));
+      const norm = (s: string) =>
+        s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+      const nomes = new Set<string>();
+      (data || []).forEach((r: any) => {
+        const status = String(r.status_geral || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+        if (status.startsWith("inaugurada") && r.local) {
+          nomes.add(norm(String(r.local)));
+        }
+      });
+      setInauguradasNomes(nomes);
     };
     loadInauguradas();
   }, []);
