@@ -492,6 +492,10 @@ const StoreDetail = () => {
               </Button>
             </div>
           </div>
+          {/* Barra de Fases (Funil → Inaugurada) */}
+          <div className="mb-3 px-1">
+            <StorePhaseProgress store={store} inauguradaInPipeline={inauguradaInPipeline} />
+          </div>
           {/* Progress bar */}
           <div className="flex items-center gap-4">
             <div className="flex-1">
