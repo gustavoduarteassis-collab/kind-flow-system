@@ -844,8 +844,22 @@ const AGM = () => {
               </Card>
             )}
           </TabsContent>
+
+          {/* PLANOS ACUMULADOS (entre meses) */}
+          <TabsContent value="acumulados" className="space-y-4">
+            <PlanosAcumulados />
+          </TabsContent>
+
+          {/* ASSISTENTE IA */}
+          <TabsContent value="assistente" className="space-y-4">
+            <AGMAssistant
+              mesRef={mesRef}
+              contexto={buildAssistantContext(mesRef, storesData, plans, fornecedoresCount, summary)}
+            />
+          </TabsContent>
         </Tabs>
       </main>
+
 
       {/* 5 WHYS CHAT DIALOG */}
       <Dialog open={chatOpen} onOpenChange={setChatOpen}>
