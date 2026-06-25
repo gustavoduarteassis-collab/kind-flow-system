@@ -602,15 +602,18 @@ const AGM = () => {
         </div>
 
         <Tabs defaultValue="lojas" className="space-y-6">
-          <TabsList>
+          <TabsList className="flex flex-wrap h-auto">
             <TabsTrigger value="lojas">Lojas do Mês</TabsTrigger>
             <TabsTrigger value="matriz">Matriz de Resultados</TabsTrigger>
             <TabsTrigger value="analistas">Metas Analistas</TabsTrigger>
             <TabsTrigger value="indicadores">Indicadores Extras</TabsTrigger>
-            <TabsTrigger value="planos">Planos de Ação ({plans.length})</TabsTrigger>
+            <TabsTrigger value="planos">Planos do Mês ({plans.length})</TabsTrigger>
+            <TabsTrigger value="acumulados">Planos Acumulados</TabsTrigger>
+            <TabsTrigger value="assistente">Assistente IA</TabsTrigger>
           </TabsList>
 
           <TabsContent value="lojas" className="space-y-4">
+
             {loading && (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
