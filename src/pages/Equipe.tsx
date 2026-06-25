@@ -96,7 +96,7 @@ const eventTypeColors: Record<string, string> = {
   outro: "bg-secondary text-secondary-foreground",
 };
 
-const ANALYST_OPTIONS = ["Thainara", "Deise", "Gizelia", "Gustavo", "Thiago", "Ieda", "Agopal"];
+const ANALYST_OPTIONS = ["Thainara Araújo", "Deise Medeiros", "Gizelia Gomide", "Gustavo", "Thiago", "Ieda", "Agopal"];
 
 // Fixed member colors for calendar visualization
 const MEMBER_COLORS = [
