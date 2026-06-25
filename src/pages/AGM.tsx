@@ -452,6 +452,47 @@ const AGM = () => {
     fetchAGMData();
   };
 
+  const [generatingPptx, setGeneratingPptx] = useState(false);
+  const handleGeneratePptx = async () => {
+    setGeneratingPptx(true);
+    try {
+      // Re-fetch the most current data for the selected month
+      await Promise.all([fetchAutoData(), fetchAGMData()]);
+
+      // Bring in accumulated action plans for the selected month
+      const { data: acumulados } = await supabase
+        .from("agm_planos_acao")
+        .select("*")
+        .eq("mes_criacao", mesRef);
+
+      const acumuladosAsPlans = (acumulados || []).map((p: any) => {
+        const today = new Date();
+        const prazo = p.prazo_final ? new Date(p.prazo_final) : null;
+        let farol = "amarelo";
+        if (p.status === "concluido") farol = "verde";
+        else if (prazo && prazo < today) farol = "vermelho";
+        else if (prazo && (prazo.getTime() - today.getTime()) / 86400000 > 7) farol = "verde";
+        return {
+          id: p.id, user_id: p.created_by, mes_referencia: mesRef,
+          indicador: p.origem || "Geral",
+          causa: p.causa || "", fenomeno: "", acao: p.acao || "",
+          como: p.como || "", responsavel: p.responsavel || "",
+          prazo_inicial: p.prazo_inicial || "", prazo_final: p.prazo_final || "",
+          farol, ai_generated: false, created_at: p.created_at,
+        } as ActionPlan;
+      });
+
+      const allPlans = [...plans, ...acumuladosAsPlans];
+
+      generateAGMPptx(mesRef, storesData, allPlans, fornecedoresCount, summary);
+      toast({ title: "PPTX gerado", description: `AGM de ${format(new Date(mesRef + "-01"), "MMMM yyyy", { locale: ptBR })} pronto para download.` });
+    } catch (err: any) {
+      toast({ title: "Erro ao gerar PPTX", description: err.message, variant: "destructive" });
+    } finally {
+      setGeneratingPptx(false);
+    }
+  };
+
   const generatePDF = () => {
     const w = window.open("", "_blank");
     if (!w) return;
@@ -576,8 +617,8 @@ const AGM = () => {
             <Button variant="outline" className="gap-2" onClick={generatePDF}>
               <Download className="h-4 w-4" /> PDF
             </Button>
-            <Button variant="default" className="gap-2" onClick={() => generateAGMPptx(mesRef, storesData, plans, fornecedoresCount, summary)}>
-              <Download className="h-4 w-4" /> PPTX
+            <Button variant="default" className="gap-2" onClick={handleGeneratePptx} disabled={generatingPptx || loading}>
+              {generatingPptx ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} PPTX
             </Button>
           </div>
         </div>
