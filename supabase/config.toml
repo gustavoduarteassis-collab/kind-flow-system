@@ -2,3 +2,6 @@ project_id = "fcqqrczztnaxdzcwjhtl"
 
 [functions.agm-5whys]
 verify_jwt = true
+
+[functions.agm-assistant]
+verify_jwt = true
