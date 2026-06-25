@@ -101,15 +101,28 @@ const Lojas = () => {
     return counts;
   };
 
+  const normName = (s: string) =>
+    s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const isInaugurada = (s: typeof stores[0]) => {
+    if (s.filial && inauguradasFiliais.has(String(s.filial))) return true;
+    if (s.nome) {
+      const n = normName(s.nome);
+      for (const pn of inauguradasNomes) {
+        if (pn.includes(n) || n.includes(pn)) return true;
+      }
+    }
+    return false;
+  };
+
   const filtered = stores.filter(
     (s) =>
       (s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
       s.filial.toLowerCase().includes(search.toLowerCase())) &&
       (!filterAnalista || s.analistaObra === filterAnalista) &&
-      (showInauguradas || !inauguradasFiliais.has(String(s.filial)))
+      (showInauguradas || !isInaugurada(s))
   );
-  const hiddenInauguradasCount = stores.filter((s) => inauguradasFiliais.has(String(s.filial))).length;
+  const hiddenInauguradasCount = stores.filter(isInaugurada).length;
 
   return (
     <div className="min-h-screen bg-background">
