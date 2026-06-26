@@ -285,7 +285,7 @@ const StoreDetail = () => {
     // Store info row (row 3)
     ws.mergeCells("A3:H3");
     const infoCell = ws.getCell("A3");
-    infoCell.value = `Franqueado: ${store.franqueado || "—"}  |  Construtor: ${store.construtor || "—"}  |  Analista: ${store.analistaObra || "—"}  |  Inauguração: ${store.inauguracao ? new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR") : "—"}`;
+    infoCell.value = `Franqueado: ${store.franqueado || "—"}  |  Construtor: ${store.construtor || "—"}  |  Analista: ${store.analistaObra || "—"}  |  Inauguração: ${formatBR(store.inauguracao)}`;
     infoCell.font = { size: 10, color: { argb: "FF666666" } };
     infoCell.alignment = { horizontal: "center", vertical: "middle" };
     ws.getRow(3).height = 22;
