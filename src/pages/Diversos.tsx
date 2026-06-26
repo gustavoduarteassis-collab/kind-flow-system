@@ -190,23 +190,15 @@ const Diversos = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <img src={logoConstance} alt="Constance" className="h-8 opacity-80" />
-            <div>
-              <h1 className="text-xl font-bold">Diversos</h1>
-              <p className="text-xs text-muted-foreground">Prospecção de Fornecedores & Metas</p>
-            </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex items-center gap-3 mb-6">
+          <img src={logoConstance} alt="Constance" className="h-8 opacity-80" />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Diversos</h1>
+            <p className="text-xs text-muted-foreground">Prospecção de Fornecedores & Metas</p>
           </div>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs defaultValue="fornecedores" className="space-y-6">
           <TabsList>
             <TabsTrigger value="fornecedores">Prospecção de Fornecedores</TabsTrigger>
