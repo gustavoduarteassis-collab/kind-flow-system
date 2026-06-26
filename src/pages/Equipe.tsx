@@ -21,12 +21,13 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
-  ChevronLeft, ChevronRight, Calendar, KeyRound,
+  ChevronLeft, ChevronRight, Calendar, KeyRound, AlertTriangle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
 
 type TeamMember = {
   id: string; name: string; role: string; email: string | null; phone: string | null;
@@ -766,15 +767,20 @@ const Equipe = () => {
                         <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                           {taskViewTab === "concluidas" ? "Nenhuma tarefa concluída" : "Nenhuma tarefa cadastrada"}
                         </TableCell></TableRow>
-                      ) : filtered.map((task) => (
-                      <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openTaskDetail(task)}>
+                      ) : filtered.map((task) => {
+                        const overdue = task.status !== "concluida" && task.due_date && task.due_date < todayStr;
+                        return (
+                      <TableRow key={task.id} className={`cursor-pointer hover:bg-muted/50 ${overdue ? "bg-destructive/5" : ""}`} onClick={() => openTaskDetail(task)}>
                         <TableCell>
-                          <p className="font-medium text-sm">{task.title}</p>
+                          <p className="font-medium text-sm flex items-center gap-1.5">
+                            {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />}
+                            {task.title}
+                          </p>
                           {task.description && <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>}
                         </TableCell>
                         <TableCell className="text-sm">{getMemberName(task.assigned_to)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{formatDate(task.start_date)}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{formatDate(task.due_date)}</TableCell>
+                        <TableCell className={`text-sm ${overdue ? "text-destructive font-bold" : "text-muted-foreground"}`}>{formatDate(task.due_date)}</TableCell>
                         <TableCell>
                           <Badge className={`${priorityColors[task.priority]} text-[10px]`}>{priorityLabels[task.priority]}</Badge>
                         </TableCell>
@@ -783,7 +789,7 @@ const Equipe = () => {
                             <span className="text-xs text-muted-foreground">{formatDate(task.updated_at)}</span>
                           ) : (
                             <Select value={task.status} onValueChange={(v) => updateTaskStatus(task.id, v)}>
-                              <SelectTrigger className="h-7 text-xs w-[120px]"><SelectValue /></SelectTrigger>
+                              <SelectTrigger className={`h-7 text-xs w-[120px] ${overdue ? "border-destructive text-destructive font-semibold" : ""}`}><SelectValue /></SelectTrigger>
                               <SelectContent>
                                 {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                               </SelectContent>
@@ -791,12 +797,15 @@ const Equipe = () => {
                           )}
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteTask(task.id); }}>
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
+                          <ConfirmDelete itemName={`a tarefa "${task.title}"`} onConfirm={() => deleteTask(task.id)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </ConfirmDelete>
                         </TableCell>
                       </TableRow>
-                    ))})()}
+                        );
+                      })})()}
                   </TableBody>
                 </Table>
               </div>
