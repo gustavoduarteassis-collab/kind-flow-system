@@ -449,7 +449,7 @@ const StoreDetail = () => {
                     {store.inauguracao && (
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5" />
-                        {new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR")}
+                        {formatBR(store.inauguracao)}
                       </span>
                     )}
                     {isTeamMember && (
