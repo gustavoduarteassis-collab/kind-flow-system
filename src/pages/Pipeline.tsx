@@ -185,6 +185,7 @@ const Pipeline = () => {
   // Duplicates preview
   const [dupOpen, setDupOpen] = useState(false);
   const [dupPreview, setDupPreview] = useState<{ keep: PipelineStore; remove: PipelineStore[] }[]>([]);
+  const [dupSelected, setDupSelected] = useState<Set<string>>(new Set());
 
   const fetchStores = useCallback(async () => {
     if (!user) return;
@@ -318,14 +319,17 @@ const Pipeline = () => {
       if (list.length > 1) dups.push({ keep: list[0], remove: list.slice(1) });
     }
     if (dups.length === 0) { toast({ title: "Nenhuma duplicata encontrada." }); return; }
-    setDupPreview(dups); setDupOpen(true);
+    setDupPreview(dups); setDupSelected(new Set()); setDupOpen(true);
   };
   const confirmRemoveDuplicates = async () => {
-    const ids = dupPreview.flatMap((d) => d.remove.map((r) => r.id));
+    const ids = Array.from(dupSelected);
+    if (ids.length === 0) { toast({ title: "Selecione ao menos uma loja para remover." }); return; }
     for (const id of ids) await supabase.from("pipeline_stores").delete().eq("id", id);
     toast({ title: `${ids.length} duplicata(s) removida(s)!` });
-    setDupOpen(false); setDupPreview([]); fetchStores();
+    setDupOpen(false); setDupPreview([]); setDupSelected(new Set()); fetchStores();
   };
+  const toggleDupSelected = (id: string) =>
+    setDupSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   // Computed filter lists
   const analistas = useMemo(() => Array.from(new Set(stores.map((s) => s.analista_obra).filter(Boolean))).sort(), [stores]);
@@ -801,8 +805,17 @@ const Pipeline = () => {
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             Encontradas <strong>{dupPreview.reduce((acc, d) => acc + d.remove.length, 0)}</strong> duplicata(s) em <strong>{dupPreview.length}</strong> grupo(s).
-            A primeira de cada grupo é mantida. Confirme antes de excluir.
+            A primeira de cada grupo é mantida. Selecione abaixo quais cópias deseja remover.
           </p>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-muted-foreground">{dupSelected.size} selecionada(s)</span>
+            <button className="underline text-primary" onClick={() => {
+              const all = new Set(dupPreview.flatMap(d => d.remove.map(r => r.id)));
+              setDupSelected(dupSelected.size === all.size ? new Set() : all);
+            }}>
+              {dupSelected.size === dupPreview.flatMap(d => d.remove).length ? "Desmarcar todas" : "Selecionar todas"}
+            </button>
+          </div>
           <div className="space-y-3 max-h-[50vh] overflow-y-auto">
             {dupPreview.map((g, i) => (
               <div key={i} className="border rounded-md p-3 space-y-1">
@@ -812,18 +825,21 @@ const Pipeline = () => {
                   {g.keep.filial && <span className="text-xs text-muted-foreground">({g.keep.filial})</span>}
                 </div>
                 {g.remove.map((r) => (
-                  <div key={r.id} className="flex items-center gap-2 text-sm pl-2">
+                  <label key={r.id} className="flex items-center gap-2 text-sm pl-2 cursor-pointer hover:bg-muted/40 rounded p-1">
+                    <Checkbox checked={dupSelected.has(r.id)} onCheckedChange={() => toggleDupSelected(r.id)} />
                     <Badge variant="destructive" className="text-[10px]">EXCLUIR</Badge>
-                    <span className="text-muted-foreground line-through">{r.local}</span>
+                    <span className={cn("text-muted-foreground", dupSelected.has(r.id) && "line-through")}>{r.local}</span>
                     {r.filial && <span className="text-xs text-muted-foreground">({r.filial})</span>}
-                  </div>
+                  </label>
                 ))}
               </div>
             ))}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setDupOpen(false)}>Cancelar</Button>
-            <Button variant="destructive" onClick={confirmRemoveDuplicates}>Confirmar Exclusão</Button>
+            <Button variant="destructive" onClick={confirmRemoveDuplicates} disabled={dupSelected.size === 0}>
+              Excluir {dupSelected.size > 0 ? `${dupSelected.size} selecionada(s)` : "selecionadas"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
