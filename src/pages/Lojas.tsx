@@ -156,62 +156,53 @@ const Lojas = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold tracking-tight">Lojas</h1>
-                <p className="text-sm text-muted-foreground">Checklist e Cronograma</p>
-              </div>
-            </div>
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" /> Nova Loja
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Adicionar Nova Loja</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-2">
-                  <div className="space-y-2">
-                    <Label>Nome da Loja *</Label>
-                    <Input placeholder="Ex: Shopping Center Norte" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Filial</Label>
-                    <Input placeholder="Ex: 001" value={form.filial} onChange={(e) => setForm({ ...form, filial: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Franqueado</Label>
-                    <Input placeholder="Nome do franqueado" value={form.franqueado} onChange={(e) => setForm({ ...form, franqueado: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Construtor</Label>
-                    <Input placeholder="Nome do construtor" value={form.construtor} onChange={(e) => setForm({ ...form, construtor: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Analista de Obra</Label>
-                    <Input placeholder="Nome da analista de obra" value={form.analistaObra} onChange={(e) => setForm({ ...form, analistaObra: e.target.value })} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Data de Inauguração</Label>
-                    <Input type="date" value={form.inauguracao} onChange={(e) => setForm({ ...form, inauguracao: e.target.value })} />
-                  </div>
-                  <Button onClick={handleAdd} className="w-full">Criar Loja</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
+            <p className="text-xs text-muted-foreground">Checklist e Cronograma</p>
           </div>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" /> Nova Loja
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Adicionar Nova Loja</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <Label>Nome da Loja *</Label>
+                  <Input placeholder="Ex: Shopping Center Norte" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Filial</Label>
+                  <Input placeholder="Ex: 001" value={form.filial} onChange={(e) => setForm({ ...form, filial: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Franqueado</Label>
+                  <Input placeholder="Nome do franqueado" value={form.franqueado} onChange={(e) => setForm({ ...form, franqueado: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Construtor</Label>
+                  <Input placeholder="Nome do construtor" value={form.construtor} onChange={(e) => setForm({ ...form, construtor: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Analista de Obra</Label>
+                  <Input placeholder="Nome da analista de obra" value={form.analistaObra} onChange={(e) => setForm({ ...form, analistaObra: e.target.value })} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Data de Inauguração</Label>
+                  <Input type="date" value={form.inauguracao} onChange={(e) => setForm({ ...form, inauguracao: e.target.value })} />
+                </div>
+                <Button onClick={handleAdd} className="w-full">Criar Loja</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {stores.length > 0 && (
           <>
             {/* KPI summary strip */}
