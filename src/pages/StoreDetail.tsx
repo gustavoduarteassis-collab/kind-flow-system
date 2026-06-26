@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useStores } from "@/hooks/useStores";
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { TabsScrollableList } from "@/components/TabsScrollableList";
 import CronogramaObra from "@/components/CronogramaObra";
 import CustosObra from "@/components/CustosObra";
 import DiarioObra from "@/components/DiarioObra";
@@ -52,6 +53,8 @@ import {
   Check,
   X,
   FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
@@ -517,65 +520,63 @@ const StoreDetail = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="overflow-x-auto pb-2 -mx-4 px-4">
-            <TabsList className="h-auto flex-wrap gap-1 bg-transparent p-0">
-              <TabsTrigger
-                value="cronograma"
-                className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-              >
-                📊 Cronograma de Obra
-              </TabsTrigger>
-              <TabsTrigger
-                value="custos"
-                className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-              >
-                💰 Custos
-              </TabsTrigger>
-              <TabsTrigger
-                value="diario"
-                className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-              >
-                📓 Diário de Obra
-              </TabsTrigger>
-              <TabsTrigger
-                value="fornecedores"
-                className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-              >
-                🏭 Fornecedores
-              </TabsTrigger>
-              <TabsTrigger
-                value="visita-tecnica"
-                className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-              >
-                🔍 Visita Técnica
-              </TabsTrigger>
-              <TabsTrigger
-                value="solicitacoes"
-                className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-              >
-                📋 Solicitações
-              </TabsTrigger>
-              <TabsTrigger
-                value="inauguracao"
-                className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-              >
-                🎉 Checklist Inauguração
-              </TabsTrigger>
-              {checklistCategories.map((cat) => {
-                const catProgress = getCategoryProgress(cat.id);
-                return (
-                  <TabsTrigger
-                    key={cat.id}
-                    value={cat.id}
-                    className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-                  >
-                    {getCategoryName(cat.id, cat.nome)}
-                    <span className="ml-1.5 text-[10px] opacity-70">{catProgress}%</span>
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-          </div>
+          <TabsScrollableList>
+            <TabsTrigger
+              value="cronograma"
+              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
+            >
+              📊 Cronograma de Obra
+            </TabsTrigger>
+            <TabsTrigger
+              value="custos"
+              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
+            >
+              💰 Custos
+            </TabsTrigger>
+            <TabsTrigger
+              value="diario"
+              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
+            >
+              📓 Diário de Obra
+            </TabsTrigger>
+            <TabsTrigger
+              value="fornecedores"
+              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
+            >
+              🏭 Fornecedores
+            </TabsTrigger>
+            <TabsTrigger
+              value="visita-tecnica"
+              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
+            >
+              🔍 Visita Técnica
+            </TabsTrigger>
+            <TabsTrigger
+              value="solicitacoes"
+              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
+            >
+              📋 Solicitações
+            </TabsTrigger>
+            <TabsTrigger
+              value="inauguracao"
+              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
+            >
+              🎉 Checklist Inauguração
+            </TabsTrigger>
+            {checklistCategories.map((cat) => {
+              const catProgress = getCategoryProgress(cat.id);
+              return (
+                <TabsTrigger
+                  key={cat.id}
+                  value={cat.id}
+                  className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
+                >
+                  {getCategoryName(cat.id, cat.nome)}
+                  <span className="ml-1.5 text-[10px] opacity-70">{catProgress}%</span>
+                </TabsTrigger>
+              );
+            })}
+          </TabsScrollableList>
 
           <TabsContent value="cronograma" className="mt-4">
             <CronogramaObra

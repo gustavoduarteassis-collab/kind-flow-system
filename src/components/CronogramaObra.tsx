@@ -13,8 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Calendar, AlertTriangle, CheckCircle, Clock, FileText } from "lucide-react";
-import { addDays, format, differenceInCalendarDays } from "date-fns";
+import { Calendar as CalendarComp } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Calendar, AlertTriangle, CheckCircle, Clock, FileText, CalendarIcon } from "lucide-react";
+import { addDays, format, differenceInCalendarDays, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface CronogramaObraProps {
@@ -202,8 +205,29 @@ const CronogramaObra = ({ store, onUpdate }: CronogramaObraProps) => {
           <Label className="text-sm font-medium flex items-center gap-1.5">
             <Calendar className="h-3.5 w-3.5" /> Data início da obra
           </Label>
-          <Input type="date" className="h-9 w-44" value={cronograma.startDate}
-            onChange={(e) => handleStartDateChange(e.target.value)} />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn("h-9 w-56 justify-start text-left font-normal", !cronograma.startDate && "text-muted-foreground")}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {cronograma.startDate
+                  ? format(parseISO(cronograma.startDate), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                  : <span>Selecionar data</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComp
+                mode="single"
+                locale={ptBR}
+                selected={cronograma.startDate ? parseISO(cronograma.startDate) : undefined}
+                onSelect={(d) => d && handleStartDateChange(format(d, "yyyy-MM-dd"))}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="flex items-center gap-3 text-xs">
           <span className="text-muted-foreground">Legenda:</span>
