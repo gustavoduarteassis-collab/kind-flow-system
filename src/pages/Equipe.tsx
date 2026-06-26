@@ -1085,9 +1085,11 @@ const Equipe = () => {
                                 <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs w-16" value={visita.duracaoImplantacaoDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoImplantacaoDias: e.target.value } } as any)} /></td>
                                 <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={visita.responsavelImplantacao || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, responsavelImplantacao: e.target.value } } as any)} /></td>
                                 <td className="px-3 py-2">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir esta loja?")) deleteStore(store.id); }}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
+                                  <ConfirmDelete itemName={`a loja ${store.nome}`} onConfirm={() => deleteStore(store.id)}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </ConfirmDelete>
                                 </td>
                               </tr>
                             );
@@ -1258,9 +1260,11 @@ const Equipe = () => {
                                 <td className="px-3 py-2"><Input list="analistas-marc-list" className="h-8 text-xs" value={visita.responsavelMarcenaria || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, responsavelMarcenaria: e.target.value } } as any)} /></td>
                                 <td className="px-3 py-2 text-muted-foreground">{formatDate(marcEnd)}</td>
                                 <td className="px-3 py-2">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir esta loja?")) deleteStore(store.id); }}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
+                                  <ConfirmDelete itemName={`a loja ${store.nome}`} onConfirm={() => deleteStore(store.id)}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </ConfirmDelete>
                                 </td>
                               </tr>
                             );
@@ -1412,9 +1416,11 @@ const Equipe = () => {
                                     <td className="sticky left-0 z-10 bg-card px-3 py-2">
                                       <div className="flex items-center justify-between">
                                         <span className="font-medium">{habit.name}</span>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => { if (confirm("Excluir?")) deleteHabit(habit.id); }}>
-                                          <Trash2 className="h-3 w-3 text-destructive" />
-                                        </Button>
+                                        <ConfirmDelete itemName={`o hábito "${habit.name}"`} onConfirm={() => deleteHabit(habit.id)}>
+                                          <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
+                                            <Trash2 className="h-3 w-3 text-destructive" />
+                                          </Button>
+                                        </ConfirmDelete>
                                       </div>
                                     </td>
                                     {monthDaysHabit.map((day) => {
@@ -1726,9 +1732,13 @@ const Equipe = () => {
                             </div>
                           </div>
                           {ev.deletable && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); if (confirm("Excluir?")) deleteEvent(ev.originalId || ev.id); }}>
-                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                            </Button>
+                            <span onClick={(e) => e.stopPropagation()}>
+                              <ConfirmDelete itemName={`o evento "${ev.title}"`} onConfirm={() => deleteEvent(ev.originalId || ev.id)}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                </Button>
+                              </ConfirmDelete>
+                            </span>
                           )}
                         </div>
                       ))}
@@ -1770,7 +1780,9 @@ const Equipe = () => {
                     </div>
                     <div className="flex gap-2">
                       <Button onClick={saveEventDescription} className="flex-1">Salvar</Button>
-                      <Button variant="destructive" onClick={() => { if (confirm("Excluir este evento?")) { deleteEvent(selectedEvent.id); setEventDetailOpen(false); } }}>Excluir</Button>
+                      <ConfirmDelete itemName={`o evento "${selectedEvent.title}"`} onConfirm={() => { deleteEvent(selectedEvent.id); setEventDetailOpen(false); }}>
+                        <Button variant="destructive">Excluir</Button>
+                      </ConfirmDelete>
                     </div>
                   </div>
                 )}
