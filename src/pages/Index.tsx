@@ -174,76 +174,13 @@ const Index = () => {
       </section>
 
       {/* Store summary */}
-      {stores.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Resumo das Lojas</h2>
-            <div className="flex items-center gap-2">
-              <Button variant={showReformas ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setShowReformas((v) => !v)}>
-                {showReformas ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                {showReformas ? "Ocultar reformas" : "Mostrar reformas"}
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/lojas")}>
-                Ver Todas <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          <Card><div className="overflow-x-auto"><Table>
-            <TableHeader><TableRow>
-              <TableHead>Loja</TableHead><TableHead>Analista</TableHead>
-              <TableHead className="text-center">Progresso</TableHead>
-              <TableHead className="text-center">Realizados</TableHead>
-              <TableHead className="text-center">Atrasados</TableHead>
-              <TableHead className="text-center">Não Iniciados</TableHead>
-              <TableHead className="text-center">Em Andamento</TableHead>
-            </TableRow></TableHeader>
-            <TableBody>
-              {stores.filter((store) => {
-                if (store.isReforma && !showReformas) return false;
-                if (store.filial && inauguradasFiliais.has(String(store.filial))) return false;
-                const total = checklistCategories.flatMap((c) => c.items).length;
-                const counts: Partial<Record<StatusType, number>> = {};
-                Object.values(store.checklist).forEach((c) => { counts[c.status] = (counts[c.status] || 0) + 1; });
-                const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
-                const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-                return pct < 100;
-              }).map((store) => {
-                const total = checklistCategories.flatMap((c) => c.items).length;
-                const counts: Partial<Record<StatusType, number>> = {};
-                Object.values(store.checklist).forEach((c) => { counts[c.status] = (counts[c.status] || 0) + 1; });
-                const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
-                const pct = Math.round((done / total) * 100);
-                const inProgress = (counts["EM COTAÇÃO"] || 0) + (counts["EM TRANSPORTE"] || 0) + (counts["EM ELABORAÇÃO"] || 0) + (counts["EM ANÁLISE"] || 0) + (counts["EM CONTRATAÇÃO"] || 0) + (counts["CONSTRUTORA"] || 0);
-                return (
-                  <TableRow key={store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${store.id}`)}>
-                    <TableCell className="font-medium">{store.nome}</TableCell>
-                    <TableCell className="text-sm">
-                      {store.analistaObra ? (
-                        <span className="text-primary cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/lojas?analista=${encodeURIComponent(store.analistaObra)}`); }}>
-                          {store.analistaObra}
-                        </span>
-                      ) : <span className="text-muted-foreground">—</span>}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center gap-2 justify-center">
-                        <Progress value={pct} className="h-1.5 w-16" />
-                        <span className="text-xs font-semibold">{pct}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center"><Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">{counts["REALIZADO"] || 0}</Badge></TableCell>
-                    <TableCell className="text-center">
-                      {(counts["ATRASADO"] || 0) > 0 ? <Badge variant="destructive" className="text-xs">{counts["ATRASADO"]}</Badge> : <span className="text-xs text-muted-foreground">0</span>}
-                    </TableCell>
-                    <TableCell className="text-center"><span className="text-xs text-muted-foreground">{counts["NÃO INICIADO"] || 0}</span></TableCell>
-                    <TableCell className="text-center"><span className="text-xs text-muted-foreground">{inProgress}</span></TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table></div></Card>
-        </section>
-      )}
+      {stores.length > 0 && <StoreSummarySection
+        stores={stores}
+        inauguradasFiliais={inauguradasFiliais}
+        showReformas={showReformas}
+        setShowReformas={setShowReformas}
+        navigate={navigate}
+      />}
 
       {/* Tasks panel */}
       <section className="space-y-4">
