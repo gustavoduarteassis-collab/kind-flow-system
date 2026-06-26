@@ -380,18 +380,33 @@ const Lojas = () => {
                       <span className="text-muted-foreground">Progresso</span>
                       <span className="font-semibold">{progress}%</span>
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div className={`h-full transition-all ${barColor}`} style={{ width: `${progress}%` }} />
-                    </div>
+                    {(() => {
+                      const realizados = counts["REALIZADO"] || 0;
+                      const naoSeAplica = counts["NÃO SE APLICA"] || 0;
+                      const atrasados = counts["ATRASADO"] || 0;
+                      const emAndamento = (counts["EM COTAÇÃO"] || 0) + (counts["EM TRANSPORTE"] || 0) + (counts["EM ELABORAÇÃO"] || 0) + (counts["EM ANÁLISE"] || 0) + (counts["EM CONTRATAÇÃO"] || 0) + (counts["CONSTRUTORA"] || 0);
+                      const naoIniciados = counts["NÃO INICIADO"] || 0;
+                      const total = realizados + naoSeAplica + atrasados + emAndamento + naoIniciados;
+                      if (total === 0) return <div className="h-2 w-full rounded-full bg-muted" />;
+                      const pct = (n: number) => (n / total) * 100;
+                      return (
+                        <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted" title={`✓ ${realizados} realizados · ! ${atrasados} atrasados · ⏳ ${emAndamento} em andamento · ○ ${naoIniciados} não iniciados`}>
+                          {realizados + naoSeAplica > 0 && <div className="bg-[hsl(var(--success))] transition-all" style={{ width: `${pct(realizados + naoSeAplica)}%` }} />}
+                          {atrasados > 0 && <div className="bg-destructive transition-all" style={{ width: `${pct(atrasados)}%` }} />}
+                          {emAndamento > 0 && <div className="bg-amber-500 transition-all" style={{ width: `${pct(emAndamento)}%` }} />}
+                          {naoIniciados > 0 && <div className="bg-muted-foreground/30 transition-all" style={{ width: `${pct(naoIniciados)}%` }} />}
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {counts["REALIZADO"] && (
+                    {!!counts["REALIZADO"] && (
                       <Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">✓ {counts["REALIZADO"]}</Badge>
                     )}
-                    {counts["ATRASADO"] && (
+                    {!!counts["ATRASADO"] && (
                       <Badge variant="destructive" className="text-xs">! {counts["ATRASADO"]}</Badge>
                     )}
-                    {counts["NÃO INICIADO"] && (
+                    {!!counts["NÃO INICIADO"] && (
                       <Badge variant="secondary" className="text-xs">○ {counts["NÃO INICIADO"]}</Badge>
                     )}
                   </div>
