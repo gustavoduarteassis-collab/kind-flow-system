@@ -426,24 +426,85 @@ const CustosGeral = () => {
 
   const setField = (key: string, val: string) => setForm((f) => ({ ...f, [key]: val }));
 
+  // Mini KPI strip (current year filter context)
+  const headerYearData = useMemo(
+    () => allEntries.filter((d) => d.ano === Number(dashboardAno)),
+    [allEntries, dashboardAno]
+  );
+  const headerKpis = useMemo(() => {
+    const inv = headerYearData.reduce((s, e) => s + getStoreCostTotal(e), 0);
+    const area = headerYearData.reduce((s, e) => s + e.areaTotal, 0);
+    const avg = area > 0 ? inv / area : 0;
+    let ok = 0, over = 0;
+    headerYearData.forEach((e) => {
+      const cm2 = getStoreCostPerM2(e);
+      const meta = META_POR_M2[e.tipo] || 3350;
+      if (cm2 <= meta) ok++; else over++;
+    });
+    return { count: headerYearData.length, inv, area, avg, ok, over };
+  }, [headerYearData]);
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-3">
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <img src={logoConstance} alt="Logo" className="h-8 w-auto" />
-            <div className="flex-1">
-              <h1 className="text-xl font-bold tracking-tight">Custos Geral — Todas as Lojas</h1>
-              <p className="text-sm text-muted-foreground">Análise de custos por m² desde 2024</p>
+            <img src={logoConstance} alt="" className="h-9 w-auto" />
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Custos Geral</h1>
+              <p className="text-sm text-muted-foreground">Análise de custos por m² · todas as lojas desde 2024</p>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground self-center mr-1">Ano:</span>
+            {anos.map((a) => (
+              <Button
+                key={a}
+                size="sm"
+                variant={dashboardAno === String(a) ? "default" : "outline"}
+                onClick={() => setDashboardAno(String(a))}
+                className="h-8 px-3"
+              >
+                {a}
+              </Button>
+            ))}
+          </div>
         </div>
-      </header>
 
-      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Tricolor KPI strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-2">
+          <div className="rounded-lg border bg-card p-3">
+            <div className="text-[11px] text-muted-foreground uppercase tracking-wide">Lojas {dashboardAno}</div>
+            <div className="text-2xl font-bold mt-0.5">{headerKpis.count}</div>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <div className="text-[11px] text-muted-foreground uppercase tracking-wide">Investido</div>
+            <div className="text-lg font-bold mt-0.5 truncate">{fmt(headerKpis.inv)}</div>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <div className="text-[11px] text-muted-foreground uppercase tracking-wide">Área (m²)</div>
+            <div className="text-2xl font-bold mt-0.5">{headerKpis.area.toFixed(0)}</div>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <div className="text-[11px] text-muted-foreground uppercase tracking-wide">Média R$/m²</div>
+            <div className="text-xl font-bold mt-0.5">{fmtM2(headerKpis.avg)}</div>
+          </div>
+          <div className="rounded-lg border border-[hsl(152,60%,40%)]/40 bg-[hsl(152,60%,40%)]/5 p-3">
+            <div className="text-[11px] text-[hsl(152,60%,30%)] uppercase tracking-wide flex items-center gap-1">
+              <TrendingDown className="h-3 w-3" /> Na meta
+            </div>
+            <div className="text-2xl font-bold mt-0.5 text-[hsl(152,60%,30%)]">{headerKpis.ok}</div>
+          </div>
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3">
+            <div className="text-[11px] text-destructive uppercase tracking-wide flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" /> Estouraram
+            </div>
+            <div className="text-2xl font-bold mt-0.5 text-destructive">{headerKpis.over}</div>
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pb-8 space-y-6">
         <Tabs defaultValue="dashboard" className="space-y-6">
           <TabsList className="grid w-full max-w-3xl grid-cols-6">
             <TabsTrigger value="dashboard" className="gap-1.5 text-xs"><BarChart3 className="h-3.5 w-3.5" />Dashboard</TabsTrigger>
