@@ -603,28 +603,52 @@ const Equipe = () => {
     };
   };
 
+  // KPI strip
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const tasksAtivas = tasks.filter((t) => t.status !== "concluida").length;
+  const tasksAtrasadas = tasks.filter((t) => t.status !== "concluida" && t.due_date && t.due_date < todayStr).length;
+  const tasksConcluidas = tasks.filter((t) => t.status === "concluida").length;
+  const eventosMes = events.filter((e) => {
+    const d = e.event_date;
+    return d && d.startsWith(format(new Date(), "yyyy-MM"));
+  }).length;
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold tracking-tight">Painel da Equipe</h1>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
-              </div>
-            </div>
-            <Button variant="ghost" size="sm" className="gap-2" onClick={() => signOut()}>
-              <LogOut className="h-4 w-4" /> Sair
-            </Button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Painel da Equipe</h1>
+            <p className="text-xs text-muted-foreground">Tarefas, hábitos, programação e calendário do time</p>
+          </div>
+          <Button variant="ghost" size="sm" className="gap-2" onClick={() => signOut()}>
+            <LogOut className="h-4 w-4" /> Sair
+          </Button>
+        </div>
+
+        {/* KPI strip */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-[10px] uppercase text-muted-foreground font-medium">Membros</p>
+            <p className="text-xl font-bold">{members.length}</p>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-[10px] uppercase text-muted-foreground font-medium">Tarefas ativas</p>
+            <p className="text-xl font-bold text-[hsl(var(--accent))]">{tasksAtivas}</p>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-[10px] uppercase text-muted-foreground font-medium">Atrasadas</p>
+            <p className={`text-xl font-bold ${tasksAtrasadas > 0 ? "text-destructive" : "text-muted-foreground"}`}>{tasksAtrasadas}</p>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-[10px] uppercase text-muted-foreground font-medium">Concluídas</p>
+            <p className="text-xl font-bold text-[hsl(var(--success))]">{tasksConcluidas}</p>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-[10px] uppercase text-muted-foreground font-medium">Eventos no mês</p>
+            <p className="text-xl font-bold">{eventosMes}</p>
           </div>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs defaultValue="tarefas">
           <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="tarefas" className="gap-2"><ListTodo className="h-4 w-4" /> Tarefas</TabsTrigger>
