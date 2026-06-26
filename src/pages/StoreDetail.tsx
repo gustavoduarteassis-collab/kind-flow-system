@@ -58,6 +58,7 @@ import { saveAs } from "file-saver";
 import logoConstanceSvg from "@/assets/logo-constance.svg";
 import StorePhaseProgress from "@/components/StorePhaseProgress";
 import { useAutoMarkInaugurada } from "@/hooks/useAutoMarkInaugurada";
+import { formatBR } from "@/utils/safeDate";
 
 const statusColors: Record<StatusType, string> = {
   "NÃO INICIADO": "bg-secondary text-secondary-foreground",
