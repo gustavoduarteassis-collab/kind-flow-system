@@ -30,11 +30,11 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <div className="flex items-center gap-2 px-3 py-4 border-b border-sidebar-border">
-          <img src={logoConstance} alt="Constance" className="h-7 brightness-0 invert opacity-90" />
+          <img src={logoConstance} alt="Constance" className="h-7 brightness-0 invert opacity-90 shrink-0" />
           {!collapsed && (
-            <div className="leading-tight">
-              <p className="text-xs font-bold text-sidebar-foreground">Constance</p>
-              <p className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">Obra</p>
+            <div className="leading-tight min-w-0">
+              <p className="text-sm font-bold text-sidebar-foreground whitespace-nowrap">Constance Obra</p>
+              <p className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">Implantação</p>
             </div>
           )}
         </div>
