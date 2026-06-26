@@ -32,6 +32,7 @@ const Lojas = () => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterAnalista, setFilterAnalista] = useState(searchParams.get("analista") || "");
+  const [filterStatus, setFilterStatus] = useState<"todas" | "andamento" | "pronta" | "sem-progresso" | "atrasada">("todas");
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "" as "rua" | "shopping" | "", inauguracaoChecklist: {} as any });
   const [isTeamMember, setIsTeamMember] = useState(false);
   const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
