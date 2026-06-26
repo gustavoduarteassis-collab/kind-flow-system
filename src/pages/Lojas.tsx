@@ -290,20 +290,49 @@ const Lojas = () => {
           </div>
         )}
 
+        {filtered.length === 0 && stores.length > 0 && (
+          <div className="text-center py-16 text-muted-foreground">
+            Nenhuma loja encontrada com os filtros atuais.
+          </div>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((store) => {
             const progress = getProgress(store);
             const counts = getStatusCounts(store);
+            const atrasados = counts["ATRASADO"] || 0;
+            const days = daysUntil(store.inauguracao);
+            const inaugurada = isInaugurada(store);
+            const overdue = !inaugurada && days !== null && days < 0 && progress < 100;
+            const urgent = !inaugurada && days !== null && days >= 0 && days <= 14 && progress < 100;
+            const barColor = progressColor(progress, atrasados);
             return (
               <Card
                 key={store.id}
-                className="group cursor-pointer transition-all hover:shadow-lg hover:border-primary/30"
+                className={`group cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 ${
+                  overdue ? "border-destructive/40" : ""
+                }`}
                 onClick={() => navigate(`/loja/${store.id}`)}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
-                      <CardTitle className="text-lg leading-tight">{store.nome}</CardTitle>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <CardTitle className="text-lg leading-tight">{store.nome}</CardTitle>
+                        {inaugurada && (
+                          <Badge className="bg-[hsl(152,60%,40%)] text-white text-[10px]">Inaugurada</Badge>
+                        )}
+                        {overdue && (
+                          <Badge variant="destructive" className="text-[10px] gap-1">
+                            <AlertTriangle className="h-3 w-3" /> Atrasada
+                          </Badge>
+                        )}
+                        {urgent && !overdue && (
+                          <Badge className="bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)] text-[10px]">
+                            ⏰ {days}d
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         {store.filial && (
                           <span className="flex items-center gap-1">
@@ -341,9 +370,14 @@ const Lojas = () => {
                     </div>
                   )}
                   {store.inauguracao && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className={`flex items-center gap-2 text-sm ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                       <Calendar className="h-3.5 w-3.5" />
-                      {new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR")}
+                      {formatBR(store.inauguracao)}
+                      {days !== null && !inaugurada && (
+                        <span className="text-xs opacity-70">
+                          ({days < 0 ? `${Math.abs(days)}d atrás` : days === 0 ? "hoje" : `em ${days}d`})
+                        </span>
+                      )}
                     </div>
                   )}
                   <div className="space-y-2">
@@ -351,7 +385,9 @@ const Lojas = () => {
                       <span className="text-muted-foreground">Progresso</span>
                       <span className="font-semibold">{progress}%</span>
                     </div>
-                    <Progress value={progress} className="h-2" />
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                      <div className={`h-full transition-all ${barColor}`} style={{ width: `${progress}%` }} />
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {counts["REALIZADO"] && (
