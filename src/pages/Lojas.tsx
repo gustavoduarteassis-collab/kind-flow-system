@@ -21,6 +21,8 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { buildInauguradasFiliais } from "@/utils/inauguradaFilter";
+import { formatBR, daysUntil } from "@/utils/safeDate";
+import { AlertTriangle } from "lucide-react";
 
 const Lojas = () => {
   const { stores, addStore, deleteStore, updateStore } = useStores();
