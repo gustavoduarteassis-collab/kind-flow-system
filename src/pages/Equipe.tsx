@@ -1823,7 +1823,31 @@ const Equipe = () => {
               <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhum membro cadastrado</CardContent></Card>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {members.map((m) => (
+                {members.map((m) => {
+                  // Carga de trabalho calculada a partir do estado já carregado
+                  const memberStores = stores.filter((s) =>
+                    normalizeName(s.analistaObra) === normalizeName(m.name)
+                  );
+                  const memberTasksPend = tasks.filter(
+                    (t) => t.assigned_to === m.id && t.status !== "concluida" && t.status !== "cancelada"
+                  ).length;
+                  const totalChecklistItems = 100; // proxy length, only used for ratio
+                  const progressoMedio = memberStores.length > 0
+                    ? Math.round(
+                      memberStores.reduce((acc, s) => {
+                        const vals = Object.values(s.checklist || {});
+                        if (!vals.length) return acc;
+                        const done = vals.filter((c: any) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA").length;
+                        return acc + (done / vals.length) * 100;
+                      }, 0) / memberStores.length,
+                    )
+                    : 0;
+                  const progressColor =
+                    progressoMedio >= 80 ? "bg-[hsl(var(--success))]"
+                    : progressoMedio >= 50 ? "bg-[hsl(var(--accent))]"
+                    : progressoMedio > 0 ? "bg-amber-500"
+                    : "bg-muted-foreground/40";
+                  return (
                   <Card key={m.id}>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
@@ -1831,17 +1855,39 @@ const Equipe = () => {
                           <CardTitle className="text-base">{m.name}</CardTitle>
                           {m.role && <p className="text-sm text-muted-foreground">{m.role}</p>}
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteMember(m.id); }}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        <ConfirmDelete itemName={`o membro ${m.name}`} onConfirm={() => deleteMember(m.id)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </ConfirmDelete>
                       </div>
                     </CardHeader>
-                    <CardContent className="text-sm text-muted-foreground space-y-1">
-                      {m.email && <p>{m.email}</p>}
-                      {m.phone && <p>{m.phone}</p>}
+                    <CardContent className="text-sm space-y-3">
+                      {m.email && <p className="text-muted-foreground">{m.email}</p>}
+                      {m.phone && <p className="text-muted-foreground">{m.phone}</p>}
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                        <div>
+                          <p className="text-[10px] uppercase text-muted-foreground">Lojas ativas</p>
+                          <p className="text-lg font-bold">{memberStores.length}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase text-muted-foreground">Tarefas pendentes</p>
+                          <p className={`text-lg font-bold ${memberTasksPend > 0 ? "text-[hsl(var(--accent))]" : ""}`}>{memberTasksPend}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[10px] uppercase text-muted-foreground">
+                          <span>Progresso médio das lojas</span>
+                          <span className="font-semibold text-foreground">{progressoMedio}%</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className={`h-full transition-all ${progressColor}`} style={{ width: `${progressoMedio}%` }} />
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
           </TabsContent>
