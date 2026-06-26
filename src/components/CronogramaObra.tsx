@@ -79,27 +79,79 @@ const CronogramaObra = ({ store, onUpdate }: CronogramaObraProps) => {
     onUpdate({ ...cronograma, cells: newCells });
   };
 
+  const parseDate = (v: string): Date | null => {
+    if (!v) return null;
+    const d = new Date(v + "T00:00:00");
+    return isValid(d) ? d : null;
+  };
+
+  const obraRange = (): { start: Date; end: Date } | null => {
+    if (!cronograma.startDate) return null;
+    const start = parseDate(cronograma.startDate);
+    if (!start) return null;
+    return { start, end: addDays(start, TOTAL_DAYS - 1) };
+  };
+
+  const withinObra = (d: Date): boolean => {
+    const r = obraRange();
+    if (!r) return true;
+    return d.getTime() >= r.start.getTime() && d.getTime() <= r.end.getTime();
+  };
+
   const handleStartDateChange = (date: string) => {
+    const d = parseDate(date);
+    if (!d) {
+      toast.error("Data inválida", { description: "Selecione uma data de início válida." });
+      return;
+    }
     onUpdate({ ...cronograma, startDate: date });
+    toast.success("Data de início atualizada", {
+      description: `Cronograma cobre ${format(d, "dd/MM/yyyy")} → ${format(addDays(d, TOTAL_DAYS - 1), "dd/MM/yyyy")}`,
+    });
   };
 
   const handleItemDateChange = (itemId: string, field: "inicio" | "fim", value: string) => {
-    const newItemDates = { ...cronograma.itemDates };
-    const current = newItemDates[itemId] || { inicio: "", fim: "" };
-    newItemDates[itemId] = { ...current, [field]: value };
-    const newCells = { ...cronograma.cells };
+    if (value && !cronograma.startDate) {
+      toast.error("Defina primeiro a data de início da obra", {
+        description: "As datas das atividades dependem da data inicial do cronograma.",
+      });
+      return;
+    }
+    const newDate = parseDate(value);
+    if (value && !newDate) {
+      toast.error("Data inválida");
+      return;
+    }
+    const current = cronograma.itemDates[itemId] || { inicio: "", fim: "" };
     const inicio = field === "inicio" ? value : current.inicio;
     const fim = field === "fim" ? value : current.fim;
+    const inicioD = parseDate(inicio);
+    const fimD = parseDate(fim);
+
+    if (newDate && !withinObra(newDate)) {
+      const r = obraRange()!;
+      toast.error("Data fora da janela do cronograma", {
+        description: `Selecione entre ${format(r.start, "dd/MM/yyyy")} e ${format(r.end, "dd/MM/yyyy")} (${TOTAL_DAYS} dias).`,
+      });
+      return;
+    }
+    if (inicioD && fimD && fimD.getTime() < inicioD.getTime()) {
+      toast.error("Fim planejado anterior ao início", {
+        description: "A data fim deve ser igual ou posterior à data início.",
+      });
+      return;
+    }
+
+    const newItemDates = { ...cronograma.itemDates, [itemId]: { inicio, fim } };
+    const newCells = { ...cronograma.cells };
     for (let d = 1; d <= TOTAL_DAYS; d++) {
       const key = `${itemId}-${d}`;
       if (newCells[key] === "planned") delete newCells[key];
     }
-    if (inicio && fim && cronograma.startDate) {
-      const obraStart = new Date(cronograma.startDate + "T00:00:00");
-      const inicioDate = new Date(inicio + "T00:00:00");
-      const fimDate = new Date(fim + "T00:00:00");
-      const startDay = differenceInCalendarDays(inicioDate, obraStart) + 1;
-      const endDay = differenceInCalendarDays(fimDate, obraStart) + 1;
+    if (inicioD && fimD && cronograma.startDate) {
+      const obraStart = parseDate(cronograma.startDate)!;
+      const startDay = differenceInCalendarDays(inicioD, obraStart) + 1;
+      const endDay = differenceInCalendarDays(fimD, obraStart) + 1;
       for (let d = Math.max(1, startDay); d <= Math.min(TOTAL_DAYS, endDay); d++) {
         const key = `${itemId}-${d}`;
         if (!newCells[key] || newCells[key] === "none") newCells[key] = "planned";
@@ -109,43 +161,62 @@ const CronogramaObra = ({ store, onUpdate }: CronogramaObraProps) => {
   };
 
   const handleRealDateChange = (itemId: string, field: "inicioReal" | "fimReal", value: string) => {
-    const newReal = { ...cronograma.itemDatesReal };
-    const current = newReal[itemId] || { inicioReal: "", fimReal: "" };
-    newReal[itemId] = { ...current, [field]: value };
-
-    const newCells = { ...cronograma.cells };
+    if (value && !cronograma.startDate) {
+      toast.error("Defina primeiro a data de início da obra");
+      return;
+    }
+    const newDate = parseDate(value);
+    if (value && !newDate) {
+      toast.error("Data inválida");
+      return;
+    }
+    const current = cronograma.itemDatesReal[itemId] || { inicioReal: "", fimReal: "" };
     const inicioReal = field === "inicioReal" ? value : current.inicioReal;
     const fimReal = field === "fimReal" ? value : current.fimReal;
+    const inicioD = parseDate(inicioReal);
+    const fimD = parseDate(fimReal);
 
-    // Clear old "done" and "delayed" cells for this item
+    if (newDate && !withinObra(newDate)) {
+      const r = obraRange()!;
+      toast.error("Data fora da janela do cronograma", {
+        description: `Selecione entre ${format(r.start, "dd/MM/yyyy")} e ${format(r.end, "dd/MM/yyyy")}.`,
+      });
+      return;
+    }
+    if (inicioD && fimD && fimD.getTime() < inicioD.getTime()) {
+      toast.error("Fim real anterior ao início real", {
+        description: "A data fim real deve ser igual ou posterior ao início real.",
+      });
+      return;
+    }
+
+    const newReal = { ...cronograma.itemDatesReal, [itemId]: { inicioReal, fimReal } };
+    const newCells = { ...cronograma.cells };
     for (let d = 1; d <= TOTAL_DAYS; d++) {
       const key = `${itemId}-${d}`;
       if (newCells[key] === "done" || newCells[key] === "delayed") delete newCells[key];
     }
-
-    // Paint real date range
-    if (inicioReal && fimReal && cronograma.startDate) {
-      const obraStart = new Date(cronograma.startDate + "T00:00:00");
-      const realStart = new Date(inicioReal + "T00:00:00");
-      const realEnd = new Date(fimReal + "T00:00:00");
+    if (inicioD && fimD && cronograma.startDate) {
+      const obraStart = parseDate(cronograma.startDate)!;
       const planned = cronograma.itemDates[itemId];
-      const plannedEnd = planned?.fim ? new Date(planned.fim + "T00:00:00") : null;
-
-      const startDay = differenceInCalendarDays(realStart, obraStart) + 1;
-      const endDay = differenceInCalendarDays(realEnd, obraStart) + 1;
-
+      const plannedEnd = planned?.fim ? parseDate(planned.fim) : null;
+      const startDay = differenceInCalendarDays(inicioD, obraStart) + 1;
+      const endDay = differenceInCalendarDays(fimD, obraStart) + 1;
       for (let d = Math.max(1, startDay); d <= Math.min(TOTAL_DAYS, endDay); d++) {
         const key = `${itemId}-${d}`;
         const cellDate = addDays(obraStart, d - 1);
-        // If there's a planned end and this cell is after it → red (delayed)
         if (plannedEnd && differenceInCalendarDays(cellDate, plannedEnd) > 0) {
           newCells[key] = "delayed";
         } else {
           newCells[key] = "done";
         }
       }
+      if (plannedEnd && fimD.getTime() > plannedEnd.getTime()) {
+        toast.warning("Atividade concluída com atraso", {
+          description: `${differenceInCalendarDays(fimD, plannedEnd)} dia(s) após o fim planejado.`,
+        });
+      }
     }
-
     onUpdate({ ...cronograma, cells: newCells, itemDatesReal: newReal });
   };
 
