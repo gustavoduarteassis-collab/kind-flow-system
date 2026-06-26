@@ -517,23 +517,7 @@ const CustosGeral = () => {
 
           {/* ===== DASHBOARD TAB ===== */}
           <TabsContent value="dashboard" className="space-y-6">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-sm font-medium text-muted-foreground">Ano:</span>
-              {anos.map((a) => (
-                <Button key={a} size="sm" variant={dashboardAno === String(a) ? "default" : "outline"} onClick={() => setDashboardAno(String(a))}>
-                  {a}
-                </Button>
-              ))}
-            </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Lojas</p><p className="text-2xl font-bold">{dashSummary.totalLojas}</p></CardContent></Card>
-              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Total Investido</p><p className="text-sm font-bold truncate">{fmt(dashSummary.totalInvestido)}</p></CardContent></Card>
-              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Área Total (m²)</p><p className="text-lg font-bold">{dashSummary.totalArea.toFixed(0)}</p></CardContent></Card>
-              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate">Média R$/m²</p><p className="text-lg font-bold">{fmtM2(dashSummary.avgM2)}</p></CardContent></Card>
-              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate flex items-center gap-1"><TrendingDown className="h-3 w-3 text-[hsl(152,60%,40%)]" /> Na Meta</p><p className="text-2xl font-bold text-[hsl(152,60%,40%)]">{dashSummary.ok}</p></CardContent></Card>
-              <Card><CardContent className="pt-4 pb-3 px-4"><p className="text-xs text-muted-foreground truncate flex items-center gap-1"><TrendingUp className="h-3 w-3 text-destructive" /> Estourou</p><p className="text-2xl font-bold text-destructive">{dashSummary.over}</p></CardContent></Card>
-            </div>
 
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-sm">Custo Médio por m² — {dashboardAno}</CardTitle></CardHeader>
