@@ -2,11 +2,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Lojas from "./pages/Lojas";
 import StoreDetail from "./pages/StoreDetail";
 import StoreReport from "./pages/StoreReport";
+import StoreSlugResolver from "./pages/StoreSlugResolver";
 import Auth from "./pages/Auth";
 import Equipe from "./pages/Equipe";
 import FranqueadoPortal from "./pages/FranqueadoPortal";
@@ -15,7 +16,9 @@ import ImportFunil from "./pages/ImportFunil";
 import CustosGeral from "./pages/CustosGeral";
 import Diversos from "./pages/Diversos";
 import AGM from "./pages/AGM";
+import Acessos from "./pages/Acessos";
 import NotFound from "./pages/NotFound";
+import AppLayout from "./components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,43 +37,16 @@ function AppRoutes() {
     if (!user?.email) { setIsFranqueado(null); return; }
     const checkRole = async () => {
       try {
-        // 1. Check if user is in authorized team via RPC
         const { data: isTeam, error: authErr } = await supabase.rpc("is_authorized_team", { check_user_id: user.id });
-
         if (authErr) console.error("is_authorized_team error:", authErr);
+        if (isTeam) { setIsFranqueado(false); return; }
 
-        if (isTeam) {
-          setIsFranqueado(false);
-          return;
-        }
-
-        // 2. Check if user owns stores or has team data
-        const { data: ownedStores } = await supabase
-          .from("stores")
-          .select("id")
-          .eq("user_id", user.id)
-          .limit(1);
-
-        const { data: teamMembers } = await supabase
-          .from("team_members")
-          .select("id")
-          .eq("user_id", user.id)
-          .limit(1);
-
+        const { data: ownedStores } = await supabase.from("stores").select("id").eq("user_id", user.id).limit(1);
+        const { data: teamMembers } = await supabase.from("team_members").select("id").eq("user_id", user.id).limit(1);
         const hasOwnData = (ownedStores && ownedStores.length > 0) || (teamMembers && teamMembers.length > 0);
+        if (hasOwnData) { setIsFranqueado(false); return; }
 
-        if (hasOwnData) {
-          setIsFranqueado(false);
-          return;
-        }
-
-        // 3. Check franchisee/construtor access
-        const { data: access } = await supabase
-          .from("franchisee_access")
-          .select("id, access_type")
-          .ilike("franchisee_email", user.email!)
-          .limit(1);
-
+        const { data: access } = await supabase.from("franchisee_access").select("id, access_type").ilike("franchisee_email", user.email!).limit(1);
         setIsFranqueado(access && access.length > 0);
       } catch (err) {
         console.error("checkRole error:", err);
@@ -85,34 +61,31 @@ function AppRoutes() {
   }
 
   if (!user || isPasswordSetupFlow) {
-    return (
-      <Routes>
-        <Route path="*" element={<Auth />} />
-      </Routes>
-    );
+    return <Routes><Route path="*" element={<Auth />} /></Routes>;
   }
 
   if (isFranqueado) {
-    return (
-      <Routes>
-        <Route path="*" element={<FranqueadoPortal />} />
-      </Routes>
-    );
+    return <Routes><Route path="*" element={<FranqueadoPortal />} /></Routes>;
   }
 
   return (
     <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/lojas" element={<Lojas />} />
-      <Route path="/loja/:id" element={<StoreDetail />} />
-      <Route path="/loja/:id/relatorio" element={<StoreReport />} />
-      <Route path="/equipe" element={<Equipe />} />
-      <Route path="/pipeline" element={<Pipeline />} />
-      <Route path="/funil-importar" element={<ImportFunil />} />
-      <Route path="/custos-geral" element={<CustosGeral />} />
-      <Route path="/diversos" element={<Diversos />} />
-      <Route path="/agm" element={<AGM />} />
-      <Route path="*" element={<NotFound />} />
+      <Route element={<AppLayout />}>
+        <Route path="/" element={<Index />} />
+        <Route path="/lojas" element={<Lojas />} />
+        <Route path="/lojas/:slug" element={<StoreSlugResolver />} />
+        <Route path="/loja/:id" element={<StoreDetail />} />
+        <Route path="/loja/:id/relatorio" element={<StoreReport />} />
+        <Route path="/equipe" element={<Equipe />} />
+        <Route path="/pipeline" element={<Pipeline />} />
+        <Route path="/funil-importar" element={<ImportFunil />} />
+        <Route path="/custos-geral" element={<CustosGeral />} />
+        <Route path="/custos" element={<Navigate to="/custos-geral" replace />} />
+        <Route path="/diversos" element={<Diversos />} />
+        <Route path="/agm" element={<AGM />} />
+        <Route path="/acessos" element={<Acessos />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
     </Routes>
   );
 }
