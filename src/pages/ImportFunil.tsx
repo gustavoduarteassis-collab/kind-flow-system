@@ -345,19 +345,12 @@ const ImportFunil = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/pipeline")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-xl font-bold tracking-tight">Importar Funil 2026</h1>
-            <p className="text-sm text-muted-foreground">Importação aditiva — nunca sobrescreve dados existentes</p>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Importar Funil 2026</h1>
+          <p className="text-xs text-muted-foreground">Importação aditiva — nunca sobrescreve dados existentes</p>
+        </div>
+
         {/* Upload area */}
         <Card>
           <CardHeader>
