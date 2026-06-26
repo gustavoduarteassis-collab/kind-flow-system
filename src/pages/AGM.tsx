@@ -597,19 +597,16 @@ const AGM = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-3">
             <img src={logoConstance} alt="Constance" className="h-8 opacity-80" />
             <div>
-              <h1 className="text-xl font-bold">AGM</h1>
+              <h1 className="text-2xl font-bold tracking-tight">AGM</h1>
               <p className="text-xs text-muted-foreground">Análise Gerencial Mensal — Expansão</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Input type="month" value={mesRef} onChange={(e) => setMesRef(e.target.value)} className="w-[160px]" />
             <Button variant="outline" size="icon" onClick={() => { fetchAutoData(); fetchAGMData(); }} disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
@@ -622,9 +619,6 @@ const AGM = () => {
             </Button>
           </div>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* SUMMARY CARDS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <Card>
