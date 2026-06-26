@@ -344,7 +344,7 @@ const ImportFunil = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Importar Funil 2026</h1>

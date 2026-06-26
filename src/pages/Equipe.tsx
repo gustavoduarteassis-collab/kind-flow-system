@@ -614,7 +614,7 @@ const Equipe = () => {
   }).length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
