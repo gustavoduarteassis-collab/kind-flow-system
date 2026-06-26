@@ -213,34 +213,66 @@ const Lojas = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {stores.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar loja, franqueado..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <>
+            {/* KPI summary strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+              {[
+                { key: "todas", label: "Total", value: kpis.total, color: "text-foreground", dot: "bg-muted-foreground/40" },
+                { key: "andamento", label: "Em andamento", value: kpis.andamento, color: "text-[hsl(38,90%,40%)]", dot: "bg-[hsl(38,90%,55%)]" },
+                { key: "pronta", label: "Prontas", value: kpis.pronta, color: "text-[hsl(152,60%,30%)]", dot: "bg-[hsl(152,60%,40%)]" },
+                { key: "sem-progresso", label: "Sem progresso", value: kpis.sem, color: "text-muted-foreground", dot: "bg-muted-foreground/40" },
+                { key: "atrasada", label: "Atrasadas", value: kpis.atrasada, color: "text-destructive", dot: "bg-destructive" },
+              ].map((k) => (
+                <button
+                  key={k.key}
+                  onClick={() => setFilterStatus(k.key as any)}
+                  className={`text-left rounded-lg border p-3 transition-all hover:border-primary/40 ${
+                    filterStatus === k.key ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "bg-card"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className={`w-2 h-2 rounded-full ${k.dot}`} />
+                    {k.label}
+                  </div>
+                  <div className={`text-2xl font-bold mt-1 ${k.color}`}>{k.value}</div>
+                </button>
+              ))}
             </div>
-            {analistas.length > 0 && (
-              <Select value={filterAnalista} onValueChange={(v) => setFilterAnalista(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue placeholder="Filtrar por analista" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as analistas</SelectItem>
-                  {analistas.map((a) => (
-                    <SelectItem key={a} value={a}>{a}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            {hiddenInauguradasCount > 0 && (
-              <Button
-                variant={showInauguradas ? "default" : "outline"}
-                onClick={() => setShowInauguradas((v) => !v)}
-                className="gap-2"
-              >
-                {showInauguradas ? "Ocultar inauguradas" : `Mostrar inauguradas (${hiddenInauguradasCount})`}
-              </Button>
-            )}
-          </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar loja, franqueado, filial..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+              </div>
+              {analistas.length > 0 && (
+                <Select value={filterAnalista || "all"} onValueChange={(v) => setFilterAnalista(v === "all" ? "" : v)}>
+                  <SelectTrigger className="w-[220px]">
+                    <SelectValue placeholder="Filtrar por analista" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as analistas</SelectItem>
+                    {analistas.map((a) => (
+                      <SelectItem key={a} value={a}>{a}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {hiddenInauguradasCount > 0 && (
+                <Button
+                  variant={showInauguradas ? "default" : "outline"}
+                  onClick={() => setShowInauguradas((v) => !v)}
+                  className="gap-2"
+                >
+                  {showInauguradas ? "Ocultar inauguradas" : `Mostrar inauguradas (${hiddenInauguradasCount})`}
+                </Button>
+              )}
+              {(filterStatus !== "todas" || filterAnalista || search) && (
+                <Button variant="ghost" onClick={() => { setFilterStatus("todas"); setFilterAnalista(""); setSearch(""); }}>
+                  Limpar filtros
+                </Button>
+              )}
+            </div>
+          </>
         )}
 
         {stores.length === 0 && (
