@@ -117,15 +117,42 @@ const Lojas = () => {
     return false;
   };
 
-  const filtered = stores.filter(
+  const classifyStatus = (store: typeof stores[0]) => {
+    const counts = getStatusCounts(store);
+    const atrasados = counts["ATRASADO"] || 0;
+    const progress = getProgress(store);
+    const days = daysUntil(store.inauguracao);
+    if (atrasados > 0 || (days !== null && days < 0 && progress < 100)) return "atrasada";
+    if (progress >= 100) return "pronta";
+    if (progress === 0) return "sem-progresso";
+    return "andamento";
+  };
+
+  const visible = stores.filter((s) => showInauguradas || !isInaugurada(s));
+  const kpis = {
+    total: visible.length,
+    andamento: visible.filter((s) => classifyStatus(s) === "andamento").length,
+    pronta: visible.filter((s) => classifyStatus(s) === "pronta").length,
+    sem: visible.filter((s) => classifyStatus(s) === "sem-progresso").length,
+    atrasada: visible.filter((s) => classifyStatus(s) === "atrasada").length,
+  };
+
+  const filtered = visible.filter(
     (s) =>
       (s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
       s.filial.toLowerCase().includes(search.toLowerCase())) &&
       (!filterAnalista || s.analistaObra === filterAnalista) &&
-      (showInauguradas || !isInaugurada(s))
+      (filterStatus === "todas" || classifyStatus(s) === filterStatus)
   );
   const hiddenInauguradasCount = stores.filter(isInaugurada).length;
+
+  const progressColor = (p: number, atrasados: number) => {
+    if (atrasados > 0) return "bg-destructive";
+    if (p >= 100) return "bg-[hsl(152,60%,40%)]";
+    if (p > 0) return "bg-[hsl(38,90%,55%)]";
+    return "bg-muted-foreground/40";
+  };
 
   return (
     <div className="min-h-screen bg-background">
