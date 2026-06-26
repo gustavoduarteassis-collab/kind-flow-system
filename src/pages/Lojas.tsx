@@ -21,6 +21,8 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { buildInauguradasFiliais } from "@/utils/inauguradaFilter";
+import { formatBR, daysUntil } from "@/utils/safeDate";
+import { AlertTriangle } from "lucide-react";
 
 const Lojas = () => {
   const { stores, addStore, deleteStore, updateStore } = useStores();
@@ -30,6 +32,7 @@ const Lojas = () => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [filterAnalista, setFilterAnalista] = useState(searchParams.get("analista") || "");
+  const [filterStatus, setFilterStatus] = useState<"todas" | "andamento" | "pronta" | "sem-progresso" | "atrasada">("todas");
   const [form, setForm] = useState({ nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "", tipoLoja: "" as "rua" | "shopping" | "", inauguracaoChecklist: {} as any });
   const [isTeamMember, setIsTeamMember] = useState(false);
   const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
@@ -114,15 +117,42 @@ const Lojas = () => {
     return false;
   };
 
-  const filtered = stores.filter(
+  const classifyStatus = (store: typeof stores[0]) => {
+    const counts = getStatusCounts(store);
+    const atrasados = counts["ATRASADO"] || 0;
+    const progress = getProgress(store);
+    const days = daysUntil(store.inauguracao);
+    if (atrasados > 0 || (days !== null && days < 0 && progress < 100)) return "atrasada";
+    if (progress >= 100) return "pronta";
+    if (progress === 0) return "sem-progresso";
+    return "andamento";
+  };
+
+  const visible = stores.filter((s) => showInauguradas || !isInaugurada(s));
+  const kpis = {
+    total: visible.length,
+    andamento: visible.filter((s) => classifyStatus(s) === "andamento").length,
+    pronta: visible.filter((s) => classifyStatus(s) === "pronta").length,
+    sem: visible.filter((s) => classifyStatus(s) === "sem-progresso").length,
+    atrasada: visible.filter((s) => classifyStatus(s) === "atrasada").length,
+  };
+
+  const filtered = visible.filter(
     (s) =>
       (s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
       s.filial.toLowerCase().includes(search.toLowerCase())) &&
       (!filterAnalista || s.analistaObra === filterAnalista) &&
-      (showInauguradas || !isInaugurada(s))
+      (filterStatus === "todas" || classifyStatus(s) === filterStatus)
   );
   const hiddenInauguradasCount = stores.filter(isInaugurada).length;
+
+  const progressColor = (p: number, atrasados: number) => {
+    if (atrasados > 0) return "bg-destructive";
+    if (p >= 100) return "bg-[hsl(152,60%,40%)]";
+    if (p > 0) return "bg-[hsl(38,90%,55%)]";
+    return "bg-muted-foreground/40";
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -183,34 +213,66 @@ const Lojas = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {stores.length > 0 && (
-          <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar loja, franqueado..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <>
+            {/* KPI summary strip */}
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
+              {[
+                { key: "todas", label: "Total", value: kpis.total, color: "text-foreground", dot: "bg-muted-foreground/40" },
+                { key: "andamento", label: "Em andamento", value: kpis.andamento, color: "text-[hsl(38,90%,40%)]", dot: "bg-[hsl(38,90%,55%)]" },
+                { key: "pronta", label: "Prontas", value: kpis.pronta, color: "text-[hsl(152,60%,30%)]", dot: "bg-[hsl(152,60%,40%)]" },
+                { key: "sem-progresso", label: "Sem progresso", value: kpis.sem, color: "text-muted-foreground", dot: "bg-muted-foreground/40" },
+                { key: "atrasada", label: "Atrasadas", value: kpis.atrasada, color: "text-destructive", dot: "bg-destructive" },
+              ].map((k) => (
+                <button
+                  key={k.key}
+                  onClick={() => setFilterStatus(k.key as any)}
+                  className={`text-left rounded-lg border p-3 transition-all hover:border-primary/40 ${
+                    filterStatus === k.key ? "border-primary bg-primary/5 ring-1 ring-primary/30" : "bg-card"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className={`w-2 h-2 rounded-full ${k.dot}`} />
+                    {k.label}
+                  </div>
+                  <div className={`text-2xl font-bold mt-1 ${k.color}`}>{k.value}</div>
+                </button>
+              ))}
             </div>
-            {analistas.length > 0 && (
-              <Select value={filterAnalista} onValueChange={(v) => setFilterAnalista(v === "all" ? "" : v)}>
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue placeholder="Filtrar por analista" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as analistas</SelectItem>
-                  {analistas.map((a) => (
-                    <SelectItem key={a} value={a}>{a}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            {hiddenInauguradasCount > 0 && (
-              <Button
-                variant={showInauguradas ? "default" : "outline"}
-                onClick={() => setShowInauguradas((v) => !v)}
-                className="gap-2"
-              >
-                {showInauguradas ? "Ocultar inauguradas" : `Mostrar inauguradas (${hiddenInauguradasCount})`}
-              </Button>
-            )}
-          </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Buscar loja, franqueado, filial..." className="pl-10" value={search} onChange={(e) => setSearch(e.target.value)} />
+              </div>
+              {analistas.length > 0 && (
+                <Select value={filterAnalista || "all"} onValueChange={(v) => setFilterAnalista(v === "all" ? "" : v)}>
+                  <SelectTrigger className="w-[220px]">
+                    <SelectValue placeholder="Filtrar por analista" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as analistas</SelectItem>
+                    {analistas.map((a) => (
+                      <SelectItem key={a} value={a}>{a}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {hiddenInauguradasCount > 0 && (
+                <Button
+                  variant={showInauguradas ? "default" : "outline"}
+                  onClick={() => setShowInauguradas((v) => !v)}
+                  className="gap-2"
+                >
+                  {showInauguradas ? "Ocultar inauguradas" : `Mostrar inauguradas (${hiddenInauguradasCount})`}
+                </Button>
+              )}
+              {(filterStatus !== "todas" || filterAnalista || search) && (
+                <Button variant="ghost" onClick={() => { setFilterStatus("todas"); setFilterAnalista(""); setSearch(""); }}>
+                  Limpar filtros
+                </Button>
+              )}
+            </div>
+          </>
         )}
 
         {stores.length === 0 && (
@@ -228,20 +290,49 @@ const Lojas = () => {
           </div>
         )}
 
+        {filtered.length === 0 && stores.length > 0 && (
+          <div className="text-center py-16 text-muted-foreground">
+            Nenhuma loja encontrada com os filtros atuais.
+          </div>
+        )}
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((store) => {
             const progress = getProgress(store);
             const counts = getStatusCounts(store);
+            const atrasados = counts["ATRASADO"] || 0;
+            const days = daysUntil(store.inauguracao);
+            const inaugurada = isInaugurada(store);
+            const overdue = !inaugurada && days !== null && days < 0 && progress < 100;
+            const urgent = !inaugurada && days !== null && days >= 0 && days <= 14 && progress < 100;
+            const barColor = progressColor(progress, atrasados);
             return (
               <Card
                 key={store.id}
-                className="group cursor-pointer transition-all hover:shadow-lg hover:border-primary/30"
+                className={`group cursor-pointer transition-all hover:shadow-lg hover:border-primary/30 ${
+                  overdue ? "border-destructive/40" : ""
+                }`}
                 onClick={() => navigate(`/loja/${store.id}`)}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
-                      <CardTitle className="text-lg leading-tight">{store.nome}</CardTitle>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <CardTitle className="text-lg leading-tight">{store.nome}</CardTitle>
+                        {inaugurada && (
+                          <Badge className="bg-[hsl(152,60%,40%)] text-white text-[10px]">Inaugurada</Badge>
+                        )}
+                        {overdue && (
+                          <Badge variant="destructive" className="text-[10px] gap-1">
+                            <AlertTriangle className="h-3 w-3" /> Atrasada
+                          </Badge>
+                        )}
+                        {urgent && !overdue && (
+                          <Badge className="bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)] text-[10px]">
+                            ⏰ {days}d
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         {store.filial && (
                           <span className="flex items-center gap-1">
@@ -279,9 +370,14 @@ const Lojas = () => {
                     </div>
                   )}
                   {store.inauguracao && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className={`flex items-center gap-2 text-sm ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
                       <Calendar className="h-3.5 w-3.5" />
-                      {new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR")}
+                      {formatBR(store.inauguracao)}
+                      {days !== null && !inaugurada && (
+                        <span className="text-xs opacity-70">
+                          ({days < 0 ? `${Math.abs(days)}d atrás` : days === 0 ? "hoje" : `em ${days}d`})
+                        </span>
+                      )}
                     </div>
                   )}
                   <div className="space-y-2">
@@ -289,7 +385,9 @@ const Lojas = () => {
                       <span className="text-muted-foreground">Progresso</span>
                       <span className="font-semibold">{progress}%</span>
                     </div>
-                    <Progress value={progress} className="h-2" />
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                      <div className={`h-full transition-all ${barColor}`} style={{ width: `${progress}%` }} />
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {counts["REALIZADO"] && (

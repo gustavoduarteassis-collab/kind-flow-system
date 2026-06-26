@@ -58,6 +58,7 @@ import { saveAs } from "file-saver";
 import logoConstanceSvg from "@/assets/logo-constance.svg";
 import StorePhaseProgress from "@/components/StorePhaseProgress";
 import { useAutoMarkInaugurada } from "@/hooks/useAutoMarkInaugurada";
+import { formatBR } from "@/utils/safeDate";
 
 const statusColors: Record<StatusType, string> = {
   "NÃO INICIADO": "bg-secondary text-secondary-foreground",
@@ -284,7 +285,7 @@ const StoreDetail = () => {
     // Store info row (row 3)
     ws.mergeCells("A3:H3");
     const infoCell = ws.getCell("A3");
-    infoCell.value = `Franqueado: ${store.franqueado || "—"}  |  Construtor: ${store.construtor || "—"}  |  Analista: ${store.analistaObra || "—"}  |  Inauguração: ${store.inauguracao ? new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR") : "—"}`;
+    infoCell.value = `Franqueado: ${store.franqueado || "—"}  |  Construtor: ${store.construtor || "—"}  |  Analista: ${store.analistaObra || "—"}  |  Inauguração: ${formatBR(store.inauguracao)}`;
     infoCell.font = { size: 10, color: { argb: "FF666666" } };
     infoCell.alignment = { horizontal: "center", vertical: "middle" };
     ws.getRow(3).height = 22;
@@ -449,7 +450,7 @@ const StoreDetail = () => {
                     {store.inauguracao && (
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5" />
-                        {new Date(store.inauguracao + "T00:00:00").toLocaleDateString("pt-BR")}
+                        {formatBR(store.inauguracao)}
                       </span>
                     )}
                     {isTeamMember && (
