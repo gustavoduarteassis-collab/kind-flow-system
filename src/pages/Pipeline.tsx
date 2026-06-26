@@ -27,6 +27,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type PipelineStore = {
   id: string;
@@ -468,15 +470,15 @@ const Pipeline = () => {
                 <TriProgress value={progress} />
                 <span className="text-xs font-bold w-8 text-right">{progress}%</span>
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(store)} title="Editar"><Pencil className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(store)} title="Editar loja"><Pencil className="h-4 w-4" /></Button>
               {ready && !inaug && (
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Transferir para Lojas"
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Ver detalhes / Transferir para Lojas"
                   onClick={() => { if (confirm(`Transferir "${store.local}" para Lojas?`)) transferToLojas(store); }}>
                   <ArrowRightCircle className="h-4 w-4" />
                 </Button>
               )}
               {!inaug ? (
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Marcar como Inaugurada"
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Marcar como inaugurada"
                   onClick={() => { if (confirm(`Marcar "${store.local}" como Inaugurada?`)) markInaugurada(store); }}>
                   <PartyPopper className="h-4 w-4" />
                 </Button>
@@ -489,13 +491,15 @@ const Pipeline = () => {
               {inaug && <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-700" title="Ver histórico" onClick={() => setHistoryStore(store)}><Eye className="h-4 w-4" /></Button>}
               {!inaug && (
                 <Button variant="ghost" size="icon" className={cn("h-8 w-8", reform ? "text-amber-700" : "text-amber-600")}
-                  title={reform ? "Desmarcar Reforma" : "Marcar como Reforma"} onClick={() => toggleReforma(store)}>
+                  title={reform ? "Desmarcar reforma (fixar)" : "Marcar como reforma / fixar"} onClick={() => toggleReforma(store)}>
                   <Hammer className="h-4 w-4" />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteStore(store.id); }}>
-                <Trash2 className="h-3.5 w-3.5 text-destructive" />
-              </Button>
+              <ConfirmDelete itemName={`a loja ${store.local}${store.filial ? ` (${store.filial})` : ""}`} onConfirm={() => deleteStore(store.id)}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" title="Excluir loja">
+                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                </Button>
+              </ConfirmDelete>
             </div>
           </div>
 
