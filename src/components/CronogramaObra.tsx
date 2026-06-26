@@ -17,8 +17,9 @@ import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Calendar, AlertTriangle, CheckCircle, Clock, FileText, CalendarIcon } from "lucide-react";
-import { addDays, format, differenceInCalendarDays, parseISO } from "date-fns";
+import { addDays, format, differenceInCalendarDays, parseISO, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface CronogramaObraProps {
   store: Store;
