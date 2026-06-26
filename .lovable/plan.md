@@ -1,88 +1,79 @@
-## Visão geral
+## Plano de Melhorias — Constance Obra
 
-Transformar o prompt da AGM em três módulos integrados dentro da página **AGM**, reutilizando dados já existentes (lojas, custos, fornecedores, checklist).
-
----
-
-## 1. Módulo de Planos de Ação acumulados
-
-**Nova tabela `agm_planos_acao`** (acumulada entre meses, separada de `agm_action_plans` que é por entrada mensal):
-
-- `id` (uuid), `codigo` (text, ex: "PA-001", auto-incrementado)
-- `origem` (text — loja ou indicador)
-- `mes_criacao` (text, "YYYY-MM")
-- `causa`, `acao`, `como` (text)
-- `responsavel` (text)
-- `prazo_inicial`, `prazo_final` (date)
-- `status` (enum: aberto | em_andamento | concluido | atrasado)
-- `data_conclusao` (date, nullable)
-- `ultima_atualizacao_data` (date) + `ultima_atualizacao_texto` (text)
-- `created_by`, timestamps, RLS por equipe autorizada
-- `GRANT` para `authenticated` + `service_role`
-
-**Tabela `agm_plano_updates`** — histórico de atualizações (id, plano_id, data, texto, autor).
-
-**Farol calculado em runtime:**
-- 🟢 concluído OU prazo > 7 dias
-- 🟡 prazo ≤ 7 dias OU sem update há 14-30 dias
-- 🔴 atrasado OU sem update há >30 dias
-
-**UI — nova aba "Planos de Ação" em `src/pages/AGM.tsx`:**
-- Lista com filtros (status, farol, responsável)
-- Botão "Novo plano" (modal com formulário)
-- Card por plano com farol, botão "Atualizar" (abre modal pedindo texto), botão "Concluir"
-- Banner topo: "⚠️ X planos sem atualização há +2 semanas"
-- Parsing rápido: textarea aceita formato `PA-003: Concluído em 25/06` e aplica em lote
+Escopo grande (7 módulos + globais). Proponho executar em **fases sequenciais**, cada uma entregue e validada antes de seguir. Você aprova fase a fase.
 
 ---
 
-## 2. Assistente IA da AGM
+### Fase 0 — Fundação Global (base para todas as outras)
+- Criar **AppLayout** com sidebar fixa (shadcn `Sidebar`) contendo: Home, Funil, Lojas, Custos Geral, AGM, Equipe, Diversos, Próprias, Acessos.
+- Cabeçalho global com **nome completo do usuário** (busca em `team_members` pelo email; fallback no email).
+- **Breadcrumb** automático baseado na rota.
+- Hook `usePageTitle` para atualizar `<title>` por página.
+- Padronizar paleta de status (verde/amarelo/vermelho/cinza) como tokens semânticos em `index.css` (`--status-done`, `--status-progress`, `--status-late`, `--status-idle`).
+- Decisão de tema: **manter marrom/escuro em todo o sistema** (Core memory já indica identidade Marrom Café). Aplicar nas subpáginas.
+- Skeletons globais (`<ListSkeleton />`, `<CardSkeleton />`).
+- Corrigir rotas: `/custos` → redirect `/custos-geral`; `/lojas/:id` aceitar tanto id quanto slug (alias para `/loja/:id`).
 
-**Nova Edge Function `agm-assistant`** (streaming chat):
-- Valida JWT, system prompt = o prompt completo do usuário
-- Antes de chamar o modelo, **anexa contexto do banco**: lojas inauguradas do mês selecionado, custos vs metas, prazos, planos de ação abertos, fornecedores novos
-- AI SDK `streamText` via Lovable AI Gateway (`google/gemini-3-flash-preview`)
+### Fase 1 — Painel Executivo (`/`)
+- Grade de cards `grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`.
+- KPIs no topo: Lojas ativas, Inauguradas no mês, Tarefas urgentes, Progresso geral (número + cor dinâmica).
+- Card destacado para "Progresso Geral".
+- Mover seção "Acesso de Franqueados" para nova rota `/acessos`.
 
-**UI — nova aba "Assistente" em AGM:**
-- Seletor de mês (define contexto)
-- Chat com AI Elements (markdown, message.parts)
-- Persistência: localStorage por mês (uma conversa por mês ref)
-- Composer focado, status submitted/streaming desabilita envio
+### Fase 2 — Funil de Lojas (`/pipeline`)
+- Filtros pill (Analista, Status, Tipo, Mês inauguração) com contadores.
+- Barra de busca (nome/cidade/franqueado).
+- Barra de progresso tricolor (cinza/laranja/verde).
+- Ícone ⚠️ para projeto atrasado/sem prazo.
+- Notas com quebra de linha + datas em bold (regex `DD/MM:`).
+- Modal de pré-visualização antes de "Remover Duplicatas".
+- Toggle Lista/Kanban (5 colunas por fase).
+- Header com resumo "X Prontas | X Em Andamento | X Atrasadas".
+
+### Fase 3 — Lojas (`/lojas`)
+- **Bug "Invalid Date"**: parser tolerante (DD/MM/YYYY, ISO, timestamp).
+- Filtros: Analista, faixa de progresso, lojas com atrasados.
+- Barra de progresso segmentada (verde/vermelho/cinza) com tooltip.
+- Legenda global ✓ / ! / ○.
+- Paginação client-side (10/página).
+- Corrigir rota `/loja/serrinha-542` (resolver por slug filial-nome).
+
+### Fase 4 — Custos Geral (`/custos-geral`)
+- Aba ativa com underline + fundo destacado.
+- Tooltips interativos nos gráficos (Recharts `<Tooltip>`).
+- Grid `md:grid-cols-3` nos cards de resumo.
+- Botões "Exportar PDF/Excel" no Dashboard.
+- Seletor de ano como segmented control.
+- Gráfico de linha: evolução custo/m² por mês.
+
+### Fase 5 — AGM (`/agm`)
+- Debug do filtro de mês — garantir que `mesRef` (formato `YYYY-MM`) bate com `created_at` das fontes.
+- Navegação ← / → ao lado do seletor.
+- Badges com contadores nas abas.
+- Empty state amigável quando não há dados.
+
+### Fase 6 — Equipe (`/equipe`)
+- Remover destaque permanente "Férias Gustavo" (condicional por período).
+- Avatares com iniciais coloridas nos filtros.
+- Tarefas vencidas em vermelho + ⚠️.
+- Card por analista (lojas ativas, tarefas pendentes, progresso médio).
+- Tarefas concluídas com `line-through`.
+
+### Fase 7 — Polish & QA
+- Verificar overflow-x em todas as tabelas.
+- Validar dark/marrom consistente.
+- Testar todas as rotas/redirects.
+- Rodar checagem de segurança.
 
 ---
 
-## 3. Gerador automático de PPTX
-
-**Atualizar `src/utils/generateAGMPptx.ts`** com as 11 seções do prompt seguindo o template visual dos PPTs anexados (capa escura, header preto, accent rosa, "CONSTANCE com você, onde você estiver"):
-
-1. Capa
-2. Ata mês anterior (planos do mês anterior com status)
-3. Matriz de resultados (OTIF, custo/m², prazo, store-ready, fornecedores)
-4. Abertura de novas lojas
-5. Custo/m² previsto x realizado por categoria
-6. Causa raiz — custo (planos novos)
-7. Prazo médio (construtoras vs junta junta)
-8. Causa raiz — prazo
-9. Novos fornecedores
-10. Pendências checklist
-11. Ações de melhoria
-12. Encerramento
-
-**Botão "Gerar AGM completa"** em `AGM.tsx` que puxa todos os dados do mês + planos ativos e gera o `.pptx`.
+### Notas técnicas
+- Sidebar via `@/components/ui/sidebar` (shadcn) com `collapsible="icon"`.
+- Sem nova migração de banco prevista (apenas leitura/UX).
+- Reaproveitar `useStores`, filtros já existentes em `inauguradaFilter.ts`.
+- Skeleton via `@/components/ui/skeleton`.
+- Kanban: implementação simples por colunas (sem drag-and-drop nesta entrega — pode vir depois se quiser).
 
 ---
 
-## Detalhes técnicos
-
-- Migration cria tabelas + RLS + GRANT (padrão do projeto via `is_authorized_team`)
-- Edge function adicionada em `supabase/config.toml` se necessário
-- Reutiliza `useAuth`, padrão Marrom Café + dourado, sem react-markdown (regex)
-- Nenhuma alteração nos dados existentes
-
----
-
-## Fora de escopo (confirmar se precisa depois)
-
-- Cálculo automático de OTIF e checklist store-ready (depende de definição de "no prazo")
-- Importação dos PPTs antigos para popular histórico
-- Notificações por email de planos atrasados
+**Posso começar pela Fase 0 + Fase 1 juntas** (são a fundação visível imediata) e seguir nas próximas após sua validação. Confirma esse plano e essa ordem?
