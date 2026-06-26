@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
@@ -5,12 +6,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserDisplayName } from "@/hooks/useUserDisplayName";
 import { Button } from "@/components/ui/button";
 import { LogOut, ChevronRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const labelMap: Record<string, string> = {
   "": "Painel",
   pipeline: "Funil de Lojas",
   lojas: "Lojas",
-  loja: "Loja",
+  loja: "Lojas",
   "custos-geral": "Custos Geral",
   agm: "AGM",
   equipe: "Equipe & Tarefas",
@@ -20,13 +22,44 @@ const labelMap: Record<string, string> = {
   relatorio: "Relatório",
 };
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Cache so we don't refetch the same store name on every render. */
+const storeNameCache = new Map<string, string>();
+
+function useStoreNameForPath() {
+  const { pathname } = useLocation();
+  const parts = pathname.split("/").filter(Boolean);
+  // Match /loja/:id
+  const id = parts[0] === "loja" && parts[1] && UUID_RE.test(parts[1]) ? parts[1] : null;
+  const [name, setName] = useState<string | null>(id ? storeNameCache.get(id) || null : null);
+
+  useEffect(() => {
+    if (!id) { setName(null); return; }
+    const cached = storeNameCache.get(id);
+    if (cached) { setName(cached); return; }
+    let active = true;
+    supabase.from("stores").select("nome").eq("id", id).maybeSingle().then(({ data }) => {
+      if (!active || !data?.nome) return;
+      storeNameCache.set(id, data.nome);
+      setName(data.nome);
+    });
+    return () => { active = false; };
+  }, [id]);
+
+  return { id, name };
+}
+
 function Breadcrumbs() {
   const { pathname } = useLocation();
   const parts = pathname.split("/").filter(Boolean);
+  const { id: storeId, name: storeName } = useStoreNameForPath();
   if (parts.length === 0) return null;
   const crumbs = parts.map((p, i) => {
     const href = "/" + parts.slice(0, i + 1).join("/");
-    const label = labelMap[p] || decodeURIComponent(p);
+    let label = labelMap[p] || decodeURIComponent(p);
+    // Replace UUID segment in /loja/:id with the store name
+    if (storeId && p === storeId) label = storeName || "Carregando…";
     return { href, label };
   });
   return (
@@ -53,7 +86,7 @@ export default function AppLayout() {
       <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center gap-3 border-b bg-card px-3 sticky top-0 z-30">
+          <header className="h-14 flex items-center gap-3 border-b-2 border-b-primary/40 bg-card px-3 sticky top-0 z-30">
             <SidebarTrigger />
             <div className="flex-1 min-w-0">
               <Breadcrumbs />
@@ -70,7 +103,7 @@ export default function AppLayout() {
               </Button>
             </div>
           </header>
-          <main className="flex-1 min-w-0">
+          <main className="flex-1 min-w-0 overflow-x-hidden">
             <Outlet />
           </main>
         </div>

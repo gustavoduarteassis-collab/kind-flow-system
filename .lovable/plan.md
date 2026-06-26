@@ -1,79 +1,95 @@
-## Plano de Melhorias — Constance Obra
 
-Escopo grande (7 módulos + globais). Proponho executar em **fases sequenciais**, cada uma entregue e validada antes de seguir. Você aprova fase a fase.
+## Escopo
 
----
-
-### Fase 0 — Fundação Global (base para todas as outras)
-- Criar **AppLayout** com sidebar fixa (shadcn `Sidebar`) contendo: Home, Funil, Lojas, Custos Geral, AGM, Equipe, Diversos, Próprias, Acessos.
-- Cabeçalho global com **nome completo do usuário** (busca em `team_members` pelo email; fallback no email).
-- **Breadcrumb** automático baseado na rota.
-- Hook `usePageTitle` para atualizar `<title>` por página.
-- Padronizar paleta de status (verde/amarelo/vermelho/cinza) como tokens semânticos em `index.css` (`--status-done`, `--status-progress`, `--status-late`, `--status-idle`).
-- Decisão de tema: **manter marrom/escuro em todo o sistema** (Core memory já indica identidade Marrom Café). Aplicar nas subpáginas.
-- Skeletons globais (`<ListSkeleton />`, `<CardSkeleton />`).
-- Corrigir rotas: `/custos` → redirect `/custos-geral`; `/lojas/:id` aceitar tanto id quanto slug (alias para `/loja/:id`).
-
-### Fase 1 — Painel Executivo (`/`)
-- Grade de cards `grid-cols-2 sm:grid-cols-3 lg:grid-cols-4`.
-- KPIs no topo: Lojas ativas, Inauguradas no mês, Tarefas urgentes, Progresso geral (número + cor dinâmica).
-- Card destacado para "Progresso Geral".
-- Mover seção "Acesso de Franqueados" para nova rota `/acessos`.
-
-### Fase 2 — Funil de Lojas (`/pipeline`)
-- Filtros pill (Analista, Status, Tipo, Mês inauguração) com contadores.
-- Barra de busca (nome/cidade/franqueado).
-- Barra de progresso tricolor (cinza/laranja/verde).
-- Ícone ⚠️ para projeto atrasado/sem prazo.
-- Notas com quebra de linha + datas em bold (regex `DD/MM:`).
-- Modal de pré-visualização antes de "Remover Duplicatas".
-- Toggle Lista/Kanban (5 colunas por fase).
-- Header com resumo "X Prontas | X Em Andamento | X Atrasadas".
-
-### Fase 3 — Lojas (`/lojas`)
-- **Bug "Invalid Date"**: parser tolerante (DD/MM/YYYY, ISO, timestamp).
-- Filtros: Analista, faixa de progresso, lojas com atrasados.
-- Barra de progresso segmentada (verde/vermelho/cinza) com tooltip.
-- Legenda global ✓ / ! / ○.
-- Paginação client-side (10/página).
-- Corrigir rota `/loja/serrinha-542` (resolver por slug filial-nome).
-
-### Fase 4 — Custos Geral (`/custos-geral`)
-- Aba ativa com underline + fundo destacado.
-- Tooltips interativos nos gráficos (Recharts `<Tooltip>`).
-- Grid `md:grid-cols-3` nos cards de resumo.
-- Botões "Exportar PDF/Excel" no Dashboard.
-- Seletor de ano como segmented control.
-- Gráfico de linha: evolução custo/m² por mês.
-
-### Fase 5 — AGM (`/agm`)
-- Debug do filtro de mês — garantir que `mesRef` (formato `YYYY-MM`) bate com `created_at` das fontes.
-- Navegação ← / → ao lado do seletor.
-- Badges com contadores nas abas.
-- Empty state amigável quando não há dados.
-
-### Fase 6 — Equipe (`/equipe`)
-- Remover destaque permanente "Férias Gustavo" (condicional por período).
-- Avatares com iniciais coloridas nos filtros.
-- Tarefas vencidas em vermelho + ⚠️.
-- Card por analista (lojas ativas, tarefas pendentes, progresso médio).
-- Tarefas concluídas com `line-through`.
-
-### Fase 7 — Polish & QA
-- Verificar overflow-x em todas as tabelas.
-- Validar dark/marrom consistente.
-- Testar todas as rotas/redirects.
-- Rodar checagem de segurança.
+Aplicar TODAS as correções pedidas em uma sequência de fases para evitar regressão. Total estimado: ~18 arquivos editados, 1 componente novo, 1 hook novo.
 
 ---
 
-### Notas técnicas
-- Sidebar via `@/components/ui/sidebar` (shadcn) com `collapsible="icon"`.
-- Sem nova migração de banco prevista (apenas leitura/UX).
-- Reaproveitar `useStores`, filtros já existentes em `inauguradaFilter.ts`.
-- Skeleton via `@/components/ui/skeleton`.
-- Kanban: implementação simples por colunas (sem drag-and-drop nesta entrega — pode vir depois se quiser).
+## Fase 1 — Críticos (bloqueia uso diário)
+
+### 1.1 Bug do "espaço em branco" no scroll
+Causa provável: combinação de `min-h-screen` em páginas internas (já dentro do `<main>` do `AppLayout`) + `SidebarProvider` que usa flex. Isso cria altura inflada e gaps quando a viewport rola.
+
+**Ações:**
+- `AppLayout.tsx`: trocar `<main className="flex-1 min-w-0">` por `<main className="flex-1 min-w-0 overflow-x-hidden">` e garantir que o wrapper raiz não force `min-h-screen` duplicado.
+- Em `Pipeline.tsx`, `Lojas.tsx`, `StoreDetail.tsx`, `Index.tsx`, `CustosGeral.tsx`, `AGM.tsx`, `Equipe.tsx`: remover `min-h-screen` dos divs internos (o `AppLayout` já garante altura). Trocar por `min-h-full` quando necessário.
+- Kanban do Funil: ajustar coluna do Kanban para usar altura natural (sem `h-screen`) e wrapper `overflow-x-auto`.
+
+### 1.2 Componente reutilizável `ConfirmDeleteModal`
+Criar `src/components/ConfirmDeleteModal.tsx` baseado em `AlertDialog` da shadcn. Props: `open`, `onOpenChange`, `itemName`, `description?`, `onConfirm`. Botões "Cancelar" e "Excluir" (variant destructive).
+
+**Aplicar nos pontos:**
+- `Pipeline.tsx` — botão lixeira do card.
+- `Equipe.tsx` — exclusão de membros / tarefas / hábitos.
+- `Acessos.tsx` — substituir `confirm()` nativo.
+- Tarefas dentro de `Equipe.tsx` — botão lixeira da linha.
+
+### 1.3 Botão "Duplicatas" do Funil
+Já existe modal de preview. Adicionar checkbox por item antes de aplicar a remoção (default desmarcado) + botão "Remover selecionados".
 
 ---
 
-**Posso começar pela Fase 0 + Fase 1 juntas** (são a fundação visível imediata) e seguir nas próximas após sua validação. Confirma esse plano e essa ordem?
+## Fase 2 — Importante (UX visível)
+
+### 2.1 Breadcrumb com nome da loja
+- `AppLayout.tsx` → `Breadcrumbs`: detectar padrão `/loja/:id` e buscar o nome via `useStores()` (ou cache do `pipeline_stores`). Mostrar nome em vez do UUID. Atualizar `labelMap` para `lojas → "Lojas"` no segundo nível.
+
+### 2.2 Tooltips no Funil
+- `Pipeline.tsx`: envolver os 5 ícones do card em `<Tooltip>` (já temos o componente). Textos: Editar / Ver detalhes / Marcar como inaugurada / Fixar / Excluir.
+
+### 2.3 Lojas — cards mais legíveis
+- `Lojas.tsx`: substituir mini-dots por barra tricolor de 8px (verde feitos / vermelho atrasados / cinza restante), itens com bolinha colorida à esquerda. Limitar a 6 itens + "Ver mais (N)".
+
+### 2.4 Detalhe da loja
+- `StoreDetail.tsx` / `CronogramaObra.tsx`: substituir `<input type="date">` por shadcn DatePicker (Popover + Calendar) onde aparecem datas.
+- Realçar TabsTrigger ativa (fundo marrom/`bg-primary` + `text-primary-foreground`).
+- Wrapper das abas com `overflow-x-auto` + setas ‹ › nas bordas quando overflowing.
+
+---
+
+## Fase 3 — Melhorias
+
+### 3.1 Equipe — carga por analista
+- `Equipe.tsx` aba Equipe: para cada membro, calcular a partir do estado já carregado (`stores`, `tasks`): nº lojas ativas (where `responsavel`/analista == membro), nº tarefas pendentes, progresso médio. Renderizar como mini-stats + barra.
+
+### 3.2 Tarefas vencidas
+- `Equipe.tsx` aba Tarefas: helper `isOverdue(prazo, status)`. Aplicar `text-destructive font-bold`, ícone `AlertTriangle`, badge "Pendente" com `border-destructive`.
+
+### 3.3 AGM — filtro de mês corrigido
+- `AGM.tsx`: revisar filtro de `data_inauguracao` para usar range `[firstOfMonth, lastOfMonth]` em vez de string match. Adicionar botões ← → ao lado do `<input type="month">` (avançar/retroceder 1 mês). Garantir que "Custo/m² médio" é calculado a partir das lojas inauguradas do mês.
+
+### 3.4 Sidebar — "Constance Obra"
+- `AppSidebar.tsx`: aumentar largura mínima da área do logo ou colocar "Constance Obra" em uma única linha (`whitespace-nowrap text-[11px]`).
+
+### 3.5 Home — Resumo das Lojas
+- `Index.tsx`: mostrar todas as lojas ativas (não filtrar por analista atribuído) OU exibir contagem clara "Mostrando X de Y". Padronizar "Atrasados > 0" em vermelho+negrito. Tornar cabeçalhos da tabela clicáveis para ordenar (estado local de sort).
+
+### 3.6 Consistência visual + mobile
+- `AppLayout.tsx` header: adicionar `border-b-2 border-primary/40` (faixa marrom) ou um `bg-gradient` sutil para conectar à identidade.
+- Confirmar que `SidebarProvider` com `collapsible="icon"` colapsa via `SidebarTrigger`. Em mobile (`<768px`), usar `collapsible="offcanvas"` adaptado via `useIsMobile`.
+
+---
+
+## Detalhes técnicos
+
+**Arquivos editados:**
+- `src/components/layout/AppLayout.tsx`, `src/components/layout/AppSidebar.tsx`
+- `src/pages/Pipeline.tsx`, `src/pages/Lojas.tsx`, `src/pages/StoreDetail.tsx`, `src/pages/Index.tsx`, `src/pages/AGM.tsx`, `src/pages/Equipe.tsx`, `src/pages/Acessos.tsx`, `src/pages/CustosGeral.tsx`
+- `src/components/CronogramaObra.tsx`
+
+**Arquivos novos:**
+- `src/components/ConfirmDeleteModal.tsx`
+- `src/hooks/useStoreNameById.ts` (para breadcrumb)
+
+**Sem mudanças de schema/RLS.** Sem novas dependências.
+
+---
+
+## Ordem de execução
+
+1. Fase 1 inteira (críticos) em 1 batch.
+2. Validação pelo usuário (rolagem + exclusões).
+3. Fase 2 + Fase 3 em batches paralelos.
+4. Typecheck final.
+
+Confirma para eu começar pela Fase 1?

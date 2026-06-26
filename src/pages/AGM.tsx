@@ -23,6 +23,7 @@ import {
   ArrowLeft, Lock, Trash2, Download,
   Building2, DollarSign, Clock, Users, Loader2, Save,
   MessageCircle, Send, CheckCircle2, RefreshCw, Store,
+  ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, differenceInDays, parse, isValid } from "date-fns";
@@ -596,7 +597,7 @@ const AGM = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div className="flex items-center gap-3">
@@ -607,7 +608,21 @@ const AGM = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" title="Mês anterior" onClick={() => {
+              const [y, m] = mesRef.split("-").map(Number);
+              const d = new Date(y, m - 2, 1);
+              setMesRef(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+            }}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
             <Input type="month" value={mesRef} onChange={(e) => setMesRef(e.target.value)} className="w-[160px]" />
+            <Button variant="outline" size="icon" title="Próximo mês" onClick={() => {
+              const [y, m] = mesRef.split("-").map(Number);
+              const d = new Date(y, m, 1);
+              setMesRef(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+            }}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
             <Button variant="outline" size="icon" onClick={() => { fetchAutoData(); fetchAGMData(); }} disabled={loading}>
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </Button>

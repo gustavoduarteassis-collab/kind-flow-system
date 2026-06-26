@@ -44,6 +44,137 @@ const navCards = [
   { url: "/acessos", label: "Acessos", desc: "Franqueados & construtores", icon: KeyRound },
 ];
 
+type SortKey = "nome" | "analista" | "progresso" | "realizados" | "atrasados" | "naoiniciados" | "andamento";
+
+function StoreSummarySection({
+  stores, inauguradasFiliais, showReformas, setShowReformas, navigate,
+}: {
+  stores: any[];
+  inauguradasFiliais: Set<string>;
+  showReformas: boolean;
+  setShowReformas: (fn: (v: boolean) => boolean) => void;
+  navigate: (to: string) => void;
+}) {
+  const [sortKey, setSortKey] = useState<SortKey>("atrasados");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const totalItems = checklistCategories.flatMap((c) => c.items).length;
+  const rows = useMemo(() => {
+    return stores
+      .filter((store) => {
+        if (store.isReforma && !showReformas) return false;
+        if (store.filial && inauguradasFiliais.has(String(store.filial))) return false;
+        return true;
+      })
+      .map((store) => {
+        const counts: Partial<Record<StatusType, number>> = {};
+        Object.values(store.checklist).forEach((c: any) => { counts[c.status] = (counts[c.status] || 0) + 1; });
+        const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
+        const pct = totalItems > 0 ? Math.round((done / totalItems) * 100) : 0;
+        const inProgress = (counts["EM COTAÇÃO"] || 0) + (counts["EM TRANSPORTE"] || 0) + (counts["EM ELABORAÇÃO"] || 0) + (counts["EM ANÁLISE"] || 0) + (counts["EM CONTRATAÇÃO"] || 0) + (counts["CONSTRUTORA"] || 0);
+        return { store, counts, pct, inProgress, atrasados: counts["ATRASADO"] || 0, realizados: counts["REALIZADO"] || 0, naoIni: counts["NÃO INICIADO"] || 0 };
+      })
+      .filter((r) => r.pct < 100);
+  }, [stores, inauguradasFiliais, showReformas, totalItems]);
+
+  const sorted = useMemo(() => {
+    const arr = [...rows];
+    const dir = sortDir === "asc" ? 1 : -1;
+    arr.sort((a, b) => {
+      const get = (r: typeof a) => {
+        switch (sortKey) {
+          case "nome": return r.store.nome.toLowerCase();
+          case "analista": return (r.store.analistaObra || "").toLowerCase();
+          case "progresso": return r.pct;
+          case "realizados": return r.realizados;
+          case "atrasados": return r.atrasados;
+          case "naoiniciados": return r.naoIni;
+          case "andamento": return r.inProgress;
+        }
+      };
+      const av = get(a); const bv = get(b);
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+    return arr;
+  }, [rows, sortKey, sortDir]);
+
+  const toggleSort = (k: SortKey) => {
+    if (sortKey === k) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(k); setSortDir(k === "nome" || k === "analista" ? "asc" : "desc"); }
+  };
+  const SortHead = ({ k, children, align = "left" }: { k: SortKey; children: any; align?: "left" | "center" }) => (
+    <TableHead className={align === "center" ? "text-center" : ""}>
+      <button onClick={() => toggleSort(k)} className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
+        {children}{sortKey === k && <span className="text-[10px]">{sortDir === "asc" ? "▲" : "▼"}</span>}
+      </button>
+    </TableHead>
+  );
+
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h2 className="text-lg font-semibold">Resumo das Lojas</h2>
+          <p className="text-xs text-muted-foreground">Mostrando {sorted.length} de {stores.length} lojas (apenas em andamento)</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant={showReformas ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setShowReformas((v) => !v)}>
+            {showReformas ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {showReformas ? "Ocultar reformas" : "Mostrar reformas"}
+          </Button>
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/lojas")}>
+            Ver Todas <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <Card><div className="overflow-x-auto"><Table>
+        <TableHeader><TableRow>
+          <SortHead k="nome">Loja</SortHead>
+          <SortHead k="analista">Analista</SortHead>
+          <SortHead k="progresso" align="center">Progresso</SortHead>
+          <SortHead k="realizados" align="center">Realizados</SortHead>
+          <SortHead k="atrasados" align="center">Atrasados</SortHead>
+          <SortHead k="naoiniciados" align="center">Não Iniciados</SortHead>
+          <SortHead k="andamento" align="center">Em Andamento</SortHead>
+        </TableRow></TableHeader>
+        <TableBody>
+          {sorted.map(({ store, pct, inProgress, atrasados, realizados, naoIni }) => (
+            <TableRow key={store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${store.id}`)}>
+              <TableCell className="font-medium">{store.nome}</TableCell>
+              <TableCell className="text-sm">
+                {store.analistaObra ? (
+                  <span className="text-primary cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/lojas?analista=${encodeURIComponent(store.analistaObra)}`); }}>
+                    {store.analistaObra}
+                  </span>
+                ) : <span className="text-muted-foreground italic">sem analista</span>}
+              </TableCell>
+              <TableCell className="text-center">
+                <div className="flex items-center gap-2 justify-center">
+                  <Progress value={pct} className="h-1.5 w-16" />
+                  <span className="text-xs font-semibold">{pct}%</span>
+                </div>
+              </TableCell>
+              <TableCell className="text-center"><Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">{realizados}</Badge></TableCell>
+              <TableCell className="text-center">
+                {atrasados > 0
+                  ? <span className="text-destructive font-bold text-sm">{atrasados}</span>
+                  : <span className="text-xs text-muted-foreground">0</span>}
+              </TableCell>
+              <TableCell className="text-center"><span className="text-xs text-muted-foreground">{naoIni}</span></TableCell>
+              <TableCell className="text-center"><span className="text-xs text-muted-foreground">{inProgress}</span></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table></div></Card>
+    </section>
+  );
+}
+
+
+
 const Index = () => {
   usePageTitle("Painel Executivo");
   const { stores } = useStores();
@@ -174,76 +305,13 @@ const Index = () => {
       </section>
 
       {/* Store summary */}
-      {stores.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Resumo das Lojas</h2>
-            <div className="flex items-center gap-2">
-              <Button variant={showReformas ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setShowReformas((v) => !v)}>
-                {showReformas ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                {showReformas ? "Ocultar reformas" : "Mostrar reformas"}
-              </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => navigate("/lojas")}>
-                Ver Todas <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          <Card><div className="overflow-x-auto"><Table>
-            <TableHeader><TableRow>
-              <TableHead>Loja</TableHead><TableHead>Analista</TableHead>
-              <TableHead className="text-center">Progresso</TableHead>
-              <TableHead className="text-center">Realizados</TableHead>
-              <TableHead className="text-center">Atrasados</TableHead>
-              <TableHead className="text-center">Não Iniciados</TableHead>
-              <TableHead className="text-center">Em Andamento</TableHead>
-            </TableRow></TableHeader>
-            <TableBody>
-              {stores.filter((store) => {
-                if (store.isReforma && !showReformas) return false;
-                if (store.filial && inauguradasFiliais.has(String(store.filial))) return false;
-                const total = checklistCategories.flatMap((c) => c.items).length;
-                const counts: Partial<Record<StatusType, number>> = {};
-                Object.values(store.checklist).forEach((c) => { counts[c.status] = (counts[c.status] || 0) + 1; });
-                const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
-                const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-                return pct < 100;
-              }).map((store) => {
-                const total = checklistCategories.flatMap((c) => c.items).length;
-                const counts: Partial<Record<StatusType, number>> = {};
-                Object.values(store.checklist).forEach((c) => { counts[c.status] = (counts[c.status] || 0) + 1; });
-                const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
-                const pct = Math.round((done / total) * 100);
-                const inProgress = (counts["EM COTAÇÃO"] || 0) + (counts["EM TRANSPORTE"] || 0) + (counts["EM ELABORAÇÃO"] || 0) + (counts["EM ANÁLISE"] || 0) + (counts["EM CONTRATAÇÃO"] || 0) + (counts["CONSTRUTORA"] || 0);
-                return (
-                  <TableRow key={store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${store.id}`)}>
-                    <TableCell className="font-medium">{store.nome}</TableCell>
-                    <TableCell className="text-sm">
-                      {store.analistaObra ? (
-                        <span className="text-primary cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/lojas?analista=${encodeURIComponent(store.analistaObra)}`); }}>
-                          {store.analistaObra}
-                        </span>
-                      ) : <span className="text-muted-foreground">—</span>}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex items-center gap-2 justify-center">
-                        <Progress value={pct} className="h-1.5 w-16" />
-                        <span className="text-xs font-semibold">{pct}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center"><Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">{counts["REALIZADO"] || 0}</Badge></TableCell>
-                    <TableCell className="text-center">
-                      {(counts["ATRASADO"] || 0) > 0 ? <Badge variant="destructive" className="text-xs">{counts["ATRASADO"]}</Badge> : <span className="text-xs text-muted-foreground">0</span>}
-                    </TableCell>
-                    <TableCell className="text-center"><span className="text-xs text-muted-foreground">{counts["NÃO INICIADO"] || 0}</span></TableCell>
-                    <TableCell className="text-center"><span className="text-xs text-muted-foreground">{inProgress}</span></TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table></div></Card>
-        </section>
-      )}
+      {stores.length > 0 && <StoreSummarySection
+        stores={stores}
+        inauguradasFiliais={inauguradasFiliais}
+        showReformas={showReformas}
+        setShowReformas={setShowReformas}
+        navigate={navigate}
+      />}
 
       {/* Tasks panel */}
       <section className="space-y-4">

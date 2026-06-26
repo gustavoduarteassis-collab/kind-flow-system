@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { buildInauguradasFiliais } from "@/utils/inauguradaFilter";
 import { formatBR, daysUntil } from "@/utils/safeDate";
 import { AlertTriangle } from "lucide-react";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
 
 const Lojas = () => {
   const { stores, addStore, deleteStore, updateStore } = useStores();
@@ -155,7 +156,7 @@ const Lojas = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between gap-3 mb-6">
           <div>
@@ -339,10 +340,13 @@ const Lojas = () => {
                           <Pencil className="h-4 w-4 text-muted-foreground" />
                         </Button>
                       )}
-                      <Button variant="ghost" size="icon" className="h-8 w-8"
-                        onClick={(e) => { e.stopPropagation(); if (confirm("Excluir esta loja?")) deleteStore(store.id); }}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <ConfirmDelete itemName={`a loja ${store.nome}`} onConfirm={() => deleteStore(store.id)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </ConfirmDelete>
+                      </span>
                     </div>
                   </div>
                 </CardHeader>

@@ -21,12 +21,13 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
-  ChevronLeft, ChevronRight, Calendar, KeyRound,
+  ChevronLeft, ChevronRight, Calendar, KeyRound, AlertTriangle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
 
 type TeamMember = {
   id: string; name: string; role: string; email: string | null; phone: string | null;
@@ -614,7 +615,7 @@ const Equipe = () => {
   }).length;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <div>
@@ -766,15 +767,20 @@ const Equipe = () => {
                         <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
                           {taskViewTab === "concluidas" ? "Nenhuma tarefa concluída" : "Nenhuma tarefa cadastrada"}
                         </TableCell></TableRow>
-                      ) : filtered.map((task) => (
-                      <TableRow key={task.id} className="cursor-pointer hover:bg-muted/50" onClick={() => openTaskDetail(task)}>
+                      ) : filtered.map((task) => {
+                        const overdue = task.status !== "concluida" && task.due_date && task.due_date < todayStr;
+                        return (
+                      <TableRow key={task.id} className={`cursor-pointer hover:bg-muted/50 ${overdue ? "bg-destructive/5" : ""}`} onClick={() => openTaskDetail(task)}>
                         <TableCell>
-                          <p className="font-medium text-sm">{task.title}</p>
+                          <p className="font-medium text-sm flex items-center gap-1.5">
+                            {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />}
+                            {task.title}
+                          </p>
                           {task.description && <p className="text-xs text-muted-foreground line-clamp-1">{task.description}</p>}
                         </TableCell>
                         <TableCell className="text-sm">{getMemberName(task.assigned_to)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{formatDate(task.start_date)}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">{formatDate(task.due_date)}</TableCell>
+                        <TableCell className={`text-sm ${overdue ? "text-destructive font-bold" : "text-muted-foreground"}`}>{formatDate(task.due_date)}</TableCell>
                         <TableCell>
                           <Badge className={`${priorityColors[task.priority]} text-[10px]`}>{priorityLabels[task.priority]}</Badge>
                         </TableCell>
@@ -783,7 +789,7 @@ const Equipe = () => {
                             <span className="text-xs text-muted-foreground">{formatDate(task.updated_at)}</span>
                           ) : (
                             <Select value={task.status} onValueChange={(v) => updateTaskStatus(task.id, v)}>
-                              <SelectTrigger className="h-7 text-xs w-[120px]"><SelectValue /></SelectTrigger>
+                              <SelectTrigger className={`h-7 text-xs w-[120px] ${overdue ? "border-destructive text-destructive font-semibold" : ""}`}><SelectValue /></SelectTrigger>
                               <SelectContent>
                                 {Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
                               </SelectContent>
@@ -791,12 +797,15 @@ const Equipe = () => {
                           )}
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Excluir?")) deleteTask(task.id); }}>
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
+                          <ConfirmDelete itemName={`a tarefa "${task.title}"`} onConfirm={() => deleteTask(task.id)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </ConfirmDelete>
                         </TableCell>
                       </TableRow>
-                    ))})()}
+                        );
+                      })})()}
                   </TableBody>
                 </Table>
               </div>
@@ -1076,9 +1085,11 @@ const Equipe = () => {
                                 <td className="px-3 py-2"><Input type="number" min={1} className="h-8 text-xs w-16" value={visita.duracaoImplantacaoDias || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, duracaoImplantacaoDias: e.target.value } } as any)} /></td>
                                 <td className="px-3 py-2"><Input list="analistas-list" className="h-8 text-xs" value={visita.responsavelImplantacao || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, responsavelImplantacao: e.target.value } } as any)} /></td>
                                 <td className="px-3 py-2">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir esta loja?")) deleteStore(store.id); }}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
+                                  <ConfirmDelete itemName={`a loja ${store.nome}`} onConfirm={() => deleteStore(store.id)}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </ConfirmDelete>
                                 </td>
                               </tr>
                             );
@@ -1249,9 +1260,11 @@ const Equipe = () => {
                                 <td className="px-3 py-2"><Input list="analistas-marc-list" className="h-8 text-xs" value={visita.responsavelMarcenaria || ""} onChange={(e) => updateStore(store.id, { visitaTecnica: { ...visita, responsavelMarcenaria: e.target.value } } as any)} /></td>
                                 <td className="px-3 py-2 text-muted-foreground">{formatDate(marcEnd)}</td>
                                 <td className="px-3 py-2">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir esta loja?")) deleteStore(store.id); }}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
+                                  <ConfirmDelete itemName={`a loja ${store.nome}`} onConfirm={() => deleteStore(store.id)}>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </ConfirmDelete>
                                 </td>
                               </tr>
                             );
@@ -1403,9 +1416,11 @@ const Equipe = () => {
                                     <td className="sticky left-0 z-10 bg-card px-3 py-2">
                                       <div className="flex items-center justify-between">
                                         <span className="font-medium">{habit.name}</span>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6 ml-1" onClick={() => { if (confirm("Excluir?")) deleteHabit(habit.id); }}>
-                                          <Trash2 className="h-3 w-3 text-destructive" />
-                                        </Button>
+                                        <ConfirmDelete itemName={`o hábito "${habit.name}"`} onConfirm={() => deleteHabit(habit.id)}>
+                                          <Button variant="ghost" size="icon" className="h-6 w-6 ml-1">
+                                            <Trash2 className="h-3 w-3 text-destructive" />
+                                          </Button>
+                                        </ConfirmDelete>
                                       </div>
                                     </td>
                                     {monthDaysHabit.map((day) => {
@@ -1717,9 +1732,13 @@ const Equipe = () => {
                             </div>
                           </div>
                           {ev.deletable && (
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); if (confirm("Excluir?")) deleteEvent(ev.originalId || ev.id); }}>
-                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                            </Button>
+                            <span onClick={(e) => e.stopPropagation()}>
+                              <ConfirmDelete itemName={`o evento "${ev.title}"`} onConfirm={() => deleteEvent(ev.originalId || ev.id)}>
+                                <Button variant="ghost" size="icon" className="h-7 w-7">
+                                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                                </Button>
+                              </ConfirmDelete>
+                            </span>
                           )}
                         </div>
                       ))}
@@ -1761,7 +1780,9 @@ const Equipe = () => {
                     </div>
                     <div className="flex gap-2">
                       <Button onClick={saveEventDescription} className="flex-1">Salvar</Button>
-                      <Button variant="destructive" onClick={() => { if (confirm("Excluir este evento?")) { deleteEvent(selectedEvent.id); setEventDetailOpen(false); } }}>Excluir</Button>
+                      <ConfirmDelete itemName={`o evento "${selectedEvent.title}"`} onConfirm={() => { deleteEvent(selectedEvent.id); setEventDetailOpen(false); }}>
+                        <Button variant="destructive">Excluir</Button>
+                      </ConfirmDelete>
                     </div>
                   </div>
                 )}
@@ -1802,7 +1823,31 @@ const Equipe = () => {
               <Card><CardContent className="py-12 text-center text-muted-foreground">Nenhum membro cadastrado</CardContent></Card>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {members.map((m) => (
+                {members.map((m) => {
+                  // Carga de trabalho calculada a partir do estado já carregado
+                  const memberStores = stores.filter((s) =>
+                    normalizeName(s.analistaObra) === normalizeName(m.name)
+                  );
+                  const memberTasksPend = tasks.filter(
+                    (t) => t.assigned_to === m.id && t.status !== "concluida" && t.status !== "cancelada"
+                  ).length;
+                  const totalChecklistItems = 100; // proxy length, only used for ratio
+                  const progressoMedio = memberStores.length > 0
+                    ? Math.round(
+                      memberStores.reduce((acc, s) => {
+                        const vals = Object.values(s.checklist || {});
+                        if (!vals.length) return acc;
+                        const done = vals.filter((c: any) => c.status === "REALIZADO" || c.status === "NÃO SE APLICA").length;
+                        return acc + (done / vals.length) * 100;
+                      }, 0) / memberStores.length,
+                    )
+                    : 0;
+                  const progressColor =
+                    progressoMedio >= 80 ? "bg-[hsl(var(--success))]"
+                    : progressoMedio >= 50 ? "bg-[hsl(var(--accent))]"
+                    : progressoMedio > 0 ? "bg-amber-500"
+                    : "bg-muted-foreground/40";
+                  return (
                   <Card key={m.id}>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
@@ -1810,17 +1855,39 @@ const Equipe = () => {
                           <CardTitle className="text-base">{m.name}</CardTitle>
                           {m.role && <p className="text-sm text-muted-foreground">{m.role}</p>}
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteMember(m.id); }}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        <ConfirmDelete itemName={`o membro ${m.name}`} onConfirm={() => deleteMember(m.id)}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </ConfirmDelete>
                       </div>
                     </CardHeader>
-                    <CardContent className="text-sm text-muted-foreground space-y-1">
-                      {m.email && <p>{m.email}</p>}
-                      {m.phone && <p>{m.phone}</p>}
+                    <CardContent className="text-sm space-y-3">
+                      {m.email && <p className="text-muted-foreground">{m.email}</p>}
+                      {m.phone && <p className="text-muted-foreground">{m.phone}</p>}
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                        <div>
+                          <p className="text-[10px] uppercase text-muted-foreground">Lojas ativas</p>
+                          <p className="text-lg font-bold">{memberStores.length}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase text-muted-foreground">Tarefas pendentes</p>
+                          <p className={`text-lg font-bold ${memberTasksPend > 0 ? "text-[hsl(var(--accent))]" : ""}`}>{memberTasksPend}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-[10px] uppercase text-muted-foreground">
+                          <span>Progresso médio das lojas</span>
+                          <span className="font-semibold text-foreground">{progressoMedio}%</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div className={`h-full transition-all ${progressColor}`} style={{ width: `${progressoMedio}%` }} />
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
-                ))}
+                  );
+                })}
               </div>
             )}
           </TabsContent>

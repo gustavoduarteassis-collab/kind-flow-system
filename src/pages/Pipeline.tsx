@@ -27,6 +27,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTitle } from "@/hooks/usePageTitle";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type PipelineStore = {
   id: string;
@@ -183,6 +185,7 @@ const Pipeline = () => {
   // Duplicates preview
   const [dupOpen, setDupOpen] = useState(false);
   const [dupPreview, setDupPreview] = useState<{ keep: PipelineStore; remove: PipelineStore[] }[]>([]);
+  const [dupSelected, setDupSelected] = useState<Set<string>>(new Set());
 
   const fetchStores = useCallback(async () => {
     if (!user) return;
@@ -316,14 +319,17 @@ const Pipeline = () => {
       if (list.length > 1) dups.push({ keep: list[0], remove: list.slice(1) });
     }
     if (dups.length === 0) { toast({ title: "Nenhuma duplicata encontrada." }); return; }
-    setDupPreview(dups); setDupOpen(true);
+    setDupPreview(dups); setDupSelected(new Set()); setDupOpen(true);
   };
   const confirmRemoveDuplicates = async () => {
-    const ids = dupPreview.flatMap((d) => d.remove.map((r) => r.id));
+    const ids = Array.from(dupSelected);
+    if (ids.length === 0) { toast({ title: "Selecione ao menos uma loja para remover." }); return; }
     for (const id of ids) await supabase.from("pipeline_stores").delete().eq("id", id);
     toast({ title: `${ids.length} duplicata(s) removida(s)!` });
-    setDupOpen(false); setDupPreview([]); fetchStores();
+    setDupOpen(false); setDupPreview([]); setDupSelected(new Set()); fetchStores();
   };
+  const toggleDupSelected = (id: string) =>
+    setDupSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   // Computed filter lists
   const analistas = useMemo(() => Array.from(new Set(stores.map((s) => s.analista_obra).filter(Boolean))).sort(), [stores]);
@@ -468,15 +474,15 @@ const Pipeline = () => {
                 <TriProgress value={progress} />
                 <span className="text-xs font-bold w-8 text-right">{progress}%</span>
               </div>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(store)} title="Editar"><Pencil className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(store)} title="Editar loja"><Pencil className="h-4 w-4" /></Button>
               {ready && !inaug && (
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Transferir para Lojas"
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Ver detalhes / Transferir para Lojas"
                   onClick={() => { if (confirm(`Transferir "${store.local}" para Lojas?`)) transferToLojas(store); }}>
                   <ArrowRightCircle className="h-4 w-4" />
                 </Button>
               )}
               {!inaug ? (
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Marcar como Inaugurada"
+                <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-600" title="Marcar como inaugurada"
                   onClick={() => { if (confirm(`Marcar "${store.local}" como Inaugurada?`)) markInaugurada(store); }}>
                   <PartyPopper className="h-4 w-4" />
                 </Button>
@@ -489,13 +495,15 @@ const Pipeline = () => {
               {inaug && <Button variant="ghost" size="icon" className="h-8 w-8 text-emerald-700" title="Ver histórico" onClick={() => setHistoryStore(store)}><Eye className="h-4 w-4" /></Button>}
               {!inaug && (
                 <Button variant="ghost" size="icon" className={cn("h-8 w-8", reform ? "text-amber-700" : "text-amber-600")}
-                  title={reform ? "Desmarcar Reforma" : "Marcar como Reforma"} onClick={() => toggleReforma(store)}>
+                  title={reform ? "Desmarcar reforma (fixar)" : "Marcar como reforma / fixar"} onClick={() => toggleReforma(store)}>
                   <Hammer className="h-4 w-4" />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { if (confirm("Excluir?")) deleteStore(store.id); }}>
-                <Trash2 className="h-3.5 w-3.5 text-destructive" />
-              </Button>
+              <ConfirmDelete itemName={`a loja ${store.local}${store.filial ? ` (${store.filial})` : ""}`} onConfirm={() => deleteStore(store.id)}>
+                <Button variant="ghost" size="icon" className="h-8 w-8" title="Excluir loja">
+                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                </Button>
+              </ConfirmDelete>
             </div>
           </div>
 
@@ -797,8 +805,17 @@ const Pipeline = () => {
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
             Encontradas <strong>{dupPreview.reduce((acc, d) => acc + d.remove.length, 0)}</strong> duplicata(s) em <strong>{dupPreview.length}</strong> grupo(s).
-            A primeira de cada grupo é mantida. Confirme antes de excluir.
+            A primeira de cada grupo é mantida. Selecione abaixo quais cópias deseja remover.
           </p>
+          <div className="flex justify-between items-center text-xs">
+            <span className="text-muted-foreground">{dupSelected.size} selecionada(s)</span>
+            <button className="underline text-primary" onClick={() => {
+              const all = new Set(dupPreview.flatMap(d => d.remove.map(r => r.id)));
+              setDupSelected(dupSelected.size === all.size ? new Set() : all);
+            }}>
+              {dupSelected.size === dupPreview.flatMap(d => d.remove).length ? "Desmarcar todas" : "Selecionar todas"}
+            </button>
+          </div>
           <div className="space-y-3 max-h-[50vh] overflow-y-auto">
             {dupPreview.map((g, i) => (
               <div key={i} className="border rounded-md p-3 space-y-1">
@@ -808,18 +825,21 @@ const Pipeline = () => {
                   {g.keep.filial && <span className="text-xs text-muted-foreground">({g.keep.filial})</span>}
                 </div>
                 {g.remove.map((r) => (
-                  <div key={r.id} className="flex items-center gap-2 text-sm pl-2">
+                  <label key={r.id} className="flex items-center gap-2 text-sm pl-2 cursor-pointer hover:bg-muted/40 rounded p-1">
+                    <Checkbox checked={dupSelected.has(r.id)} onCheckedChange={() => toggleDupSelected(r.id)} />
                     <Badge variant="destructive" className="text-[10px]">EXCLUIR</Badge>
-                    <span className="text-muted-foreground line-through">{r.local}</span>
+                    <span className={cn("text-muted-foreground", dupSelected.has(r.id) && "line-through")}>{r.local}</span>
                     {r.filial && <span className="text-xs text-muted-foreground">({r.filial})</span>}
-                  </div>
+                  </label>
                 ))}
               </div>
             ))}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setDupOpen(false)}>Cancelar</Button>
-            <Button variant="destructive" onClick={confirmRemoveDuplicates}>Confirmar Exclusão</Button>
+            <Button variant="destructive" onClick={confirmRemoveDuplicates} disabled={dupSelected.size === 0}>
+              Excluir {dupSelected.size > 0 ? `${dupSelected.size} selecionada(s)` : "selecionadas"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

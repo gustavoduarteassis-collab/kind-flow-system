@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { KeyRound, Plus, Trash2 } from "lucide-react";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { useToast } from "@/hooks/use-toast";
 import { usePageTitle } from "@/hooks/usePageTitle";
 
@@ -146,9 +147,11 @@ export default function Acessos() {
                   {fa.can_view_diario && <Badge variant="outline" className="text-[10px]">Diário {fa.can_edit_diario ? "✏️" : "👁️"}</Badge>}
                   {fa.can_view_custos && <Badge variant="outline" className="text-[10px]">Custos {fa.can_edit_custos ? "✏️" : "👁️"}</Badge>}
                 </div></TableCell>
-                <TableCell><Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { if (confirm("Revogar acesso?")) deleteAccess(fa.id); }}>
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                </Button></TableCell>
+                <TableCell><ConfirmDelete itemName={`o acesso de ${fa.franchisee_email}`} onConfirm={() => deleteAccess(fa.id)}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
+                </ConfirmDelete></TableCell>
               </TableRow>
             ))}
           </TableBody>
