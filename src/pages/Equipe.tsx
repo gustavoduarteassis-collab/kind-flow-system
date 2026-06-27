@@ -175,7 +175,7 @@ const Equipe = () => {
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "tarefas");
+  const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "visao");
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(searchParams.get("member"));
   const [taskViewTab, setTaskViewTab] = useState<"ativas" | "concluidas" | "arquivadas">("ativas");
 
