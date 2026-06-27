@@ -128,12 +128,13 @@ const StoreReport = () => {
     const fetchDiary = async () => {
       const { data: entries } = await supabase
         .from("construction_diary").select("*").eq("store_id", id)
+        .is("deleted_at", null)
         .order("entry_date", { ascending: true });
       if (entries) {
         setDiaryEntries(entries as DiaryEntryReport[]);
         const ids = entries.map((e: any) => e.id);
         if (ids.length > 0) {
-          const { data: photosData } = await supabase.from("diary_photos").select("*").in("diary_id", ids);
+          const { data: photosData } = await supabase.from("diary_photos").select("*").in("diary_id", ids).is("deleted_at", null);
           if (photosData) {
             const grouped: Record<string, DiaryPhotoReport[]> = {};
             (photosData as DiaryPhotoReport[]).forEach((p) => {

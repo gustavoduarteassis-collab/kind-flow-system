@@ -198,7 +198,7 @@ const AGM = () => {
         supabase.from("stores").select("id, nome, inauguracao, tipo_loja, inauguracao_checklist").is("deleted_at", null),
         supabase.from("pipeline_stores").select("id, filial, local, inicio_obra, data_inauguracao, previsao_inauguracao, data_liberacao_orcamento, prazo_conclusao_orcamento, padrao, estado, cidade, status_geral, analista_obra, franqueado").is("deleted_at", null),
         supabase.from("custos_geral_entries").select("id, nome, tipo, area_loja, area_total, mao_de_obra, moveis, piso, iluminacao, informatica, demais_itens").is("deleted_at", null),
-        supabase.from("fornecedores_prospeccao").select("id, created_at, mes_referencia"),
+        supabase.from("fornecedores_prospeccao").select("id, created_at, mes_referencia").is("deleted_at", null),
       ]);
 
       const stores = (storesRes.data || []) as StoreRow[];
@@ -300,8 +300,8 @@ const AGM = () => {
   const fetchAGMData = useCallback(async () => {
     if (!user) return;
     const [e, p] = await Promise.all([
-      supabase.from("agm_entries").select("*").eq("mes_referencia", mesRef).order("created_at"),
-      supabase.from("agm_action_plans").select("*").eq("mes_referencia", mesRef).order("created_at"),
+      supabase.from("agm_entries").select("*").eq("mes_referencia", mesRef).is("deleted_at", null).order("created_at"),
+      supabase.from("agm_action_plans").select("*").eq("mes_referencia", mesRef).is("deleted_at", null).order("created_at"),
     ]);
     if (e.data) {
       setEntries(e.data as AgmEntry[]);
@@ -444,7 +444,7 @@ const AGM = () => {
   };
 
   const deletePlan = async (id: string) => {
-    await supabase.from("agm_action_plans").delete().eq("id", id);
+    await supabase.from("agm_action_plans").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     fetchAGMData();
   };
 
@@ -464,7 +464,8 @@ const AGM = () => {
       const { data: acumulados } = await supabase
         .from("agm_planos_acao")
         .select("*")
-        .eq("mes_criacao", mesRef);
+        .eq("mes_criacao", mesRef)
+        .is("deleted_at", null);
 
       const acumuladosAsPlans = (acumulados || []).map((p: any) => {
         const today = new Date();

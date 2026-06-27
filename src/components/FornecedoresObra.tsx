@@ -41,6 +41,7 @@ const FornecedoresObra = () => {
     const { data, error } = await supabase
       .from("fornecedores_homologados")
       .select("id, produto, empresa, contato, telefone, whatsapp, email")
+      .is("deleted_at", null)
       .order("produto");
     if (!error && data) setFornecedores(data);
     setLoading(false);
@@ -82,7 +83,7 @@ const FornecedoresObra = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("fornecedores_homologados").delete().eq("id", id);
+    const { error } = await supabase.from("fornecedores_homologados").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     if (error) {
       toast.error("Erro ao excluir");
       return;

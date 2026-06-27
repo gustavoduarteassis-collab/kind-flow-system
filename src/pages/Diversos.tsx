@@ -86,7 +86,7 @@ const Diversos = () => {
   const fetchData = useCallback(async () => {
     if (!user) return;
     const [f, m] = await Promise.all([
-      supabase.from("fornecedores_prospeccao").select("*").order("created_at", { ascending: false }),
+      supabase.from("fornecedores_prospeccao").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("team_members").select("id, name").is("deleted_at", null),
     ]);
     if (f.data) setFornecedores(f.data as Fornecedor[]);
@@ -131,7 +131,7 @@ const Diversos = () => {
   };
 
   const deleteFornecedor = async (id: string) => {
-    await supabase.from("fornecedores_prospeccao").delete().eq("id", id);
+    await supabase.from("fornecedores_prospeccao").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null }).eq("id", id);
     fetchData();
   };
 
