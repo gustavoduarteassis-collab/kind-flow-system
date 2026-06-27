@@ -709,6 +709,67 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_project_log: {
+        Row: {
+          changed_by: string | null
+          changed_by_name: string | null
+          created_at: string
+          id: string
+          observacao: string | null
+          pipeline_store_id: string
+          project_key: string
+          status_anterior: string | null
+          status_novo: string
+          store_id: string | null
+        }
+        Insert: {
+          changed_by?: string | null
+          changed_by_name?: string | null
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          pipeline_store_id: string
+          project_key: string
+          status_anterior?: string | null
+          status_novo: string
+          store_id?: string | null
+        }
+        Update: {
+          changed_by?: string | null
+          changed_by_name?: string | null
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          pipeline_store_id?: string
+          project_key?: string
+          status_anterior?: string | null
+          status_novo?: string
+          store_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_project_log_pipeline_store_id_fkey"
+            columns: ["pipeline_store_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_project_log_pipeline_store_id_fkey"
+            columns: ["pipeline_store_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stores_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pipeline_project_log_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_stores: {
         Row: {
           analista_arquitetura: string
