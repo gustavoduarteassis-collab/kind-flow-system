@@ -346,21 +346,43 @@ const Equipe = () => {
     const existing = completions.find(
       (c) => c.habit_id === habitId && c.team_member_id === memberId && c.completion_date === date
     );
+    const prev = completions;
+    // Optimistic
     if (existing) {
       if (note === null) {
-        // unchecking
-        await supabase.from("habit_completions").delete().eq("id", existing.id);
+        setCompletions((cur) => cur.filter((c) => c.id !== existing.id));
       } else {
-        // updating note while keeping completion
-        await supabase.from("habit_completions").update({ note }).eq("id", existing.id);
+        setCompletions((cur) => cur.map((c) => (c.id === existing.id ? { ...c, note } : c)));
       }
     } else {
-      await supabase.from("habit_completions").insert({
+      setCompletions((cur) => [...cur, { id: `tmp-${Date.now()}`, user_id: user.id, habit_id: habitId, team_member_id: memberId, completion_date: date, completed: true, note } as any]);
+    }
+
+    let error: any = null;
+    if (existing) {
+      if (note === null) {
+        ({ error } = await supabase.from("habit_completions").delete().eq("id", existing.id));
+      } else {
+        ({ error } = await supabase.from("habit_completions").update({ note }).eq("id", existing.id));
+      }
+    } else {
+      ({ error } = await supabase.from("habit_completions").insert({
         user_id: user.id, habit_id: habitId, team_member_id: memberId, completion_date: date,
         completed: true, note,
-      });
+      }));
     }
-    fetchAll();
+
+    if (error) {
+      setCompletions(prev);
+      toast({ title: "Erro ao salvar hábito", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (!existing) {
+      toast({ title: "✓ Hábito concluído", description: "Marcado como OK." });
+    } else if (note === null) {
+      toast({ title: "Hábito desmarcado" });
+    }
+    // realtime will reconcile temp id
   };
 
   const isCompleted = (habitId: string, memberId: string, date: string) => {
