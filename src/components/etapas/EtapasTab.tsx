@@ -404,12 +404,15 @@ function FunilPhase({
   pipeline,
   logs,
   onChange,
+  onAddObservation,
 }: {
   pipeline: PipelineRow | null;
   logs: LogRow[];
   onChange: (key: keyof PipelineRow, newStatus: string) => void;
+  onAddObservation: (key: keyof PipelineRow, text: string) => void;
 }) {
   const [showHistory, setShowHistory] = useState<string | null>(null);
+  const [obsDraft, setObsDraft] = useState<Record<string, string>>({});
   if (!pipeline) {
     return (
       <p className="text-sm text-muted-foreground px-2">
@@ -431,7 +434,10 @@ function FunilPhase({
                 <span className="font-medium text-sm">{p.label}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Select value={STATUS_OPTIONS.includes(current) ? current : "Pendente"} onValueChange={(v) => onChange(p.key, v)}>
+                <Select
+                  value={STATUS_OPTIONS.includes(current) ? current : "Pendente"}
+                  onValueChange={(v) => onChange(p.key, v)}
+                >
                   <SelectTrigger className="h-8 w-[180px]">
                     <SelectValue />
                   </SelectTrigger>
@@ -454,18 +460,52 @@ function FunilPhase({
                 </Button>
               </div>
             </div>
+
+            {/* Add observation (append-only) */}
+            <div className="mt-2 flex gap-2 items-start">
+              <textarea
+                value={obsDraft[String(p.key)] || ""}
+                onChange={(e) => setObsDraft((d) => ({ ...d, [String(p.key)]: e.target.value }))}
+                placeholder="Adicionar observação (registrada no histórico, não sobrescreve)"
+                className="flex-1 text-xs rounded-md border bg-background p-2 min-h-[36px] resize-y"
+                rows={1}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!(obsDraft[String(p.key)] || "").trim()}
+                onClick={() => {
+                  onAddObservation(p.key, obsDraft[String(p.key)] || "");
+                  setObsDraft((d) => ({ ...d, [String(p.key)]: "" }));
+                }}
+              >
+                Adicionar
+              </Button>
+            </div>
+
             {isOpen && (
-              <div className="mt-2 pt-2 border-t text-xs space-y-1">
+              <div className="mt-2 pt-2 border-t text-xs space-y-1.5">
                 {projLogs.length === 0 && <p className="text-muted-foreground">Sem alterações registradas.</p>}
                 {projLogs.map((l) => (
-                  <div key={l.id} className="flex items-center gap-2 text-muted-foreground">
-                    <span className="font-mono text-[10px]">{new Date(l.created_at).toLocaleString("pt-BR")}</span>
-                    <span>·</span>
-                    <span>{l.changed_by_name || "—"}</span>
-                    <span>·</span>
-                    <span className="text-foreground">
-                      {l.status_anterior || "—"} → <strong>{l.status_novo}</strong>
-                    </span>
+                  <div key={l.id} className="text-muted-foreground">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-[10px]">{new Date(l.created_at).toLocaleString("pt-BR")}</span>
+                      <span>·</span>
+                      <span>{l.changed_by_name || "—"}</span>
+                      {l.status_anterior !== l.status_novo && (
+                        <>
+                          <span>·</span>
+                          <span className="text-foreground">
+                            {l.status_anterior || "—"} → <strong>{l.status_novo}</strong>
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {l.observacao && (
+                      <p className="text-foreground whitespace-pre-line pl-1 border-l-2 border-primary/40 ml-1 mt-0.5">
+                        {l.observacao}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -473,6 +513,9 @@ function FunilPhase({
           </div>
         );
       })}
+    </div>
+  );
+}
     </div>
   );
 }
