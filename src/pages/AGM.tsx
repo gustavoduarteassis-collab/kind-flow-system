@@ -300,8 +300,8 @@ const AGM = () => {
   const fetchAGMData = useCallback(async () => {
     if (!user) return;
     const [e, p] = await Promise.all([
-      supabase.from("agm_entries").select("*").eq("mes_referencia", mesRef).order("created_at"),
-      supabase.from("agm_action_plans").select("*").eq("mes_referencia", mesRef).order("created_at"),
+      supabase.from("agm_entries").select("*").eq("mes_referencia", mesRef).is("deleted_at", null).order("created_at"),
+      supabase.from("agm_action_plans").select("*").eq("mes_referencia", mesRef).is("deleted_at", null).order("created_at"),
     ]);
     if (e.data) {
       setEntries(e.data as AgmEntry[]);
