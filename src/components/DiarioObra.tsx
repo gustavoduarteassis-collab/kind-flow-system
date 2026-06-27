@@ -71,13 +71,14 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
     const mEnd = format(endOfMonth(month), "yyyy-MM-dd");
     const { data: entriesData } = await supabase
       .from("construction_diary").select("*").eq("store_id", storeId)
+      .is("deleted_at", null)
       .gte("entry_date", mStart).lte("entry_date", mEnd)
       .order("entry_date", { ascending: false });
     if (entriesData) {
       setEntries(entriesData as DiaryEntry[]);
       const ids = entriesData.map((e: any) => e.id);
       if (ids.length > 0) {
-        const { data: photosData } = await supabase.from("diary_photos").select("*").in("diary_id", ids);
+        const { data: photosData } = await supabase.from("diary_photos").select("*").in("diary_id", ids).is("deleted_at", null);
         if (photosData) {
           const grouped: Record<string, DiaryPhoto[]> = {};
           (photosData as DiaryPhoto[]).forEach((p) => {
