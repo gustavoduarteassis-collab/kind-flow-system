@@ -46,6 +46,7 @@ type LogRow = {
   project_key: string;
   status_anterior: string | null;
   status_novo: string;
+  observacao: string | null;
   changed_by_name: string | null;
   created_at: string;
 };
@@ -105,7 +106,7 @@ export default function EtapasTab({
     if (data?.id) {
       const { data: log } = await supabase
         .from("pipeline_project_log")
-        .select("id,project_key,status_anterior,status_novo,changed_by_name,created_at")
+        .select("id,project_key,status_anterior,status_novo,observacao,changed_by_name,created_at")
         .eq("pipeline_store_id", data.id)
         .order("created_at", { ascending: false });
       setLogs((log as LogRow[]) || []);
