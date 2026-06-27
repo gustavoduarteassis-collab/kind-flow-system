@@ -21,8 +21,10 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
-  ChevronLeft, ChevronRight, Calendar, KeyRound, AlertTriangle,
+  ChevronLeft, ChevronRight, Calendar, KeyRound, AlertTriangle, LayoutDashboard, Activity,
 } from "lucide-react";
+import { VisaoGeralTab } from "@/components/equipe/VisaoGeralTab";
+import { AtividadesTab } from "@/components/equipe/AtividadesTab";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
