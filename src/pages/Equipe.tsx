@@ -27,6 +27,7 @@ import { VisaoGeralTab } from "@/components/equipe/VisaoGeralTab";
 import { AtividadesTab } from "@/components/equipe/AtividadesTab";
 import { TasksKanban } from "@/components/equipe/TasksKanban";
 import { SubtasksEditor } from "@/components/equipe/SubtasksEditor";
+import { HabitDayCell } from "@/components/equipe/HabitDayCell";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
