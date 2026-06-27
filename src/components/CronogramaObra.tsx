@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import CronogramaPhaseSummary from "@/components/CronogramaPhaseSummary";
 import { cn } from "@/lib/utils";
 import { Calendar, AlertTriangle, CheckCircle, Clock, FileText, CalendarIcon } from "lucide-react";
 import { addDays, format, differenceInCalendarDays, parseISO, isValid } from "date-fns";
@@ -350,6 +351,7 @@ const CronogramaObra = ({ store, onUpdate }: CronogramaObraProps) => {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="gantt">📊 Cronograma Gantt</TabsTrigger>
+          <TabsTrigger value="phases">🧭 Status por Etapa</TabsTrigger>
           <TabsTrigger value="comparison">📋 Planejado vs Real</TabsTrigger>
           <TabsTrigger value="actions">
             ⚡ Plano de Ação
@@ -358,6 +360,10 @@ const CronogramaObra = ({ store, onUpdate }: CronogramaObraProps) => {
             )}
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="phases" className="mt-4">
+          <CronogramaPhaseSummary store={store} />
+        </TabsContent>
 
         {/* === GANTT === */}
         <TabsContent value="gantt" className="mt-4">
