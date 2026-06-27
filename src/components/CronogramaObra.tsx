@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Calendar as CalendarComp } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import CronogramaPhaseSummary from "@/components/CronogramaPhaseSummary";
 import { cn } from "@/lib/utils";
 import { Calendar, AlertTriangle, CheckCircle, Clock, FileText, CalendarIcon } from "lucide-react";
 import { addDays, format, differenceInCalendarDays, parseISO, isValid } from "date-fns";
