@@ -92,7 +92,7 @@ export default function StoreCommunication({ storeId, storeName, franqueado }: P
     const { error } = await supabase.from("store_communications").insert([{
       store_id: storeId,
       user_id: user.id,
-      author_name: displayName || user.email || "Equipe",
+      author_name: (typeof displayName === "string" ? displayName : (displayName as any)?.name) || user.email || "Equipe",
       author_role: "equipe",
       channel,
       message: text.trim(),
