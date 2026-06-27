@@ -60,6 +60,7 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import logoConstanceSvg from "@/assets/logo-constance.svg";
 import StorePhaseProgress from "@/components/StorePhaseProgress";
+import EtapasTab from "@/components/etapas/EtapasTab";
 import { useAutoMarkInaugurada } from "@/hooks/useAutoMarkInaugurada";
 import { formatBR } from "@/utils/safeDate";
 
@@ -84,7 +85,7 @@ const StoreDetail = () => {
   const { getStore, updateStore } = useStores();
   const store = getStore(id || "");
 
-  const [activeTab, setActiveTab] = useState("cronograma");
+  const [activeTab, setActiveTab] = useState("etapas");
   const { user } = useAuth();
   const [isTeamMember, setIsTeamMember] = useState(false);
   const [editingHeader, setEditingHeader] = useState(false);
@@ -522,6 +523,12 @@ const StoreDetail = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsScrollableList>
             <TabsTrigger
+              value="etapas"
+              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
+            >
+              🧭 Etapas
+            </TabsTrigger>
+            <TabsTrigger
               value="cronograma"
               className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
             >
@@ -578,12 +585,25 @@ const StoreDetail = () => {
             })}
           </TabsScrollableList>
 
+          <TabsContent value="etapas" className="mt-4">
+            <EtapasTab
+              store={store}
+              inauguradaInPipeline={inauguradaInPipeline}
+              doneItems={doneItems}
+              totalItems={totalItems}
+              atrasados={atrasados}
+              progress={progress}
+              onJumpTab={(t) => setActiveTab(t)}
+            />
+          </TabsContent>
+
           <TabsContent value="cronograma" className="mt-4">
             <CronogramaObra
               store={store}
               onUpdate={(cronograma) => updateStore(store.id, { cronograma })}
             />
           </TabsContent>
+
 
           <TabsContent value="custos" className="mt-4">
             <CustosObra
