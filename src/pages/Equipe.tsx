@@ -300,8 +300,20 @@ const Equipe = () => {
   };
 
   const updateTaskStatus = async (id: string, status: string) => {
-    await supabase.from("tasks").update({ status: status as any }).eq("id", id);
-    fetchAll();
+    // Optimistic update — UI já mostra "OK" imediatamente
+    const prev = tasks;
+    setTasks((cur) => cur.map((t) => (t.id === id ? ({ ...t, status: status as any, updated_at: new Date().toISOString() }) : t)));
+    const { error } = await supabase.from("tasks").update({ status: status as any }).eq("id", id);
+    if (error) {
+      setTasks(prev);
+      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (status === "concluida") {
+      const t = prev.find((x) => x.id === id);
+      toast({ title: "✓ Tarefa concluída", description: t?.title ?? "Marcada como OK na lista." });
+    }
+    // realtime channel will refresh details
   };
 
   const deleteTask = async (id: string) => {
