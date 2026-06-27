@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 import { VisaoGeralTab } from "@/components/equipe/VisaoGeralTab";
 import { AtividadesTab } from "@/components/equipe/AtividadesTab";
+import { TasksKanban } from "@/components/equipe/TasksKanban";
+import { SubtasksEditor } from "@/components/equipe/SubtasksEditor";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
@@ -178,6 +180,7 @@ const Equipe = () => {
   const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "visao");
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(searchParams.get("member"));
   const [taskViewTab, setTaskViewTab] = useState<"ativas" | "concluidas" | "arquivadas">("ativas");
+  const [taskViewMode, setTaskViewMode] = useState<"lista" | "kanban">("lista");
 
   // Sync URL <-> state (one-way: URL drives state)
   useEffect(() => {
@@ -806,8 +809,20 @@ const Equipe = () => {
                   Arquivadas
                 </Button>
               )}
+              <div className="ml-auto flex gap-1 rounded-md border p-0.5">
+                <Button size="sm" variant={taskViewMode === "lista" ? "default" : "ghost"} className="h-7 text-xs" onClick={() => setTaskViewMode("lista")}>Lista</Button>
+                <Button size="sm" variant={taskViewMode === "kanban" ? "default" : "ghost"} className="h-7 text-xs" onClick={() => setTaskViewMode("kanban")}>Kanban</Button>
+              </div>
             </div>
 
+            {taskViewMode === "kanban" && taskViewTab !== "arquivadas" ? (
+              <TasksKanban
+                tasks={taskMemberFilter ? tasks.filter((t) => t.assigned_to === taskMemberFilter) : tasks}
+                getMemberName={getMemberName}
+                onOpenTask={openTaskDetail}
+                onStatusChange={updateTaskStatus}
+              />
+            ) : (
             <Card>
               <div className="overflow-x-auto">
                 <Table>
@@ -908,6 +923,7 @@ const Equipe = () => {
                 </Table>
               </div>
             </Card>
+            )}
 
             {/* Task Detail Dialog */}
             <Dialog open={taskDetailOpen} onOpenChange={setTaskDetailOpen}>
@@ -956,6 +972,12 @@ const Equipe = () => {
                       </div>
                     </div>
                     <Button onClick={saveTaskEdits} className="w-full">Salvar Alterações</Button>
+
+                    <SubtasksEditor
+                      taskId={selectedTask.id}
+                      initial={((selectedTask as any).subtasks as any[]) || []}
+                    />
+
 
                     {/* Comments section */}
                     <div className="border-t pt-4 mt-4">
