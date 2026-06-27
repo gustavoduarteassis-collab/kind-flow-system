@@ -21,8 +21,10 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Plus, Users, ListTodo, Target, Trash2, LogOut,
-  ChevronLeft, ChevronRight, Calendar, KeyRound, AlertTriangle,
+  ChevronLeft, ChevronRight, Calendar, KeyRound, AlertTriangle, LayoutDashboard, Activity,
 } from "lucide-react";
+import { VisaoGeralTab } from "@/components/equipe/VisaoGeralTab";
+import { AtividadesTab } from "@/components/equipe/AtividadesTab";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
@@ -173,7 +175,7 @@ const Equipe = () => {
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "tarefas");
+  const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "visao");
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(searchParams.get("member"));
   const [taskViewTab, setTaskViewTab] = useState<"ativas" | "concluidas" | "arquivadas">("ativas");
 
@@ -684,12 +686,30 @@ const Equipe = () => {
         </div>
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="mb-6 flex-wrap">
+            <TabsTrigger value="visao" className="gap-2"><LayoutDashboard className="h-4 w-4" /> Visão Geral</TabsTrigger>
             <TabsTrigger value="tarefas" className="gap-2"><ListTodo className="h-4 w-4" /> Tarefas</TabsTrigger>
             <TabsTrigger value="habitos" className="gap-2"><Target className="h-4 w-4" /> Hábitos</TabsTrigger>
+            <TabsTrigger value="atividades" className="gap-2"><Activity className="h-4 w-4" /> Atividades</TabsTrigger>
             <TabsTrigger value="programacao" className="gap-2"><Calendar className="h-4 w-4" /> Programação</TabsTrigger>
             <TabsTrigger value="calendario" className="gap-2"><Calendar className="h-4 w-4" /> Calendário</TabsTrigger>
             <TabsTrigger value="equipe" className="gap-2"><Users className="h-4 w-4" /> Equipe</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="visao">
+            <VisaoGeralTab
+              members={members}
+              tasks={tasks}
+              onOpenTask={(memberId) => {
+                if (memberId) setTaskForm((f) => ({ ...f, assigned_to: memberId }));
+                setTaskOpen(true);
+              }}
+            />
+          </TabsContent>
+
+          <TabsContent value="atividades">
+            <AtividadesTab />
+          </TabsContent>
+
 
           {/* === TAREFAS === */}
           <TabsContent value="tarefas">
