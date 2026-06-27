@@ -17,6 +17,7 @@ const items = [
   { title: "Equipe & Tarefas", url: "/equipe", icon: Users },
   { title: "Diversos", url: "/diversos", icon: FolderOpen },
   { title: "Acessos", url: "/acessos", icon: KeyRound },
+  { title: "Itens excluídos", url: "/itens-excluidos", icon: Trash2 },
 ];
 
 export function AppSidebar() {
