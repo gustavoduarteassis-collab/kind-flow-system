@@ -973,6 +973,12 @@ const Equipe = () => {
                     </div>
                     <Button onClick={saveTaskEdits} className="w-full">Salvar Alterações</Button>
 
+                    <SubtasksEditor
+                      taskId={selectedTask.id}
+                      initial={((selectedTask as any).subtasks as any[]) || []}
+                    />
+
+
                     {/* Comments section */}
                     <div className="border-t pt-4 mt-4">
                       <h3 className="text-sm font-semibold mb-3">💬 Comentários</h3>
