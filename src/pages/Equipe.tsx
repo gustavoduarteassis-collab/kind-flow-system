@@ -315,16 +315,23 @@ const Equipe = () => {
     fetchAll();
   };
 
-  const toggleCompletion = async (habitId: string, memberId: string, date: string) => {
+  const toggleCompletion = async (habitId: string, memberId: string, date: string, note: string | null = null) => {
     if (!user) return;
     const existing = completions.find(
       (c) => c.habit_id === habitId && c.team_member_id === memberId && c.completion_date === date
     );
     if (existing) {
-      await supabase.from("habit_completions").delete().eq("id", existing.id);
+      if (note === null) {
+        // unchecking
+        await supabase.from("habit_completions").delete().eq("id", existing.id);
+      } else {
+        // updating note while keeping completion
+        await supabase.from("habit_completions").update({ note }).eq("id", existing.id);
+      }
     } else {
       await supabase.from("habit_completions").insert({
         user_id: user.id, habit_id: habitId, team_member_id: memberId, completion_date: date,
+        completed: true, note,
       });
     }
     fetchAll();
@@ -334,6 +341,13 @@ const Equipe = () => {
     return completions.some(
       (c) => c.habit_id === habitId && c.team_member_id === memberId && c.completion_date === date
     );
+  };
+
+  const getCompletionNote = (habitId: string, memberId: string, date: string): string | null => {
+    const c = completions.find(
+      (x) => x.habit_id === habitId && x.team_member_id === memberId && x.completion_date === date
+    );
+    return c?.note ?? null;
   };
 
   const addEvent = async () => {
