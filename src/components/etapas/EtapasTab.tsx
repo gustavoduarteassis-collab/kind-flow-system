@@ -219,6 +219,35 @@ export default function EtapasTab({
     toast.success("Observação adicionada (histórico imutável).");
   };
 
+  // --- helpers for other phases ---
+  const cronogramaSummary = useMemo(() => {
+    const cron: any = store.cronograma || {};
+    const planned = cron.itemDates || {};
+    const real = cron.itemDatesReal || {};
+    const today = new Date().toISOString().slice(0, 10);
+    let total = 0;
+    let done = 0;
+    let late = 0;
+    cronogramaCategorias.forEach((g) => {
+      g.items.forEach((it) => {
+        total += 1;
+        if (real[it.id]?.fimReal) done += 1;
+        else if (planned[it.id]?.fim && planned[it.id].fim < today) late += 1;
+      });
+    });
+    return { total, done, late };
+  }, [store.cronograma]);
+
+  const groupsProgress = useMemo(() => {
+    const cron: any = store.cronograma || {};
+    const real = cron.itemDatesReal || {};
+    return cronogramaCategorias.map((g) => {
+      const total = g.items.length;
+      const done = g.items.filter((it) => !!real[it.id]?.fimReal).length;
+      return { id: g.id, nome: g.nome, total, done };
+    });
+  }, [store.cronograma]);
+
   // --- pendências (gate de avanço) por fase ---
   const pendingByPhase = useMemo(() => {
     const out: Record<string, string[]> = {};
@@ -248,34 +277,6 @@ export default function EtapasTab({
     return out;
   }, [pipeline, store, cronogramaSummary]);
 
-  // --- helpers for other phases ---
-  const cronogramaSummary = useMemo(() => {
-    const cron: any = store.cronograma || {};
-    const planned = cron.itemDates || {};
-    const real = cron.itemDatesReal || {};
-    const today = new Date().toISOString().slice(0, 10);
-    let total = 0;
-    let done = 0;
-    let late = 0;
-    cronogramaCategorias.forEach((g) => {
-      g.items.forEach((it) => {
-        total += 1;
-        if (real[it.id]?.fimReal) done += 1;
-        else if (planned[it.id]?.fim && planned[it.id].fim < today) late += 1;
-      });
-    });
-    return { total, done, late };
-  }, [store.cronograma]);
-
-  const groupsProgress = useMemo(() => {
-    const cron: any = store.cronograma || {};
-    const real = cron.itemDatesReal || {};
-    return cronogramaCategorias.map((g) => {
-      const total = g.items.length;
-      const done = g.items.filter((it) => !!real[it.id]?.fimReal).length;
-      return { id: g.id, nome: g.nome, total, done };
-    });
-  }, [store.cronograma]);
 
   return (
     <div className="space-y-4">
