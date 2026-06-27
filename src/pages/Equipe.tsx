@@ -325,7 +325,7 @@ const Equipe = () => {
     setSelectedTask(task);
     setEditingTask({ title: task.title, description: task.description || "", priority: task.priority, assigned_to: task.assigned_to, due_date: task.due_date, start_date: task.start_date, status: task.status });
     setTaskDetailOpen(true);
-    const { data } = await supabase.from("task_comments").select("*").eq("task_id", task.id).order("created_at", { ascending: true });
+    const { data } = await supabase.from("task_comments").select("*").eq("task_id", task.id).is("deleted_at", null).order("created_at", { ascending: true });
     if (data) setTaskComments(data as TaskComment[]);
   };
 
