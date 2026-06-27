@@ -27,6 +27,7 @@ import { VisaoGeralTab } from "@/components/equipe/VisaoGeralTab";
 import { AtividadesTab } from "@/components/equipe/AtividadesTab";
 import { TasksKanban } from "@/components/equipe/TasksKanban";
 import { SubtasksEditor } from "@/components/equipe/SubtasksEditor";
+import { HabitDayCell } from "@/components/equipe/HabitDayCell";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
@@ -45,6 +46,7 @@ type Task = {
 type Habit = { id: string; name: string; description: string | null; assigned_to_members: string[] };
 type HabitCompletion = {
   id: string; habit_id: string; team_member_id: string; completion_date: string; completed: boolean;
+  note: string | null;
 };
 type TeamEvent = {
   id: string; title: string; event_type: string; event_date: string;
@@ -314,16 +316,23 @@ const Equipe = () => {
     fetchAll();
   };
 
-  const toggleCompletion = async (habitId: string, memberId: string, date: string) => {
+  const toggleCompletion = async (habitId: string, memberId: string, date: string, note: string | null = null) => {
     if (!user) return;
     const existing = completions.find(
       (c) => c.habit_id === habitId && c.team_member_id === memberId && c.completion_date === date
     );
     if (existing) {
-      await supabase.from("habit_completions").delete().eq("id", existing.id);
+      if (note === null) {
+        // unchecking
+        await supabase.from("habit_completions").delete().eq("id", existing.id);
+      } else {
+        // updating note while keeping completion
+        await supabase.from("habit_completions").update({ note }).eq("id", existing.id);
+      }
     } else {
       await supabase.from("habit_completions").insert({
         user_id: user.id, habit_id: habitId, team_member_id: memberId, completion_date: date,
+        completed: true, note,
       });
     }
     fetchAll();
@@ -333,6 +342,13 @@ const Equipe = () => {
     return completions.some(
       (c) => c.habit_id === habitId && c.team_member_id === memberId && c.completion_date === date
     );
+  };
+
+  const getCompletionNote = (habitId: string, memberId: string, date: string): string | null => {
+    const c = completions.find(
+      (x) => x.habit_id === habitId && x.team_member_id === memberId && x.completion_date === date
+    );
+    return c?.note ?? null;
   };
 
   const addEvent = async () => {
@@ -1593,14 +1609,15 @@ const Equipe = () => {
                                       const dateStr = format(day, "yyyy-MM-dd");
                                       const done = isCompleted(habit.id, member.id, dateStr);
                                       const isDayToday = isSameDay(day, today);
+                                      const note = getCompletionNote(habit.id, member.id, dateStr);
                                       return (
                                         <td key={dateStr} className="text-center px-0 py-1">
-                                          <button
-                                            className={`w-6 h-6 rounded-md border transition-all ${done ? "bg-primary border-primary text-primary-foreground" : isDayToday ? "border-primary/50 bg-primary/5" : "border-border/50"}`}
-                                            onClick={() => toggleCompletion(habit.id, member.id, dateStr)}
-                                          >
-                                            {done && <span className="text-[10px]">✓</span>}
-                                          </button>
+                                          <HabitDayCell
+                                            done={done}
+                                            isToday={isDayToday}
+                                            note={note}
+                                            onToggle={(n) => toggleCompletion(habit.id, member.id, dateStr, done && n === null ? null : n)}
+                                          />
                                         </td>
                                       );
                                     })}
@@ -1619,14 +1636,15 @@ const Equipe = () => {
                                           const dateStr = format(day, "yyyy-MM-dd");
                                           const done = isCompleted(habit.id, member.id, dateStr);
                                           const isDayToday = isSameDay(day, today);
+                                          const note = getCompletionNote(habit.id, member.id, dateStr);
                                           return (
                                             <td key={dateStr} className="text-center px-0 py-1">
-                                              <button
-                                                className={`w-6 h-6 rounded-md border transition-all ${done ? "bg-primary border-primary text-primary-foreground" : isDayToday ? "border-primary/50 bg-primary/5" : "border-border/50"}`}
-                                                onClick={() => toggleCompletion(habit.id, member.id, dateStr)}
-                                              >
-                                                {done && <span className="text-[10px]">✓</span>}
-                                              </button>
+                                              <HabitDayCell
+                                                done={done}
+                                                isToday={isDayToday}
+                                                note={note}
+                                                onToggle={(n) => toggleCompletion(habit.id, member.id, dateStr, done && n === null ? null : n)}
+                                              />
                                             </td>
                                           );
                                         })}
