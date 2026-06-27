@@ -419,6 +419,20 @@ export default function EtapasTab({
                   {p.key === "inaugurada" && (
                     <InauguradaPhase store={store} pipeline={pipeline} done={p.done} />
                   )}
+
+                  {/* Gate de avanço — apenas para fase atual com pendências */}
+                  {p.active && !p.done && (pendingByPhase[p.key]?.length || 0) > 0 && (
+                    <div className="rounded-md border border-[hsl(45,90%,55%)]/40 bg-[hsl(45,90%,55%)]/10 p-3">
+                      <p className="text-xs font-semibold text-[hsl(28,40%,25%)] dark:text-[hsl(45,90%,80%)] mb-1">
+                        ⚠ Falta para avançar para a próxima fase:
+                      </p>
+                      <ul className="text-xs list-disc list-inside space-y-0.5">
+                        {pendingByPhase[p.key].map((it, i) => (
+                          <li key={i}>{it}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </CardContent>
               </CollapsibleContent>
             </Collapsible>
