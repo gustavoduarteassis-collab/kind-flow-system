@@ -1636,14 +1636,15 @@ const Equipe = () => {
                                           const dateStr = format(day, "yyyy-MM-dd");
                                           const done = isCompleted(habit.id, member.id, dateStr);
                                           const isDayToday = isSameDay(day, today);
+                                          const note = getCompletionNote(habit.id, member.id, dateStr);
                                           return (
                                             <td key={dateStr} className="text-center px-0 py-1">
-                                              <button
-                                                className={`w-6 h-6 rounded-md border transition-all ${done ? "bg-primary border-primary text-primary-foreground" : isDayToday ? "border-primary/50 bg-primary/5" : "border-border/50"}`}
-                                                onClick={() => toggleCompletion(habit.id, member.id, dateStr)}
-                                              >
-                                                {done && <span className="text-[10px]">✓</span>}
-                                              </button>
+                                              <HabitDayCell
+                                                done={done}
+                                                isToday={isDayToday}
+                                                note={note}
+                                                onToggle={(n) => toggleCompletion(habit.id, member.id, dateStr, done && n === null ? null : n)}
+                                              />
                                             </td>
                                           );
                                         })}
