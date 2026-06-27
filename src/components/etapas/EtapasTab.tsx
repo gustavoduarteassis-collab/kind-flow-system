@@ -198,6 +198,27 @@ export default function EtapasTab({
     toast.success("Status atualizado e registrado no histórico.");
   };
 
+  const addProjectObservation = async (key: keyof PipelineRow, text: string) => {
+    if (!pipeline || !text.trim()) return;
+    const current = (pipeline[key] as string) || "Pendente";
+    const { error } = await supabase.from("pipeline_project_log").insert({
+      pipeline_store_id: pipeline.id,
+      store_id: store.id,
+      project_key: String(key),
+      status_anterior: current,
+      status_novo: current,
+      observacao: text.trim(),
+      changed_by: user?.id,
+      changed_by_name: user?.email || null,
+    });
+    if (error) {
+      toast.error("Erro ao salvar observação: " + error.message);
+      return;
+    }
+    fetchPipeline();
+    toast.success("Observação adicionada (histórico imutável).");
+  };
+
   // --- helpers for other phases ---
   const cronogramaSummary = useMemo(() => {
     const cron: any = store.cronograma || {};
