@@ -1637,6 +1637,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      _sync_auto_task: {
+        Args: {
+          _loja: string
+          _new_due: string
+          _phase: string
+          _reason: string
+          _store_id: string
+        }
+        Returns: undefined
+      }
       current_actor_name: { Args: never; Returns: string }
       is_authorized_team: { Args: { check_user_id: string }; Returns: boolean }
       list_soft_deleted: {
