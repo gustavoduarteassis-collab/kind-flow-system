@@ -199,15 +199,19 @@ export default function EtapasTab({
 
   // --- helpers for other phases ---
   const cronogramaSummary = useMemo(() => {
-    const cron = store.cronograma || {};
+    const cron: any = store.cronograma || {};
+    const planned = cron.itemDates || {};
+    const real = cron.itemDatesReal || {};
+    const today = new Date().toISOString().slice(0, 10);
     let total = 0;
     let done = 0;
     let late = 0;
-    const today = new Date().toISOString().slice(0, 10);
-    Object.values(cron as any).forEach((row: any) => {
-      total += 1;
-      if (row?.fimReal) done += 1;
-      else if (row?.fimPlanejado && row.fimPlanejado < today) late += 1;
+    cronogramaCategorias.forEach((g) => {
+      g.items.forEach((it) => {
+        total += 1;
+        if (real[it.id]?.fimReal) done += 1;
+        else if (planned[it.id]?.fim && planned[it.id].fim < today) late += 1;
+      });
     });
     return { total, done, late };
   }, [store.cronograma]);
