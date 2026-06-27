@@ -516,9 +516,6 @@ function FunilPhase({
     </div>
   );
 }
-    </div>
-  );
-}
 
 /* ---------------- Fase 3: Obra ---------------- */
 function ObraPhase({
