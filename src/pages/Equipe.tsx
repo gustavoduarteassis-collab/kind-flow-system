@@ -45,6 +45,7 @@ type Task = {
 type Habit = { id: string; name: string; description: string | null; assigned_to_members: string[] };
 type HabitCompletion = {
   id: string; habit_id: string; team_member_id: string; completion_date: string; completed: boolean;
+  note: string | null;
 };
 type TeamEvent = {
   id: string; title: string; event_type: string; event_date: string;
