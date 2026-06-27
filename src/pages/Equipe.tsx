@@ -173,7 +173,7 @@ const Equipe = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "tarefas");
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(searchParams.get("member"));
-  const [taskViewTab, setTaskViewTab] = useState<"ativas" | "concluidas">("ativas");
+  const [taskViewTab, setTaskViewTab] = useState<"ativas" | "concluidas" | "arquivadas">("ativas");
 
   // Sync URL <-> state (one-way: URL drives state)
   useEffect(() => {
