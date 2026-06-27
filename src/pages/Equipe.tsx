@@ -677,7 +677,7 @@ const Equipe = () => {
             <p className="text-xl font-bold">{eventosMes}</p>
           </div>
         </div>
-        <Tabs defaultValue="tarefas">
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="tarefas" className="gap-2"><ListTodo className="h-4 w-4" /> Tarefas</TabsTrigger>
             <TabsTrigger value="habitos" className="gap-2"><Target className="h-4 w-4" /> Hábitos</TabsTrigger>
