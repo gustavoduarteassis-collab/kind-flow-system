@@ -647,6 +647,14 @@ const StoreDetail = () => {
             />
           </TabsContent>
 
+          <TabsContent value="comunicacao" className="mt-4">
+            <StoreCommunication
+              storeId={store.id}
+              storeName={store.nome}
+              franqueado={store.franqueado}
+            />
+          </TabsContent>
+
           <TabsContent value="inauguracao" className="mt-4">
             <ChecklistInauguracao
               tipoLoja={store.tipoLoja as "rua" | "shopping" | ""}
