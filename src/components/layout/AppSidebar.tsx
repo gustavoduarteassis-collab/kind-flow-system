@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  Building2, GitBranch, DollarSign, Target, Users, FolderOpen, KeyRound, Home, ListTodo,
+  Building2, GitBranch, DollarSign, Target, Users, FolderOpen, KeyRound, Home, ListTodo, Trash2,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
