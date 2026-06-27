@@ -802,22 +802,32 @@ const Equipe = () => {
                   </TableHeader>
                   <TableBody>
                     {(() => {
+                      const source = taskViewTab === "arquivadas" ? archivedTasks : tasks;
                       let filtered = taskMemberFilter
-                        ? tasks.filter((t) => t.assigned_to === taskMemberFilter)
-                        : tasks;
+                        ? source.filter((t) => t.assigned_to === taskMemberFilter)
+                        : source;
                       if (taskViewTab === "ativas") {
                         filtered = filtered.filter((t) => t.status !== "concluida");
-                      } else {
+                      } else if (taskViewTab === "concluidas") {
                         filtered = filtered.filter((t) => t.status === "concluida");
                       }
+                      const emptyMsg =
+                        taskViewTab === "arquivadas" ? "Nenhuma tarefa arquivada"
+                        : taskViewTab === "concluidas" ? "Nenhuma tarefa concluída"
+                        : "Nenhuma tarefa cadastrada";
                       return filtered.length === 0 ? (
                         <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                          {taskViewTab === "concluidas" ? "Nenhuma tarefa concluída" : "Nenhuma tarefa cadastrada"}
+                          {emptyMsg}
                         </TableCell></TableRow>
                       ) : filtered.map((task) => {
-                        const overdue = task.status !== "concluida" && task.due_date && task.due_date < todayStr;
+                        const isArchived = taskViewTab === "arquivadas";
+                        const overdue = !isArchived && task.status !== "concluida" && task.due_date && task.due_date < todayStr;
                         return (
-                      <TableRow key={task.id} className={`cursor-pointer hover:bg-muted/50 ${overdue ? "bg-destructive/5" : ""}`} onClick={() => openTaskDetail(task)}>
+                      <TableRow
+                        key={task.id}
+                        className={`hover:bg-muted/50 ${overdue ? "bg-destructive/5" : ""} ${isArchived ? "opacity-70" : "cursor-pointer"}`}
+                        onClick={isArchived ? undefined : () => openTaskDetail(task)}
+                      >
                         <TableCell>
                           <p className="font-medium text-sm flex items-center gap-1.5">
                             {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />}
@@ -832,7 +842,9 @@ const Equipe = () => {
                           <Badge className={`${priorityColors[task.priority]} text-[10px]`}>{priorityLabels[task.priority]}</Badge>
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          {taskViewTab === "concluidas" ? (
+                          {isArchived ? (
+                            <span className="text-xs text-muted-foreground">Excluída</span>
+                          ) : taskViewTab === "concluidas" ? (
                             <span className="text-xs text-muted-foreground">{formatDate(task.updated_at)}</span>
                           ) : (
                             <Select value={task.status} onValueChange={(v) => updateTaskStatus(task.id, v)}>
@@ -844,11 +856,28 @@ const Equipe = () => {
                           )}
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          <ConfirmDelete itemName={`a tarefa "${task.title}"`} onConfirm={() => deleteTask(task.id)}>
-                            <Button variant="ghost" size="icon" className="h-7 w-7">
-                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          {isArchived ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={async () => {
+                                await supabase.rpc("soft_restore" as any, { _table: "tasks", _id: task.id });
+                                setArchivedTasks((prev) => prev.filter((t) => t.id !== task.id));
+                                // reload active tasks
+                                const { data } = await supabase.from("tasks").select("*").is("deleted_at", null).order("created_at", { ascending: false });
+                                if (data) setTasks(data as Task[]);
+                              }}
+                            >
+                              Restaurar
                             </Button>
-                          </ConfirmDelete>
+                          ) : (
+                            <ConfirmDelete itemName={`a tarefa "${task.title}"`} onConfirm={() => deleteTask(task.id)}>
+                              <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </Button>
+                            </ConfirmDelete>
+                          )}
                         </TableCell>
                       </TableRow>
                         );
