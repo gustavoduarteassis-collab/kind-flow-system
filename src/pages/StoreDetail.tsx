@@ -63,6 +63,7 @@ import StorePhaseProgress from "@/components/StorePhaseProgress";
 import EtapasTab from "@/components/etapas/EtapasTab";
 import StoreHeaderKPIs from "@/components/store/StoreHeaderKPIs";
 import StoreCommunication from "@/components/store/StoreCommunication";
+import StoreCustosSummary from "@/components/store/StoreCustosSummary";
 import { useAutoMarkInaugurada } from "@/hooks/useAutoMarkInaugurada";
 import { formatBR } from "@/utils/safeDate";
 
