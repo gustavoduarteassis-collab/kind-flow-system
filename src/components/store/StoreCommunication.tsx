@@ -89,14 +89,14 @@ export default function StoreCommunication({ storeId, storeName, franqueado }: P
   const send = async () => {
     if (!text.trim() || !user) return;
     setSending(true);
-    const { error } = await supabase.from("store_communications").insert({
+    const { error } = await supabase.from("store_communications").insert([{
       store_id: storeId,
       user_id: user.id,
       author_name: displayName || user.email || "Equipe",
       author_role: "equipe",
       channel,
       message: text.trim(),
-    });
+    }]);
     if (error) {
       toast.error("Erro ao enviar: " + error.message);
     } else {
