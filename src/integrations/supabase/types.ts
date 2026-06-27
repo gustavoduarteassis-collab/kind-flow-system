@@ -21,6 +21,8 @@ export type Database = {
           causa: string
           como: string
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           farol: string
           fenomeno: string
           id: string
@@ -40,6 +42,8 @@ export type Database = {
           causa?: string
           como?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           farol?: string
           fenomeno?: string
           id?: string
@@ -59,6 +63,8 @@ export type Database = {
           causa?: string
           como?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           farol?: string
           fenomeno?: string
           id?: string
@@ -77,6 +83,8 @@ export type Database = {
       agm_entries: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           detalhes: Json
           id: string
           indicador: string
@@ -89,6 +97,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           detalhes?: Json
           id?: string
           indicador?: string
@@ -101,6 +111,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           detalhes?: Json
           id?: string
           indicador?: string
@@ -157,6 +169,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           data_conclusao: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
           mes_criacao: string
           origem: string
@@ -176,6 +190,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_conclusao?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           mes_criacao: string
           origem: string
@@ -195,6 +211,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           data_conclusao?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           mes_criacao?: string
           origem?: string
@@ -212,6 +230,8 @@ export type Database = {
         Row: {
           analyst_name: string
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
           indicador: string
           metas_mensais: Json
@@ -225,6 +245,8 @@ export type Database = {
         Insert: {
           analyst_name: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           indicador: string
           metas_mensais?: Json
@@ -238,6 +260,8 @@ export type Database = {
         Update: {
           analyst_name?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           indicador?: string
           metas_mensais?: Json
@@ -310,6 +334,8 @@ export type Database = {
       construction_diary: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           description: string
           entry_date: string
           id: string
@@ -321,6 +347,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string
           entry_date?: string
           id?: string
@@ -332,6 +360,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string
           entry_date?: string
           id?: string
@@ -427,6 +457,8 @@ export type Database = {
         Row: {
           caption: string | null
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           diary_id: string
           id: string
           photo_url: string
@@ -434,6 +466,8 @@ export type Database = {
         Insert: {
           caption?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           diary_id: string
           id?: string
           photo_url: string
@@ -441,6 +475,8 @@ export type Database = {
         Update: {
           caption?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           diary_id?: string
           id?: string
           photo_url?: string
@@ -459,6 +495,8 @@ export type Database = {
         Row: {
           contato: string
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           email: string
           empresa: string
           id: string
@@ -471,6 +509,8 @@ export type Database = {
         Insert: {
           contato?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string
           empresa?: string
           id?: string
@@ -483,6 +523,8 @@ export type Database = {
         Update: {
           contato?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string
           empresa?: string
           id?: string
@@ -500,6 +542,8 @@ export type Database = {
           avaliacao: number
           contato: string
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           email: string
           id: string
           mes_referencia: string
@@ -517,6 +561,8 @@ export type Database = {
           avaliacao?: number
           contato?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string
           id?: string
           mes_referencia?: string
@@ -534,6 +580,8 @@ export type Database = {
           avaliacao?: number
           contato?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string
           id?: string
           mes_referencia?: string
@@ -654,6 +702,8 @@ export type Database = {
           completed: boolean
           completion_date: string
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           habit_id: string
           id: string
           team_member_id: string
@@ -663,6 +713,8 @@ export type Database = {
           completed?: boolean
           completion_date?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           habit_id: string
           id?: string
           team_member_id: string
@@ -672,6 +724,8 @@ export type Database = {
           completed?: boolean
           completion_date?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           habit_id?: string
           id?: string
           team_member_id?: string
@@ -1093,6 +1147,8 @@ export type Database = {
           author_name: string
           content: string
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           id: string
           task_id: string
           user_id: string
@@ -1101,6 +1157,8 @@ export type Database = {
           author_name?: string
           content?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           task_id: string
           user_id: string
@@ -1109,6 +1167,8 @@ export type Database = {
           author_name?: string
           content?: string
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           id?: string
           task_id?: string
           user_id?: string
@@ -1414,6 +1474,15 @@ export type Database = {
     }
     Functions: {
       is_authorized_team: { Args: { check_user_id: string }; Returns: boolean }
+      list_soft_deleted: {
+        Args: { _table: string }
+        Returns: {
+          deleted_at: string
+          deleted_by: string
+          id: string
+          label: string
+        }[]
+      }
       soft_restore: {
         Args: { _id: string; _table: string }
         Returns: undefined

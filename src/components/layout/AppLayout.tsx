@@ -18,6 +18,7 @@ const labelMap: Record<string, string> = {
   equipe: "Equipe & Tarefas",
   diversos: "Diversos",
   acessos: "Acessos",
+  "itens-excluidos": "Itens excluídos",
   "funil-importar": "Importar Funil",
   relatorio: "Relatório",
 };

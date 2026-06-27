@@ -17,6 +17,7 @@ import CustosGeral from "./pages/CustosGeral";
 import Diversos from "./pages/Diversos";
 import AGM from "./pages/AGM";
 import Acessos from "./pages/Acessos";
+import ItensExcluidos from "./pages/ItensExcluidos";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -84,6 +85,7 @@ function AppRoutes() {
         <Route path="/diversos" element={<Diversos />} />
         <Route path="/agm" element={<AGM />} />
         <Route path="/acessos" element={<Acessos />} />
+        <Route path="/itens-excluidos" element={<ItensExcluidos />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

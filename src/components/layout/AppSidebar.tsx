@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  Building2, GitBranch, DollarSign, Target, Users, FolderOpen, KeyRound, Home, ListTodo,
+  Building2, GitBranch, DollarSign, Target, Users, FolderOpen, KeyRound, Home, ListTodo, Trash2,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -17,6 +17,7 @@ const items = [
   { title: "Equipe & Tarefas", url: "/equipe", icon: Users },
   { title: "Diversos", url: "/diversos", icon: FolderOpen },
   { title: "Acessos", url: "/acessos", icon: KeyRound },
+  { title: "Itens excluídos", url: "/itens-excluidos", icon: Trash2 },
 ];
 
 export function AppSidebar() {
