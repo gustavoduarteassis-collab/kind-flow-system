@@ -255,6 +255,19 @@ const Equipe = () => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // Realtime: refresh lists automatically when tasks/habit_completions change
+  // (covers auto-task triggers, other users, and confirms "OK" without manual reload)
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase
+      .channel("equipe-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "habit_completions" }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "habits" }, () => fetchAll())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user, fetchAll]);
+
   // CRUD functions
   const addMember = async () => {
     if (!user || !memberForm.name) return;
@@ -287,8 +300,20 @@ const Equipe = () => {
   };
 
   const updateTaskStatus = async (id: string, status: string) => {
-    await supabase.from("tasks").update({ status: status as any }).eq("id", id);
-    fetchAll();
+    // Optimistic update — UI já mostra "OK" imediatamente
+    const prev = tasks;
+    setTasks((cur) => cur.map((t) => (t.id === id ? ({ ...t, status: status as any, updated_at: new Date().toISOString() }) : t)));
+    const { error } = await supabase.from("tasks").update({ status: status as any }).eq("id", id);
+    if (error) {
+      setTasks(prev);
+      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (status === "concluida") {
+      const t = prev.find((x) => x.id === id);
+      toast({ title: "✓ Tarefa concluída", description: t?.title ?? "Marcada como OK na lista." });
+    }
+    // realtime channel will refresh details
   };
 
   const deleteTask = async (id: string) => {
@@ -321,21 +346,43 @@ const Equipe = () => {
     const existing = completions.find(
       (c) => c.habit_id === habitId && c.team_member_id === memberId && c.completion_date === date
     );
+    const prev = completions;
+    // Optimistic
     if (existing) {
       if (note === null) {
-        // unchecking
-        await supabase.from("habit_completions").delete().eq("id", existing.id);
+        setCompletions((cur) => cur.filter((c) => c.id !== existing.id));
       } else {
-        // updating note while keeping completion
-        await supabase.from("habit_completions").update({ note }).eq("id", existing.id);
+        setCompletions((cur) => cur.map((c) => (c.id === existing.id ? { ...c, note } : c)));
       }
     } else {
-      await supabase.from("habit_completions").insert({
+      setCompletions((cur) => [...cur, { id: `tmp-${Date.now()}`, user_id: user.id, habit_id: habitId, team_member_id: memberId, completion_date: date, completed: true, note } as any]);
+    }
+
+    let error: any = null;
+    if (existing) {
+      if (note === null) {
+        ({ error } = await supabase.from("habit_completions").delete().eq("id", existing.id));
+      } else {
+        ({ error } = await supabase.from("habit_completions").update({ note }).eq("id", existing.id));
+      }
+    } else {
+      ({ error } = await supabase.from("habit_completions").insert({
         user_id: user.id, habit_id: habitId, team_member_id: memberId, completion_date: date,
         completed: true, note,
-      });
+      }));
     }
-    fetchAll();
+
+    if (error) {
+      setCompletions(prev);
+      toast({ title: "Erro ao salvar hábito", description: error.message, variant: "destructive" });
+      return;
+    }
+    if (!existing) {
+      toast({ title: "✓ Hábito concluído", description: "Marcado como OK." });
+    } else if (note === null) {
+      toast({ title: "Hábito desmarcado" });
+    }
+    // realtime will reconcile temp id
   };
 
   const isCompleted = (habitId: string, memberId: string, date: string) => {
