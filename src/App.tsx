@@ -85,6 +85,7 @@ function AppRoutes() {
         <Route path="/diversos" element={<Diversos />} />
         <Route path="/agm" element={<AGM />} />
         <Route path="/acessos" element={<Acessos />} />
+        <Route path="/itens-excluidos" element={<ItensExcluidos />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
