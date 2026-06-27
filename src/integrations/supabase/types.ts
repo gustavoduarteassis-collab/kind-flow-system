@@ -1623,6 +1623,20 @@ export type Database = {
       }
     }
     Functions: {
+      _create_auto_task: {
+        Args: {
+          _assigned_to: string
+          _creator: string
+          _desc: string
+          _due_offset: number
+          _loja: string
+          _phase: string
+          _priority: Database["public"]["Enums"]["task_priority"]
+          _store_id: string
+          _title: string
+        }
+        Returns: undefined
+      }
       current_actor_name: { Args: never; Returns: string }
       is_authorized_team: { Args: { check_user_id: string }; Returns: boolean }
       list_soft_deleted: {
