@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          action_type: string
+          actor_name: string | null
+          created_at: string
+          description: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metadata: Json
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          actor_name?: string | null
+          created_at?: string
+          description: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          actor_name?: string | null
+          created_at?: string
+          description?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       agm_action_plans: {
         Row: {
           acao: string
@@ -706,6 +742,7 @@ export type Database = {
           deleted_by: string | null
           habit_id: string
           id: string
+          note: string | null
           team_member_id: string
           user_id: string
         }
@@ -717,6 +754,7 @@ export type Database = {
           deleted_by?: string | null
           habit_id: string
           id?: string
+          note?: string | null
           team_member_id: string
           user_id: string
         }
@@ -728,6 +766,7 @@ export type Database = {
           deleted_by?: string | null
           habit_id?: string
           id?: string
+          note?: string | null
           team_member_id?: string
           user_id?: string
         }
@@ -1228,8 +1267,48 @@ export type Database = {
           },
         ]
       }
+      task_updates: {
+        Row: {
+          actor_name: string | null
+          created_at: string
+          id: string
+          kind: string
+          message: string
+          task_id: string
+          user_id: string | null
+        }
+        Insert: {
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          message: string
+          task_id: string
+          user_id?: string | null
+        }
+        Update: {
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string
+          task_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_updates_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
+          archived_at: string | null
+          archived_by: string | null
           assigned_to: string | null
           created_at: string
           deleted_at: string | null
@@ -1237,14 +1316,21 @@ export type Database = {
           description: string | null
           due_date: string | null
           id: string
+          observacoes: string | null
           priority: Database["public"]["Enums"]["task_priority"]
+          recurrence: Database["public"]["Enums"]["task_recurrence"]
           start_date: string | null
           status: Database["public"]["Enums"]["task_status"]
+          store_id: string | null
+          subtasks: Json
+          task_type: Database["public"]["Enums"]["task_type"]
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          archived_at?: string | null
+          archived_by?: string | null
           assigned_to?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -1252,14 +1338,21 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          observacoes?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
+          recurrence?: Database["public"]["Enums"]["task_recurrence"]
           start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"]
+          store_id?: string | null
+          subtasks?: Json
+          task_type?: Database["public"]["Enums"]["task_type"]
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          archived_at?: string | null
+          archived_by?: string | null
           assigned_to?: string | null
           created_at?: string
           deleted_at?: string | null
@@ -1267,9 +1360,14 @@ export type Database = {
           description?: string | null
           due_date?: string | null
           id?: string
+          observacoes?: string | null
           priority?: Database["public"]["Enums"]["task_priority"]
+          recurrence?: Database["public"]["Enums"]["task_recurrence"]
           start_date?: string | null
           status?: Database["public"]["Enums"]["task_status"]
+          store_id?: string | null
+          subtasks?: Json
+          task_type?: Database["public"]["Enums"]["task_type"]
           title?: string
           updated_at?: string
           user_id?: string
@@ -1280,6 +1378,13 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "team_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
             referencedColumns: ["id"]
           },
         ]
@@ -1518,6 +1623,7 @@ export type Database = {
       }
     }
     Functions: {
+      current_actor_name: { Args: never; Returns: string }
       is_authorized_team: { Args: { check_user_id: string }; Returns: boolean }
       list_soft_deleted: {
         Args: { _table: string }
@@ -1536,7 +1642,9 @@ export type Database = {
     }
     Enums: {
       task_priority: "baixa" | "media" | "alta" | "urgente"
+      task_recurrence: "nao" | "diaria" | "semanal" | "mensal"
       task_status: "pendente" | "em_andamento" | "concluida" | "cancelada"
+      task_type: "geral" | "loja" | "habito"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1665,7 +1773,9 @@ export const Constants = {
   public: {
     Enums: {
       task_priority: ["baixa", "media", "alta", "urgente"],
+      task_recurrence: ["nao", "diaria", "semanal", "mensal"],
       task_status: ["pendente", "em_andamento", "concluida", "cancelada"],
+      task_type: ["geral", "loja", "habito"],
     },
   },
 } as const

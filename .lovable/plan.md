@@ -1,95 +1,49 @@
+# Plano — Módulo "Equipe & Tarefas" (/equipe)
 
-## Escopo
+Trabalho grande (6 blocos). Vou entregar em 4 ondas, parando entre elas para você validar. Nada será deletado do banco — apenas soft delete e arquivamento.
 
-Aplicar TODAS as correções pedidas em uma sequência de fases para evitar regressão. Total estimado: ~18 arquivos editados, 1 componente novo, 1 hook novo.
+## Ondas de entrega
 
----
+### Onda 1 — Fundação de dados (migração única)
+- Nova tabela `activity_log` (append-only, RLS, sem DELETE/UPDATE permitido).
+- Nova tabela `task_updates` (histórico de comentários por tarefa, append-only).
+- Tabela `tasks`: adicionar `priority` (baixa/media/alta/urgente), `start_date`, `task_type` (geral/loja/habito), `store_id`, `recurrence` (nao/diaria/semanal/mensal), `subtasks` (jsonb array), `archived_at`.
+- Tabela `habit_completions`: adicionar `note` (text, opcional) — já tem o resto.
+- Triggers automáticos: registrar em `activity_log` quando tarefa for criada/concluída, hábito for marcado, e status de loja mudar.
+- GRANTs + RLS para todas (autorizados leem tudo; membros leem o que lhes pertence).
 
-## Fase 1 — Críticos (bloqueia uso diário)
+### Onda 2 — Visão Geral + Atividades + alertas (Blocos 1, 4, 6)
+- Nova aba **"Visão Geral"** como padrão em `/equipe`:
+  - Cards horizontais por membro (avatar com cor única, tarefas ativas/atrasadas, hábitos hoje X/Y, % médio de lojas, status semafórico).
+  - Painel "O que está acontecendo hoje" agrupado por membro (atrasadas + vencendo hoje, badge piscante > 3 dias).
+  - Feed das últimas 20 atividades.
+- Nova aba **"Atividades"** ao final, com filtros (membro, tipo, período, busca) e scroll infinito de 20 em 20.
+- Alertas visuais no card de cada membro na aba Equipe: banner vermelho de atrasadas, sino amarelo se sem hábito hoje, badge verde "Em dia".
 
-### 1.1 Bug do "espaço em branco" no scroll
-Causa provável: combinação de `min-h-screen` em páginas internas (já dentro do `<main>` do `AppLayout`) + `SidebarProvider` que usa flex. Isso cria altura inflada e gaps quando a viewport rola.
+### Onda 3 — Tarefas reformuladas (Bloco 2 + Bloco 5)
+- Modal "Nova Tarefa" com todos os campos novos (prioridade, datas, tipo, loja, recorrência, até 5 subtarefas, observações).
+- Toggle Tabela ↔ Kanban; Kanban com 4 colunas (Pendente / Em Andamento / Concluída / Atrasada) e drag-and-drop atualizando status no banco.
+- Tabela: novas colunas Tipo e Progresso (subtarefas).
+- Drawer lateral de detalhe: campos completos, checklist de subtarefas interativo, histórico de `task_updates`, campo de comentário (INSERT-only), botão "Concluir" com modal "O que foi feito?", botão "Arquivar" (nunca delete), confirmação dupla em qualquer destrutivo.
+- Botão "+ Nova tarefa" no card de membro pré-preenchendo o responsável.
 
-**Ações:**
-- `AppLayout.tsx`: trocar `<main className="flex-1 min-w-0">` por `<main className="flex-1 min-w-0 overflow-x-hidden">` e garantir que o wrapper raiz não force `min-h-screen` duplicado.
-- Em `Pipeline.tsx`, `Lojas.tsx`, `StoreDetail.tsx`, `Index.tsx`, `CustosGeral.tsx`, `AGM.tsx`, `Equipe.tsx`: remover `min-h-screen` dos divs internos (o `AppLayout` já garante altura). Trocar por `min-h-full` quando necessário.
-- Kanban do Funil: ajustar coluna do Kanban para usar altura natural (sem `h-screen`) e wrapper `overflow-x-auto`.
+### Onda 4 — Hábitos aprimorados (Bloco 3)
+- Clique no dia abre mini modal de confirmação com campo opcional de nota → grava em `habit_completions.note` e em `activity_log`.
+- Linha de resumo mensal por hábito com barra colorida (verde ≥80, amarelo 50-79, vermelho <50).
+- Botão "Adicionar hábito" dentro do card de cada membro (além do global).
 
-### 1.2 Componente reutilizável `ConfirmDeleteModal`
-Criar `src/components/ConfirmDeleteModal.tsx` baseado em `AlertDialog` da shadcn. Props: `open`, `onOpenChange`, `itemName`, `description?`, `onConfirm`. Botões "Cancelar" e "Excluir" (variant destructive).
-
-**Aplicar nos pontos:**
-- `Pipeline.tsx` — botão lixeira do card.
-- `Equipe.tsx` — exclusão de membros / tarefas / hábitos.
-- `Acessos.tsx` — substituir `confirm()` nativo.
-- Tarefas dentro de `Equipe.tsx` — botão lixeira da linha.
-
-### 1.3 Botão "Duplicatas" do Funil
-Já existe modal de preview. Adicionar checkbox por item antes de aplicar a remoção (default desmarcado) + botão "Remover selecionados".
-
----
-
-## Fase 2 — Importante (UX visível)
-
-### 2.1 Breadcrumb com nome da loja
-- `AppLayout.tsx` → `Breadcrumbs`: detectar padrão `/loja/:id` e buscar o nome via `useStores()` (ou cache do `pipeline_stores`). Mostrar nome em vez do UUID. Atualizar `labelMap` para `lojas → "Lojas"` no segundo nível.
-
-### 2.2 Tooltips no Funil
-- `Pipeline.tsx`: envolver os 5 ícones do card em `<Tooltip>` (já temos o componente). Textos: Editar / Ver detalhes / Marcar como inaugurada / Fixar / Excluir.
-
-### 2.3 Lojas — cards mais legíveis
-- `Lojas.tsx`: substituir mini-dots por barra tricolor de 8px (verde feitos / vermelho atrasados / cinza restante), itens com bolinha colorida à esquerda. Limitar a 6 itens + "Ver mais (N)".
-
-### 2.4 Detalhe da loja
-- `StoreDetail.tsx` / `CronogramaObra.tsx`: substituir `<input type="date">` por shadcn DatePicker (Popover + Calendar) onde aparecem datas.
-- Realçar TabsTrigger ativa (fundo marrom/`bg-primary` + `text-primary-foreground`).
-- Wrapper das abas com `overflow-x-auto` + setas ‹ › nas bordas quando overflowing.
-
----
-
-## Fase 3 — Melhorias
-
-### 3.1 Equipe — carga por analista
-- `Equipe.tsx` aba Equipe: para cada membro, calcular a partir do estado já carregado (`stores`, `tasks`): nº lojas ativas (where `responsavel`/analista == membro), nº tarefas pendentes, progresso médio. Renderizar como mini-stats + barra.
-
-### 3.2 Tarefas vencidas
-- `Equipe.tsx` aba Tarefas: helper `isOverdue(prazo, status)`. Aplicar `text-destructive font-bold`, ícone `AlertTriangle`, badge "Pendente" com `border-destructive`.
-
-### 3.3 AGM — filtro de mês corrigido
-- `AGM.tsx`: revisar filtro de `data_inauguracao` para usar range `[firstOfMonth, lastOfMonth]` em vez de string match. Adicionar botões ← → ao lado do `<input type="month">` (avançar/retroceder 1 mês). Garantir que "Custo/m² médio" é calculado a partir das lojas inauguradas do mês.
-
-### 3.4 Sidebar — "Constance Obra"
-- `AppSidebar.tsx`: aumentar largura mínima da área do logo ou colocar "Constance Obra" em uma única linha (`whitespace-nowrap text-[11px]`).
-
-### 3.5 Home — Resumo das Lojas
-- `Index.tsx`: mostrar todas as lojas ativas (não filtrar por analista atribuído) OU exibir contagem clara "Mostrando X de Y". Padronizar "Atrasados > 0" em vermelho+negrito. Tornar cabeçalhos da tabela clicáveis para ordenar (estado local de sort).
-
-### 3.6 Consistência visual + mobile
-- `AppLayout.tsx` header: adicionar `border-b-2 border-primary/40` (faixa marrom) ou um `bg-gradient` sutil para conectar à identidade.
-- Confirmar que `SidebarProvider` com `collapsible="icon"` colapsa via `SidebarTrigger`. Em mobile (`<768px`), usar `collapsible="offcanvas"` adaptado via `useIsMobile`.
-
----
+## Regras aplicadas em todas as ondas
+- Soft delete obrigatório (`archived_at` / `deleted_at`).
+- Modal de confirmação em qualquer exclusão/arquivamento.
+- Cada ação relevante gera linha em `activity_log` (via trigger no banco quando possível, via insert no client quando não).
+- Notificação interna automática ao atribuir tarefa (já existe trigger `notify_task_assigned` — reaproveitar).
+- Abas existentes preservadas; ordem final: **Visão Geral · Tarefas · Hábitos · Programação · Calendário · Equipe · Atividades**.
 
 ## Detalhes técnicos
+- Stack: React + Tailwind + shadcn já no projeto; Kanban com `@dnd-kit` (leve, sem dependências pesadas).
+- Roteamento de aba via query param `?tab=` já existe — preservado.
+- Realtime no `activity_log` para o feed atualizar sozinho.
+- Subtarefas como `jsonb` (`[{id, text, done}]`) — sem nova tabela, mais simples.
+- Cor única por membro: hash do `id` → paleta fixa (10 cores derivadas dos tokens do design system).
 
-**Arquivos editados:**
-- `src/components/layout/AppLayout.tsx`, `src/components/layout/AppSidebar.tsx`
-- `src/pages/Pipeline.tsx`, `src/pages/Lojas.tsx`, `src/pages/StoreDetail.tsx`, `src/pages/Index.tsx`, `src/pages/AGM.tsx`, `src/pages/Equipe.tsx`, `src/pages/Acessos.tsx`, `src/pages/CustosGeral.tsx`
-- `src/components/CronogramaObra.tsx`
-
-**Arquivos novos:**
-- `src/components/ConfirmDeleteModal.tsx`
-- `src/hooks/useStoreNameById.ts` (para breadcrumb)
-
-**Sem mudanças de schema/RLS.** Sem novas dependências.
-
----
-
-## Ordem de execução
-
-1. Fase 1 inteira (críticos) em 1 batch.
-2. Validação pelo usuário (rolagem + exclusões).
-3. Fase 2 + Fase 3 em batches paralelos.
-4. Typecheck final.
-
-Confirma para eu começar pela Fase 1?
+Posso começar pela **Onda 1** (migração de banco) assim que você aprovar.
