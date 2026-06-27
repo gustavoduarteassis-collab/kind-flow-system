@@ -357,6 +357,8 @@ export type Database = {
           area_loja: number
           area_total: number
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           demais_itens: number
           estado: string
           id: string
@@ -378,6 +380,8 @@ export type Database = {
           area_loja?: number
           area_total?: number
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           demais_itens?: number
           estado?: string
           id?: string
@@ -399,6 +403,8 @@ export type Database = {
           area_loja?: number
           area_total?: number
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           demais_itens?: number
           estado?: string
           id?: string
@@ -555,6 +561,8 @@ export type Database = {
           can_view_diario: boolean
           created_at: string
           created_by: string
+          deleted_at: string | null
+          deleted_by: string | null
           franchisee_email: string
           id: string
           store_id: string
@@ -571,6 +579,8 @@ export type Database = {
           can_view_diario?: boolean
           created_at?: string
           created_by: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           franchisee_email: string
           id?: string
           store_id: string
@@ -587,6 +597,8 @@ export type Database = {
           can_view_diario?: boolean
           created_at?: string
           created_by?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           franchisee_email?: string
           id?: string
           store_id?: string
@@ -686,6 +698,8 @@ export type Database = {
         Row: {
           assigned_to_members: string[]
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           description: string | null
           id: string
           name: string
@@ -694,6 +708,8 @@ export type Database = {
         Insert: {
           assigned_to_members?: string[]
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           id?: string
           name: string
@@ -702,6 +718,8 @@ export type Database = {
         Update: {
           assigned_to_members?: string[]
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           id?: string
           name?: string
@@ -787,6 +805,8 @@ export type Database = {
           data_contrato_franquia: string | null
           data_inauguracao: string
           data_liberacao_orcamento: string
+          deleted_at: string | null
+          deleted_by: string | null
           email_franqueado: string
           endereco: string | null
           estado: string
@@ -848,6 +868,8 @@ export type Database = {
           data_contrato_franquia?: string | null
           data_inauguracao?: string
           data_liberacao_orcamento?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email_franqueado?: string
           endereco?: string | null
           estado?: string
@@ -909,6 +931,8 @@ export type Database = {
           data_contrato_franquia?: string | null
           data_inauguracao?: string
           data_liberacao_orcamento?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email_franqueado?: string
           endereco?: string | null
           estado?: string
@@ -968,6 +992,8 @@ export type Database = {
           created_at: string
           cronograma: Json
           custos: Json
+          deleted_at: string | null
+          deleted_by: string | null
           fase_atual: string | null
           filial: string
           franqueado: string
@@ -1001,6 +1027,8 @@ export type Database = {
           created_at?: string
           cronograma?: Json
           custos?: Json
+          deleted_at?: string | null
+          deleted_by?: string | null
           fase_atual?: string | null
           filial?: string
           franqueado?: string
@@ -1034,6 +1062,8 @@ export type Database = {
           created_at?: string
           cronograma?: Json
           custos?: Json
+          deleted_at?: string | null
+          deleted_by?: string | null
           fase_atual?: string | null
           filial?: string
           franqueado?: string
@@ -1097,6 +1127,8 @@ export type Database = {
         Row: {
           assigned_to: string | null
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           description: string | null
           due_date: string | null
           id: string
@@ -1110,6 +1142,8 @@ export type Database = {
         Insert: {
           assigned_to?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -1123,6 +1157,8 @@ export type Database = {
         Update: {
           assigned_to?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -1146,6 +1182,8 @@ export type Database = {
       team_events: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           description: string | null
           end_date: string | null
           event_date: string
@@ -1159,6 +1197,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           end_date?: string | null
           event_date: string
@@ -1172,6 +1212,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           end_date?: string | null
           event_date?: string
@@ -1196,6 +1238,8 @@ export type Database = {
       team_members: {
         Row: {
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           email: string | null
           id: string
           name: string
@@ -1206,6 +1250,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           id?: string
           name: string
@@ -1216,6 +1262,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           id?: string
           name?: string
@@ -1366,6 +1414,10 @@ export type Database = {
     }
     Functions: {
       is_authorized_team: { Args: { check_user_id: string }; Returns: boolean }
+      soft_restore: {
+        Args: { _id: string; _table: string }
+        Returns: undefined
+      }
     }
     Enums: {
       task_priority: "baixa" | "media" | "alta" | "urgente"
