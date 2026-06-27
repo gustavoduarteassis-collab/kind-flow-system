@@ -739,7 +739,7 @@ const Equipe = () => {
                 variant={taskMemberFilter === null ? "default" : "outline"}
                 size="sm"
                 className="text-xs"
-                onClick={() => setTaskMemberFilter(null)}
+                onClick={() => handleMemberFilterChange(null)}
               >
                 Todos
               </Button>
@@ -749,7 +749,7 @@ const Equipe = () => {
                   variant={taskMemberFilter === m.id ? "default" : "outline"}
                   size="sm"
                   className="text-xs"
-                  onClick={() => setTaskMemberFilter(taskMemberFilter === m.id ? null : m.id)}
+                  onClick={() => handleMemberFilterChange(taskMemberFilter === m.id ? null : m.id)}
                 >
                   {m.name}
                 </Button>
