@@ -28,17 +28,17 @@ export function AppSidebar() {
     path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarContent>
-        <div className={`flex ${collapsed ? "items-center justify-center" : "flex-col items-start gap-2"} px-3 py-4 border-b border-sidebar-border`}>
-          <img src={logoConstance} alt="Constance" className="h-7 brightness-0 invert opacity-90 shrink-0" />
-          {!collapsed && (
-            <div className="leading-tight w-full">
-              <p className="text-sm font-bold text-sidebar-foreground">Constance Obra</p>
-              <p className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">Implantação</p>
-            </div>
-          )}
-        </div>
+    <Sidebar collapsible="icon" className="flex flex-col">
+      <div className={`shrink-0 flex ${collapsed ? "items-center justify-center" : "flex-col items-start gap-2"} px-3 py-4 border-b border-sidebar-border`}>
+        <img src={logoConstance} alt="Constance" className="h-7 brightness-0 invert opacity-90 shrink-0" />
+        {!collapsed && (
+          <div className="leading-tight w-full">
+            <p className="text-sm font-bold text-sidebar-foreground">Constance Obra</p>
+            <p className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60">Implantação</p>
+          </div>
+        )}
+      </div>
+      <SidebarContent className="overflow-y-auto flex-1 min-h-0">
         <SidebarGroup>
           {!collapsed && <SidebarGroupLabel>Módulos</SidebarGroupLabel>}
           <SidebarGroupContent>
