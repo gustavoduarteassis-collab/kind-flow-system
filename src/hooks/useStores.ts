@@ -15,6 +15,7 @@ export function useStores() {
     const { data, error } = await supabase
       .from("stores")
       .select("*")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (data) {
       setStores(data.map((row: any) => ({
@@ -89,9 +90,13 @@ export function useStores() {
   }, []);
 
   const deleteStore = useCallback(async (id: string) => {
-    await supabase.from("stores").delete().eq("id", id);
+    // Soft delete: nunca remove permanentemente. Use "Itens excluídos" para restaurar.
+    await supabase
+      .from("stores")
+      .update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any)
+      .eq("id", id);
     setStores((prev) => prev.filter((s) => s.id !== id));
-  }, []);
+  }, [user]);
 
   const getStore = useCallback((id: string) => stores.find((s) => s.id === id), [stores]);
 
