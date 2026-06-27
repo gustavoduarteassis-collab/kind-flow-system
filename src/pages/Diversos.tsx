@@ -86,7 +86,7 @@ const Diversos = () => {
   const fetchData = useCallback(async () => {
     if (!user) return;
     const [f, m] = await Promise.all([
-      supabase.from("fornecedores_prospeccao").select("*").order("created_at", { ascending: false }),
+      supabase.from("fornecedores_prospeccao").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
       supabase.from("team_members").select("id, name").is("deleted_at", null),
     ]);
     if (f.data) setFornecedores(f.data as Fornecedor[]);
