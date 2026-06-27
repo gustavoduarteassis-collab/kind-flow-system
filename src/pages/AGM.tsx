@@ -464,7 +464,8 @@ const AGM = () => {
       const { data: acumulados } = await supabase
         .from("agm_planos_acao")
         .select("*")
-        .eq("mes_criacao", mesRef);
+        .eq("mes_criacao", mesRef)
+        .is("deleted_at", null);
 
       const acumuladosAsPlans = (acumulados || []).map((p: any) => {
         const today = new Date();
