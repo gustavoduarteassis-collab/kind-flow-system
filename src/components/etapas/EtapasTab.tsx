@@ -349,12 +349,13 @@ export default function EtapasTab({
                 </div>
               </CollapsibleTrigger>
               <CollapsibleContent>
-                <CardContent className="pt-0 pb-4">
+                <CardContent className="pt-0 pb-4 space-y-3">
                   {p.key === "funil" && (
                     <FunilPhase
                       pipeline={pipeline}
                       logs={logs}
                       onChange={updateProjectStatus}
+                      onAddObservation={addProjectObservation}
                     />
                   )}
                   {p.key === "preobra" && (
