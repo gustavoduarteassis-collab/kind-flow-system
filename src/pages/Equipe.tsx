@@ -759,7 +759,7 @@ const Equipe = () => {
               ))}
             </div>
 
-            {/* Sub-tabs: Ativas / Concluídas */}
+            {/* Sub-tabs: Ativas / Concluídas / Arquivadas */}
             <div className="flex gap-2 mb-4">
               <Button variant={taskViewTab === "ativas" ? "default" : "outline"} size="sm" onClick={() => setTaskViewTab("ativas")}>
                 Ativas
@@ -767,6 +767,23 @@ const Equipe = () => {
               <Button variant={taskViewTab === "concluidas" ? "default" : "outline"} size="sm" onClick={() => setTaskViewTab("concluidas")}>
                 Concluídas
               </Button>
+              {isAuthorized && (
+                <Button
+                  variant={taskViewTab === "arquivadas" ? "default" : "outline"}
+                  size="sm"
+                  onClick={async () => {
+                    setTaskViewTab("arquivadas");
+                    const { data } = await supabase
+                      .from("tasks")
+                      .select("*")
+                      .not("deleted_at", "is", null)
+                      .order("deleted_at", { ascending: false });
+                    setArchivedTasks((data ?? []) as Task[]);
+                  }}
+                >
+                  Arquivadas
+                </Button>
+              )}
             </div>
 
             <Card>
