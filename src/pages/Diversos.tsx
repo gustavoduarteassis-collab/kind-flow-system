@@ -131,7 +131,7 @@ const Diversos = () => {
   };
 
   const deleteFornecedor = async (id: string) => {
-    await supabase.from("fornecedores_prospeccao").delete().eq("id", id);
+    await supabase.from("fornecedores_prospeccao").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null }).eq("id", id);
     fetchData();
   };
 
