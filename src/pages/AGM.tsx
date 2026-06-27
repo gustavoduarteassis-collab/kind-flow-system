@@ -198,7 +198,7 @@ const AGM = () => {
         supabase.from("stores").select("id, nome, inauguracao, tipo_loja, inauguracao_checklist").is("deleted_at", null),
         supabase.from("pipeline_stores").select("id, filial, local, inicio_obra, data_inauguracao, previsao_inauguracao, data_liberacao_orcamento, prazo_conclusao_orcamento, padrao, estado, cidade, status_geral, analista_obra, franqueado").is("deleted_at", null),
         supabase.from("custos_geral_entries").select("id, nome, tipo, area_loja, area_total, mao_de_obra, moveis, piso, iluminacao, informatica, demais_itens").is("deleted_at", null),
-        supabase.from("fornecedores_prospeccao").select("id, created_at, mes_referencia"),
+        supabase.from("fornecedores_prospeccao").select("id, created_at, mes_referencia").is("deleted_at", null),
       ]);
 
       const stores = (storesRes.data || []) as StoreRow[];
