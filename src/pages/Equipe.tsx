@@ -131,6 +131,8 @@ const Equipe = () => {
   const [archivedTasks, setArchivedTasks] = useState<Task[]>([]);
   const { isAuthorized } = useIsAuthorized();
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [archivedHabits, setArchivedHabits] = useState<Habit[]>([]);
+  const [archivedHabitsOpen, setArchivedHabitsOpen] = useState(false);
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [events, setEvents] = useState<TeamEvent[]>([]);
   const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
@@ -1412,9 +1414,55 @@ const Equipe = () => {
               <Button variant="outline" size="icon" onClick={() => setHabitMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
+              {isAuthorized && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-4 text-xs"
+                  onClick={async () => {
+                    const { data } = await supabase
+                      .from("habits")
+                      .select("*")
+                      .not("deleted_at", "is", null)
+                      .order("deleted_at", { ascending: false });
+                    setArchivedHabits((data ?? []) as Habit[]);
+                    setArchivedHabitsOpen(true);
+                  }}
+                >
+                  Ver arquivados
+                </Button>
+              )}
             </div>
 
-            {/* Member filter */}
+            <Dialog open={archivedHabitsOpen} onOpenChange={setArchivedHabitsOpen}>
+              <DialogContent className="max-w-lg">
+                <DialogHeader><DialogTitle>Hábitos arquivados</DialogTitle></DialogHeader>
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+                  {archivedHabits.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">Nenhum hábito arquivado</p>
+                  ) : archivedHabits.map((h) => (
+                    <div key={h.id} className="flex items-center justify-between border rounded-md p-3">
+                      <div>
+                        <p className="text-sm font-medium">{h.name}</p>
+                        {h.description && <p className="text-xs text-muted-foreground">{h.description}</p>}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async () => {
+                          await supabase.rpc("soft_restore" as any, { _table: "habits", _id: h.id });
+                          setArchivedHabits((prev) => prev.filter((x) => x.id !== h.id));
+                          const { data } = await supabase.from("habits").select("*").is("deleted_at", null).order("name");
+                          if (data) setHabits(data as Habit[]);
+                        }}
+                      >
+                        Restaurar
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
             <div className="flex flex-wrap gap-2 mb-4">
               <Button
                 variant={habitMemberFilter === null ? "default" : "outline"}
