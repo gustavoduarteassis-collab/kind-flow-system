@@ -128,6 +128,8 @@ const Equipe = () => {
 
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [archivedTasks, setArchivedTasks] = useState<Task[]>([]);
+  const { isAuthorized } = useIsAuthorized();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [events, setEvents] = useState<TeamEvent[]>([]);
