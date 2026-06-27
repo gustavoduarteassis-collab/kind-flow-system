@@ -133,40 +133,124 @@ export default function Performance() {
 
   const colors = ["#e11d48", "#2563eb", "#16a34a", "#d97706", "#7c3aed", "#0891b2"];
 
-  function exportPdf(row: MetricRow) {
-    const doc = new jsPDF();
+  async function exportPdf(row: MetricRow) {
+    const { start, end } = monthBounds(cursor);
     const period = `${MES_LABELS[cursor.getMonth()]}/${cursor.getFullYear()}`;
-    doc.setFontSize(18);
-    doc.text("Relatório de Performance", 14, 18);
-    doc.setFontSize(11);
-    doc.text(`${row.member.name} — ${row.member.role ?? ""}`, 14, 27);
-    doc.text(`Período: ${period}`, 14, 33);
+    toast.loading("Gerando relatório…", { id: "pdf" });
+
+    const [tasksRes, habitsRes, complRes] = await Promise.all([
+      supabase.from("tasks")
+        .select("id,title,status,priority,due_date,created_at,updated_at,observacoes")
+        .is("deleted_at", null)
+        .eq("assigned_to", row.member.id),
+      supabase.from("habits").select("id,title,frequency").is("deleted_at", null).contains("assigned_to_members", [row.member.id]),
+      supabase.from("habit_completions")
+        .select("habit_id,completion_date,completed,notes")
+        .is("deleted_at", null)
+        .eq("team_member_id", row.member.id)
+        .gte("completion_date", iso(start)).lt("completion_date", iso(end)),
+    ]);
+
+    const tasks = (tasksRes.data ?? []) as any[];
+    const habits = (habitsRes.data ?? []) as any[];
+    const completions = (complRes.data ?? []) as any[];
+    const today = iso(new Date());
+
+    const doc = new jsPDF();
+    const pageW = doc.internal.pageSize.getWidth();
+
+    doc.setFillColor(120, 53, 15);
+    doc.rect(0, 0, pageW, 26, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.text("Relatório de Performance — Constance", 14, 12);
+    doc.setFontSize(10);
+    doc.text(`${row.member.name} · ${row.member.role ?? ""} · Período: ${period}`, 14, 20);
+    doc.setTextColor(0, 0, 0);
 
     autoTable(doc, {
-      startY: 40,
+      startY: 32,
       head: [["Indicador", "Valor"]],
       body: [
-        ["Tarefas criadas", String(row.created)],
-        ["Tarefas concluídas", String(row.done)],
-        ["Tarefas atrasadas", String(row.overdue)],
+        ["Tarefas criadas no período", String(row.created)],
+        ["Tarefas concluídas no período", String(row.done)],
+        ["Tarefas atrasadas (em aberto)", String(row.overdue)],
         ["Hábitos realizados", `${row.habitsDone}/${row.habitsExpected} (${row.habitsPct}%)`],
         ["Lojas avançadas de fase", String(row.phaseAdvances)],
         ["Lojas sob responsabilidade", String(row.storeCount)],
         ["Status geral", statusFor(row.habitsPct).label],
       ],
+      headStyles: { fillColor: [120, 53, 15] },
+      theme: "striped",
     });
+
+    const done = tasks.filter((t) => t.status === "concluida" && t.updated_at >= start.toISOString() && t.updated_at < end.toISOString());
+    if (done.length) {
+      doc.setFontSize(12);
+      doc.text(`Tarefas concluídas (${done.length})`, 14, (doc as any).lastAutoTable.finalY + 10);
+      autoTable(doc, {
+        startY: (doc as any).lastAutoTable.finalY + 13,
+        head: [["Título", "Prioridade", "Concluída em"]],
+        body: done.map((t) => [t.title ?? "—", t.priority ?? "—", (t.updated_at ?? "").slice(0, 10)]),
+        headStyles: { fillColor: [22, 163, 74] },
+        styles: { fontSize: 9 },
+      });
+    }
+
+    const overdue = tasks.filter((t) => t.status !== "concluida" && t.status !== "cancelada" && t.due_date && t.due_date < today);
+    if (overdue.length) {
+      doc.setFontSize(12);
+      doc.text(`Tarefas atrasadas (${overdue.length})`, 14, (doc as any).lastAutoTable.finalY + 10);
+      autoTable(doc, {
+        startY: (doc as any).lastAutoTable.finalY + 13,
+        head: [["Título", "Prioridade", "Vencimento"]],
+        body: overdue.map((t) => [t.title ?? "—", t.priority ?? "—", t.due_date ?? "—"]),
+        headStyles: { fillColor: [220, 38, 38] },
+        styles: { fontSize: 9 },
+      });
+    }
+
+    if (habits.length) {
+      doc.setFontSize(12);
+      doc.text(`Hábitos — resumo do período`, 14, (doc as any).lastAutoTable.finalY + 10);
+      const habitRows = habits.map((h) => {
+        const cs = completions.filter((c) => c.habit_id === h.id && c.completed);
+        const notes = completions
+          .filter((c) => c.habit_id === h.id && (c.notes ?? "").trim())
+          .map((c) => `• ${String(c.completion_date).slice(5)}: ${c.notes}`)
+          .join("\n");
+        return [h.title ?? "—", h.frequency ?? "diário", String(cs.length), notes || "—"];
+      });
+      autoTable(doc, {
+        startY: (doc as any).lastAutoTable.finalY + 13,
+        head: [["Hábito", "Frequência", "Realizados", "Observações"]],
+        body: habitRows,
+        headStyles: { fillColor: [37, 99, 235] },
+        styles: { fontSize: 9 },
+        columnStyles: { 3: { cellWidth: 80 } },
+      });
+    }
 
     const obs = pdfObs[row.member.id] ?? "";
     if (obs.trim()) {
-      const y = (doc as any).lastAutoTable.finalY + 10;
+      let y = (doc as any).lastAutoTable.finalY + 12;
+      if (y > 250) { doc.addPage(); y = 20; }
       doc.setFontSize(12);
-      doc.text("Observações do coordenador:", 14, y);
+      doc.text("Observações do coordenador", 14, y);
       doc.setFontSize(10);
       doc.text(doc.splitTextToSize(obs, 180), 14, y + 6);
     }
 
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(120);
+      doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")} — pág ${i}/${pageCount}`, 14, doc.internal.pageSize.getHeight() - 8);
+    }
+
     doc.save(`performance-${row.member.name.replace(/\s+/g, "_")}-${period.replace("/", "-")}.pdf`);
-    toast.success("Relatório gerado");
+    toast.success("Relatório gerado", { id: "pdf" });
     setOpenPdfFor(null);
   }
 
