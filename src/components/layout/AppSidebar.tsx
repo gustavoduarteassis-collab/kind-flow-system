@@ -28,7 +28,7 @@ export function AppSidebar() {
     path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
 
   return (
-    <Sidebar collapsible="icon" className="flex flex-col">
+    <Sidebar collapsible="icon">
       <div className={`shrink-0 flex ${collapsed ? "items-center justify-center" : "flex-col items-start gap-2"} px-3 py-4 border-b border-sidebar-border`}>
         <img src={logoConstance} alt="Constance" className="h-7 brightness-0 invert opacity-90 shrink-0" />
         {!collapsed && (
