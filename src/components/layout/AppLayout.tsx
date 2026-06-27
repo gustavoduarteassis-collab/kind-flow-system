@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserDisplayName } from "@/hooks/useUserDisplayName";
 import { Button } from "@/components/ui/button";
 import { LogOut, ChevronRight } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { supabase } from "@/integrations/supabase/client";
 
 const labelMap: Record<string, string> = {
