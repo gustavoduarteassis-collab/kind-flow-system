@@ -40,6 +40,7 @@ export function MatrizAnalistas() {
     const { data } = await supabase
       .from("analyst_goals")
       .select("*")
+      .is("deleted_at", null)
       .order("peso", { ascending: false });
     if (data) {
       setGoals(data as unknown as GoalRow[]);
