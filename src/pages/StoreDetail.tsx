@@ -61,6 +61,8 @@ import { saveAs } from "file-saver";
 import logoConstanceSvg from "@/assets/logo-constance.svg";
 import StorePhaseProgress from "@/components/StorePhaseProgress";
 import EtapasTab from "@/components/etapas/EtapasTab";
+import StoreHeaderKPIs from "@/components/store/StoreHeaderKPIs";
+import StoreCommunication from "@/components/store/StoreCommunication";
 import { useAutoMarkInaugurada } from "@/hooks/useAutoMarkInaugurada";
 import { formatBR } from "@/utils/safeDate";
 
@@ -498,6 +500,8 @@ const StoreDetail = () => {
               </Button>
             </div>
           </div>
+          {/* Strip de KPIs da Loja */}
+          <StoreHeaderKPIs store={store} progress={progress} atrasados={atrasados} />
           {/* Barra de Fases (Funil → Inaugurada) */}
           <div className="mb-3 px-1">
             <StorePhaseProgress store={store} inauguradaInPipeline={inauguradaInPipeline} />
@@ -564,6 +568,12 @@ const StoreDetail = () => {
               className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
             >
               📋 Solicitações
+            </TabsTrigger>
+            <TabsTrigger
+              value="comunicacao"
+              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
+            >
+              💬 Comunicação Franqueado
             </TabsTrigger>
             <TabsTrigger
               value="inauguracao"
