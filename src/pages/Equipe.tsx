@@ -923,6 +923,7 @@ const Equipe = () => {
                 </Table>
               </div>
             </Card>
+            )}
 
             {/* Task Detail Dialog */}
             <Dialog open={taskDetailOpen} onOpenChange={setTaskDetailOpen}>
