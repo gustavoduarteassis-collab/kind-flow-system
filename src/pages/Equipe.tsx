@@ -334,7 +334,7 @@ const Equipe = () => {
     const authorName = user.email?.split("@")[0] || "Usuário";
     await supabase.from("task_comments").insert({ task_id: selectedTask.id, user_id: user.id, author_name: authorName, content: newComment.trim() });
     setNewComment("");
-    const { data } = await supabase.from("task_comments").select("*").eq("task_id", selectedTask.id).order("created_at", { ascending: true });
+    const { data } = await supabase.from("task_comments").select("*").eq("task_id", selectedTask.id).is("deleted_at", null).order("created_at", { ascending: true });
     if (data) setTaskComments(data as TaskComment[]);
   };
 
