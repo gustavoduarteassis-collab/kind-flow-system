@@ -444,7 +444,7 @@ const AGM = () => {
   };
 
   const deletePlan = async (id: string) => {
-    await supabase.from("agm_action_plans").delete().eq("id", id);
+    await supabase.from("agm_action_plans").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     fetchAGMData();
   };
 
