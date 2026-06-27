@@ -82,6 +82,7 @@ export function PlanosAcumulados() {
     const { data, error } = await supabase
       .from("agm_planos_acao")
       .select("*")
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
     if (error) {
       toast({ title: "Erro ao carregar planos", description: error.message, variant: "destructive" });
