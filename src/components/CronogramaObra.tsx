@@ -351,6 +351,7 @@ const CronogramaObra = ({ store, onUpdate }: CronogramaObraProps) => {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="gantt">📊 Cronograma Gantt</TabsTrigger>
+          <TabsTrigger value="phases">🧭 Status por Etapa</TabsTrigger>
           <TabsTrigger value="comparison">📋 Planejado vs Real</TabsTrigger>
           <TabsTrigger value="actions">
             ⚡ Plano de Ação
@@ -359,6 +360,10 @@ const CronogramaObra = ({ store, onUpdate }: CronogramaObraProps) => {
             )}
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="phases" className="mt-4">
+          <CronogramaPhaseSummary store={store} />
+        </TabsContent>
 
         {/* === GANTT === */}
         <TabsContent value="gantt" className="mt-4">
