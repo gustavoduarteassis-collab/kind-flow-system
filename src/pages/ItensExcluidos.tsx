@@ -10,11 +10,21 @@ const TABLES: { key: string; label: string }[] = [
   { key: "stores", label: "Lojas" },
   { key: "pipeline_stores", label: "Funil" },
   { key: "tasks", label: "Tarefas" },
+  { key: "task_comments", label: "Comentários" },
   { key: "team_members", label: "Equipe" },
   { key: "franchisee_access", label: "Acessos" },
   { key: "habits", label: "Hábitos" },
+  { key: "habit_completions", label: "Marcações" },
   { key: "team_events", label: "Eventos" },
   { key: "custos_geral_entries", label: "Custos" },
+  { key: "fornecedores_homologados", label: "Forn. Homolog." },
+  { key: "fornecedores_prospeccao", label: "Forn. Prospec." },
+  { key: "construction_diary", label: "Diário" },
+  { key: "diary_photos", label: "Fotos Diário" },
+  { key: "agm_planos_acao", label: "Planos AGM" },
+  { key: "agm_action_plans", label: "Ações AGM" },
+  { key: "agm_entries", label: "Entradas AGM" },
+  { key: "analyst_goals", label: "Metas Analista" },
 ];
 
 type Row = { id: string; deleted_at: string; deleted_by: string | null; label: string };
