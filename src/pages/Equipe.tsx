@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
+import { useIsAuthorized } from "@/hooks/useIsAuthorized";
 
 type TeamMember = {
   id: string; name: string; role: string; email: string | null; phone: string | null;
@@ -127,6 +128,8 @@ const Equipe = () => {
 
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [archivedTasks, setArchivedTasks] = useState<Task[]>([]);
+  const { isAuthorized } = useIsAuthorized();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [events, setEvents] = useState<TeamEvent[]>([]);
@@ -167,8 +170,34 @@ const Equipe = () => {
   const [calendarView, setCalendarView] = useState<"month" | "week">("month");
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
-  const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(null);
-  const [taskViewTab, setTaskViewTab] = useState<"ativas" | "concluidas">("ativas");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "tarefas");
+  const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(searchParams.get("member"));
+  const [taskViewTab, setTaskViewTab] = useState<"ativas" | "concluidas" | "arquivadas">("ativas");
+
+  // Sync URL <-> state (one-way: URL drives state)
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && t !== activeTab) setActiveTab(t);
+    const m = searchParams.get("member");
+    if (m !== taskMemberFilter) setTaskMemberFilter(m);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const handleTabChange = (v: string) => {
+    setActiveTab(v);
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", v);
+    if (v !== "tarefas") next.delete("member");
+    setSearchParams(next, { replace: true });
+  };
+
+  const handleMemberFilterChange = (id: string | null) => {
+    setTaskMemberFilter(id);
+    const next = new URLSearchParams(searchParams);
+    if (id) next.set("member", id); else next.delete("member");
+    setSearchParams(next, { replace: true });
+  };
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskComments, setTaskComments] = useState<TaskComment[]>([]);
@@ -651,7 +680,7 @@ const Equipe = () => {
             <p className="text-xl font-bold">{eventosMes}</p>
           </div>
         </div>
-        <Tabs defaultValue="tarefas">
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="tarefas" className="gap-2"><ListTodo className="h-4 w-4" /> Tarefas</TabsTrigger>
             <TabsTrigger value="habitos" className="gap-2"><Target className="h-4 w-4" /> Hábitos</TabsTrigger>
@@ -713,7 +742,7 @@ const Equipe = () => {
                 variant={taskMemberFilter === null ? "default" : "outline"}
                 size="sm"
                 className="text-xs"
-                onClick={() => setTaskMemberFilter(null)}
+                onClick={() => handleMemberFilterChange(null)}
               >
                 Todos
               </Button>
@@ -723,14 +752,14 @@ const Equipe = () => {
                   variant={taskMemberFilter === m.id ? "default" : "outline"}
                   size="sm"
                   className="text-xs"
-                  onClick={() => setTaskMemberFilter(taskMemberFilter === m.id ? null : m.id)}
+                  onClick={() => handleMemberFilterChange(taskMemberFilter === m.id ? null : m.id)}
                 >
                   {m.name}
                 </Button>
               ))}
             </div>
 
-            {/* Sub-tabs: Ativas / Concluídas */}
+            {/* Sub-tabs: Ativas / Concluídas / Arquivadas */}
             <div className="flex gap-2 mb-4">
               <Button variant={taskViewTab === "ativas" ? "default" : "outline"} size="sm" onClick={() => setTaskViewTab("ativas")}>
                 Ativas
@@ -738,6 +767,23 @@ const Equipe = () => {
               <Button variant={taskViewTab === "concluidas" ? "default" : "outline"} size="sm" onClick={() => setTaskViewTab("concluidas")}>
                 Concluídas
               </Button>
+              {isAuthorized && (
+                <Button
+                  variant={taskViewTab === "arquivadas" ? "default" : "outline"}
+                  size="sm"
+                  onClick={async () => {
+                    setTaskViewTab("arquivadas");
+                    const { data } = await supabase
+                      .from("tasks")
+                      .select("*")
+                      .not("deleted_at", "is", null)
+                      .order("deleted_at", { ascending: false });
+                    setArchivedTasks((data ?? []) as Task[]);
+                  }}
+                >
+                  Arquivadas
+                </Button>
+              )}
             </div>
 
             <Card>
@@ -756,22 +802,32 @@ const Equipe = () => {
                   </TableHeader>
                   <TableBody>
                     {(() => {
+                      const source = taskViewTab === "arquivadas" ? archivedTasks : tasks;
                       let filtered = taskMemberFilter
-                        ? tasks.filter((t) => t.assigned_to === taskMemberFilter)
-                        : tasks;
+                        ? source.filter((t) => t.assigned_to === taskMemberFilter)
+                        : source;
                       if (taskViewTab === "ativas") {
                         filtered = filtered.filter((t) => t.status !== "concluida");
-                      } else {
+                      } else if (taskViewTab === "concluidas") {
                         filtered = filtered.filter((t) => t.status === "concluida");
                       }
+                      const emptyMsg =
+                        taskViewTab === "arquivadas" ? "Nenhuma tarefa arquivada"
+                        : taskViewTab === "concluidas" ? "Nenhuma tarefa concluída"
+                        : "Nenhuma tarefa cadastrada";
                       return filtered.length === 0 ? (
                         <TableRow><TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
-                          {taskViewTab === "concluidas" ? "Nenhuma tarefa concluída" : "Nenhuma tarefa cadastrada"}
+                          {emptyMsg}
                         </TableCell></TableRow>
                       ) : filtered.map((task) => {
-                        const overdue = task.status !== "concluida" && task.due_date && task.due_date < todayStr;
+                        const isArchived = taskViewTab === "arquivadas";
+                        const overdue = !isArchived && task.status !== "concluida" && task.due_date && task.due_date < todayStr;
                         return (
-                      <TableRow key={task.id} className={`cursor-pointer hover:bg-muted/50 ${overdue ? "bg-destructive/5" : ""}`} onClick={() => openTaskDetail(task)}>
+                      <TableRow
+                        key={task.id}
+                        className={`hover:bg-muted/50 ${overdue ? "bg-destructive/5" : ""} ${isArchived ? "opacity-70" : "cursor-pointer"}`}
+                        onClick={isArchived ? undefined : () => openTaskDetail(task)}
+                      >
                         <TableCell>
                           <p className="font-medium text-sm flex items-center gap-1.5">
                             {overdue && <AlertTriangle className="h-3.5 w-3.5 text-destructive shrink-0" />}
@@ -786,7 +842,9 @@ const Equipe = () => {
                           <Badge className={`${priorityColors[task.priority]} text-[10px]`}>{priorityLabels[task.priority]}</Badge>
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          {taskViewTab === "concluidas" ? (
+                          {isArchived ? (
+                            <span className="text-xs text-muted-foreground">Excluída</span>
+                          ) : taskViewTab === "concluidas" ? (
                             <span className="text-xs text-muted-foreground">{formatDate(task.updated_at)}</span>
                           ) : (
                             <Select value={task.status} onValueChange={(v) => updateTaskStatus(task.id, v)}>
@@ -798,11 +856,28 @@ const Equipe = () => {
                           )}
                         </TableCell>
                         <TableCell onClick={(e) => e.stopPropagation()}>
-                          <ConfirmDelete itemName={`a tarefa "${task.title}"`} onConfirm={() => deleteTask(task.id)}>
-                            <Button variant="ghost" size="icon" className="h-7 w-7">
-                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          {isArchived ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={async () => {
+                                await supabase.rpc("soft_restore" as any, { _table: "tasks", _id: task.id });
+                                setArchivedTasks((prev) => prev.filter((t) => t.id !== task.id));
+                                // reload active tasks
+                                const { data } = await supabase.from("tasks").select("*").is("deleted_at", null).order("created_at", { ascending: false });
+                                if (data) setTasks(data as Task[]);
+                              }}
+                            >
+                              Restaurar
                             </Button>
-                          </ConfirmDelete>
+                          ) : (
+                            <ConfirmDelete itemName={`a tarefa "${task.title}"`} onConfirm={() => deleteTask(task.id)}>
+                              <Button variant="ghost" size="icon" className="h-7 w-7">
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </Button>
+                            </ConfirmDelete>
+                          )}
                         </TableCell>
                       </TableRow>
                         );
@@ -1885,6 +1960,17 @@ const Equipe = () => {
                           <div className={`h-full transition-all ${progressColor}`} style={{ width: `${progressoMedio}%` }} />
                         </div>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2"
+                        onClick={() => {
+                          handleMemberFilterChange(m.id);
+                          handleTabChange("tarefas");
+                        }}
+                      >
+                        <ListTodo className="h-3.5 w-3.5" /> Ver tarefas
+                      </Button>
                     </CardContent>
                   </Card>
                   );

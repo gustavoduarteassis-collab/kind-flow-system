@@ -781,6 +781,51 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          id: string
+          link: string | null
+          message: string
+          read_at: string | null
+          related_id: string | null
+          related_table: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          read_at?: string | null
+          related_id?: string | null
+          related_table?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          read_at?: string | null
+          related_id?: string | null
+          related_table?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pipeline_project_log: {
         Row: {
           changed_by: string | null
@@ -1483,6 +1528,7 @@ export type Database = {
           label: string
         }[]
       }
+      mark_all_notifications_read: { Args: never; Returns: undefined }
       soft_restore: {
         Args: { _id: string; _table: string }
         Returns: undefined
