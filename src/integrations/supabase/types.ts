@@ -1118,6 +1118,62 @@ export type Database = {
         }
         Relationships: []
       }
+      store_communications: {
+        Row: {
+          attachment_url: string | null
+          author_name: string
+          author_role: string
+          channel: string
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          id: string
+          message: string
+          pinned: boolean
+          store_id: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          attachment_url?: string | null
+          author_name: string
+          author_role?: string
+          channel?: string
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          message: string
+          pinned?: boolean
+          store_id: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          attachment_url?: string | null
+          author_name?: string
+          author_role?: string
+          channel?: string
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          message?: string
+          pinned?: boolean
+          store_id?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_communications_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           action_plans: Json | null
