@@ -135,7 +135,7 @@ const DiarioObra = ({ storeId }: DiarioObraProps) => {
   };
 
   const deleteEntry = async (id: string) => {
-    await supabase.from("construction_diary").delete().eq("id", id);
+    await supabase.from("construction_diary").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     fetchEntries();
   };
 
