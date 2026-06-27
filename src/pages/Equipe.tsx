@@ -180,6 +180,7 @@ const Equipe = () => {
   const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "visao");
   const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(searchParams.get("member"));
   const [taskViewTab, setTaskViewTab] = useState<"ativas" | "concluidas" | "arquivadas">("ativas");
+  const [taskViewMode, setTaskViewMode] = useState<"lista" | "kanban">("lista");
 
   // Sync URL <-> state (one-way: URL drives state)
   useEffect(() => {
