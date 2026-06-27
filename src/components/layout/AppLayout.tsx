@@ -94,6 +94,7 @@ export default function AppLayout() {
               <Breadcrumbs />
             </div>
             <div className="flex items-center gap-2">
+              <NotificationBell />
               <div className="hidden sm:flex items-center gap-2 bg-muted rounded-lg px-2.5 py-1.5">
                 <div className="h-7 w-7 rounded-full bg-[hsl(var(--accent))]/20 border border-[hsl(var(--accent))]/30 flex items-center justify-center text-xs font-bold text-[hsl(var(--accent))]">
                   {initials}
