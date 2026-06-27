@@ -28,6 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { format, addDays, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, getDay, isSameDay, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
+import { useIsAuthorized } from "@/hooks/useIsAuthorized";
 
 type TeamMember = {
   id: string; name: string; role: string; email: string | null; phone: string | null;
