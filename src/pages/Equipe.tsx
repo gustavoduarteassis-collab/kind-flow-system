@@ -131,6 +131,8 @@ const Equipe = () => {
   const [archivedTasks, setArchivedTasks] = useState<Task[]>([]);
   const { isAuthorized } = useIsAuthorized();
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [archivedHabits, setArchivedHabits] = useState<Habit[]>([]);
+  const [archivedHabitsOpen, setArchivedHabitsOpen] = useState(false);
   const [completions, setCompletions] = useState<HabitCompletion[]>([]);
   const [events, setEvents] = useState<TeamEvent[]>([]);
   const [franchiseeAccess, setFranchiseeAccess] = useState<FranchiseeAccess[]>([]);
