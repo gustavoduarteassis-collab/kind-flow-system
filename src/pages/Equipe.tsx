@@ -167,8 +167,34 @@ const Equipe = () => {
   const [calendarView, setCalendarView] = useState<"month" | "week">("month");
   const [calendarWeekStart, setCalendarWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [calendarMemberFilter, setCalendarMemberFilter] = useState<string | null>(null);
-  const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<string>(searchParams.get("tab") || "tarefas");
+  const [taskMemberFilter, setTaskMemberFilter] = useState<string | null>(searchParams.get("member"));
   const [taskViewTab, setTaskViewTab] = useState<"ativas" | "concluidas">("ativas");
+
+  // Sync URL <-> state (one-way: URL drives state)
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && t !== activeTab) setActiveTab(t);
+    const m = searchParams.get("member");
+    if (m !== taskMemberFilter) setTaskMemberFilter(m);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const handleTabChange = (v: string) => {
+    setActiveTab(v);
+    const next = new URLSearchParams(searchParams);
+    next.set("tab", v);
+    if (v !== "tarefas") next.delete("member");
+    setSearchParams(next, { replace: true });
+  };
+
+  const handleMemberFilterChange = (id: string | null) => {
+    setTaskMemberFilter(id);
+    const next = new URLSearchParams(searchParams);
+    if (id) next.set("member", id); else next.delete("member");
+    setSearchParams(next, { replace: true });
+  };
   const [taskDetailOpen, setTaskDetailOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskComments, setTaskComments] = useState<TaskComment[]>([]);
