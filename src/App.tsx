@@ -41,12 +41,12 @@ function AppRoutes() {
         if (authErr) console.error("is_authorized_team error:", authErr);
         if (isTeam) { setIsFranqueado(false); return; }
 
-        const { data: ownedStores } = await supabase.from("stores").select("id").eq("user_id", user.id).limit(1);
-        const { data: teamMembers } = await supabase.from("team_members").select("id").eq("user_id", user.id).limit(1);
+        const { data: ownedStores } = await supabase.from("stores").select("id").eq("user_id", user.id).is("deleted_at", null).limit(1);
+        const { data: teamMembers } = await supabase.from("team_members").select("id").eq("user_id", user.id).is("deleted_at", null).limit(1);
         const hasOwnData = (ownedStores && ownedStores.length > 0) || (teamMembers && teamMembers.length > 0);
         if (hasOwnData) { setIsFranqueado(false); return; }
 
-        const { data: access } = await supabase.from("franchisee_access").select("id, access_type").ilike("franchisee_email", user.email!).limit(1);
+        const { data: access } = await supabase.from("franchisee_access").select("id, access_type").ilike("franchisee_email", user.email!).is("deleted_at", null).limit(1);
         setIsFranqueado(access && access.length > 0);
       } catch (err) {
         console.error("checkRole error:", err);

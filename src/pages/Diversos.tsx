@@ -87,7 +87,7 @@ const Diversos = () => {
     if (!user) return;
     const [f, m] = await Promise.all([
       supabase.from("fornecedores_prospeccao").select("*").order("created_at", { ascending: false }),
-      supabase.from("team_members").select("id, name"),
+      supabase.from("team_members").select("id, name").is("deleted_at", null),
     ]);
     if (f.data) setFornecedores(f.data as Fornecedor[]);
     if (m.data) setMembers(m.data);

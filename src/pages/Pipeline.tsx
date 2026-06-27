@@ -191,6 +191,7 @@ const Pipeline = () => {
     if (!user) return;
     const { data } = await supabase
       .from("pipeline_stores").select("*").eq("transferido", false)
+      .is("deleted_at", null)
       .order("previsao_inauguracao", { ascending: true });
     if (data) setStores(data as PipelineStore[]);
     setLoading(false);
@@ -225,7 +226,11 @@ const Pipeline = () => {
     toast({ title: "Loja atualizada!" }); setEditOpen(false); setEditingStore(null);
   };
   const deleteStore = async (id: string) => {
-    await supabase.from("pipeline_stores").delete().eq("id", id);
+    // Soft delete: registro fica recuperável via soft_restore.
+    await supabase
+      .from("pipeline_stores")
+      .update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any)
+      .eq("id", id);
     setStores((prev) => prev.filter((s) => s.id !== id));
   };
   const markInaugurada = async (store: PipelineStore) => {
@@ -297,7 +302,7 @@ const Pipeline = () => {
     if (!user) return;
     if (!confirm(`Importar ${pipelineImportData.length} lojas da planilha?`)) return;
     for (const item of pipelineImportData) {
-      const { data: existing } = await supabase.from("pipeline_stores").select("id").eq("local", item.local).limit(1);
+      const { data: existing } = await supabase.from("pipeline_stores").select("id").eq("local", item.local).is("deleted_at", null).limit(1);
       if (existing && existing.length > 0) continue;
       await supabase.from("pipeline_stores").insert({ user_id: user.id, ...item } as any);
     }
@@ -324,7 +329,7 @@ const Pipeline = () => {
   const confirmRemoveDuplicates = async () => {
     const ids = Array.from(dupSelected);
     if (ids.length === 0) { toast({ title: "Selecione ao menos uma loja para remover." }); return; }
-    for (const id of ids) await supabase.from("pipeline_stores").delete().eq("id", id);
+    for (const id of ids) await supabase.from("pipeline_stores").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     toast({ title: `${ids.length} duplicata(s) removida(s)!` });
     setDupOpen(false); setDupPreview([]); setDupSelected(new Set()); fetchStores();
   };

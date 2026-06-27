@@ -114,6 +114,7 @@ const StoreDetail = () => {
         .from("pipeline_stores")
         .select("status_geral")
         .eq("filial", store.filial)
+        .is("deleted_at", null)
         .maybeSingle();
       if (cancelled) return;
       const sg = (data?.status_geral || "").toLowerCase();

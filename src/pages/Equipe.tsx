@@ -196,15 +196,16 @@ const Equipe = () => {
     const habitMonthStart = format(startOfMonth(habitMonth), "yyyy-MM-dd");
     const habitMonthEnd = format(endOfMonth(habitMonth), "yyyy-MM-dd");
     const [m, t, h, c, e, fa] = await Promise.all([
-      supabase.from("team_members").select("*").order("role", { ascending: false }).order("name"),
-      supabase.from("tasks").select("*").order("created_at", { ascending: false }),
-      supabase.from("habits").select("*").order("name"),
+      supabase.from("team_members").select("*").is("deleted_at", null).order("role", { ascending: false }).order("name"),
+      supabase.from("tasks").select("*").is("deleted_at", null).order("created_at", { ascending: false }),
+      supabase.from("habits").select("*").is("deleted_at", null).order("name"),
       supabase.from("habit_completions").select("*")
         .gte("completion_date", habitMonthStart)
         .lte("completion_date", habitMonthEnd),
       supabase.from("team_events").select("*")
+        .is("deleted_at", null)
         .gte("event_date", monthStart).lte("event_date", monthEnd),
-      supabase.from("franchisee_access").select("*"),
+      supabase.from("franchisee_access").select("*").is("deleted_at", null),
     ]);
     if (m.data) setMembers(m.data);
     if (t.data) setTasks(t.data as Task[]);
@@ -230,7 +231,7 @@ const Equipe = () => {
   };
 
   const deleteMember = async (id: string) => {
-    await supabase.from("team_members").delete().eq("id", id);
+    await supabase.from("team_members").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     fetchAll();
   };
 
@@ -253,7 +254,7 @@ const Equipe = () => {
   };
 
   const deleteTask = async (id: string) => {
-    await supabase.from("tasks").delete().eq("id", id);
+    await supabase.from("tasks").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     fetchAll();
   };
 
@@ -273,7 +274,7 @@ const Equipe = () => {
   };
 
   const deleteHabit = async (id: string) => {
-    await supabase.from("habits").delete().eq("id", id);
+    await supabase.from("habits").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     fetchAll();
   };
 
@@ -315,7 +316,7 @@ const Equipe = () => {
   };
 
   const deleteEvent = async (id: string) => {
-    await supabase.from("team_events").delete().eq("id", id);
+    await supabase.from("team_events").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     fetchAll();
   };
 
@@ -407,7 +408,7 @@ const Equipe = () => {
   };
 
   const deleteAccess = async (id: string) => {
-    await supabase.from("franchisee_access").delete().eq("id", id);
+    await supabase.from("franchisee_access").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     fetchAll();
   };
 

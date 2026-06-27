@@ -189,9 +189,9 @@ const Index = () => {
 
   const fetchData = useCallback(async () => {
     const [t, m, ps] = await Promise.all([
-      supabase.from("tasks").select("id, title, status, priority, assigned_to, due_date, start_date").order("created_at", { ascending: false }).limit(10),
-      supabase.from("team_members").select("id, name"),
-      supabase.from("pipeline_stores").select("filial, status_geral, data_inauguracao"),
+      supabase.from("tasks").select("id, title, status, priority, assigned_to, due_date, start_date").is("deleted_at", null).order("created_at", { ascending: false }).limit(10),
+      supabase.from("team_members").select("id, name").is("deleted_at", null),
+      supabase.from("pipeline_stores").select("filial, status_geral, data_inauguracao").is("deleted_at", null),
     ]);
     if (t.data) setTasks(t.data as Task[]);
     if (m.data) setMembers(m.data);

@@ -53,7 +53,8 @@ const FranqueadoPortal = () => {
     const { data: access } = await supabase
       .from("franchisee_access")
       .select("*")
-      .ilike("franchisee_email", user.email);
+      .ilike("franchisee_email", user.email)
+      .is("deleted_at", null);
     
     if (!access || access.length === 0) { setLoading(false); return; }
     

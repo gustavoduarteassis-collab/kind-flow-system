@@ -134,6 +134,7 @@ const CustosGeral = () => {
       const { data } = await supabase
         .from("custos_geral_entries")
         .select("*")
+        .is("deleted_at", null)
         .order("nome");
       if (data) setDbEntries(data as unknown as DbEntry[]);
     };
@@ -413,14 +414,18 @@ const CustosGeral = () => {
     setDialogOpen(false);
     setSaving(false);
     // reload
-    const { data } = await supabase.from("custos_geral_entries").select("*").order("nome");
+    const { data } = await supabase.from("custos_geral_entries").select("*").is("deleted_at", null).order("nome");
     if (data) setDbEntries(data as unknown as DbEntry[]);
   };
 
   const handleDelete = async (id: string) => {
-    const { error } = await supabase.from("custos_geral_entries").delete().eq("id", id);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from("custos_geral_entries")
+      .update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any)
+      .eq("id", id);
     if (error) { toast.error("Erro ao excluir"); return; }
-    toast.success("Entrada removida");
+    toast.success("Entrada removida (recuperável)");
     setDbEntries((prev) => prev.filter((e) => e.id !== id));
   };
 
