@@ -616,7 +616,8 @@ const StoreDetail = () => {
           </TabsContent>
 
 
-          <TabsContent value="custos" className="mt-4">
+          <TabsContent value="custos" className="mt-4 space-y-4">
+            <StoreCustosSummary store={store} />
             <CustosObra
               store={store}
               onUpdate={(custos) => updateStore(store.id, { custos } as any)}
