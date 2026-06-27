@@ -101,6 +101,7 @@ export default function EtapasTab({
       .from("pipeline_stores")
       .select("*")
       .eq("filial", store.filial)
+      .is("deleted_at", null)
       .maybeSingle();
     setPipeline((data as PipelineRow) || null);
     if (data?.id) {

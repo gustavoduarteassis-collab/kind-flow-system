@@ -15,6 +15,7 @@ export function useUserDisplayName(): { name: string; initials: string; email: s
         .from("team_members")
         .select("name")
         .ilike("email", user.email!)
+        .is("deleted_at", null)
         .maybeSingle();
       if (cancelled) return;
       setName(data?.name || "");

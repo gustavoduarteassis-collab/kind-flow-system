@@ -53,7 +53,7 @@ const Lojas = () => {
 
   useEffect(() => {
     const loadInauguradas = async () => {
-      const { data } = await supabase.from("pipeline_stores").select("filial,local,status_geral");
+      const { data } = await supabase.from("pipeline_stores").select("filial,local,status_geral").is("deleted_at", null);
       setInauguradasFiliais(buildInauguradasFiliais(data as any));
       const norm = (s: string) =>
         s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();

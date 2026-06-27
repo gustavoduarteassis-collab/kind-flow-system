@@ -43,7 +43,7 @@ export default function Acessos() {
   const [form, setForm] = useState(emptyForm);
 
   const fetchData = useCallback(async () => {
-    const { data } = await supabase.from("franchisee_access").select("*");
+    const { data } = await supabase.from("franchisee_access").select("*").is("deleted_at", null);
     if (data) setItems(data as FranchiseeAccess[]);
   }, []);
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -61,7 +61,7 @@ export default function Acessos() {
   };
 
   const deleteAccess = async (id: string) => {
-    await supabase.from("franchisee_access").delete().eq("id", id);
+    await supabase.from("franchisee_access").update({ deleted_at: new Date().toISOString(), deleted_by: user?.id ?? null } as any).eq("id", id);
     fetchData();
   };
 

@@ -222,6 +222,7 @@ const ImportFunil = () => {
         const { data } = await supabase
           .from("pipeline_stores")
           .select("*")
+          .is("deleted_at", null)
           .in("filial", filiais);
         (data || []).forEach((s: any) => existingByFilial.set(String(s.filial), s));
       }
