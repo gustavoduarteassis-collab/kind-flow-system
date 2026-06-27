@@ -809,8 +809,20 @@ const Equipe = () => {
                   Arquivadas
                 </Button>
               )}
+              <div className="ml-auto flex gap-1 rounded-md border p-0.5">
+                <Button size="sm" variant={taskViewMode === "lista" ? "default" : "ghost"} className="h-7 text-xs" onClick={() => setTaskViewMode("lista")}>Lista</Button>
+                <Button size="sm" variant={taskViewMode === "kanban" ? "default" : "ghost"} className="h-7 text-xs" onClick={() => setTaskViewMode("kanban")}>Kanban</Button>
+              </div>
             </div>
 
+            {taskViewMode === "kanban" && taskViewTab !== "arquivadas" ? (
+              <TasksKanban
+                tasks={taskMemberFilter ? tasks.filter((t) => t.assigned_to === taskMemberFilter) : tasks}
+                getMemberName={getMemberName}
+                onOpenTask={openTaskDetail}
+                onStatusChange={updateTaskStatus}
+              />
+            ) : (
             <Card>
               <div className="overflow-x-auto">
                 <Table>
