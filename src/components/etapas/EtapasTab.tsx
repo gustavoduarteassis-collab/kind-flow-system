@@ -219,6 +219,35 @@ export default function EtapasTab({
     toast.success("Observação adicionada (histórico imutável).");
   };
 
+  // --- pendências (gate de avanço) por fase ---
+  const pendingByPhase = useMemo(() => {
+    const out: Record<string, string[]> = {};
+    out.funil = FUNIL_PROJECTS.filter((p) => {
+      const v = ((pipeline?.[p.key] as string) || "").toLowerCase();
+      return !(v.includes("aprovado") || v.includes("não se aplica") || v.includes("nao se aplica"));
+    }).map((p) => `${p.label}: aguardando aprovação`);
+    out.preobra = [];
+    if (Object.keys(store.visitaTecnica || {}).length === 0) out.preobra.push("Preencher Visita Técnica");
+    if (Object.keys(store.solicitacoes || {}).length === 0) out.preobra.push("Registrar Solicitações iniciais");
+    out.obra = [];
+    const items = Object.values(store.checklist || {});
+    const pendentes = items.filter(
+      (i: any) => i?.status && i.status !== "REALIZADO" && i.status !== "NÃO SE APLICA"
+    ).length;
+    if (pendentes > 0) out.obra.push(`${pendentes} itens do checklist ainda não finalizados`);
+    if (cronogramaSummary.late > 0)
+      out.obra.push(`${cronogramaSummary.late} atividades atrasadas no cronograma`);
+    out.checklist = [];
+    const inaugRaw: any = store.inauguracaoChecklist;
+    const hasRounds =
+      inaugRaw && Array.isArray(inaugRaw.rounds) && inaugRaw.rounds.length > 0;
+    if (!hasRounds && !(inaugRaw && Object.keys(inaugRaw).length > 0)) {
+      out.checklist.push("Iniciar Checklist de Inauguração");
+    }
+    out.inaugurada = [];
+    return out;
+  }, [pipeline, store, cronogramaSummary]);
+
   // --- helpers for other phases ---
   const cronogramaSummary = useMemo(() => {
     const cron: any = store.cronograma || {};
