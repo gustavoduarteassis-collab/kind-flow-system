@@ -255,6 +255,19 @@ const Equipe = () => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // Realtime: refresh lists automatically when tasks/habit_completions change
+  // (covers auto-task triggers, other users, and confirms "OK" without manual reload)
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase
+      .channel("equipe-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "habit_completions" }, () => fetchAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "habits" }, () => fetchAll())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user, fetchAll]);
+
   // CRUD functions
   const addMember = async () => {
     if (!user || !memberForm.name) return;
