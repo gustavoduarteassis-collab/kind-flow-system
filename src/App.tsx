@@ -17,6 +17,7 @@ import CustosGeral from "./pages/CustosGeral";
 import Diversos from "./pages/Diversos";
 import AGM from "./pages/AGM";
 import Acessos from "./pages/Acessos";
+import ItensExcluidos from "./pages/ItensExcluidos";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
