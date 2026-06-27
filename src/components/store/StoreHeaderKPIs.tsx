@@ -51,22 +51,28 @@ export default function StoreHeaderKPIs({ store, progress, atrasados }: Props) {
   const [areaM2, setAreaM2] = useState<number>(0);
 
   useEffect(() => {
-    if (!store?.filial) return;
+    if (!store?.nome) return;
     let cancelled = false;
     (async () => {
       const { data } = await supabase
         .from("custos_geral_entries")
-        .select("valor_realizado, area_m2")
-        .eq("filial", store.filial)
+        .select("mao_de_obra, moveis, piso, iluminacao, informatica, demais_itens, area_loja, area_total")
+        .ilike("nome", store.nome)
         .is("deleted_at", null);
-      if (cancelled || !data) return;
-      const total = data.reduce((s, r: any) => s + (Number(r.valor_realizado) || 0), 0);
-      const area = data.find((r: any) => Number(r.area_m2) > 0)?.area_m2 || 0;
+      if (cancelled || !data || data.length === 0) return;
+      const r: any = data[0];
+      const total =
+        (Number(r.mao_de_obra) || 0) +
+        (Number(r.moveis) || 0) +
+        (Number(r.piso) || 0) +
+        (Number(r.iluminacao) || 0) +
+        (Number(r.informatica) || 0) +
+        (Number(r.demais_itens) || 0);
       setCustoReal(total);
-      setAreaM2(Number(area) || 0);
+      setAreaM2(Number(r.area_loja) || Number(r.area_total) || 0);
     })();
     return () => { cancelled = true; };
-  }, [store?.filial]);
+  }, [store?.nome]);
 
   // Fallback: área da aba Custos local
   const areaLocal = (store as any)?.custos?.areaMt2 || 0;
