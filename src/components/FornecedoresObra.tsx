@@ -41,6 +41,7 @@ const FornecedoresObra = () => {
     const { data, error } = await supabase
       .from("fornecedores_homologados")
       .select("id, produto, empresa, contato, telefone, whatsapp, email")
+      .is("deleted_at", null)
       .order("produto");
     if (!error && data) setFornecedores(data);
     setLoading(false);
