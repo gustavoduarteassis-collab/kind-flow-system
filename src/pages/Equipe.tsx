@@ -1911,6 +1911,17 @@ const Equipe = () => {
                           <div className={`h-full transition-all ${progressColor}`} style={{ width: `${progressoMedio}%` }} />
                         </div>
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2"
+                        onClick={() => {
+                          handleMemberFilterChange(m.id);
+                          handleTabChange("tarefas");
+                        }}
+                      >
+                        <ListTodo className="h-3.5 w-3.5" /> Ver tarefas
+                      </Button>
                     </CardContent>
                   </Card>
                   );
