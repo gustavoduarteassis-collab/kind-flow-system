@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Store } from "@/data/checklistData";
-import { cronogramaGroups } from "@/data/cronogramaData";
+import { cronogramaCategorias } from "@/data/cronogramaData";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { isStoreLiberated } from "@/utils/inaugurationStatus";
@@ -213,11 +213,11 @@ export default function EtapasTab({
   }, [store.cronograma]);
 
   const groupsProgress = useMemo(() => {
-    return cronogramaGroups.map((g: any) => {
-      const items = g.activities || [];
-      const total = items.length;
-      const cron: any = store.cronograma || {};
-      const done = items.filter((it: any) => !!cron[it.id]?.fimReal).length;
+    const cron: any = store.cronograma || {};
+    const real = cron.itemDatesReal || {};
+    return cronogramaCategorias.map((g) => {
+      const total = g.items.length;
+      const done = g.items.filter((it) => !!real[it.id]?.fimReal).length;
       return { id: g.id, nome: g.nome, total, done };
     });
   }, [store.cronograma]);
