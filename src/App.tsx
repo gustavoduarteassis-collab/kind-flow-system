@@ -75,12 +75,12 @@ function AppRoutes() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Index />} />
-        <Route path="/lojas" element={<Lojas />} />
+        <Route path="/lojas" element={<LojasUnificadas />} />
         <Route path="/lojas/:slug" element={<StoreSlugResolver />} />
         <Route path="/loja/:id" element={<StoreDetail />} />
         <Route path="/loja/:id/relatorio" element={<StoreReport />} />
         <Route path="/equipe" element={<Equipe />} />
-        <Route path="/pipeline" element={<Pipeline />} />
+        <Route path="/pipeline" element={<Navigate to="/lojas?tab=funil" replace />} />
         <Route path="/funil-importar" element={<ImportFunil />} />
         <Route path="/custos-geral" element={<CustosGeral />} />
         <Route path="/custos" element={<Navigate to="/custos-geral" replace />} />
