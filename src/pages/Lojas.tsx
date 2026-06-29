@@ -25,7 +25,15 @@ import { formatBR, daysUntil } from "@/utils/safeDate";
 import { AlertTriangle } from "lucide-react";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 
-const Lojas = () => {
+interface LojasProps {
+  /** When set to "inauguradas", shows ONLY inauguradas and hides toggle.
+   *  When set to "andamento", hides the toggle (no inauguradas in this view). */
+  forceMode?: "inauguradas" | "andamento";
+  /** When true, hides the page title/subtitle header (used when embedded under tabs). */
+  hideHeader?: boolean;
+}
+
+const Lojas = ({ forceMode, hideHeader }: LojasProps = {}) => {
   const { stores, addStore, deleteStore, updateStore } = useStores();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -38,7 +46,8 @@ const Lojas = () => {
   const [isTeamMember, setIsTeamMember] = useState(false);
   const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
   const [inauguradasNomes, setInauguradasNomes] = useState<Set<string>>(new Set());
-  const [showInauguradas, setShowInauguradas] = useState(false);
+  const [showInauguradasState, setShowInauguradas] = useState(false);
+  const showInauguradas = forceMode === "inauguradas" ? true : forceMode === "andamento" ? false : showInauguradasState;
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ id: "", nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
 
