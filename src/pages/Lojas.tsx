@@ -138,7 +138,10 @@ const Lojas = ({ forceMode, hideHeader }: LojasProps = {}) => {
     return "andamento";
   };
 
-  const visible = stores.filter((s) => showInauguradas || !isInaugurada(s));
+  const visible = stores.filter((s) => {
+    if (forceMode === "inauguradas") return isInaugurada(s);
+    return showInauguradas || !isInaugurada(s);
+  });
   const kpis = {
     total: visible.length,
     andamento: visible.filter((s) => classifyStatus(s) === "andamento").length,
