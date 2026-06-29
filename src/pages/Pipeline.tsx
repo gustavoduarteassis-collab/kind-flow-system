@@ -337,16 +337,17 @@ const Pipeline = () => {
     setDupSelected((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   // Computed filter lists
-  const analistas = useMemo(() => Array.from(new Set(stores.map((s) => s.analista_obra).filter(Boolean))).sort(), [stores]);
-  const meses = useMemo(() => {
-    const set = new Set<string>();
-    for (const s of stores) { const k = getMonthKey(s.previsao_inauguracao); if (k) set.add(k); }
-    return Array.from(set).sort();
-  }, [stores]);
-
   const isInaugurada = (s: PipelineStore) => (s.status_geral || "").toLowerCase().startsWith("inaugurada");
   const isReforma = (s: PipelineStore) => (s as any).reforma === true && !isInaugurada(s);
   const isNova = (s: PipelineStore) => !isInaugurada(s) && !isReforma(s);
+  const getStoreTimelineDate = (s: PipelineStore) => (isInaugurada(s) ? (s.data_inauguracao || s.previsao_inauguracao) : s.previsao_inauguracao);
+
+  const analistas = useMemo(() => Array.from(new Set(stores.map((s) => s.analista_obra).filter(Boolean))).sort(), [stores]);
+  const meses = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of stores) { const k = getMonthKey(getStoreTimelineDate(s)); if (k) set.add(k); }
+    return Array.from(set).sort();
+  }, [stores]);
 
   const matchesSearch = (s: PipelineStore) => {
     const q = search.toLowerCase();
@@ -357,7 +358,7 @@ const Pipeline = () => {
   const matchesFilters = (s: PipelineStore) => {
     if (fAnalista !== "todos" && s.analista_obra !== fAnalista) return false;
     if (fTipo !== "todos" && s.padrao !== fTipo) return false;
-    if (fMes !== "todos" && getMonthKey(s.previsao_inauguracao) !== fMes) return false;
+    if (fMes !== "todos" && getMonthKey(getStoreTimelineDate(s)) !== fMes) return false;
     if (fStatus === "prontas" && !isReadyToTransfer(s)) return false;
     if (fStatus === "andamento" && !isAndamento(s)) return false;
     if (fStatus === "pendentes" && getProgress(s) !== 0) return false;
@@ -365,7 +366,7 @@ const Pipeline = () => {
     return true;
   };
 
-  const sorted = [...stores].sort((a, b) => parseDateForSort(a.previsao_inauguracao).getTime() - parseDateForSort(b.previsao_inauguracao).getTime());
+  const sorted = [...stores].sort((a, b) => parseDateForSort(getStoreTimelineDate(a)).getTime() - parseDateForSort(getStoreTimelineDate(b)).getTime());
   const visible = sorted.filter((s) => matchesSearch(s) && matchesFilters(s));
   const filteredNovas = visible.filter(isNova);
   const filteredReformas = visible.filter(isReforma);
