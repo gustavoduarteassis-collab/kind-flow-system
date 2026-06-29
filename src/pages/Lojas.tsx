@@ -263,7 +263,7 @@ const Lojas = ({ forceMode, hideHeader }: LojasProps = {}) => {
                   </SelectContent>
                 </Select>
               )}
-              {hiddenInauguradasCount > 0 && (
+              {!forceMode && hiddenInauguradasCount > 0 && (
                 <Button
                   variant={showInauguradas ? "default" : "outline"}
                   onClick={() => setShowInauguradas((v) => !v)}
