@@ -171,10 +171,12 @@ const Lojas = ({ forceMode, hideHeader }: LojasProps = {}) => {
     <div className="bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between gap-3 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
-            <p className="text-xs text-muted-foreground">Checklist e Cronograma</p>
-          </div>
+          {!hideHeader ? (
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
+              <p className="text-xs text-muted-foreground">Checklist e Cronograma</p>
+            </div>
+          ) : <div />}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
