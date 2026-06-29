@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Lojas from "./pages/Lojas";
+import LojasUnificadas from "./pages/LojasUnificadas";
 import StoreDetail from "./pages/StoreDetail";
 import StoreReport from "./pages/StoreReport";
 import StoreSlugResolver from "./pages/StoreSlugResolver";
