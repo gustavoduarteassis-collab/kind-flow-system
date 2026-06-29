@@ -447,6 +447,11 @@ const Pipeline = () => {
                 {store.filial && <Badge variant="outline" className="font-mono text-xs">{store.filial}</Badge>}
                 <h3 className="font-semibold text-sm">{store.local}</h3>
                 {inaug && <Badge className="bg-emerald-600 hover:bg-emerald-600 text-[10px] h-5">Inaugurada</Badge>}
+                {inaug && (
+                  <Badge variant="outline" className="text-[10px] h-5 gap-1 border-emerald-300 text-emerald-700 bg-emerald-50">
+                    <CalendarIcon className="h-3 w-3" /> Data: {store.data_inauguracao || store.previsao_inauguracao || "definir"}
+                  </Badge>
+                )}
                 {reform && <Badge className="bg-amber-600 hover:bg-amber-600 text-[10px] h-5">Reforma</Badge>}
                 {!inaug && (
                   <Popover>
