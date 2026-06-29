@@ -721,7 +721,7 @@ const Pipeline = () => {
             {meses.map((m) => {
               const [y, mo] = m.split("-");
               const label = `${MONTH_LABELS[parseInt(mo) - 1]}/${y.slice(-2)}`;
-              const n = stores.filter((s) => getMonthKey(s.previsao_inauguracao) === m).length;
+              const n = stores.filter((s) => getMonthKey(getStoreTimelineDate(s)) === m).length;
               return <FilterPill key={m} active={fMes === m} onClick={() => setFMes(m)}>{label} ({n})</FilterPill>;
             })}
           </div>
