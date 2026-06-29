@@ -25,7 +25,15 @@ import { formatBR, daysUntil } from "@/utils/safeDate";
 import { AlertTriangle } from "lucide-react";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 
-const Lojas = () => {
+interface LojasProps {
+  /** When set to "inauguradas", shows ONLY inauguradas and hides toggle.
+   *  When set to "andamento", hides the toggle (no inauguradas in this view). */
+  forceMode?: "inauguradas" | "andamento";
+  /** When true, hides the page title/subtitle header (used when embedded under tabs). */
+  hideHeader?: boolean;
+}
+
+const Lojas = ({ forceMode, hideHeader }: LojasProps = {}) => {
   const { stores, addStore, deleteStore, updateStore } = useStores();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -38,7 +46,8 @@ const Lojas = () => {
   const [isTeamMember, setIsTeamMember] = useState(false);
   const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
   const [inauguradasNomes, setInauguradasNomes] = useState<Set<string>>(new Set());
-  const [showInauguradas, setShowInauguradas] = useState(false);
+  const [showInauguradasState, setShowInauguradas] = useState(false);
+  const showInauguradas = forceMode === "inauguradas" ? true : forceMode === "andamento" ? false : showInauguradasState;
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ id: "", nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
 
@@ -129,7 +138,10 @@ const Lojas = () => {
     return "andamento";
   };
 
-  const visible = stores.filter((s) => showInauguradas || !isInaugurada(s));
+  const visible = stores.filter((s) => {
+    if (forceMode === "inauguradas") return isInaugurada(s);
+    return showInauguradas || !isInaugurada(s);
+  });
   const kpis = {
     total: visible.length,
     andamento: visible.filter((s) => classifyStatus(s) === "andamento").length,
@@ -159,10 +171,12 @@ const Lojas = () => {
     <div className="bg-background">
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between gap-3 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
-            <p className="text-xs text-muted-foreground">Checklist e Cronograma</p>
-          </div>
+          {!hideHeader ? (
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
+              <p className="text-xs text-muted-foreground">Checklist e Cronograma</p>
+            </div>
+          ) : <div />}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
@@ -249,7 +263,7 @@ const Lojas = () => {
                   </SelectContent>
                 </Select>
               )}
-              {hiddenInauguradasCount > 0 && (
+              {!forceMode && hiddenInauguradasCount > 0 && (
                 <Button
                   variant={showInauguradas ? "default" : "outline"}
                   onClick={() => setShowInauguradas((v) => !v)}

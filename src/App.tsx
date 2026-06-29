@@ -5,13 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
 import Lojas from "./pages/Lojas";
+import LojasUnificadas from "./pages/LojasUnificadas";
 import StoreDetail from "./pages/StoreDetail";
 import StoreReport from "./pages/StoreReport";
 import StoreSlugResolver from "./pages/StoreSlugResolver";
 import Auth from "./pages/Auth";
 import Equipe from "./pages/Equipe";
 import FranqueadoPortal from "./pages/FranqueadoPortal";
-import Pipeline from "./pages/Pipeline";
+
 import ImportFunil from "./pages/ImportFunil";
 import CustosGeral from "./pages/CustosGeral";
 import Diversos from "./pages/Diversos";
@@ -74,12 +75,12 @@ function AppRoutes() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Index />} />
-        <Route path="/lojas" element={<Lojas />} />
+        <Route path="/lojas" element={<LojasUnificadas />} />
         <Route path="/lojas/:slug" element={<StoreSlugResolver />} />
         <Route path="/loja/:id" element={<StoreDetail />} />
         <Route path="/loja/:id/relatorio" element={<StoreReport />} />
         <Route path="/equipe" element={<Equipe />} />
-        <Route path="/pipeline" element={<Pipeline />} />
+        <Route path="/pipeline" element={<Navigate to="/lojas?tab=funil" replace />} />
         <Route path="/funil-importar" element={<ImportFunil />} />
         <Route path="/custos-geral" element={<CustosGeral />} />
         <Route path="/custos" element={<Navigate to="/custos-geral" replace />} />

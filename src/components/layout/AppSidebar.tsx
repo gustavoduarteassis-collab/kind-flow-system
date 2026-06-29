@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  Building2, GitBranch, DollarSign, Target, Users, FolderOpen, KeyRound, Home, ListTodo, Trash2, TrendingUp,
+  Building2, DollarSign, Target, Users, FolderOpen, KeyRound, Home, Trash2, TrendingUp,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -10,7 +10,6 @@ import logoConstance from "@/assets/logo-constance.svg";
 
 const items = [
   { title: "Painel", url: "/", icon: Home },
-  { title: "Funil de Lojas", url: "/pipeline", icon: GitBranch },
   { title: "Lojas", url: "/lojas", icon: Building2 },
   { title: "Custos Geral", url: "/custos-geral", icon: DollarSign },
   { title: "AGM", url: "/agm", icon: Target },
