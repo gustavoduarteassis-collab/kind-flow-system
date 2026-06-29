@@ -10,7 +10,6 @@ import logoConstance from "@/assets/logo-constance.svg";
 
 const items = [
   { title: "Painel", url: "/", icon: Home },
-  { title: "Funil de Lojas", url: "/pipeline", icon: GitBranch },
   { title: "Lojas", url: "/lojas", icon: Building2 },
   { title: "Custos Geral", url: "/custos-geral", icon: DollarSign },
   { title: "AGM", url: "/agm", icon: Target },
