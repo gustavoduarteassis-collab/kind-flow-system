@@ -12,7 +12,7 @@ import StoreSlugResolver from "./pages/StoreSlugResolver";
 import Auth from "./pages/Auth";
 import Equipe from "./pages/Equipe";
 import FranqueadoPortal from "./pages/FranqueadoPortal";
-import Pipeline from "./pages/Pipeline";
+
 import ImportFunil from "./pages/ImportFunil";
 import CustosGeral from "./pages/CustosGeral";
 import Diversos from "./pages/Diversos";
