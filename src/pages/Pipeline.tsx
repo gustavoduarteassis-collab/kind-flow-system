@@ -340,7 +340,7 @@ const Pipeline = () => {
   const isInaugurada = (s: PipelineStore) => (s.status_geral || "").toLowerCase().startsWith("inaugurada");
   const isReforma = (s: PipelineStore) => (s as any).reforma === true && !isInaugurada(s);
   const isNova = (s: PipelineStore) => !isInaugurada(s) && !isReforma(s);
-  const getStoreTimelineDate = (s: PipelineStore) => (isInaugurada(s) ? (s.data_inauguracao || s.previsao_inauguracao) : s.previsao_inauguracao);
+  const getStoreTimelineDate = (s: PipelineStore) => s.previsao_inauguracao || (isInaugurada(s) ? s.data_inauguracao : "");
 
   const analistas = useMemo(() => Array.from(new Set(stores.map((s) => s.analista_obra).filter(Boolean))).sort(), [stores]);
   const meses = useMemo(() => {
