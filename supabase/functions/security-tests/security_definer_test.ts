@@ -12,8 +12,12 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+// URL e anon key são públicos (publishable) — seguro no repositório.
+const SUPABASE_URL =
+  Deno.env.get("SUPABASE_URL") ?? "https://fcqqrczztnaxdzcwjhtl.supabase.co";
+const ANON_KEY =
+  Deno.env.get("SUPABASE_ANON_KEY") ??
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZjcXFyY3p6dG5heGR6Y3dqaHRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNTE0MjksImV4cCI6MjA4ODYyNzQyOX0.RyVDk7Fb1zWyDxOtp3K2JIrpvWTfIQ-bg3OO1U2W9Z0";
 const AUTH_JWT = Deno.env.get("TEST_AUTHORIZED_JWT") ?? "";
 
 // As 5 funções SECURITY DEFINER app-facing que devem existir e estar protegidas.
