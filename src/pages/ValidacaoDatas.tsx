@@ -5,7 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, CheckCircle2, RefreshCw } from "lucide-react";
+import { AlertTriangle, CheckCircle2, RefreshCw, GitCompare } from "lucide-react";
+import { toast } from "sonner";
+
+type SyncMismatch = {
+  store_id: string;
+  pipeline_id: string;
+  nome: string;
+  campo: "Previsão de inauguração" | "Data de inauguração";
+  painel: string | null;
+  funil: string | null;
+};
 
 type Row = {
   id: string;
