@@ -187,157 +187,235 @@ export default function MatrizEtapas() {
   const totalStages = AUTO_PHASES.length + PLANILHA_STAGES.length;
 
   return (
-    <div className="p-4 sm:p-6 space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">Matriz de Etapas</h1>
-        <p className="text-sm text-muted-foreground">
-          Fases automáticas (calculadas pelo sistema) + etapas da planilha do Funil (clique para marcar/desmarcar).
-        </p>
-      </div>
+    <TooltipProvider delayDuration={150}>
+      <div className="p-4 sm:p-6 space-y-4">
+        <div>
+          <h1 className="text-2xl font-bold">Matriz de Etapas</h1>
+          <p className="text-sm text-muted-foreground">
+            Fases automáticas (calculadas pelo sistema) + etapas da planilha do Funil (clique para marcar/desmarcar). Passe o mouse sobre qualquer coluna ou marca para ver o significado.
+          </p>
+        </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <CardTitle className="text-base">
-              {rows.length} loja{rows.length !== 1 ? "s" : ""} em andamento
-            </CardTitle>
-            <div className="relative w-full sm:w-72">
-              <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar loja ou filial..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-8"
-              />
+        {/* Legenda */}
+        <Card className="bg-muted/20">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+              <div className="flex items-center gap-2 font-medium">
+                <Info className="h-4 w-4 text-muted-foreground" /> Legenda
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[hsl(142,60%,45%)] text-white border border-[hsl(142,60%,45%)]">
+                  <Check className="h-3.5 w-3.5" />
+                </span>
+                <span>Etapa concluída</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted text-muted-foreground border border-border">
+                  <Minus className="h-3 w-3" />
+                </span>
+                <span>Etapa pendente</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-4 w-4 rounded bg-muted/40 border" />
+                <span><span className="font-medium">Fases (auto):</span> marcadas pelo sistema conforme o avanço da loja.</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block h-4 w-4 rounded bg-background border" />
+                <span><span className="font-medium">Etapas da planilha:</span> clique para marcar/desmarcar manualmente.</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground italic">
+                <span>↳ Subetapa</span>
+                <span>de uma etapa principal (ex.: Implantação USE → USE)</span>
+              </div>
+              <div className="text-muted-foreground">
+                <span className="font-medium text-foreground">X/Y</span> abaixo de cada coluna = lojas concluídas / total em andamento.
+              </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Carregando...</div>
-          ) : rows.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">Nenhuma loja encontrada.</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                {/* Linha de grupos */}
-                <TableRow>
-                  <TableHead rowSpan={2} className="sticky left-0 bg-background z-10 min-w-[220px] align-bottom">Loja</TableHead>
-                  <TableHead colSpan={AUTO_PHASES.length} className="text-center bg-muted/60 text-[11px] uppercase tracking-wide border-l">
-                    Fases (auto)
-                  </TableHead>
-                  {STAGE_GROUPS.map((g) => (
-                    <TableHead
-                      key={g.name}
-                      colSpan={g.stages.length}
-                      className="text-center text-[11px] uppercase tracking-wide bg-muted/30 border-l"
-                    >
-                      {g.name}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <CardTitle className="text-base">
+                {rows.length} loja{rows.length !== 1 ? "s" : ""} em andamento
+              </CardTitle>
+              <div className="relative w-full sm:w-72">
+                <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar loja ou filial..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0 overflow-x-auto">
+            {loading ? (
+              <div className="p-8 text-center text-muted-foreground">Carregando...</div>
+            ) : rows.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">Nenhuma loja encontrada.</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  {/* Linha de grupos */}
+                  <TableRow>
+                    <TableHead rowSpan={2} className="sticky left-0 bg-background z-10 min-w-[220px] align-bottom">Loja</TableHead>
+                    <TableHead colSpan={AUTO_PHASES.length} className="text-center bg-muted/60 text-[11px] uppercase tracking-wide border-l">
+                      Fases (auto)
                     </TableHead>
-                  ))}
-                  <TableHead rowSpan={2} className="text-center whitespace-nowrap align-bottom border-l">Progresso</TableHead>
-                </TableRow>
-                {/* Linha de etapas */}
-                <TableRow>
-                  {AUTO_PHASES.map((p, i) => (
-                    <TableHead key={p.key} className={cn("text-center whitespace-nowrap bg-muted/40", i === 0 && "border-l")}>
-                      {p.label}
-                      <div className="text-[10px] font-normal text-muted-foreground">
-                        {autoTotals[p.key]}/{rows.length}
-                      </div>
-                    </TableHead>
-                  ))}
-                  {STAGE_GROUPS.map((g) =>
-                    g.stages.map((s, i) => (
+                    {STAGE_GROUPS.map((g) => (
                       <TableHead
-                        key={s.key}
-                        className={cn(
-                          "text-center whitespace-nowrap",
-                          i === 0 && "border-l",
-                          s.sub && "bg-muted/10"
-                        )}
+                        key={g.name}
+                        colSpan={g.stages.length}
+                        className="text-center text-[11px] uppercase tracking-wide bg-muted/30 border-l"
                       >
-                        <div className={cn("text-[11px]", s.sub && "pl-2 italic text-muted-foreground")}>
-                          {s.sub ? "↳ " : ""}{s.label}
-                        </div>
+                        {g.name}
+                      </TableHead>
+                    ))}
+                    <TableHead rowSpan={2} className="text-center whitespace-nowrap align-bottom border-l">Progresso</TableHead>
+                  </TableRow>
+                  {/* Linha de etapas */}
+                  <TableRow>
+                    {AUTO_PHASES.map((p, i) => (
+                      <TableHead key={p.key} className={cn("text-center whitespace-nowrap bg-muted/40", i === 0 && "border-l")}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="cursor-help underline decoration-dotted underline-offset-2">{p.label}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs">
+                            <div className="font-semibold">{p.label} (automática)</div>
+                            <div className="text-xs mt-1">{p.desc}</div>
+                          </TooltipContent>
+                        </Tooltip>
                         <div className="text-[10px] font-normal text-muted-foreground">
-                          {planilhaTotals[s.key]}/{rows.length}
+                          {autoTotals[p.key]}/{rows.length}
                         </div>
                       </TableHead>
-                    ))
-                  )}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map(({ store, flags }) => {
-                  const st = stageStatus[store.id] || {};
-                  const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
-                  const planDone = PLANILHA_STAGES.filter((s) => st[s.key]).length;
-                  const done = autoDone + planDone;
-                  return (
-                    <TableRow key={store.id}>
-                      <TableCell className="sticky left-0 bg-background font-medium">
-                        <Link to={`/loja/${store.id}`} className="hover:underline">
-                          {store.nome}
-                        </Link>
-                        {store.filial && (
-                          <div className="text-[11px] text-muted-foreground">{store.filial}</div>
-                        )}
-                      </TableCell>
-                      {AUTO_PHASES.map((p, i) => (
-                        <TableCell key={p.key} className={cn("text-center bg-muted/20", i === 0 && "border-l")}>
-                          <div
-                            className={cn(
-                              "inline-flex h-7 w-7 items-center justify-center rounded-full border",
-                              flags[p.key]
-                                ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
-                                : "bg-muted text-muted-foreground border-border"
-                            )}
-                            title={flags[p.key] ? "Concluída (auto)" : "Pendente"}
-                          >
-                            {flags[p.key] ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
+                    ))}
+                    {STAGE_GROUPS.map((g) =>
+                      g.stages.map((s, i) => (
+                        <TableHead
+                          key={s.key}
+                          className={cn(
+                            "text-center whitespace-nowrap",
+                            i === 0 && "border-l",
+                            s.sub && "bg-muted/10"
+                          )}
+                        >
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className={cn("text-[11px] cursor-help underline decoration-dotted underline-offset-2", s.sub && "pl-2 italic text-muted-foreground")}>
+                                {s.sub ? "↳ " : ""}{s.label}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">
+                              <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{g.name}</div>
+                              <div className="font-semibold">{s.label}{s.sub && " (subetapa)"}</div>
+                              <div className="text-xs mt-1">{s.desc}</div>
+                            </TooltipContent>
+                          </Tooltip>
+                          <div className="text-[10px] font-normal text-muted-foreground">
+                            {planilhaTotals[s.key]}/{rows.length}
                           </div>
+                        </TableHead>
+                      ))
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map(({ store, flags }) => {
+                    const st = stageStatus[store.id] || {};
+                    const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
+                    const planDone = PLANILHA_STAGES.filter((s) => st[s.key]).length;
+                    const done = autoDone + planDone;
+                    return (
+                      <TableRow key={store.id}>
+                        <TableCell className="sticky left-0 bg-background font-medium">
+                          <Link to={`/loja/${store.id}`} className="hover:underline">
+                            {store.nome}
+                          </Link>
+                          {store.filial && (
+                            <div className="text-[11px] text-muted-foreground">{store.filial}</div>
+                          )}
                         </TableCell>
-                      ))}
-                      {STAGE_GROUPS.map((g) =>
-                        g.stages.map((s, i) => {
-                          const cellDone = !!st[s.key];
-                          const isSaving = saving === store.id + s.key;
-                          return (
-                            <TableCell
-                              key={s.key}
-                              className={cn("text-center", i === 0 && "border-l", s.sub && "bg-muted/10")}
-                            >
-                              <button
-                                type="button"
-                                disabled={isSaving}
-                                onClick={() => toggle(store.id, s.key)}
-                                className={cn(
-                                  "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
-                                  cellDone
-                                    ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
-                                    : "bg-background text-muted-foreground border-border hover:bg-muted",
-                                  isSaving && "opacity-50"
-                                )}
-                                title={cellDone ? "Concluída — clique para desmarcar" : "Pendente — clique para marcar"}
+                        {AUTO_PHASES.map((p, i) => (
+                          <TableCell key={p.key} className={cn("text-center bg-muted/20", i === 0 && "border-l")}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div
+                                  className={cn(
+                                    "inline-flex h-7 w-7 items-center justify-center rounded-full border cursor-help",
+                                    flags[p.key]
+                                      ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
+                                      : "bg-muted text-muted-foreground border-border"
+                                  )}
+                                >
+                                  {flags[p.key] ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">
+                                <div className="font-semibold">{store.nome} — {p.label}</div>
+                                <div className="text-xs mt-1">
+                                  {flags[p.key] ? "✅ Concluída automaticamente pelo sistema." : "⏳ Pendente — critério ainda não atendido."}
+                                </div>
+                                <div className="text-xs mt-1 text-muted-foreground">{p.desc}</div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TableCell>
+                        ))}
+                        {STAGE_GROUPS.map((g) =>
+                          g.stages.map((s, i) => {
+                            const cellDone = !!st[s.key];
+                            const isSaving = saving === store.id + s.key;
+                            return (
+                              <TableCell
+                                key={s.key}
+                                className={cn("text-center", i === 0 && "border-l", s.sub && "bg-muted/10")}
                               >
-                                {cellDone ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
-                              </button>
-                            </TableCell>
-                          );
-                        })
-                      )}
-                      <TableCell className="text-center text-sm tabular-nums whitespace-nowrap border-l">
-                        {done}/{totalStages}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type="button"
+                                      disabled={isSaving}
+                                      onClick={() => toggle(store.id, s.key)}
+                                      className={cn(
+                                        "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
+                                        cellDone
+                                          ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
+                                          : "bg-background text-muted-foreground border-border hover:bg-muted",
+                                        isSaving && "opacity-50"
+                                      )}
+                                    >
+                                      {cellDone ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-xs">
+                                    <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{g.name}</div>
+                                    <div className="font-semibold">{store.nome} — {s.label}</div>
+                                    <div className="text-xs mt-1">
+                                      {cellDone ? "✅ Concluída — clique para desmarcar." : "⏳ Pendente — clique para marcar como concluída."}
+                                    </div>
+                                    <div className="text-xs mt-1 text-muted-foreground">{s.desc}</div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TableCell>
+                            );
+                          })
+                        )}
+                        <TableCell className="text-center text-sm tabular-nums whitespace-nowrap border-l">
+                          {done}/{totalStages}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </TooltipProvider>
   );
 }
