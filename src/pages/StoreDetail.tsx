@@ -65,7 +65,6 @@ import StoreHeaderKPIs from "@/components/store/StoreHeaderKPIs";
 import StoreCommunication from "@/components/store/StoreCommunication";
 import StoreCustosSummary from "@/components/store/StoreCustosSummary";
 import HistoricoAtualizacoes from "@/components/store/HistoricoAtualizacoes";
-import HistoricoAtualizacoes from "@/components/store/HistoricoAtualizacoes";
 import DatasTab from "@/components/store/DatasTab";
 import DadosTab from "@/components/store/DadosTab";
 import EtapasPlanilhaLoja from "@/components/store/EtapasPlanilhaLoja";
