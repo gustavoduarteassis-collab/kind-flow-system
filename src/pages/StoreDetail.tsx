@@ -601,21 +601,11 @@ const StoreDetail = () => {
 
           {/* 2. DATAS — linha do tempo de datas-chave */}
           <TabsContent value="datas" className="mt-4">
-            <div className="rounded-xl border bg-card p-6 space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold">Datas-chave</h3>
-                <p className="text-sm text-muted-foreground">Marcos do ciclo. Alterações refletem no cronograma e alertas.</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Inauguração (prevista/real)</label>
-                  <Input type="date" value={store.inauguracao || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { inauguracao: e.target.value })} />
-                </div>
-              </div>
-              <div className="rounded-lg bg-muted/40 p-4 text-sm text-muted-foreground">
-                Prazos por atividade (início/fim de obra, entregas, etc.) são gerenciados dentro da aba <strong>Obra → Cronograma</strong> e das categorias de checklist.
-              </div>
-            </div>
+            <DatasTab
+              store={store}
+              canEdit={isTeamMember}
+              onUpdate={(patch) => updateStore(store.id, patch)}
+            />
           </TabsContent>
 
           {/* 3. ETAPAS */}
