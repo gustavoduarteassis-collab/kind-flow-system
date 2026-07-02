@@ -113,14 +113,14 @@ export default function MatrizEtapas() {
   const { stores, loading } = useStores();
   const [pipelineInaug, setPipelineInaug] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
-  const [stageStatus, setStageStatus] = useState<Record<string, Record<string, boolean>>>({});
+  const [stageStatus, setStageStatus] = useState<Record<string, Record<string, Stage4>>>({});
   const [saving, setSaving] = useState<string | null>(null);
   // Filtros avançados
-  const [phaseFilter, setPhaseFilter] = useState<string>("all"); // all | done:<key> | pending:<key>
-  const [progressFilter, setProgressFilter] = useState<string>("all"); // all | low | mid | high
-  const [groupFilter, setGroupFilter] = useState<string>("all"); // all | <group name>
-  const [stageFilter, setStageFilter] = useState<string>("all"); // all | done:<key> | pending:<key> (planilha)
-  const [criticalFilter, setCriticalFilter] = useState<string>("all"); // all | any | alta | media | ok
+  const [phaseFilter, setPhaseFilter] = useState<string>("all");
+  const [progressFilter, setProgressFilter] = useState<string>("all");
+  const [groupFilter, setGroupFilter] = useState<string>("all");
+  const [stageFilter, setStageFilter] = useState<string>("all");
+  const [criticalFilter, setCriticalFilter] = useState<string>("all");
 
 
   useEffect(() => {
@@ -144,26 +144,33 @@ export default function MatrizEtapas() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("stores").select("id, stage_status");
-      const map: Record<string, Record<string, boolean>> = {};
+      const map: Record<string, Record<string, Stage4>> = {};
       (data || []).forEach((r: any) => {
-        map[r.id] = (r.stage_status && typeof r.stage_status === "object") ? r.stage_status : {};
+        const raw = (r.stage_status && typeof r.stage_status === "object") ? r.stage_status : {};
+        const norm: Record<string, Stage4> = {};
+        for (const [k, v] of Object.entries(raw)) norm[k] = normalizeStage(v);
+        map[r.id] = norm;
       });
       setStageStatus(map);
     })();
   }, []);
 
-  const toggle = async (storeId: string, stageKey: string) => {
+  /** Avança sequencialmente o status da célula (nao_iniciado → em_andamento → com_problema → concluido → …). */
+  const cycle = async (storeId: string, stageKey: string) => {
     const current = stageStatus[storeId] || {};
-    const next = { ...current, [stageKey]: !current[stageKey] };
+    const currentVal = normalizeStage(current[stageKey]);
+    const nextVal = nextStage(currentVal);
+    const next = { ...current, [stageKey]: nextVal };
     setStageStatus((s) => ({ ...s, [storeId]: next }));
     setSaving(storeId + stageKey);
-    const { error } = await supabase.from("stores").update({ stage_status: next }).eq("id", storeId);
+    const { error } = await supabase.from("stores").update({ stage_status: next as any }).eq("id", storeId);
     setSaving(null);
     if (error) {
       toast.error("Erro ao salvar etapa");
       setStageStatus((s) => ({ ...s, [storeId]: current }));
     }
   };
+
 
   const totalStagesAll = AUTO_PHASES.length + PLANILHA_STAGES.length;
   const visibleGroups = useMemo(
