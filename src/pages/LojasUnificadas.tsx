@@ -15,6 +15,7 @@ const VALID_TABS: TabKey[] = ["funil", "checklist", "inauguradas"];
 const STORAGE_KEY = "lojas:lastTab";
 
 const LojasUnificadas = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initial: TabKey =
     (VALID_TABS.includes(searchParams.get("tab") as TabKey) && (searchParams.get("tab") as TabKey)) ||
