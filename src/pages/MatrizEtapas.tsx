@@ -380,16 +380,17 @@ export default function MatrizEtapas() {
                           <TableCell key={p.key} className={cn("text-center bg-muted/20", i === 0 && "border-l")}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div
+                                <Link
+                                  to={`/loja/${store.id}?tab=${p.tab}`}
                                   className={cn(
-                                    "inline-flex h-7 w-7 items-center justify-center rounded-full border cursor-help",
+                                    "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
                                     flags[p.key]
                                       ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
                                       : "bg-muted text-muted-foreground border-border"
                                   )}
                                 >
                                   {flags[p.key] ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
-                                </div>
+                                </Link>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="max-w-xs">
                                 <div className="font-semibold">{store.nome} — {p.label}</div>
@@ -397,6 +398,7 @@ export default function MatrizEtapas() {
                                   {flags[p.key] ? "✅ Concluída automaticamente pelo sistema." : "⏳ Pendente — critério ainda não atendido."}
                                 </div>
                                 <div className="text-xs mt-1 text-muted-foreground">{p.desc}</div>
+                                <div className="text-[10px] mt-2 text-muted-foreground italic">Clique para abrir a loja na aba correspondente.</div>
                               </TooltipContent>
                             </Tooltip>
                           </TableCell>
