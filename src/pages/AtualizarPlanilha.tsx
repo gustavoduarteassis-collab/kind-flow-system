@@ -199,13 +199,12 @@ const AtualizarPlanilha = () => {
 
         // 5) STATUS TEXT → store_updates (nunca sobrescreve o histórico anterior)
         if (parsed.statusText) {
-          const { error: uErr } = await (supabase as any).from("store_updates").insert({
+          const { error: uErr } = await supabase.from("store_updates").insert({
             store_id: storeId,
-            texto: parsed.statusText,
-            origem: "planilha_master",
+            texto: `[Planilha] ${parsed.statusText}`,
             autor_user_id: user.id,
             autor_nome: "Importado via Excel",
-          });
+          } as any);
           if (!uErr) statusUpdates++;
         }
 
