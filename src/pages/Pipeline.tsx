@@ -158,7 +158,7 @@ const emptyForm = {
 
 type StatusFilter = "todas" | "prontas" | "andamento" | "pendentes" | "atrasadas";
 
-const Pipeline = () => {
+const Pipeline = ({ initialTab }: { initialTab?: "novas" | "reformas" | "inauguradas" } = {}) => {
   usePageTitle("Funil de Lojas");
   const { user } = useAuth();
   const { addStore } = useStores();
@@ -180,7 +180,7 @@ const Pipeline = () => {
   const [fTipo, setFTipo] = useState<string>("todos");
   const [fMes, setFMes] = useState<string>("todos");
   const [view, setView] = useState<"lista" | "kanban">("lista");
-  const [tab, setTab] = useState("novas");
+  const [tab, setTab] = useState<string>(initialTab || "novas");
 
   // Duplicates preview
   const [dupOpen, setDupOpen] = useState(false);

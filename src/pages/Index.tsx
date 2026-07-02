@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import MatrizEtapas from "./MatrizEtapas";
 import MuralObras from "@/components/home/MuralObras";
+import { InauguracaoBanner } from "@/components/InauguracaoBanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
@@ -142,52 +142,47 @@ const semBg: Record<Sem, string> = {
 
 // --------- existing store summary section (kept as-is) ---------
 
-type SortKey = "nome" | "analista" | "progresso" | "realizados" | "atrasados" | "naoiniciados" | "andamento";
+type SortKey = "nome" | "analista" | "dias" | "checklist" | "visita" | "cron" | "custo" | "sem";
 
 function StoreSummarySection({
-  stores, inauguradasFiliais, showReformas, setShowReformas, navigate,
+  storeMetrics, showReformas, setShowReformas, navigate,
 }: {
-  stores: any[];
-  inauguradasFiliais: Set<string>;
+  storeMetrics: any[];
   showReformas: boolean;
   setShowReformas: (fn: (v: boolean) => boolean) => void;
   navigate: (to: string) => void;
 }) {
-  const [sortKey, setSortKey] = useState<SortKey>("atrasados");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortKey, setSortKey] = useState<SortKey>("dias");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  const totalItems = checklistCategories.flatMap((c) => c.items).length;
-  const rows = useMemo(() => {
-    return stores
-      .filter((store) => {
-        if (store.isReforma && !showReformas) return false;
-        if (store.filial && inauguradasFiliais.has(String(store.filial))) return false;
-        return true;
-      })
-      .map((store) => {
-        const counts: Partial<Record<StatusType, number>> = {};
-        Object.values(store.checklist).forEach((c: any) => { counts[c.status] = (counts[c.status] || 0) + 1; });
-        const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
-        const pct = totalItems > 0 ? Math.round((done / totalItems) * 100) : 0;
-        const inProgress = (counts["EM COTAÇÃO"] || 0) + (counts["EM TRANSPORTE"] || 0) + (counts["EM ELABORAÇÃO"] || 0) + (counts["EM ANÁLISE"] || 0) + (counts["EM CONTRATAÇÃO"] || 0) + (counts["CONSTRUTORA"] || 0);
-        return { store, counts, pct, inProgress, atrasados: counts["ATRASADO"] || 0, realizados: counts["REALIZADO"] || 0, naoIni: counts["NÃO INICIADO"] || 0 };
-      })
-      .filter((r) => r.pct < 100);
-  }, [stores, inauguradasFiliais, showReformas, totalItems]);
+  const rows = useMemo(() => storeMetrics
+    .filter((m) => showReformas || !m.store.isReforma)
+    .map((m) => {
+      const chkTone: Sem = m.pct >= 70 ? "green" : m.pct >= 40 ? "amber" : "red";
+      const vtTone: Sem = m.vtPct >= 70 ? "green" : m.vtPct >= 30 ? "amber" : m.vtPct === 0 ? "red" : "amber";
+      const cronTone: Sem = m.cron ? "green" : "red";
+      const custoTone: Sem = m.custo?.hasCusto ? "green" : "red";
+      const toneScore: Record<Sem, number> = { red: 3, amber: 2, green: 1, muted: 0 };
+      const overall: Sem = [chkTone, vtTone, cronTone, custoTone]
+        .reduce<Sem>((worst, t) => (toneScore[t] > toneScore[worst] ? t : worst), "green");
+      return { m, chkTone, vtTone, cronTone, custoTone, overall };
+    }), [storeMetrics, showReformas]);
 
   const sorted = useMemo(() => {
     const arr = [...rows];
     const dir = sortDir === "asc" ? 1 : -1;
+    const toneScore: Record<Sem, number> = { green: 0, amber: 1, red: 2, muted: 3 };
     arr.sort((a, b) => {
-      const get = (r: typeof a) => {
+      const get = (r: typeof a): any => {
         switch (sortKey) {
-          case "nome": return r.store.nome.toLowerCase();
-          case "analista": return (r.store.analistaObra || "").toLowerCase();
-          case "progresso": return r.pct;
-          case "realizados": return r.realizados;
-          case "atrasados": return r.atrasados;
-          case "naoiniciados": return r.naoIni;
-          case "andamento": return r.inProgress;
+          case "nome": return r.m.store.nome.toLowerCase();
+          case "analista": return (r.m.store.analistaObra || "").toLowerCase();
+          case "dias": return r.m.days ?? 99999;
+          case "checklist": return r.m.pct;
+          case "visita": return r.m.vtPct;
+          case "cron": return r.m.cron ? 1 : 0;
+          case "custo": return r.m.custo?.hasCusto ? 1 : 0;
+          case "sem": return toneScore[r.overall];
         }
       };
       const av = get(a); const bv = get(b);
@@ -200,7 +195,7 @@ function StoreSummarySection({
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else { setSortKey(k); setSortDir(k === "nome" || k === "analista" ? "asc" : "desc"); }
+    else { setSortKey(k); setSortDir(k === "nome" || k === "analista" || k === "dias" ? "asc" : "desc"); }
   };
   const SortHead = ({ k, children, align = "left" }: { k: SortKey; children: any; align?: "left" | "center" }) => (
     <TableHead className={align === "center" ? "text-center" : ""}>
@@ -210,12 +205,20 @@ function StoreSummarySection({
     </TableHead>
   );
 
+  const dotClass = (t: Sem) =>
+    t === "green" ? "bg-[hsl(var(--success))]" : t === "amber" ? "bg-[hsl(38,90%,55%)]" : t === "red" ? "bg-destructive" : "bg-muted-foreground/40";
+  const badge = (t: Sem, label: string) => (
+    <span className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] ${semBg[t]}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${dotClass(t)}`} />{label}
+    </span>
+  );
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h2 className="text-lg font-semibold">Resumo das Lojas</h2>
-          <p className="text-xs text-muted-foreground">Mostrando {sorted.length} de {stores.length} lojas (apenas em andamento)</p>
+          <h2 className="text-lg font-semibold flex items-center gap-2"><Thermometer className="h-5 w-5" /> Status das Lojas</h2>
+          <p className="text-xs text-muted-foreground">Mostrando {sorted.length} loja(s) ativas</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant={showReformas ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setShowReformas((v) => !v)}>
@@ -232,37 +235,42 @@ function StoreSummarySection({
         <TableHeader><TableRow>
           <SortHead k="nome">Loja</SortHead>
           <SortHead k="analista">Analista</SortHead>
-          <SortHead k="progresso" align="center">Progresso</SortHead>
-          <SortHead k="realizados" align="center">Realizados</SortHead>
-          <SortHead k="atrasados" align="center">Atrasados</SortHead>
-          <SortHead k="naoiniciados" align="center">Não Iniciados</SortHead>
-          <SortHead k="andamento" align="center">Em Andamento</SortHead>
+          <SortHead k="dias" align="center">Dias p/ inaug.</SortHead>
+          <SortHead k="checklist" align="center">Checklist %</SortHead>
+          <SortHead k="visita" align="center">Visita</SortHead>
+          <SortHead k="cron" align="center">Cronograma</SortHead>
+          <SortHead k="custo" align="center">Custo</SortHead>
+          <SortHead k="sem" align="center">Semáforo</SortHead>
         </TableRow></TableHeader>
         <TableBody>
-          {sorted.map(({ store, pct, inProgress, atrasados, realizados, naoIni }) => (
-            <TableRow key={store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${store.id}`)}>
-              <TableCell className="font-medium">{store.nome}</TableCell>
+          {sorted.map(({ m, chkTone, vtTone, cronTone, custoTone, overall }) => (
+            <TableRow key={m.store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${m.store.id}`)}>
+              <TableCell className="font-medium">{m.store.nome}</TableCell>
               <TableCell className="text-sm">
-                {store.analistaObra ? (
-                  <span className="text-primary cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/lojas?analista=${encodeURIComponent(store.analistaObra)}`); }}>
-                    {store.analistaObra}
+                {m.store.analistaObra ? (
+                  <span className="text-primary cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/lojas?analista=${encodeURIComponent(m.store.analistaObra)}`); }}>
+                    {m.store.analistaObra}
                   </span>
-                ) : <span className="text-muted-foreground italic">sem analista</span>}
+                ) : <span className="text-muted-foreground italic">—</span>}
+              </TableCell>
+              <TableCell className="text-center text-sm">
+                {m.days === null ? <span className="text-muted-foreground">—</span> :
+                  m.days < 0 ? <span className="text-destructive font-semibold">{m.days}d</span> :
+                  m.days <= 14 ? <span className="text-[hsl(38,90%,40%)] font-semibold">{m.days}d</span> :
+                  <span>{m.days}d</span>}
               </TableCell>
               <TableCell className="text-center">
                 <div className="flex items-center gap-2 justify-center">
-                  <Progress value={pct} className="h-1.5 w-16" />
-                  <span className="text-xs font-semibold">{pct}%</span>
+                  <Progress value={m.pct} className="h-1.5 w-16" />
+                  <span className="text-xs font-semibold">{m.pct}%</span>
                 </div>
               </TableCell>
-              <TableCell className="text-center"><Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">{realizados}</Badge></TableCell>
+              <TableCell className="text-center">{badge(vtTone, `${m.vtPct}%`)}</TableCell>
+              <TableCell className="text-center">{badge(cronTone, m.cron ? "ok" : "—")}</TableCell>
+              <TableCell className="text-center">{badge(custoTone, m.custo?.hasCusto ? "ok" : "—")}</TableCell>
               <TableCell className="text-center">
-                {atrasados > 0
-                  ? <span className="text-destructive font-bold text-sm">{atrasados}</span>
-                  : <span className="text-xs text-muted-foreground">0</span>}
+                <span className={`inline-block h-3 w-3 rounded-full ${dotClass(overall)}`} title={overall} />
               </TableCell>
-              <TableCell className="text-center"><span className="text-xs text-muted-foreground">{naoIni}</span></TableCell>
-              <TableCell className="text-center"><span className="text-xs text-muted-foreground">{inProgress}</span></TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -270,6 +278,7 @@ function StoreSummarySection({
     </section>
   );
 }
+
 
 
 const Index = () => {
@@ -327,29 +336,38 @@ const Index = () => {
     return { store, inaugDate, days, vtPct, cron, ...chk, custo };
   }), [activeStores, custos]);
 
-  // ----- Obras Críticas -----
-  type Alert = { storeId: string; storeName: string; icon: any; label: string; tone: Sem; tab?: string; sort: number };
-  const alerts: Alert[] = useMemo(() => {
-    const out: Alert[] = [];
+  // ----- Obras Críticas (grouped per store) -----
+  type Alert = { icon: any; label: string; tone: Sem; tab?: string; sort: number };
+  type GroupedAlert = { storeId: string; storeName: string; analista: string; alerts: Alert[]; worstTone: Sem; minSort: number };
+  const groupedAlerts: GroupedAlert[] = useMemo(() => {
+    const byStore = new Map<string, GroupedAlert>();
+    const push = (m: typeof storeMetrics[0], a: Alert) => {
+      const key = m.store.id;
+      const g = byStore.get(key) || { storeId: key, storeName: m.store.nome, analista: m.store.analistaObra || "—", alerts: [], worstTone: "muted" as Sem, minSort: 999 };
+      g.alerts.push(a);
+      const toneRank: Record<Sem, number> = { red: 3, amber: 2, green: 1, muted: 0 };
+      if (toneRank[a.tone] > toneRank[g.worstTone]) g.worstTone = a.tone;
+      if (a.sort < g.minSort) g.minSort = a.sort;
+      byStore.set(key, g);
+    };
     storeMetrics.forEach((m) => {
-      const sName = m.store.nome;
       if (m.days !== null && m.days >= 0 && m.days <= 7) {
-        out.push({ storeId: m.store.id, storeName: sName, icon: Clock, label: `⏳ ${m.days === 0 ? "Inaugura hoje" : `${m.days} dia(s) para inaugurar`}`, tone: "red", sort: m.days });
+        push(m, { icon: Clock, label: `⏳ ${m.days === 0 ? "Inaugura hoje" : `${m.days}d p/ inaugurar`}`, tone: "red", sort: m.days });
       }
       if (m.vtPct === 0 && m.days !== null && m.days >= 0 && m.days < 30) {
-        out.push({ storeId: m.store.id, storeName: sName, icon: Search, label: "🔍 Visita Técnica pendente", tone: "red", tab: "visita-tecnica", sort: 10 });
+        push(m, { icon: Search, label: "🔍 Visita pendente", tone: "red", tab: "visita-tecnica", sort: 10 });
       }
       if (!m.cron) {
-        out.push({ storeId: m.store.id, storeName: sName, icon: Calendar, label: "📅 Cronograma não iniciado", tone: "amber", tab: "cronograma", sort: 20 });
+        push(m, { icon: Calendar, label: "📅 Sem cronograma", tone: "amber", tab: "cronograma", sort: 20 });
       }
       if (!m.custo?.hasCusto && m.pct > 20) {
-        out.push({ storeId: m.store.id, storeName: sName, icon: Wallet, label: "💰 Custos não registrados", tone: "amber", tab: "custos", sort: 30 });
+        push(m, { icon: Wallet, label: "💰 Sem custo", tone: "amber", tab: "custos", sort: 30 });
       }
       if (m.atrasados > 10) {
-        out.push({ storeId: m.store.id, storeName: sName, icon: Flame, label: `⚠️ ${m.atrasados} itens atrasados`, tone: "red", sort: 5 });
+        push(m, { icon: Flame, label: `⚠️ ${m.atrasados} atrasados`, tone: "red", sort: 5 });
       }
     });
-    return out.sort((a, b) => a.sort - b.sort).slice(0, 20);
+    return Array.from(byStore.values()).sort((a, b) => a.minSort - b.minSort);
   }, [storeMetrics]);
 
   // ----- 4 KPIs de Qualidade -----
@@ -422,16 +440,59 @@ const Index = () => {
 
   const [sp, setSp] = useSearchParams();
   const tabParam = sp.get("tab");
-  const activeTab = tabParam === "matriz" || tabParam === "mural" ? tabParam : "resumo";
+  const activeTab = tabParam === "alertas" || tabParam === "mural" ? tabParam : "resumo";
   const setTab = (v: string) => {
     const next = new URLSearchParams(sp);
-    if (v === "matriz" || v === "mural") next.set("tab", v);
+    if (v === "alertas" || v === "mural") next.set("tab", v);
     else next.delete("tab");
     setSp(next, { replace: true });
   };
 
+  const uniqueAlertStores = groupedAlerts.length;
+
+  const AlertasCriticosSection = ({ limit }: { limit?: number }) => {
+    const list = limit ? groupedAlerts.slice(0, limit) : groupedAlerts;
+    return (
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Flame className="h-5 w-5 text-destructive" /> Obras Críticas — Atenção Hoje
+          </h2>
+          <span className="text-xs text-muted-foreground">{uniqueAlertStores} loja(s) com alertas</span>
+        </div>
+        {list.length === 0 ? (
+          <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">
+            Nenhuma loja em alerta no momento. ✅
+          </CardContent></Card>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {list.map((g) => (
+              <button
+                key={g.storeId}
+                onClick={() => goToStore(g.storeId)}
+                className={`text-left rounded-lg border p-3 transition-colors hover:bg-muted/50 ${semBg[g.worstTone]}`}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <p className="text-sm font-semibold truncate">{g.storeName}</p>
+                  <Badge variant="outline" className="text-[10px] shrink-0">{g.alerts.length}</Badge>
+                </div>
+                <p className="text-[11px] opacity-80 mb-1 truncate">{g.analista}</p>
+                <p className="text-xs opacity-95 leading-snug">
+                  {g.alerts.map((a) => a.label).join(" | ")}
+                </p>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* Inauguração pendente banner */}
+      <InauguracaoBanner />
+
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Olá, {name?.split(" ")[0] || "bem-vindo"} 👋</h1>
@@ -441,53 +502,23 @@ const Index = () => {
       <Tabs value={activeTab} onValueChange={setTab}>
         <TabsList className="grid grid-cols-3 w-full max-w-xl">
           <TabsTrigger value="resumo">Resumo</TabsTrigger>
+          <TabsTrigger value="alertas">Alertas Críticos</TabsTrigger>
           <TabsTrigger value="mural">Mural de Obras</TabsTrigger>
-          <TabsTrigger value="matriz">Matriz de Etapas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="mural" className="mt-4">
           <MuralObras />
         </TabsContent>
 
-        <TabsContent value="matriz" className="mt-4">
-          <MatrizEtapas />
+        <TabsContent value="alertas" className="mt-4">
+          <AlertasCriticosSection />
         </TabsContent>
 
         <TabsContent value="resumo" className="mt-4 space-y-8">
 
 
-      {/* ============= OBRAS CRÍTICAS ============= */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Flame className="h-5 w-5 text-destructive" /> Obras Críticas — Atenção Hoje
-          </h2>
-          <span className="text-xs text-muted-foreground">{alerts.length} alerta(s)</span>
-        </div>
-        {alerts.length === 0 ? (
-          <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">
-            Nenhuma loja em alerta no momento. ✅
-          </CardContent></Card>
-        ) : (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {alerts.map((a, i) => (
-              <button
-                key={`${a.storeId}-${i}`}
-                onClick={() => goToStore(a.storeId, a.tab)}
-                className={`text-left rounded-lg border p-3 transition-colors hover:bg-muted/50 ${semBg[a.tone]}`}
-              >
-                <div className="flex items-start gap-2">
-                  <a.icon className="h-4 w-4 mt-0.5 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{a.storeName}</p>
-                    <p className="text-xs opacity-90">{a.label}</p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
+      {/* ============= OBRAS CRÍTICAS (resumo curto) ============= */}
+      <AlertasCriticosSection limit={9} />
 
       {/* ============= INDICADORES DE QUALIDADE ============= */}
       <section className="space-y-3">
@@ -502,44 +533,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ============= TERMÔMETRO DE QUALIDADE ============= */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Thermometer className="h-5 w-5" /> Termômetro de Qualidade
-        </h2>
-        {storeMetrics.length === 0 ? (
-          <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">Sem lojas ativas.</CardContent></Card>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {storeMetrics.map((m) => {
-              const chkTone: Sem = m.pct >= 70 ? "green" : m.pct >= 40 ? "amber" : "red";
-              const vtTone: Sem = m.vtPct >= 70 ? "green" : m.vtPct >= 30 ? "amber" : m.vtPct === 0 ? "red" : "amber";
-              const cronTone: Sem = m.cron ? "green" : "red";
-              const custoTone: Sem = m.custo?.hasCusto ? "green" : "red";
-              return (
-                <button
-                  key={m.store.id}
-                  onClick={() => goToStore(m.store.id)}
-                  className="text-left rounded-lg border bg-card p-3 hover:border-[hsl(var(--accent))] hover:shadow-sm transition-all"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-semibold text-sm truncate">{m.store.nome}</p>
-                    {m.days !== null && m.days >= 0 && m.days <= 30 && (
-                      <Badge variant="outline" className="text-[10px]">⏳ {m.days}d</Badge>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className={`rounded border px-2 py-1 text-[11px] ${semBg[chkTone]}`}>📋 Checklist {m.pct}%</div>
-                    <div className={`rounded border px-2 py-1 text-[11px] ${semBg[vtTone]}`}>🔍 Visita {m.vtPct}%</div>
-                    <div className={`rounded border px-2 py-1 text-[11px] ${semBg[cronTone]}`}>📅 {m.cron ? "Cronograma" : "Sem cronograma"}</div>
-                    <div className={`rounded border px-2 py-1 text-[11px] ${semBg[custoTone]}`}>💰 {m.custo?.hasCusto ? "Custo ok" : "Sem custo"}</div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </section>
+      {/* Termômetro removido — unificado em "Status das Lojas" abaixo. */}
 
       {/* ============= PRÓXIMAS INAUGURAÇÕES ============= */}
       <section className="space-y-3">
@@ -650,10 +644,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Store summary */}
-      {stores.length > 0 && <StoreSummarySection
-        stores={stores}
-        inauguradasFiliais={inauguradasFiliais}
+      {/* Status das Lojas (unificado — substitui Termômetro + Resumo) */}
+      {storeMetrics.length > 0 && <StoreSummarySection
+        storeMetrics={storeMetrics}
         showReformas={showReformas}
         setShowReformas={setShowReformas}
         navigate={navigate}
