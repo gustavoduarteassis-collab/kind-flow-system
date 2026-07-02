@@ -345,6 +345,11 @@ export default function MatrizEtapas() {
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <CardTitle className="text-base">
                 {rows.length} loja{rows.length !== 1 ? "s" : ""} {hasFilters ? "filtrada(s)" : "em andamento"}
+                {criticalCount > 0 && (
+                  <Badge variant="destructive" className="ml-2 gap-1 text-[10px]">
+                    <Flame className="h-3 w-3" /> {criticalCount} com alerta
+                  </Badge>
+                )}
               </CardTitle>
               <div className="relative w-full sm:w-72">
                 <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
