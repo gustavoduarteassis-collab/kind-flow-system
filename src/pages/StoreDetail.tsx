@@ -528,75 +528,91 @@ const StoreDetail = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsScrollableList>
-            <TabsTrigger
-              value="etapas"
-              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-            >
+            <TabsTrigger value="dados" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              📇 Dados
+            </TabsTrigger>
+            <TabsTrigger value="datas" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              📅 Datas
+            </TabsTrigger>
+            <TabsTrigger value="etapas" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
               🧭 Etapas
             </TabsTrigger>
-            <TabsTrigger
-              value="cronograma"
-              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-            >
-              📊 Cronograma de Obra
+            <TabsTrigger value="obra" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              🏗️ Obra
             </TabsTrigger>
-            <TabsTrigger
-              value="custos"
-              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-            >
+            <TabsTrigger value="checklist-final" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              🎉 Checklist Final
+            </TabsTrigger>
+            <TabsTrigger value="custos" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
               💰 Custos
             </TabsTrigger>
-            <TabsTrigger
-              value="diario"
-              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-            >
-              📓 Diário de Obra
+            <TabsTrigger value="diario" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              📓 Diário
             </TabsTrigger>
-            <TabsTrigger
-              value="fornecedores"
-              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-            >
-              🏭 Fornecedores
-            </TabsTrigger>
-            <TabsTrigger
-              value="visita-tecnica"
-              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-            >
-              🔍 Visita Técnica
-            </TabsTrigger>
-            <TabsTrigger
-              value="solicitacoes"
-              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-            >
-              📋 Solicitações
-            </TabsTrigger>
-            <TabsTrigger
-              value="comunicacao"
-              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-            >
-              💬 Comunicação Franqueado
-            </TabsTrigger>
-            <TabsTrigger
-              value="inauguracao"
-              className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-            >
-              🎉 Checklist Inauguração
-            </TabsTrigger>
-            {checklistCategories.map((cat) => {
-              const catProgress = getCategoryProgress(cat.id);
-              return (
-                <TabsTrigger
-                  key={cat.id}
-                  value={cat.id}
-                  className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors"
-                >
-                  {getCategoryName(cat.id, cat.nome)}
-                  <span className="ml-1.5 text-[10px] opacity-70">{catProgress}%</span>
-                </TabsTrigger>
-              );
-            })}
           </TabsScrollableList>
 
+          {/* 1. DADOS — cadastro/mestre da loja */}
+          <TabsContent value="dados" className="mt-4">
+            <div className="rounded-xl border bg-card p-6 space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">Dados da Loja</h3>
+                <p className="text-sm text-muted-foreground">Informações mestre. Edições aparecem em todos os módulos.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Nome</label>
+                  <Input value={store.nome} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { nome: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Filial</label>
+                  <Input value={store.filial || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { filial: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Franqueado</label>
+                  <Input value={store.franqueado || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { franqueado: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Construtor</label>
+                  <Input value={store.construtor || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { construtor: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Analista de Obra</label>
+                  <Input value={store.analistaObra || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { analistaObra: e.target.value })} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground">Tipo de Loja</label>
+                  <Select value={(store.tipoLoja as any) || ""} disabled={!isTeamMember} onValueChange={(v) => updateStore(store.id, { tipoLoja: v } as any)}>
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="rua">Rua</SelectItem>
+                      <SelectItem value="shopping">Shopping</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* 2. DATAS — linha do tempo de datas-chave */}
+          <TabsContent value="datas" className="mt-4">
+            <div className="rounded-xl border bg-card p-6 space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">Datas-chave</h3>
+                <p className="text-sm text-muted-foreground">Marcos do ciclo. Alterações refletem no cronograma e alertas.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Inauguração (prevista/real)</label>
+                  <Input type="date" value={store.inauguracao || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { inauguracao: e.target.value })} />
+                </div>
+              </div>
+              <div className="rounded-lg bg-muted/40 p-4 text-sm text-muted-foreground">
+                Prazos por atividade (início/fim de obra, entregas, etc.) são gerenciados dentro da aba <strong>Obra → Cronograma</strong> e das categorias de checklist.
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* 3. ETAPAS */}
           <TabsContent value="etapas" className="mt-4">
             <EtapasTab
               store={store}
@@ -609,55 +625,170 @@ const StoreDetail = () => {
             />
           </TabsContent>
 
-          <TabsContent value="cronograma" className="mt-4">
-            <CronogramaObra
-              store={store}
-              onUpdate={(cronograma) => updateStore(store.id, { cronograma })}
-            />
+          {/* 4. OBRA — agrupa Cronograma, Visita Técnica, Fornecedores, Solicitações, Comunicação e categorias do checklist */}
+          <TabsContent value="obra" className="mt-4">
+            <Tabs defaultValue="cronograma">
+              <TabsScrollableList>
+                <TabsTrigger value="cronograma" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                  📊 Cronograma
+                </TabsTrigger>
+                <TabsTrigger value="visita-tecnica" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                  🔍 Visita Técnica
+                </TabsTrigger>
+                <TabsTrigger value="fornecedores" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                  🏭 Fornecedores
+                </TabsTrigger>
+                <TabsTrigger value="solicitacoes" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                  📋 Solicitações
+                </TabsTrigger>
+                <TabsTrigger value="comunicacao" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                  💬 Comunicação
+                </TabsTrigger>
+                {checklistCategories.map((cat) => {
+                  const catProgress = getCategoryProgress(cat.id);
+                  return (
+                    <TabsTrigger key={cat.id} value={cat.id} className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                      {getCategoryName(cat.id, cat.nome)}
+                      <span className="ml-1.5 text-[10px] opacity-70">{catProgress}%</span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsScrollableList>
+
+              <TabsContent value="cronograma" className="mt-4">
+                <CronogramaObra store={store} onUpdate={(cronograma) => updateStore(store.id, { cronograma })} />
+              </TabsContent>
+              <TabsContent value="visita-tecnica" className="mt-4">
+                <ChecklistVisitaTecnica
+                  storeId={store.id}
+                  storeInauguracao={store.inauguracao || ""}
+                  data={(store as any).visitaTecnica || {}}
+                  onDataChange={(visitaTecnica) => updateStore(store.id, { visitaTecnica } as any)}
+                />
+              </TabsContent>
+              <TabsContent value="fornecedores" className="mt-4">
+                <FornecedoresObra />
+              </TabsContent>
+              <TabsContent value="solicitacoes" className="mt-4">
+                <SolicitacoesLoja
+                  data={(store as any).solicitacoes || {}}
+                  onUpdate={(solicitacoes) => updateStore(store.id, { solicitacoes } as any)}
+                />
+              </TabsContent>
+              <TabsContent value="comunicacao" className="mt-4">
+                <StoreCommunication storeId={store.id} storeName={store.nome} franqueado={store.franqueado} />
+              </TabsContent>
+
+              {checklistCategories.map((cat) => (
+                <TabsContent key={cat.id} value={cat.id} className="mt-4">
+                  {isTeamMember && (
+                    <div className="mb-3">
+                      <Input
+                        className="h-9 text-sm font-semibold max-w-md"
+                        value={getCategoryName(cat.id, cat.nome)}
+                        onChange={(e) => handleCategoryNameChange(cat.id, e.target.value)}
+                        onBlur={(e) => handleCategoryNameBlur(cat.id, e.target.value)}
+                      />
+                    </div>
+                  )}
+                  <div className="rounded-xl border bg-card overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="w-12 text-center">#</TableHead>
+                            <TableHead className="min-w-[350px]">Atividade</TableHead>
+                            <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
+                            {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
+                              <TableHead className="w-[130px]">Prazo Inicial</TableHead>
+                            )}
+                            <TableHead className="w-[130px]">Prazo Final</TableHead>
+                            <TableHead className="w-[170px]">Status</TableHead>
+                            <TableHead className="w-[140px]">Responsável</TableHead>
+                            <TableHead className="min-w-[160px]">Observações</TableHead>
+                            <TableHead className="min-w-[200px]">Passo a Passo</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {cat.items.map((item) => {
+                            const data = store.checklist[item.id] || {
+                              status: "NÃO INICIADO" as StatusType,
+                              prazoInicial: "",
+                              prazoFinal: "",
+                              observacoes: "",
+                            };
+                            const isImpeditivo = item.atividade.includes("IMPEDITIVO");
+                            return (
+                              <TableRow
+                                key={item.id}
+                                className={
+                                  data.status === "ATRASADO" ? "bg-destructive/5"
+                                  : data.status === "REALIZADO" ? "bg-[hsl(142,60%,95%)]"
+                                  : data.status === "REALIZANDO" ? "bg-[hsl(152,40%,92%)]"
+                                  : data.status === "EM ANDAMENTO" ? "bg-[hsl(45,90%,95%)]"
+                                  : isImpeditivo ? "bg-[hsl(38,90%,97%)]" : ""
+                                }
+                              >
+                                <TableCell className="text-center font-mono text-xs text-muted-foreground">{item.id}</TableCell>
+                                <TableCell>
+                                  <div className="text-sm break-words whitespace-normal">
+                                    {isTeamMember ? (
+                                      <Textarea
+                                        className="min-h-[36px] text-xs font-medium resize-none overflow-hidden"
+                                        rows={2}
+                                        value={data.atividade || item.atividade}
+                                        onChange={(e) => handleFieldChange(item.id, "atividade", e.target.value)}
+                                      />
+                                    ) : (
+                                      <span className="whitespace-pre-line">{data.atividade || item.atividade}</span>
+                                    )}
+                                    {isImpeditivo && (
+                                      <Badge variant="outline" className="ml-2 mt-1 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">IMPEDITIVO</Badge>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">{item.preRequisito || "—"}</TableCell>
+                                {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
+                                  <TableCell>
+                                    <Input type="date" className="h-8 text-xs" value={data.prazoInicial} onChange={(e) => handleFieldChange(item.id, "prazoInicial", e.target.value)} />
+                                  </TableCell>
+                                )}
+                                <TableCell>
+                                  <Input type="date" className="h-8 text-xs" value={data.prazoFinal} onChange={(e) => handleFieldChange(item.id, "prazoFinal", e.target.value)} />
+                                </TableCell>
+                                <TableCell>
+                                  <Select value={data.status} onValueChange={(v) => handleStatusChange(item.id, v as StatusType)}>
+                                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      {cat.statusOptions.map((s) => (
+                                        <SelectItem key={s} value={s}>
+                                          <Badge className={`${statusColors[s]} text-[10px]`}>{s}</Badge>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                                <TableCell className="text-xs">{item.responsavel}</TableCell>
+                                <TableCell>
+                                  <Textarea className="min-h-[36px] text-xs resize-none overflow-hidden" rows={2} placeholder="Obs..." value={data.observacoes} onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)} />
+                                </TableCell>
+                                <TableCell>
+                                  <Textarea className="min-h-[36px] text-xs resize-none overflow-hidden" rows={2} placeholder="Instruções detalhadas..." value={data.descricao || ""} onChange={(e) => handleFieldChange(item.id, "descricao", e.target.value)} disabled={!isTeamMember} />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
           </TabsContent>
 
-
-          <TabsContent value="custos" className="mt-4 space-y-4">
-            <StoreCustosSummary store={store} />
-            <CustosObra
-              store={store}
-              onUpdate={(custos) => updateStore(store.id, { custos } as any)}
-            />
-          </TabsContent>
-
-          <TabsContent value="diario" className="mt-4">
-            <DiarioObra storeId={store.id} />
-          </TabsContent>
-
-          <TabsContent value="fornecedores" className="mt-4">
-            <FornecedoresObra />
-          </TabsContent>
-
-          <TabsContent value="visita-tecnica" className="mt-4">
-            <ChecklistVisitaTecnica
-              storeId={store.id}
-              storeInauguracao={store.inauguracao || ""}
-              data={(store as any).visitaTecnica || {}}
-              onDataChange={(visitaTecnica) => updateStore(store.id, { visitaTecnica } as any)}
-            />
-          </TabsContent>
-
-          <TabsContent value="solicitacoes" className="mt-4">
-            <SolicitacoesLoja
-              data={(store as any).solicitacoes || {}}
-              onUpdate={(solicitacoes) => updateStore(store.id, { solicitacoes } as any)}
-            />
-          </TabsContent>
-
-          <TabsContent value="comunicacao" className="mt-4">
-            <StoreCommunication
-              storeId={store.id}
-              storeName={store.nome}
-              franqueado={store.franqueado}
-            />
-          </TabsContent>
-
-          <TabsContent value="inauguracao" className="mt-4">
+          {/* 5. CHECKLIST FINAL */}
+          <TabsContent value="checklist-final" className="mt-4">
             <ChecklistInauguracao
               tipoLoja={store.tipoLoja as "rua" | "shopping" | ""}
               data={store.inauguracaoChecklist || { rounds: [] }}
@@ -666,165 +797,16 @@ const StoreDetail = () => {
             />
           </TabsContent>
 
-          {checklistCategories.map((cat) => (
-            <TabsContent key={cat.id} value={cat.id} className="mt-4">
-              {isTeamMember && (
-                <div className="mb-3">
-                  <Input
-                    className="h-9 text-sm font-semibold max-w-md"
-                    value={getCategoryName(cat.id, cat.nome)}
-                    onChange={(e) => handleCategoryNameChange(cat.id, e.target.value)}
-                    onBlur={(e) => handleCategoryNameBlur(cat.id, e.target.value)}
-                  />
-                </div>
-              )}
-              <div className="rounded-xl border bg-card overflow-hidden">
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/50">
-                        <TableHead className="w-12 text-center">#</TableHead>
-                        <TableHead className="min-w-[350px]">Atividade</TableHead>
-                        <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
-                        {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
-                          <TableHead className="w-[130px]">Prazo Inicial</TableHead>
-                        )}
-                        <TableHead className="w-[130px]">Prazo Final</TableHead>
-                        <TableHead className="w-[170px]">Status</TableHead>
-                        <TableHead className="w-[140px]">Responsável</TableHead>
-                        <TableHead className="min-w-[160px]">Observações</TableHead>
-                        <TableHead className="min-w-[200px]">Passo a Passo</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {cat.items.map((item) => {
-                        const data = store.checklist[item.id] || {
-                          status: "NÃO INICIADO" as StatusType,
-                          prazoInicial: "",
-                          prazoFinal: "",
-                          observacoes: "",
-                        };
-                        const isImpeditivo = item.atividade.includes("IMPEDITIVO");
-                        return (
-                          <TableRow
-                            key={item.id}
-                            className={
-                              data.status === "ATRASADO"
-                                ? "bg-destructive/5"
-                                : data.status === "REALIZADO"
-                                ? "bg-[hsl(142,60%,95%)]"
-                                : data.status === "REALIZANDO"
-                                ? "bg-[hsl(152,40%,92%)]"
-                                : data.status === "EM ANDAMENTO"
-                                ? "bg-[hsl(45,90%,95%)]"
-                                : isImpeditivo
-                                ? "bg-[hsl(38,90%,97%)]"
-                                : ""
-                            }
-                          >
-                            <TableCell className="text-center font-mono text-xs text-muted-foreground">
-                              {item.id}
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm break-words whitespace-normal">
-                                {isTeamMember ? (
-                                  <Textarea
-                                    className="min-h-[36px] text-xs font-medium resize-none overflow-hidden"
-                                    rows={2}
-                                    value={data.atividade || item.atividade}
-                                    onChange={(e) =>
-                                      handleFieldChange(item.id, "atividade", e.target.value)
-                                    }
-                                  />
-                                ) : (
-                                  <span className="whitespace-pre-line">{data.atividade || item.atividade}</span>
-                                )}
-                                {isImpeditivo && (
-                                  <Badge variant="outline" className="ml-2 mt-1 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">
-                                    IMPEDITIVO
-                                  </Badge>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-xs text-muted-foreground">
-                              {item.preRequisito || "—"}
-                            </TableCell>
-                            {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
-                              <TableCell>
-                                <Input
-                                  type="date"
-                                  className="h-8 text-xs"
-                                  value={data.prazoInicial}
-                                  onChange={(e) =>
-                                    handleFieldChange(item.id, "prazoInicial", e.target.value)
-                                  }
-                                />
-                              </TableCell>
-                            )}
-                            <TableCell>
-                              <Input
-                                type="date"
-                                className="h-8 text-xs"
-                                value={data.prazoFinal}
-                                onChange={(e) =>
-                                  handleFieldChange(item.id, "prazoFinal", e.target.value)
-                                }
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Select
-                                value={data.status}
-                                onValueChange={(v) =>
-                                  handleStatusChange(item.id, v as StatusType)
-                                }
-                              >
-                                <SelectTrigger className="h-8 text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {cat.statusOptions.map((s) => (
-                                    <SelectItem key={s} value={s}>
-                                      <Badge className={`${statusColors[s]} text-[10px]`}>
-                                        {s}
-                                      </Badge>
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </TableCell>
-                            <TableCell className="text-xs">{item.responsavel}</TableCell>
-                            <TableCell>
-                              <Textarea
-                                className="min-h-[36px] text-xs resize-none overflow-hidden"
-                                rows={2}
-                                placeholder="Obs..."
-                                value={data.observacoes}
-                                onChange={(e) =>
-                                  handleFieldChange(item.id, "observacoes", e.target.value)
-                                }
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Textarea
-                                className="min-h-[36px] text-xs resize-none overflow-hidden"
-                                rows={2}
-                                placeholder="Instruções detalhadas..."
-                                value={data.descricao || ""}
-                                onChange={(e) =>
-                                  handleFieldChange(item.id, "descricao", e.target.value)
-                                }
-                                disabled={!isTeamMember}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </TabsContent>
-          ))}
+          {/* 6. CUSTOS */}
+          <TabsContent value="custos" className="mt-4 space-y-4">
+            <StoreCustosSummary store={store} />
+            <CustosObra store={store} onUpdate={(custos) => updateStore(store.id, { custos } as any)} />
+          </TabsContent>
+
+          {/* 7. DIÁRIO */}
+          <TabsContent value="diario" className="mt-4">
+            <DiarioObra storeId={store.id} />
+          </TabsContent>
         </Tabs>
 
         {/* Dialog for syncing category name to all stores */}
