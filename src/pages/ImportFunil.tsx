@@ -243,12 +243,12 @@ const ImportFunil = () => {
         const fieldsToFill: string[] = [];
         for (const key of FILLABLE_FIELDS) {
           const newVal = row.data[key];
-          if (!newVal) continue;
-          // Regra: nunca sobrescreve dado já preenchido — preserva todo histórico.
-          if (isEmpty(existing[key])) fieldsToFill.push(key);
+          if (!newVal) continue; // planilha vazia nunca apaga dado existente
+          // Planilha vence: se valor difere do banco, sobrescreve.
+          const current = existing[key] == null ? "" : String(existing[key]).trim();
+          if (current !== newVal) fieldsToFill.push(key);
         }
-        // Se "Previsão inicial de inauguração" existe na planilha e
-        // a "Data de Inauguração" ainda está vazia no banco, preenche também.
+        // Espelha previsão → data_inauguracao quando data ainda vazia no banco.
         if (row.data.previsao_inauguracao && isEmpty(existing.data_inauguracao)
             && !fieldsToFill.includes("data_inauguracao")) {
           row.data.data_inauguracao = row.data.previsao_inauguracao;
@@ -263,6 +263,7 @@ const ImportFunil = () => {
           fieldsToFill,
         });
       }
+
       setPreview(items);
     } finally {
       setPreviewing(false);
@@ -349,7 +350,7 @@ const ImportFunil = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Importar Funil 2026</h1>
-          <p className="text-xs text-muted-foreground">Importação aditiva — nunca sobrescreve dados existentes</p>
+          <p className="text-xs text-muted-foreground">Planilha vence — sobrescreve valores divergentes; células vazias não apagam dados</p>
         </div>
 
         {/* Upload area */}
@@ -374,10 +375,10 @@ const ImportFunil = () => {
               {fileName && <span className="text-sm text-muted-foreground">{fileName}</span>}
             </div>
             <div className="rounded-md bg-muted/50 border border-border p-3 text-xs text-muted-foreground space-y-1">
-              <p>• A importação <strong>nunca</strong> apaga ou sobrescreve dados existentes.</p>
+              <p>• Modo <strong>"planilha vence"</strong>: valores da planilha sobrescrevem os do sistema quando diferentes.</p>
+              <p>• Células vazias na planilha <strong>nunca apagam</strong> dados já preenchidos.</p>
               <p>• Lojas são identificadas pelo número da <strong>Filial</strong>.</p>
               <p>• Linhas sem Filial são ignoradas silenciosamente.</p>
-              <p>• Campos só são preenchidos quando estão vazios na plataforma.</p>
             </div>
           </CardContent>
         </Card>
@@ -397,7 +398,7 @@ const ImportFunil = () => {
                 <p className="text-2xl font-bold text-emerald-600 mt-1">{counts.create}</p>
               </CardContent></Card>
               <Card><CardContent className="p-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground"><RefreshCw className="h-3.5 w-3.5" /> Campos a preencher</div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground"><RefreshCw className="h-3.5 w-3.5" /> Campos a atualizar</div>
                 <p className="text-2xl font-bold text-amber-600 mt-1">{counts.fill}</p>
               </CardContent></Card>
               <Card><CardContent className="p-4">

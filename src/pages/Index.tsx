@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import MatrizEtapas from "./MatrizEtapas";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
 import { checklistCategories, StatusType } from "@/data/checklistData";
@@ -417,13 +419,34 @@ const Index = () => {
     );
   };
 
+  const [sp, setSp] = useSearchParams();
+  const activeTab = sp.get("tab") === "matriz" ? "matriz" : "resumo";
+  const setTab = (v: string) => {
+    const next = new URLSearchParams(sp);
+    if (v === "matriz") next.set("tab", "matriz"); else next.delete("tab");
+    setSp(next, { replace: true });
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Olá, {name?.split(" ")[0] || "bem-vindo"} 👋</h1>
         <p className="text-sm text-muted-foreground">Início do dia: prioridades, qualidade e próximas inaugurações.</p>
       </div>
+
+      <Tabs value={activeTab} onValueChange={setTab}>
+        <TabsList className="grid grid-cols-2 w-full max-w-md">
+          <TabsTrigger value="resumo">Resumo</TabsTrigger>
+          <TabsTrigger value="matriz">Matriz de Etapas</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="matriz" className="mt-4">
+          <MatrizEtapas />
+        </TabsContent>
+
+        <TabsContent value="resumo" className="mt-4 space-y-8">
+
 
       {/* ============= OBRAS CRÍTICAS ============= */}
       <section className="space-y-3">
@@ -660,8 +683,11 @@ const Index = () => {
           </Table></div></Card>
         )}
       </section>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
+
 
 export default Index;

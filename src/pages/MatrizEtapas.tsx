@@ -13,11 +13,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const AUTO_PHASES = [
-  { key: "funil", label: "Funil", desc: "Loja cadastrada no funil de expansão. Marcada automaticamente para toda loja em andamento." },
-  { key: "preobra", label: "Pré-Obra", desc: "Existe visita técnica registrada ou pelo menos uma solicitação operacional cadastrada." },
-  { key: "obra", label: "Obra", desc: "Checklist de obra iniciado e todos os itens marcados como REALIZADO ou NÃO SE APLICA." },
-  { key: "checklist", label: "Checklist Final", desc: "Ao menos uma rodada do checklist final de inauguração foi preenchida." },
-  { key: "inaugurada", label: "Inaugurada", desc: "Loja liberada pelo checklist final ou marcada como inaugurada no funil." },
+  { key: "funil", label: "Funil", tab: "dados", desc: "Loja cadastrada no funil de expansão. Marcada automaticamente para toda loja em andamento." },
+  { key: "preobra", label: "Pré-Obra", tab: "obra", desc: "Existe visita técnica registrada ou pelo menos uma solicitação operacional cadastrada." },
+  { key: "obra", label: "Obra", tab: "obra", desc: "Checklist de obra iniciado e todos os itens marcados como REALIZADO ou NÃO SE APLICA." },
+  { key: "checklist", label: "Checklist Final", tab: "checklist-final", desc: "Ao menos uma rodada do checklist final de inauguração foi preenchida." },
+  { key: "inaugurada", label: "Inaugurada", tab: "datas", desc: "Loja liberada pelo checklist final ou marcada como inaugurada no funil." },
 ] as const;
 
 // Etapas da planilha (Funil 2026) — ordem, agrupamento e descrições fiéis à planilha.
@@ -380,16 +380,17 @@ export default function MatrizEtapas() {
                           <TableCell key={p.key} className={cn("text-center bg-muted/20", i === 0 && "border-l")}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <div
+                                <Link
+                                  to={`/loja/${store.id}?tab=${p.tab}`}
                                   className={cn(
-                                    "inline-flex h-7 w-7 items-center justify-center rounded-full border cursor-help",
+                                    "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
                                     flags[p.key]
                                       ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
                                       : "bg-muted text-muted-foreground border-border"
                                   )}
                                 >
                                   {flags[p.key] ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
-                                </div>
+                                </Link>
                               </TooltipTrigger>
                               <TooltipContent side="top" className="max-w-xs">
                                 <div className="font-semibold">{store.nome} — {p.label}</div>
@@ -397,6 +398,7 @@ export default function MatrizEtapas() {
                                   {flags[p.key] ? "✅ Concluída automaticamente pelo sistema." : "⏳ Pendente — critério ainda não atendido."}
                                 </div>
                                 <div className="text-xs mt-1 text-muted-foreground">{p.desc}</div>
+                                <div className="text-[10px] mt-2 text-muted-foreground italic">Clique para abrir a loja na aba correspondente.</div>
                               </TooltipContent>
                             </Tooltip>
                           </TableCell>

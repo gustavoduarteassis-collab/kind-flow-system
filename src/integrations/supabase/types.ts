@@ -1203,6 +1203,8 @@ export type Database = {
           razao_social: string | null
           solicitacoes: Json
           stage_status: Json
+          stage_status_updated_at: string | null
+          stage_status_updated_by: string | null
           status_geral: string | null
           tipo_loja: string
           uf: string | null
@@ -1239,6 +1241,8 @@ export type Database = {
           razao_social?: string | null
           solicitacoes?: Json
           stage_status?: Json
+          stage_status_updated_at?: string | null
+          stage_status_updated_by?: string | null
           status_geral?: string | null
           tipo_loja?: string
           uf?: string | null
@@ -1275,6 +1279,8 @@ export type Database = {
           razao_social?: string | null
           solicitacoes?: Json
           stage_status?: Json
+          stage_status_updated_at?: string | null
+          stage_status_updated_by?: string | null
           status_geral?: string | null
           tipo_loja?: string
           uf?: string | null
