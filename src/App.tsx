@@ -20,6 +20,7 @@ import AGM from "./pages/AGM";
 import Acessos from "./pages/Acessos";
 import ItensExcluidos from "./pages/ItensExcluidos";
 import Performance from "./pages/Performance";
+import ValidacaoDatas from "./pages/ValidacaoDatas";
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -89,6 +90,7 @@ function AppRoutes() {
         <Route path="/acessos" element={<Acessos />} />
         <Route path="/itens-excluidos" element={<ItensExcluidos />} />
         <Route path="/performance" element={<Performance />} />
+        <Route path="/validacao-datas" element={<ValidacaoDatas />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
