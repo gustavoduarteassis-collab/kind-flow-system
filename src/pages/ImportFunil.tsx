@@ -375,10 +375,10 @@ const ImportFunil = () => {
               {fileName && <span className="text-sm text-muted-foreground">{fileName}</span>}
             </div>
             <div className="rounded-md bg-muted/50 border border-border p-3 text-xs text-muted-foreground space-y-1">
-              <p>• A importação <strong>nunca</strong> apaga ou sobrescreve dados existentes.</p>
+              <p>• Modo <strong>"planilha vence"</strong>: valores da planilha sobrescrevem os do sistema quando diferentes.</p>
+              <p>• Células vazias na planilha <strong>nunca apagam</strong> dados já preenchidos.</p>
               <p>• Lojas são identificadas pelo número da <strong>Filial</strong>.</p>
               <p>• Linhas sem Filial são ignoradas silenciosamente.</p>
-              <p>• Campos só são preenchidos quando estão vazios na plataforma.</p>
             </div>
           </CardContent>
         </Card>
