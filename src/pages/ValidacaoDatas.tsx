@@ -153,12 +153,20 @@ const ValidacaoDatas = () => {
 
   const sincronizar = async (m: SyncMismatch) => {
     setSyncing(true);
+    setSyncingId(`${m.store_id}-${m.campo}`);
+    setSyncError(null);
     const patch: any = {};
     if (m.campo === "Previsão de inauguração") patch.inauguracao = m.funil;
     else patch.inauguracao_real = m.funil;
     const { error } = await supabase.from("stores").update(patch).eq("id", m.store_id);
     setSyncing(false);
-    if (error) { toast.error("Falha ao sincronizar: " + error.message); return; }
+    setSyncingId(null);
+    if (error) {
+      const msg = "Falha ao sincronizar: " + error.message;
+      setSyncError(msg);
+      toast.error(msg);
+      return;
+    }
     toast.success("Painel sincronizado com o Funil");
     load();
   };
@@ -166,14 +174,23 @@ const ValidacaoDatas = () => {
   const sincronizarTudo = async () => {
     if (mismatches.length === 0) return;
     setSyncing(true);
+    setSyncError(null);
+    const failures: string[] = [];
     for (const m of mismatches) {
       const patch: any = {};
       if (m.campo === "Previsão de inauguração") patch.inauguracao = m.funil;
       else patch.inauguracao_real = m.funil;
-      await supabase.from("stores").update(patch).eq("id", m.store_id);
+      const { error } = await supabase.from("stores").update(patch).eq("id", m.store_id);
+      if (error) failures.push(`${m.nome} (${m.campo}): ${error.message}`);
     }
     setSyncing(false);
-    toast.success(`${mismatches.length} divergência(s) sincronizada(s)`);
+    if (failures.length) {
+      const msg = `${failures.length} falha(s) ao sincronizar. Ex.: ${failures[0]}`;
+      setSyncError(msg);
+      toast.error(msg);
+    } else {
+      toast.success(`${mismatches.length} divergência(s) sincronizada(s)`);
+    }
     load();
   };
 
