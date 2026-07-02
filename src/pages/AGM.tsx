@@ -35,6 +35,7 @@ import { MatrizAnalistas } from "@/components/MatrizAnalistas";
 import { isStoreLiberated } from "@/utils/inaugurationStatus";
 import { PlanosAcumulados } from "@/components/agm/PlanosAcumulados";
 import { AGMAssistant } from "@/components/agm/AGMAssistant";
+import PanoramaObras from "@/components/agm/PanoramaObras";
 
 
 
@@ -685,6 +686,7 @@ const AGM = () => {
 
         <Tabs defaultValue="lojas" className="space-y-6">
           <TabsList className="flex flex-wrap h-auto">
+            <TabsTrigger value="panorama">Panorama Automático</TabsTrigger>
             <TabsTrigger value="lojas">Lojas do Mês</TabsTrigger>
             <TabsTrigger value="matriz">Matriz de Resultados</TabsTrigger>
             <TabsTrigger value="analistas">Metas Analistas</TabsTrigger>
@@ -693,6 +695,10 @@ const AGM = () => {
             <TabsTrigger value="acumulados">Planos Acumulados</TabsTrigger>
             <TabsTrigger value="assistente">Assistente IA</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="panorama" className="space-y-4">
+            <PanoramaObras />
+          </TabsContent>
 
           <TabsContent value="lojas" className="space-y-4">
 
