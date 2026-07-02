@@ -102,7 +102,7 @@ export default function TarefasTab({ storeId, storeName, canEdit }: Props) {
   }
 
   async function handleStatusChange(id: string, status: string) {
-    await supabase.from("tasks").update({ status }).eq("id", id);
+    await supabase.from("tasks").update({ status: status as any }).eq("id", id);
     fetchTasks();
   }
 
