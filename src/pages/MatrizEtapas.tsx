@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Check, Minus, Search, Info, X } from "lucide-react";
+import { Check, Minus, Search, Info, X, AlertTriangle, Flame } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
 import { isStoreLiberated } from "@/utils/inaugurationStatus";
 import { migrateInaugData, getAllInaugItems } from "@/data/inauguracaoChecklistData";
+import { computeCriticality, highestSeverity, type CriticalReason } from "@/utils/storeCriticality";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
