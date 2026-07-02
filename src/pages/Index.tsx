@@ -524,44 +524,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ============= TERMÔMETRO DE QUALIDADE ============= */}
-      <section className="space-y-3">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Thermometer className="h-5 w-5" /> Termômetro de Qualidade
-        </h2>
-        {storeMetrics.length === 0 ? (
-          <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">Sem lojas ativas.</CardContent></Card>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {storeMetrics.map((m) => {
-              const chkTone: Sem = m.pct >= 70 ? "green" : m.pct >= 40 ? "amber" : "red";
-              const vtTone: Sem = m.vtPct >= 70 ? "green" : m.vtPct >= 30 ? "amber" : m.vtPct === 0 ? "red" : "amber";
-              const cronTone: Sem = m.cron ? "green" : "red";
-              const custoTone: Sem = m.custo?.hasCusto ? "green" : "red";
-              return (
-                <button
-                  key={m.store.id}
-                  onClick={() => goToStore(m.store.id)}
-                  className="text-left rounded-lg border bg-card p-3 hover:border-[hsl(var(--accent))] hover:shadow-sm transition-all"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="font-semibold text-sm truncate">{m.store.nome}</p>
-                    {m.days !== null && m.days >= 0 && m.days <= 30 && (
-                      <Badge variant="outline" className="text-[10px]">⏳ {m.days}d</Badge>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <div className={`rounded border px-2 py-1 text-[11px] ${semBg[chkTone]}`}>📋 Checklist {m.pct}%</div>
-                    <div className={`rounded border px-2 py-1 text-[11px] ${semBg[vtTone]}`}>🔍 Visita {m.vtPct}%</div>
-                    <div className={`rounded border px-2 py-1 text-[11px] ${semBg[cronTone]}`}>📅 {m.cron ? "Cronograma" : "Sem cronograma"}</div>
-                    <div className={`rounded border px-2 py-1 text-[11px] ${semBg[custoTone]}`}>💰 {m.custo?.hasCusto ? "Custo ok" : "Sem custo"}</div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </section>
+      {/* Termômetro removido — unificado em "Status das Lojas" abaixo. */}
 
       {/* ============= PRÓXIMAS INAUGURAÇÕES ============= */}
       <section className="space-y-3">
