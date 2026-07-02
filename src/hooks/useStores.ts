@@ -49,6 +49,21 @@ export function useStores() {
         ultimaAtualizacao: row.ultima_atualizacao || "",
         ultimaAtualizacaoAt: row.ultima_atualizacao_at || "",
         ultimaAtualizacaoAutor: row.ultima_atualizacao_autor || "",
+        cidade: row.cidade || "",
+        uf: row.uf || "",
+        endereco: row.endereco || "",
+        cep: row.cep || "",
+        telefone: row.telefone || "",
+        emailLoja: row.email_loja || "",
+        cnpj: row.cnpj || "",
+        razaoSocial: row.razao_social || "",
+        marca: row.marca || "",
+        shoppingNome: row.shopping_nome || "",
+        metragemM2: row.metragem_m2 ?? null,
+        observacoesGerais: row.observacoes_gerais || "",
+        porte: row.porte || "",
+        localizacao: row.localizacao || "",
+        stageStatus: (row.stage_status && typeof row.stage_status === "object") ? row.stage_status : {},
       })));
     }
     setLoading(false);
