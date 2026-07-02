@@ -190,7 +190,11 @@ export default function MatrizEtapas() {
         const inPipeline =
           pipelineInaug.has((s.nome || "").trim().toLowerCase()) ||
           pipelineInaug.has((s.filial || "").trim().toLowerCase());
-        return { store: s, flags: computeAutoFlags(s, inPipeline) };
+        return {
+          store: s,
+          flags: computeAutoFlags(s, inPipeline),
+          derived: deriveStagesFromChecklist(s),
+        };
       })
       .filter((r) => !r.flags.inaugurada)
       .sort((a, b) => a.store.nome.localeCompare(b.store.nome, "pt-BR"));
@@ -207,7 +211,11 @@ export default function MatrizEtapas() {
     PLANILHA_STAGES.forEach((s) => { t[s.key] = 0; });
     rows.forEach((r) => {
       const st = stageStatus[r.store.id] || {};
-      PLANILHA_STAGES.forEach((s) => { if (st[s.key]) t[s.key]++; });
+      PLANILHA_STAGES.forEach((s) => {
+        // Derivado do Checklist Final tem prioridade — evita divergência
+        const isDone = r.derived[s.key] || !!st[s.key];
+        if (isDone) t[s.key]++;
+      });
     });
     return t;
   }, [rows, stageStatus]);
