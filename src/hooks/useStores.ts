@@ -34,6 +34,21 @@ export function useStores() {
         solicitacoes: row.solicitacoes || {},
         visitaTecnica: row.visita_tecnica || {},
         isReforma: row.is_reforma === true,
+        dataContratoLocacao: row.data_contrato_locacao || "",
+        dataLiberacaoChaves: row.data_liberacao_chaves || "",
+        demolicaoPrev: row.demolicao_prev || "",
+        demolicaoReal: row.demolicao_real || "",
+        obraInicioPrev: row.obra_inicio_prev || "",
+        obraInicioReal: row.obra_inicio_real || "",
+        moveisPrev: row.moveis_prev || "",
+        moveisReal: row.moveis_real || "",
+        produtosPrev: row.produtos_prev || "",
+        produtosReal: row.produtos_real || "",
+        inauguracaoReal: row.inauguracao_real || "",
+        visitaTecnicaReal: row.visita_tecnica_real || "",
+        ultimaAtualizacao: row.ultima_atualizacao || "",
+        ultimaAtualizacaoAt: row.ultima_atualizacao_at || "",
+        ultimaAtualizacaoAutor: row.ultima_atualizacao_autor || "",
       })));
     }
     setLoading(false);
