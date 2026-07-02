@@ -18,37 +18,55 @@ const AUTO_PHASES = [
   { key: "inaugurada", label: "Inaugurada" },
 ] as const;
 
-// Etapas da planilha (Funil 2026) — marcação manual, persistida em stores.stage_status
-const PLANILHA_STAGES: { key: string; label: string }[] = [
-  { key: "docs", label: "Docs" },
-  { key: "cof", label: "COF" },
-  { key: "contr_franquia", label: "Contr. Franquia" },
-  { key: "contrato_locacao", label: "Contrato Locação" },
-  { key: "fampe", label: "FAMPE / Plano" },
-  { key: "dre", label: "DRE" },
-  { key: "conta_bancaria", label: "Conta Bancária" },
-  { key: "projetos", label: "Projetos" },
-  { key: "obras", label: "Obras" },
-  { key: "contrato_obras", label: "Contrato Obras" },
-  { key: "sankya", label: "Sankya" },
-  { key: "use", label: "USE" },
-  { key: "implantacao_use", label: "Implant. USE" },
-  { key: "skytef", label: "Skytef" },
-  { key: "cielo_lio", label: "Cielo/LIO" },
-  { key: "pix", label: "PIX" },
-  { key: "boa_vista", label: "Boa Vista" },
-  { key: "venda_link", label: "Venda Link" },
-  { key: "loja_apoio", label: "Loja de Apoio" },
-  { key: "loja_liberada", label: "Loja Liberada" },
-  { key: "grupo_wpp", label: "Grupo WPP" },
-  { key: "info_sistema", label: "Info e Sistema" },
-  { key: "lancamento_tx", label: "Lanç. Tx Financ." },
-  { key: "produtos_cds", label: "Produtos/CDs" },
-  { key: "equipe", label: "Equipe" },
-  { key: "mkt_loja", label: "MKT Loja/Site" },
-  { key: "internet_telefonia", label: "Internet/Tel." },
-  { key: "ecommerce", label: "Ecommerce" },
+// Etapas da planilha (Funil 2026) — ordem e agrupamento fiéis à planilha,
+// mantidos idênticos entre todas as lojas para consistência visual.
+type PlanilhaStage = { key: string; label: string; group: string; sub?: boolean };
+const PLANILHA_STAGES: PlanilhaStage[] = [
+  // Documentação
+  { key: "docs", label: "Docs", group: "Documentação" },
+  { key: "cof", label: "COF", group: "Documentação" },
+  { key: "contr_franquia", label: "Contr. Franquia", group: "Documentação" },
+  { key: "contrato_locacao", label: "Contrato Locação", group: "Documentação" },
+  { key: "fampe", label: "FAMPE / Plano de Negócios", group: "Documentação" },
+  { key: "dre", label: "DRE", group: "Documentação" },
+  { key: "conta_bancaria", label: "Conta Bancária", group: "Documentação" },
+  // Projetos & Obras
+  { key: "projetos", label: "Projetos", group: "Projetos & Obras" },
+  { key: "obras", label: "Obras", group: "Projetos & Obras" },
+  { key: "contrato_obras", label: "Contrato de Obras", group: "Projetos & Obras" },
+  // Sistemas & Meios de Pagamento
+  { key: "sankya", label: "Sankya", group: "Sistemas & Pagamentos" },
+  { key: "use", label: "USE", group: "Sistemas & Pagamentos" },
+  { key: "implantacao_use", label: "Implantação USE", group: "Sistemas & Pagamentos", sub: true },
+  { key: "skytef", label: "Skytef", group: "Sistemas & Pagamentos" },
+  { key: "cielo_lio", label: "Cielo / LIO", group: "Sistemas & Pagamentos" },
+  { key: "pix", label: "PIX", group: "Sistemas & Pagamentos" },
+  { key: "boa_vista", label: "Boa Vista", group: "Sistemas & Pagamentos" },
+  { key: "venda_link", label: "Venda Link", group: "Sistemas & Pagamentos" },
+  // Operação
+  { key: "loja_apoio", label: "Loja de Apoio", group: "Operação" },
+  { key: "loja_liberada", label: "Loja Liberada", group: "Operação" },
+  { key: "grupo_wpp", label: "Grupo WPP", group: "Operação" },
+  { key: "info_sistema", label: "Info e Sistema", group: "Operação" },
+  { key: "lancamento_tx", label: "Lançamento de Tx no Financeiro", group: "Operação" },
+  { key: "produtos_cds", label: "Produtos / Informar CDs", group: "Operação" },
+  { key: "equipe", label: "Equipe", group: "Operação" },
+  { key: "mkt_loja", label: "MKT Loja / Site", group: "Operação" },
+  { key: "internet_telefonia", label: "Internet e Telefonia", group: "Operação" },
+  { key: "ecommerce", label: "Ecommerce", group: "Operação" },
+  // Entrega Final
+  { key: "itens_pendentes", label: "Itens Pendentes (Checklist)", group: "Entrega Final" },
+  { key: "marcenaria", label: "Marcenaria e Status", group: "Entrega Final" },
+  { key: "sacolas", label: "Aquisição Sacolas Trapézio", group: "Entrega Final" },
 ];
+
+// Agrupa mantendo a ordem original
+const STAGE_GROUPS = PLANILHA_STAGES.reduce<{ name: string; stages: PlanilhaStage[] }[]>((acc, s) => {
+  const last = acc[acc.length - 1];
+  if (last && last.name === s.group) last.stages.push(s);
+  else acc.push({ name: s.group, stages: [s] });
+  return acc;
+}, []);
 
 type AutoKey = typeof AUTO_PHASES[number]["key"];
 
@@ -202,25 +220,52 @@ export default function MatrizEtapas() {
           ) : (
             <Table>
               <TableHeader>
+                {/* Linha de grupos */}
                 <TableRow>
-                  <TableHead className="sticky left-0 bg-background z-10 min-w-[220px]">Loja</TableHead>
-                  {AUTO_PHASES.map((p) => (
-                    <TableHead key={p.key} className="text-center whitespace-nowrap bg-muted/40">
+                  <TableHead rowSpan={2} className="sticky left-0 bg-background z-10 min-w-[220px] align-bottom">Loja</TableHead>
+                  <TableHead colSpan={AUTO_PHASES.length} className="text-center bg-muted/60 text-[11px] uppercase tracking-wide border-l">
+                    Fases (auto)
+                  </TableHead>
+                  {STAGE_GROUPS.map((g) => (
+                    <TableHead
+                      key={g.name}
+                      colSpan={g.stages.length}
+                      className="text-center text-[11px] uppercase tracking-wide bg-muted/30 border-l"
+                    >
+                      {g.name}
+                    </TableHead>
+                  ))}
+                  <TableHead rowSpan={2} className="text-center whitespace-nowrap align-bottom border-l">Progresso</TableHead>
+                </TableRow>
+                {/* Linha de etapas */}
+                <TableRow>
+                  {AUTO_PHASES.map((p, i) => (
+                    <TableHead key={p.key} className={cn("text-center whitespace-nowrap bg-muted/40", i === 0 && "border-l")}>
                       {p.label}
                       <div className="text-[10px] font-normal text-muted-foreground">
                         {autoTotals[p.key]}/{rows.length}
                       </div>
                     </TableHead>
                   ))}
-                  {PLANILHA_STAGES.map((s) => (
-                    <TableHead key={s.key} className="text-center whitespace-nowrap">
-                      <div className="text-[11px]">{s.label}</div>
-                      <div className="text-[10px] font-normal text-muted-foreground">
-                        {planilhaTotals[s.key]}/{rows.length}
-                      </div>
-                    </TableHead>
-                  ))}
-                  <TableHead className="text-center whitespace-nowrap">Progresso</TableHead>
+                  {STAGE_GROUPS.map((g) =>
+                    g.stages.map((s, i) => (
+                      <TableHead
+                        key={s.key}
+                        className={cn(
+                          "text-center whitespace-nowrap",
+                          i === 0 && "border-l",
+                          s.sub && "bg-muted/10"
+                        )}
+                      >
+                        <div className={cn("text-[11px]", s.sub && "pl-2 italic text-muted-foreground")}>
+                          {s.sub ? "↳ " : ""}{s.label}
+                        </div>
+                        <div className="text-[10px] font-normal text-muted-foreground">
+                          {planilhaTotals[s.key]}/{rows.length}
+                        </div>
+                      </TableHead>
+                    ))
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -239,8 +284,8 @@ export default function MatrizEtapas() {
                           <div className="text-[11px] text-muted-foreground">{store.filial}</div>
                         )}
                       </TableCell>
-                      {AUTO_PHASES.map((p) => (
-                        <TableCell key={p.key} className="text-center bg-muted/20">
+                      {AUTO_PHASES.map((p, i) => (
+                        <TableCell key={p.key} className={cn("text-center bg-muted/20", i === 0 && "border-l")}>
                           <div
                             className={cn(
                               "inline-flex h-7 w-7 items-center justify-center rounded-full border",
@@ -254,30 +299,35 @@ export default function MatrizEtapas() {
                           </div>
                         </TableCell>
                       ))}
-                      {PLANILHA_STAGES.map((s) => {
-                        const done = !!st[s.key];
-                        const isSaving = saving === store.id + s.key;
-                        return (
-                          <TableCell key={s.key} className="text-center">
-                            <button
-                              type="button"
-                              disabled={isSaving}
-                              onClick={() => toggle(store.id, s.key)}
-                              className={cn(
-                                "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
-                                done
-                                  ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
-                                  : "bg-background text-muted-foreground border-border hover:bg-muted",
-                                isSaving && "opacity-50"
-                              )}
-                              title={done ? "Concluída — clique para desmarcar" : "Pendente — clique para marcar"}
+                      {STAGE_GROUPS.map((g) =>
+                        g.stages.map((s, i) => {
+                          const cellDone = !!st[s.key];
+                          const isSaving = saving === store.id + s.key;
+                          return (
+                            <TableCell
+                              key={s.key}
+                              className={cn("text-center", i === 0 && "border-l", s.sub && "bg-muted/10")}
                             >
-                              {done ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
-                            </button>
-                          </TableCell>
-                        );
-                      })}
-                      <TableCell className="text-center text-sm tabular-nums whitespace-nowrap">
+                              <button
+                                type="button"
+                                disabled={isSaving}
+                                onClick={() => toggle(store.id, s.key)}
+                                className={cn(
+                                  "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
+                                  cellDone
+                                    ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
+                                    : "bg-background text-muted-foreground border-border hover:bg-muted",
+                                  isSaving && "opacity-50"
+                                )}
+                                title={cellDone ? "Concluída — clique para desmarcar" : "Pendente — clique para marcar"}
+                              >
+                                {cellDone ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
+                              </button>
+                            </TableCell>
+                          );
+                        })
+                      )}
+                      <TableCell className="text-center text-sm tabular-nums whitespace-nowrap border-l">
                         {done}/{totalStages}
                       </TableCell>
                     </TableRow>
