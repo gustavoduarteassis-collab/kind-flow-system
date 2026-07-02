@@ -559,44 +559,7 @@ const StoreDetail = () => {
 
           {/* 1. DADOS — cadastro/mestre da loja */}
           <TabsContent value="dados" className="mt-4">
-            <div className="rounded-xl border bg-card p-6 space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold">Dados da Loja</h3>
-                <p className="text-sm text-muted-foreground">Informações mestre. Edições aparecem em todos os módulos.</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Nome</label>
-                  <Input value={store.nome} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { nome: e.target.value })} />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Filial</label>
-                  <Input value={store.filial || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { filial: e.target.value })} />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Franqueado</label>
-                  <Input value={store.franqueado || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { franqueado: e.target.value })} />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Construtor</label>
-                  <Input value={store.construtor || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { construtor: e.target.value })} />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Analista de Obra</label>
-                  <Input value={store.analistaObra || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { analistaObra: e.target.value })} />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground">Tipo de Loja</label>
-                  <Select value={(store.tipoLoja as any) || ""} disabled={!isTeamMember} onValueChange={(v) => updateStore(store.id, { tipoLoja: v } as any)}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="rua">Rua</SelectItem>
-                      <SelectItem value="shopping">Shopping</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
+            <DadosTab store={store} canEdit={isTeamMember} onUpdate={(patch) => updateStore(store.id, patch)} />
           </TabsContent>
 
           {/* 2. DATAS — linha do tempo de datas-chave */}
@@ -609,7 +572,7 @@ const StoreDetail = () => {
           </TabsContent>
 
           {/* 3. ETAPAS */}
-          <TabsContent value="etapas" className="mt-4">
+          <TabsContent value="etapas" className="mt-4 space-y-4">
             <EtapasTab
               store={store}
               inauguradaInPipeline={inauguradaInPipeline}
@@ -618,6 +581,11 @@ const StoreDetail = () => {
               atrasados={atrasados}
               progress={progress}
               onJumpTab={(t) => setActiveTab(t)}
+            />
+            <EtapasPlanilhaLoja
+              store={store}
+              canEdit={isTeamMember}
+              onUpdate={(patch) => updateStore(store.id, patch)}
             />
           </TabsContent>
 
