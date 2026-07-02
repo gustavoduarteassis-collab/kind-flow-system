@@ -90,6 +90,7 @@ function AppRoutes() {
         <Route path="/acessos" element={<Acessos />} />
         <Route path="/itens-excluidos" element={<ItensExcluidos />} />
         <Route path="/performance" element={<Performance />} />
+        <Route path="/validacao-datas" element={<ValidacaoDatas />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
