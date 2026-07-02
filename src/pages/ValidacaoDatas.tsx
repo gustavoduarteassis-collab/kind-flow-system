@@ -67,20 +67,26 @@ function validParts(d: number, m: number, y: number): string | null {
 
 const ValidacaoDatas = () => {
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [totalScanned, setTotalScanned] = useState(0);
   const [mismatches, setMismatches] = useState<SyncMismatch[]>([]);
   const [syncing, setSyncing] = useState(false);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
 
   const load = async () => {
     setLoading(true);
+    setLoadError(null);
     const [{ data: pipeline, error: pErr }, { data: stores, error: sErr }] = await Promise.all([
       supabase.from("pipeline_stores").select("id, filial, local, previsao_inauguracao, data_inauguracao").is("deleted_at", null),
       supabase.from("stores").select("id, nome, inauguracao, inauguracao_real").is("deleted_at", null),
     ]);
     if (pErr || sErr) {
+      const msg = (pErr || sErr)?.message || "Erro desconhecido ao carregar dados";
       console.error(pErr || sErr);
+      setLoadError(msg);
       setRows([]); setMismatches([]); setLoading(false); return;
     }
     const issues: Row[] = [];
@@ -147,12 +153,20 @@ const ValidacaoDatas = () => {
 
   const sincronizar = async (m: SyncMismatch) => {
     setSyncing(true);
+    setSyncingId(`${m.store_id}-${m.campo}`);
+    setSyncError(null);
     const patch: any = {};
     if (m.campo === "Previsão de inauguração") patch.inauguracao = m.funil;
     else patch.inauguracao_real = m.funil;
     const { error } = await supabase.from("stores").update(patch).eq("id", m.store_id);
     setSyncing(false);
-    if (error) { toast.error("Falha ao sincronizar: " + error.message); return; }
+    setSyncingId(null);
+    if (error) {
+      const msg = "Falha ao sincronizar: " + error.message;
+      setSyncError(msg);
+      toast.error(msg);
+      return;
+    }
     toast.success("Painel sincronizado com o Funil");
     load();
   };
@@ -160,14 +174,23 @@ const ValidacaoDatas = () => {
   const sincronizarTudo = async () => {
     if (mismatches.length === 0) return;
     setSyncing(true);
+    setSyncError(null);
+    const failures: string[] = [];
     for (const m of mismatches) {
       const patch: any = {};
       if (m.campo === "Previsão de inauguração") patch.inauguracao = m.funil;
       else patch.inauguracao_real = m.funil;
-      await supabase.from("stores").update(patch).eq("id", m.store_id);
+      const { error } = await supabase.from("stores").update(patch).eq("id", m.store_id);
+      if (error) failures.push(`${m.nome} (${m.campo}): ${error.message}`);
     }
     setSyncing(false);
-    toast.success(`${mismatches.length} divergência(s) sincronizada(s)`);
+    if (failures.length) {
+      const msg = `${failures.length} falha(s) ao sincronizar. Ex.: ${failures[0]}`;
+      setSyncError(msg);
+      toast.error(msg);
+    } else {
+      toast.success(`${mismatches.length} divergência(s) sincronizada(s)`);
+    }
     load();
   };
 
@@ -213,18 +236,39 @@ const ValidacaoDatas = () => {
               </Badge>
             </span>
             {mismatches.length > 0 && (
-              <Button size="sm" onClick={sincronizarTudo} disabled={syncing}>
-                Sincronizar tudo (usar Funil)
+              <Button size="sm" onClick={sincronizarTudo} disabled={syncing || loading}>
+                {syncing ? (<><RefreshCw className="h-3 w-3 mr-2 animate-spin" />Sincronizando…</>) : "Sincronizar tudo (usar Funil)"}
               </Button>
             )}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {mismatches.length === 0 ? (
+          {loadError && (
+            <Alert variant="destructive" className="m-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Falha ao buscar dados de sincronia</AlertTitle>
+              <AlertDescription>
+                {loadError}
+                <Button size="sm" variant="outline" className="ml-3" onClick={load} disabled={loading}>Tentar novamente</Button>
+              </AlertDescription>
+            </Alert>
+          )}
+          {syncError && !loadError && (
+            <Alert variant="destructive" className="m-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Falha ao aplicar sincronização</AlertTitle>
+              <AlertDescription>{syncError}</AlertDescription>
+            </Alert>
+          )}
+          {loading ? (
+            <div className="px-4 py-6 text-xs text-muted-foreground flex items-center gap-2">
+              <RefreshCw className="h-4 w-4 animate-spin" /> Carregando divergências entre Painel e Funil…
+            </div>
+          ) : mismatches.length === 0 && !loadError ? (
             <div className="px-4 py-3 text-xs text-muted-foreground">
               Painel da Loja e Funil estão 100% sincronizados nas datas de inauguração.
             </div>
-          ) : (
+          ) : mismatches.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-muted/50 text-left">
@@ -237,8 +281,11 @@ const ValidacaoDatas = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {mismatches.map((m, i) => (
-                    <tr key={`${m.store_id}-${m.campo}-${i}`} className="border-t">
+                  {mismatches.map((m, i) => {
+                    const rowId = `${m.store_id}-${m.campo}`;
+                    const isRowSyncing = syncingId === rowId;
+                    return (
+                    <tr key={`${rowId}-${i}`} className="border-t">
                       <td className="p-3">
                         <Link to={`/loja/${m.store_id}`} className="text-primary underline">{m.nome}</Link>
                       </td>
@@ -247,15 +294,16 @@ const ValidacaoDatas = () => {
                       <td className="p-3"><Badge>{m.funil || "vazio"}</Badge></td>
                       <td className="p-3">
                         <Button size="sm" variant="outline" disabled={syncing} onClick={() => sincronizar(m)}>
-                          Usar Funil
+                          {isRowSyncing ? (<><RefreshCw className="h-3 w-3 mr-2 animate-spin" />Aplicando…</>) : "Usar Funil"}
                         </Button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          )}
+          ) : null}
         </CardContent>
       </Card>
 
