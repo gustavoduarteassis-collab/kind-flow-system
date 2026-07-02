@@ -34,6 +34,21 @@ export function useStores() {
         solicitacoes: row.solicitacoes || {},
         visitaTecnica: row.visita_tecnica || {},
         isReforma: row.is_reforma === true,
+        dataContratoLocacao: row.data_contrato_locacao || "",
+        dataLiberacaoChaves: row.data_liberacao_chaves || "",
+        demolicaoPrev: row.demolicao_prev || "",
+        demolicaoReal: row.demolicao_real || "",
+        obraInicioPrev: row.obra_inicio_prev || "",
+        obraInicioReal: row.obra_inicio_real || "",
+        moveisPrev: row.moveis_prev || "",
+        moveisReal: row.moveis_real || "",
+        produtosPrev: row.produtos_prev || "",
+        produtosReal: row.produtos_real || "",
+        inauguracaoReal: row.inauguracao_real || "",
+        visitaTecnicaReal: row.visita_tecnica_real || "",
+        ultimaAtualizacao: row.ultima_atualizacao || "",
+        ultimaAtualizacaoAt: row.ultima_atualizacao_at || "",
+        ultimaAtualizacaoAutor: row.ultima_atualizacao_autor || "",
       })));
     }
     setLoading(false);
@@ -85,6 +100,24 @@ export function useStores() {
     if ((updates as any).inauguracaoChecklist !== undefined) dbUpdates.inauguracao_checklist = (updates as any).inauguracaoChecklist;
     if ((updates as any).solicitacoes !== undefined) dbUpdates.solicitacoes = (updates as any).solicitacoes;
     if ((updates as any).visitaTecnica !== undefined) dbUpdates.visita_tecnica = (updates as any).visitaTecnica;
+    const dateMap: Record<string, string> = {
+      dataContratoLocacao: "data_contrato_locacao",
+      dataLiberacaoChaves: "data_liberacao_chaves",
+      demolicaoPrev: "demolicao_prev",
+      demolicaoReal: "demolicao_real",
+      obraInicioPrev: "obra_inicio_prev",
+      obraInicioReal: "obra_inicio_real",
+      moveisPrev: "moveis_prev",
+      moveisReal: "moveis_real",
+      produtosPrev: "produtos_prev",
+      produtosReal: "produtos_real",
+      inauguracaoReal: "inauguracao_real",
+      visitaTecnicaReal: "visita_tecnica_real",
+    };
+    for (const [k, col] of Object.entries(dateMap)) {
+      const v = (updates as any)[k];
+      if (v !== undefined) dbUpdates[col] = v || null;
+    }
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
   }, []);

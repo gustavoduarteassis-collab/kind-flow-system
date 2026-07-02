@@ -54,6 +54,23 @@ export interface Store {
   solicitacoes?: any;
   visitaTecnica?: any;
   isReforma?: boolean;
+  // Datas expandidas (Onda A)
+  dataContratoLocacao?: string;
+  dataLiberacaoChaves?: string;
+  demolicaoPrev?: string;
+  demolicaoReal?: string;
+  obraInicioPrev?: string;
+  obraInicioReal?: string;
+  moveisPrev?: string;
+  moveisReal?: string;
+  produtosPrev?: string;
+  produtosReal?: string;
+  inauguracaoReal?: string;
+  visitaTecnicaReal?: string;
+  // Última atualização em cache
+  ultimaAtualizacao?: string;
+  ultimaAtualizacaoAt?: string;
+  ultimaAtualizacaoAutor?: string;
 }
 
 const defaultStatusOptions: StatusType[] = [

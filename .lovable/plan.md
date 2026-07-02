@@ -1,57 +1,91 @@
-## Plano — Painel unificado + Matriz interativa + Import Funil "planilha vence"
 
-### 1. Painel com abas "Resumo | Matriz"
-Em `src/pages/Index.tsx`, envolver o conteúdo atual em uma aba **Resumo** e adicionar a aba **Matriz** que renderiza o `MatrizEtapas` já existente (import como componente, sem duplicar). Persistir a aba escolhida via `?tab=` na URL + `sessionStorage`.
+# Plano — Melhorias Profundas Constance Obra
 
-Rota `/matriz-etapas` continua funcionando (redireciona pra `/?tab=matriz`) — não quebra links salvos.
+Executarei na ordem de prioridade que você definiu (1 → 3 → 5 → 6 → 8 → 2 → 4 → 7 → 9 → 10), em **4 ondas** com aprovação entre elas. Nenhum campo existente será alterado ou apagado — todas as mudanças são aditivas.
 
-### 2. Matriz interativa — clique curto edita, clique no nome abre loja
+---
 
-Em `src/pages/MatrizEtapas.tsx`:
+## Onda A — Fundação de Dados (itens 1, 3, 5)
 
-- **Coluna "Loja"**: já é `Link` — manter, leva pra `/loja/:id` (aba Dados).
-- **Células de etapa**: substituir o toggle atual por botão que abre um **Drawer lateral** (`@/components/ui/sheet`) com:
-  - Título da etapa + tooltip explicativo
-  - Editor apropriado:
-    - Etapas derivadas do Checklist (`Itens Pendentes`, `Loja Liberada`) → read-only, com botão "Abrir Checklist Final" que leva a `/loja/:id?tab=checklist-final`
-    - Etapas manuais (Docs, Sankya, COF, USE, etc.) → 3 status (Pendente / Em andamento / Concluído) + campo de observação livre. Salva em `stores.stage_status` (JSONB já existente).
-    - Etapas vindas do Funil (Analista, Construtor, Início Obra, Previsão Inauguração) → campos correspondentes de `pipeline_stores`, com botão "Abrir no Funil" secundário.
-  - Ao salvar, célula atualiza otimisticamente e o drawer fecha.
-- **Célula clicável tem 2 gestos**:
-  - Clique curto → drawer
-  - Ícone de "abrir" (ExternalLink) no canto da célula → navega direto pra `/loja/:id?tab=etapas&stage=<id>` (scroll até o campo).
+**1. Última Atualização Unificada**
+- Nova tabela `store_updates` (id, store_id, texto, autor_nome, autor_user_id, created_at, deleted_at). RLS: leitura para time autorizado, escrita autenticada.
+- View / campo derivado `stores.ultima_atualizacao` (última linha por `created_at`).
+- Migração única (script SQL): para cada loja cujo `pipeline_stores.status_geral` contém texto livre, insere 1 registro em `store_updates` com autor "Histórico anterior" e data original — sem tocar no valor atual.
+- UI: componente `<HistoricoAtualizacoes storeId>` dentro da aba **Diário de Obra** com feed cronológico + input "Nova atualização".
+- Funil (Lojas Unificadas) e AGM passam a ler `ultima_atualizacao` (item 9 já preparado).
 
-Nenhum dado existente é apagado — todos os toggles atuais viram edições ricas, mas gravam nos mesmos campos.
+**3. Aba Datas expandida**
+- Migration aditiva em `stores`: `data_contrato_locacao`, `data_liberacao_chaves`, `demolicao_prev`, `demolicao_real`, `obra_inicio_prev`, `obra_inicio_real`, `moveis_prev`, `moveis_real`, `produtos_prev`, `produtos_real`, `inauguracao_real`, `visita_tecnica_real` (todas `date NULL`).
+- UI: `DatasTab.tsx` refeita com grid de pares Prev/Real + badge de desvio (`verde` adiantado, `vermelho` atrasado, calculado em dias).
 
-### 3. Importação do Funil — planilha vence
+**5. Tarefas da Loja**
+- Nova aba **Tarefas** em `StoreDetail` reutilizando `tasks` existente (`related_store_id`).
+- Lista + botão "+ Nova Tarefa" (dialog com Título, Responsável, Prazo, Prioridade, Status).
+- Card de loja no Resumo/Painel exibe contagem de tarefas abertas e atrasadas.
 
-Reforçar `src/pages/ImportFunil.tsx` (que já existe):
+---
 
-- Manter o parse XLSX atual.
-- **Regra de merge**: quando `filial` bate com registro existente, `UPDATE` sobrescreve todos os campos vindos da planilha (analista, construtor, datas, status_geral, previsão, etc.). Campos que **não estão na planilha** (`stage_status`, notas internas, tarefas auto-geradas) ficam intocados.
-- **Preview antes do commit**: tabela mostrando `N novos + M atualizados`, com resumo "vai sobrescrever esses campos:" — usuário confirma uma vez, sem diff linha-a-linha (evita fricção).
-- **Log em `funil_import_logs`** (tabela já existe): registra qual arquivo, quantas linhas, quem importou, quantos updates. Serve pra rollback futuro se necessário.
-- Após importar, dispara refresh dos hooks `useStores` e da Matriz.
+## Onda B — Visualização (itens 6, 8)
 
-### 4. Trilha de segurança (sem tocar em dados)
+**6. Mural de Obras (Painel > Resumo)**
+- Nova seção `<MuralObras />` abaixo dos indicadores.
+- Filtra lojas ativas (fase ≠ Inaugurada e com `inicio_obra` preenchido).
+- Card: nome, % checklist, dias p/ inauguração, última atualização, fase (badge colorido), miniatura opcional da última foto do Diário.
+- Ordenação por menor `dias_para_inauguracao`.
 
-- Migração adiciona `stage_status_updated_at` e `stage_status_updated_by` (nullable) em `stores` — só pra rastrear quem mexeu no drawer da matriz. Nenhum backfill.
-- Nenhum `DROP`, nenhum `DELETE`, nenhum default destrutivo.
-- RLS já existente em `stores` e `pipeline_stores` continua valendo.
+**8. Alertas na Matriz de Etapas**
+- Coluna fixa **"Dias p/ Inauguração"** após o nome da loja.
+- Cor de fundo da linha: `bg-red-50` se `<15d` e checklist `<70%`; `bg-yellow-50` se `<30d` e `<50%`.
+- Filtro rápido **"Apenas críticas"** no header (soma aos filtros já existentes).
+- Tooltip nas células de fase (auto) listando lojas concluídas/pendentes daquela coluna.
 
-### Detalhes técnicos
+---
 
-- **Drawer**: `<Sheet>` do shadcn, side="right", `w-[420px]`.
-- **Estado otimista na matriz**: `useState` local + `queryClient.invalidateQueries` só se erro.
-- **Deep-link `?stage=`**: em `StoreDetail.tsx` aba Etapas, `useEffect` faz `scrollIntoView` no `data-stage-id={id}`.
-- **Import overwrite**: `UPSERT` via `.upsert(..., { onConflict: 'filial' })` com todos os campos da planilha; campos ausentes na planilha ficam de fora do payload (Postgres preserva).
-- **Nenhum arquivo removido** — `MatrizEtapas.tsx` continua respondendo em `/matriz-etapas` além de virar aba do Painel.
+## Onda C — Cadastro e Etapas (itens 2, 4)
 
-### Ordem de execução
-1. Migração leve (2 colunas de auditoria em `stores`).
-2. Painel com abas (Index.tsx + redirect da rota).
-3. Drawer interativo na Matriz (novo componente `MatrizCellDrawer.tsx`).
-4. Deep-link `?stage=` em StoreDetail.
-5. Reforço do ImportFunil (preview + overwrite explícito + log).
+**2. Aba Dados expandida**
+- Migration em `stores`: `cidade`, `estado_uf`, `endereco_completo`, `area_m2`, `tipo_localizacao`, `email_operacional`, `email_financeiro`, `telefone_franqueado`, `codigo_filial`, `responsavel_tecnico`, `observacao_geral`.
+- UI: `DadosTab.tsx` seções agrupadas (Identificação, Localização, Contatos, Área/Responsável, Observações). Todos os campos existentes permanecem.
 
-Posso começar?
+**4. Aba Etapas dentro da Loja**
+- Reescrever `EtapasTab.tsx` para renderizar as 36 etapas da planilha (mesmos `PLANILHA_STAGES` da Matriz), filtradas para a loja atual.
+- Toggle direto (com mesma regra `deriveStagesFromChecklist` e trava de itens derivados).
+- Mantém timeline das 5 fases automáticas no topo como resumo.
+
+---
+
+## Onda D — Performance, Unificação e Equipe (itens 7, 9, 10)
+
+**7. Métricas de Performance por Membro**
+- Adicionar colunas: Lojas sob responsabilidade, Inauguradas no prazo (n e %), Custo/m² médio vs. meta, % médio checklist, Visitas técnicas no mês. Colunas atuais preservadas.
+
+**9. Status AGM read-only**
+- Campo "Status" no AGM torna-se leitura, exibindo `stores.ultima_atualizacao`. "5 Porquês" permanece editável.
+- Se um AGM já tem texto próprio, migro-o para `store_updates` antes de tornar read-only.
+
+**10. Sincronização Equipe ↔ Analistas**
+- Job SQL: para cada `pipeline_stores.analista_obra` não vazio, garantir `team_members` com cargo "Analista de Obra" (upsert por nome normalizado, não duplica os já existentes: Gustavo, Deise, Thainara, Gizelia).
+- Perfil do membro passa a mostrar: avatar, cargo, lista clicável de lojas sob responsabilidade, contagem de tarefas abertas/concluídas, hábitos configurados.
+
+---
+
+## Detalhes técnicos
+
+- **Backend**: 4 migrations Supabase (Onda A: `store_updates` + colunas datas; Onda C: colunas dados; Onda D: nenhuma nova tabela, só sincronização via `supabase--insert`). Todas com `GRANT` + RLS (`is_authorized_team` para escrita, leitura autenticada).
+- **Migração de dados legados**: 100% via `supabase--insert` (não `UPDATE` destrutivo). Nenhum campo é sobrescrito; apenas novos registros/colunas são criados.
+- **Frontend**: novos componentes isolados (`HistoricoAtualizacoes`, `MuralObras`, `TarefasTab`, `DatePairField`, `CriticalRowHighlight`), edits pontuais em `StoreDetail`, `MatrizEtapas`, `Index`, `Performance`, `AGM`, `LojasUnificadas`.
+- **Sem quebras de rota**: todas URLs atuais mantidas.
+
+## Gate entre ondas
+
+Ao final de cada onda paro e reporto o que ficou pronto para você validar antes de seguir. Onda A é a base (itens 1, 3, 5 dependem uns dos outros para o Mural e o AGM funcionarem).
+
+## Riscos identificados
+
+- **Duplicação de `store_updates`** na migração inicial: mitigo com `WHERE NOT EXISTS` na inserção histórica.
+- **Analistas com grafia divergente** (ex.: "Gizelia" vs "Gizélia") na sincronização Equipe: normalizo por `lower(unaccent(trim(nome)))` antes do upsert.
+- **Regra da célula derivada** na aba Etapas da loja: reutilizarei exatamente a lógica atual da Matriz para não abrir edição de campo derivado.
+
+---
+
+Posso iniciar a **Onda A** (Última Atualização + Datas expandidas + Tarefas da loja)?

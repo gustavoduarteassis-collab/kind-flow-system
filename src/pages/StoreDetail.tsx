@@ -64,6 +64,9 @@ import EtapasTab from "@/components/etapas/EtapasTab";
 import StoreHeaderKPIs from "@/components/store/StoreHeaderKPIs";
 import StoreCommunication from "@/components/store/StoreCommunication";
 import StoreCustosSummary from "@/components/store/StoreCustosSummary";
+import HistoricoAtualizacoes from "@/components/store/HistoricoAtualizacoes";
+import DatasTab from "@/components/store/DatasTab";
+import TarefasTab from "@/components/store/TarefasTab";
 import { useAutoMarkInaugurada } from "@/hooks/useAutoMarkInaugurada";
 import { formatBR } from "@/utils/safeDate";
 
@@ -549,6 +552,9 @@ const StoreDetail = () => {
             <TabsTrigger value="diario" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
               📓 Diário
             </TabsTrigger>
+            <TabsTrigger value="tarefas" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              ✅ Tarefas
+            </TabsTrigger>
           </TabsScrollableList>
 
           {/* 1. DADOS — cadastro/mestre da loja */}
@@ -595,21 +601,11 @@ const StoreDetail = () => {
 
           {/* 2. DATAS — linha do tempo de datas-chave */}
           <TabsContent value="datas" className="mt-4">
-            <div className="rounded-xl border bg-card p-6 space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold">Datas-chave</h3>
-                <p className="text-sm text-muted-foreground">Marcos do ciclo. Alterações refletem no cronograma e alertas.</p>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground flex items-center gap-1"><Calendar className="h-3.5 w-3.5" /> Inauguração (prevista/real)</label>
-                  <Input type="date" value={store.inauguracao || ""} disabled={!isTeamMember} onChange={(e) => updateStore(store.id, { inauguracao: e.target.value })} />
-                </div>
-              </div>
-              <div className="rounded-lg bg-muted/40 p-4 text-sm text-muted-foreground">
-                Prazos por atividade (início/fim de obra, entregas, etc.) são gerenciados dentro da aba <strong>Obra → Cronograma</strong> e das categorias de checklist.
-              </div>
-            </div>
+            <DatasTab
+              store={store}
+              canEdit={isTeamMember}
+              onUpdate={(patch) => updateStore(store.id, patch)}
+            />
           </TabsContent>
 
           {/* 3. ETAPAS */}
@@ -804,8 +800,14 @@ const StoreDetail = () => {
           </TabsContent>
 
           {/* 7. DIÁRIO */}
-          <TabsContent value="diario" className="mt-4">
+          <TabsContent value="diario" className="mt-4 space-y-4">
+            <HistoricoAtualizacoes storeId={store.id} storeFilial={store.filial} />
             <DiarioObra storeId={store.id} />
+          </TabsContent>
+
+          {/* 8. TAREFAS DA LOJA */}
+          <TabsContent value="tarefas" className="mt-4">
+            <TarefasTab storeId={store.id} storeName={store.nome} canEdit={isTeamMember} />
           </TabsContent>
         </Tabs>
 
