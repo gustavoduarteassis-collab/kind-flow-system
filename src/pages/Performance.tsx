@@ -12,6 +12,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Ca
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
+import PrazoCumprimento from "@/components/performance/PrazoCumprimento";
 
 type Member = { id: string; user_id: string | null; name: string; role: string | null };
 type MetricRow = {
@@ -351,6 +352,8 @@ export default function Performance() {
           )}
         </CardContent>
       </Card>
+
+      <PrazoCumprimento />
 
       <Card>
         <CardHeader><CardTitle>Tendência de hábitos — últimos 6 meses (%)</CardTitle></CardHeader>
