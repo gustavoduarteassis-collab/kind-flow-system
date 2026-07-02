@@ -431,16 +431,59 @@ const Index = () => {
 
   const [sp, setSp] = useSearchParams();
   const tabParam = sp.get("tab");
-  const activeTab = tabParam === "matriz" || tabParam === "mural" ? tabParam : "resumo";
+  const activeTab = tabParam === "alertas" || tabParam === "mural" ? tabParam : "resumo";
   const setTab = (v: string) => {
     const next = new URLSearchParams(sp);
-    if (v === "matriz" || v === "mural") next.set("tab", v);
+    if (v === "alertas" || v === "mural") next.set("tab", v);
     else next.delete("tab");
     setSp(next, { replace: true });
   };
 
+  const uniqueAlertStores = groupedAlerts.length;
+
+  const AlertasCriticosSection = ({ limit }: { limit?: number }) => {
+    const list = limit ? groupedAlerts.slice(0, limit) : groupedAlerts;
+    return (
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <Flame className="h-5 w-5 text-destructive" /> Obras Críticas — Atenção Hoje
+          </h2>
+          <span className="text-xs text-muted-foreground">{uniqueAlertStores} loja(s) com alertas</span>
+        </div>
+        {list.length === 0 ? (
+          <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">
+            Nenhuma loja em alerta no momento. ✅
+          </CardContent></Card>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {list.map((g) => (
+              <button
+                key={g.storeId}
+                onClick={() => goToStore(g.storeId)}
+                className={`text-left rounded-lg border p-3 transition-colors hover:bg-muted/50 ${semBg[g.worstTone]}`}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <p className="text-sm font-semibold truncate">{g.storeName}</p>
+                  <Badge variant="outline" className="text-[10px] shrink-0">{g.alerts.length}</Badge>
+                </div>
+                <p className="text-[11px] opacity-80 mb-1 truncate">{g.analista}</p>
+                <p className="text-xs opacity-95 leading-snug">
+                  {g.alerts.map((a) => a.label).join(" | ")}
+                </p>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+    );
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {/* Inauguração pendente banner */}
+      <InauguracaoBanner />
+
       {/* Greeting */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Olá, {name?.split(" ")[0] || "bem-vindo"} 👋</h1>
@@ -450,53 +493,23 @@ const Index = () => {
       <Tabs value={activeTab} onValueChange={setTab}>
         <TabsList className="grid grid-cols-3 w-full max-w-xl">
           <TabsTrigger value="resumo">Resumo</TabsTrigger>
+          <TabsTrigger value="alertas">Alertas Críticos</TabsTrigger>
           <TabsTrigger value="mural">Mural de Obras</TabsTrigger>
-          <TabsTrigger value="matriz">Matriz de Etapas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="mural" className="mt-4">
           <MuralObras />
         </TabsContent>
 
-        <TabsContent value="matriz" className="mt-4">
-          <MatrizEtapas />
+        <TabsContent value="alertas" className="mt-4">
+          <AlertasCriticosSection />
         </TabsContent>
 
         <TabsContent value="resumo" className="mt-4 space-y-8">
 
 
-      {/* ============= OBRAS CRÍTICAS ============= */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Flame className="h-5 w-5 text-destructive" /> Obras Críticas — Atenção Hoje
-          </h2>
-          <span className="text-xs text-muted-foreground">{alerts.length} alerta(s)</span>
-        </div>
-        {alerts.length === 0 ? (
-          <Card><CardContent className="p-6 text-sm text-muted-foreground text-center">
-            Nenhuma loja em alerta no momento. ✅
-          </CardContent></Card>
-        ) : (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {alerts.map((a, i) => (
-              <button
-                key={`${a.storeId}-${i}`}
-                onClick={() => goToStore(a.storeId, a.tab)}
-                className={`text-left rounded-lg border p-3 transition-colors hover:bg-muted/50 ${semBg[a.tone]}`}
-              >
-                <div className="flex items-start gap-2">
-                  <a.icon className="h-4 w-4 mt-0.5 shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{a.storeName}</p>
-                    <p className="text-xs opacity-90">{a.label}</p>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
+      {/* ============= OBRAS CRÍTICAS (resumo curto) ============= */}
+      <AlertasCriticosSection limit={9} />
 
       {/* ============= INDICADORES DE QUALIDADE ============= */}
       <section className="space-y-3">
