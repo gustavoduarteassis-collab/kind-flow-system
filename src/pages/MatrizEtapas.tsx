@@ -501,20 +501,56 @@ export default function MatrizEtapas() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map(({ store, flags, derived }) => {
+                  {rows.map(({ store, flags, derived, reasons, severity }) => {
                     const st = stageStatus[store.id] || {};
                     const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
                     const planDone = PLANILHA_STAGES.filter((s) => derived[s.key] || st[s.key]).length;
                     const done = autoDone + planDone;
                     return (
-                      <TableRow key={store.id}>
-                        <TableCell className="sticky left-0 bg-background font-medium">
-                          <Link to={`/loja/${store.id}`} className="hover:underline">
-                            {store.nome}
-                          </Link>
-                          {store.filial && (
-                            <div className="text-[11px] text-muted-foreground">{store.filial}</div>
-                          )}
+                      <TableRow
+                        key={store.id}
+                        className={cn(
+                          severity === "alta" && "bg-destructive/[0.06] hover:bg-destructive/10",
+                          severity === "media" && "bg-[hsl(var(--accent))]/[0.06]"
+                        )}
+                      >
+                        <TableCell className={cn(
+                          "sticky left-0 font-medium",
+                          severity === "alta" ? "bg-destructive/[0.06]" : severity === "media" ? "bg-[hsl(var(--accent))]/[0.06]" : "bg-background"
+                        )}>
+                          <div className="flex items-start gap-2">
+                            <div className="min-w-0 flex-1">
+                              <Link to={`/loja/${store.id}`} className="hover:underline">
+                                {store.nome}
+                              </Link>
+                              {store.filial && (
+                                <div className="text-[11px] text-muted-foreground">{store.filial}</div>
+                              )}
+                            </div>
+                            {severity && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge
+                                    variant={severity === "alta" ? "destructive" : "secondary"}
+                                    className="shrink-0 gap-1 text-[10px] px-1.5 py-0 h-5"
+                                  >
+                                    {severity === "alta" ? <Flame className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                                    {reasons.length}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="max-w-xs">
+                                  <div className="font-semibold mb-1">Alertas ({reasons.length})</div>
+                                  <ul className="text-xs space-y-0.5">
+                                    {reasons.map((r, i) => (
+                                      <li key={i} className={cn(r.severity === "alta" && "text-destructive font-medium")}>
+                                        • {r.label}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
                         </TableCell>
                         {AUTO_PHASES.map((p, i) => (
                           <TableCell key={p.key} className={cn("text-center bg-muted/20", i === 0 && "border-l")}>
