@@ -298,11 +298,12 @@ const ValidacaoDatas = () => {
                         </Button>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          )}
+          ) : null}
         </CardContent>
       </Card>
 
