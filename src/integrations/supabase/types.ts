@@ -2013,6 +2013,7 @@ export type Database = {
         Args: { _id: string; _table: string }
         Returns: undefined
       }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       task_priority: "baixa" | "media" | "alta" | "urgente"
