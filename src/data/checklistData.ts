@@ -71,6 +71,22 @@ export interface Store {
   ultimaAtualizacao?: string;
   ultimaAtualizacaoAt?: string;
   ultimaAtualizacaoAutor?: string;
+  // Dados expandidos (Onda C)
+  cidade?: string;
+  uf?: string;
+  endereco?: string;
+  cep?: string;
+  telefone?: string;
+  emailLoja?: string;
+  cnpj?: string;
+  razaoSocial?: string;
+  marca?: string;
+  shoppingNome?: string;
+  metragemM2?: number | null;
+  observacoesGerais?: string;
+  porte?: string;
+  localizacao?: string;
+  stageStatus?: Record<string, boolean>;
 }
 
 const defaultStatusOptions: StatusType[] = [

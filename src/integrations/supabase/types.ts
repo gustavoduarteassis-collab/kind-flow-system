@@ -1222,8 +1222,10 @@ export type Database = {
         Row: {
           action_plans: Json | null
           analista_obra: string
+          cep: string | null
           checklist: Json
           cidade: string | null
+          cnpj: string | null
           cobranca_nota: string | null
           comentarios_obras: string | null
           construtor: string
@@ -1236,6 +1238,8 @@ export type Database = {
           deleted_by: string | null
           demolicao_prev: string | null
           demolicao_real: string | null
+          email_loja: string | null
+          endereco: string | null
           fase_atual: string | null
           filial: string
           franqueado: string
@@ -1246,21 +1250,26 @@ export type Database = {
           inicio_obra_texto: string | null
           is_reforma: boolean | null
           localizacao: string | null
+          marca: string | null
+          metragem_m2: number | null
           moveis_prev: string | null
           moveis_real: string | null
           nome: string
           obra_inicio_prev: string | null
           obra_inicio_real: string | null
+          observacoes_gerais: string | null
           porte: string | null
           previsao_inauguracao_texto: string | null
           produtos_prev: string | null
           produtos_real: string | null
           razao_social: string | null
+          shopping_nome: string | null
           solicitacoes: Json
           stage_status: Json
           stage_status_updated_at: string | null
           stage_status_updated_by: string | null
           status_geral: string | null
+          telefone: string | null
           tipo_loja: string
           uf: string | null
           ultima_atualizacao: string | null
@@ -1275,8 +1284,10 @@ export type Database = {
         Insert: {
           action_plans?: Json | null
           analista_obra?: string
+          cep?: string | null
           checklist?: Json
           cidade?: string | null
+          cnpj?: string | null
           cobranca_nota?: string | null
           comentarios_obras?: string | null
           construtor?: string
@@ -1289,6 +1300,8 @@ export type Database = {
           deleted_by?: string | null
           demolicao_prev?: string | null
           demolicao_real?: string | null
+          email_loja?: string | null
+          endereco?: string | null
           fase_atual?: string | null
           filial?: string
           franqueado?: string
@@ -1299,21 +1312,26 @@ export type Database = {
           inicio_obra_texto?: string | null
           is_reforma?: boolean | null
           localizacao?: string | null
+          marca?: string | null
+          metragem_m2?: number | null
           moveis_prev?: string | null
           moveis_real?: string | null
           nome: string
           obra_inicio_prev?: string | null
           obra_inicio_real?: string | null
+          observacoes_gerais?: string | null
           porte?: string | null
           previsao_inauguracao_texto?: string | null
           produtos_prev?: string | null
           produtos_real?: string | null
           razao_social?: string | null
+          shopping_nome?: string | null
           solicitacoes?: Json
           stage_status?: Json
           stage_status_updated_at?: string | null
           stage_status_updated_by?: string | null
           status_geral?: string | null
+          telefone?: string | null
           tipo_loja?: string
           uf?: string | null
           ultima_atualizacao?: string | null
@@ -1328,8 +1346,10 @@ export type Database = {
         Update: {
           action_plans?: Json | null
           analista_obra?: string
+          cep?: string | null
           checklist?: Json
           cidade?: string | null
+          cnpj?: string | null
           cobranca_nota?: string | null
           comentarios_obras?: string | null
           construtor?: string
@@ -1342,6 +1362,8 @@ export type Database = {
           deleted_by?: string | null
           demolicao_prev?: string | null
           demolicao_real?: string | null
+          email_loja?: string | null
+          endereco?: string | null
           fase_atual?: string | null
           filial?: string
           franqueado?: string
@@ -1352,21 +1374,26 @@ export type Database = {
           inicio_obra_texto?: string | null
           is_reforma?: boolean | null
           localizacao?: string | null
+          marca?: string | null
+          metragem_m2?: number | null
           moveis_prev?: string | null
           moveis_real?: string | null
           nome?: string
           obra_inicio_prev?: string | null
           obra_inicio_real?: string | null
+          observacoes_gerais?: string | null
           porte?: string | null
           previsao_inauguracao_texto?: string | null
           produtos_prev?: string | null
           produtos_real?: string | null
           razao_social?: string | null
+          shopping_nome?: string | null
           solicitacoes?: Json
           stage_status?: Json
           stage_status_updated_at?: string | null
           stage_status_updated_by?: string | null
           status_geral?: string | null
+          telefone?: string | null
           tipo_loja?: string
           uf?: string | null
           ultima_atualizacao?: string | null

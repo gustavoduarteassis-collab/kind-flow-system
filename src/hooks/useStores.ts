@@ -49,6 +49,21 @@ export function useStores() {
         ultimaAtualizacao: row.ultima_atualizacao || "",
         ultimaAtualizacaoAt: row.ultima_atualizacao_at || "",
         ultimaAtualizacaoAutor: row.ultima_atualizacao_autor || "",
+        cidade: row.cidade || "",
+        uf: row.uf || "",
+        endereco: row.endereco || "",
+        cep: row.cep || "",
+        telefone: row.telefone || "",
+        emailLoja: row.email_loja || "",
+        cnpj: row.cnpj || "",
+        razaoSocial: row.razao_social || "",
+        marca: row.marca || "",
+        shoppingNome: row.shopping_nome || "",
+        metragemM2: row.metragem_m2 ?? null,
+        observacoesGerais: row.observacoes_gerais || "",
+        porte: row.porte || "",
+        localizacao: row.localizacao || "",
+        stageStatus: (row.stage_status && typeof row.stage_status === "object") ? row.stage_status : {},
       })));
     }
     setLoading(false);
@@ -118,6 +133,31 @@ export function useStores() {
       const v = (updates as any)[k];
       if (v !== undefined) dbUpdates[col] = v || null;
     }
+
+    const textMap: Record<string, string> = {
+      cidade: "cidade",
+      uf: "uf",
+      endereco: "endereco",
+      cep: "cep",
+      telefone: "telefone",
+      emailLoja: "email_loja",
+      cnpj: "cnpj",
+      razaoSocial: "razao_social",
+      marca: "marca",
+      shoppingNome: "shopping_nome",
+      observacoesGerais: "observacoes_gerais",
+      porte: "porte",
+      localizacao: "localizacao",
+    };
+    for (const [k, col] of Object.entries(textMap)) {
+      const v = (updates as any)[k];
+      if (v !== undefined) dbUpdates[col] = v ?? null;
+    }
+    if ((updates as any).metragemM2 !== undefined) {
+      const n = (updates as any).metragemM2;
+      dbUpdates.metragem_m2 = (n === "" || n === null || n === undefined) ? null : Number(n);
+    }
+    if ((updates as any).stageStatus !== undefined) dbUpdates.stage_status = (updates as any).stageStatus;
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
   }, []);
