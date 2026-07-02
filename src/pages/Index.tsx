@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MatrizEtapas from "./MatrizEtapas";
+import MuralObras from "@/components/home/MuralObras";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
@@ -420,7 +421,8 @@ const Index = () => {
   };
 
   const [sp, setSp] = useSearchParams();
-  const activeTab = sp.get("tab") === "matriz" ? "matriz" : "resumo";
+  const tabParam = sp.get("tab");
+  const activeTab = tabParam === "matriz" || tabParam === "mural" ? tabParam : "resumo";
   const setTab = (v: string) => {
     const next = new URLSearchParams(sp);
     if (v === "matriz") next.set("tab", "matriz"); else next.delete("tab");
@@ -436,10 +438,15 @@ const Index = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setTab}>
-        <TabsList className="grid grid-cols-2 w-full max-w-md">
+        <TabsList className="grid grid-cols-3 w-full max-w-xl">
           <TabsTrigger value="resumo">Resumo</TabsTrigger>
+          <TabsTrigger value="mural">Mural de Obras</TabsTrigger>
           <TabsTrigger value="matriz">Matriz de Etapas</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="mural" className="mt-4">
+          <MuralObras />
+        </TabsContent>
 
         <TabsContent value="matriz" className="mt-4">
           <MatrizEtapas />

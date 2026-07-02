@@ -1,9 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Check, Minus, Search, Info, X } from "lucide-react";
+import { Check, Minus, Search, Info, X, AlertTriangle, Flame } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
 import { isStoreLiberated } from "@/utils/inaugurationStatus";
 import { migrateInaugData, getAllInaugItems } from "@/data/inauguracaoChecklistData";
+import { computeCriticality, highestSeverity, type CriticalReason } from "@/utils/storeCriticality";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -146,6 +148,8 @@ export default function MatrizEtapas() {
   const [progressFilter, setProgressFilter] = useState<string>("all"); // all | low | mid | high
   const [groupFilter, setGroupFilter] = useState<string>("all"); // all | <group name>
   const [stageFilter, setStageFilter] = useState<string>("all"); // all | done:<key> | pending:<key> (planilha)
+  const [criticalFilter, setCriticalFilter] = useState<string>("all"); // all | any | alta | media | ok
+
 
   useEffect(() => {
     (async () => {
@@ -196,9 +200,9 @@ export default function MatrizEtapas() {
   );
 
   const clearFilters = () => {
-    setSearch(""); setPhaseFilter("all"); setProgressFilter("all"); setGroupFilter("all"); setStageFilter("all");
+    setSearch(""); setPhaseFilter("all"); setProgressFilter("all"); setGroupFilter("all"); setStageFilter("all"); setCriticalFilter("all");
   };
-  const hasFilters = search || phaseFilter !== "all" || progressFilter !== "all" || groupFilter !== "all" || stageFilter !== "all";
+  const hasFilters = search || phaseFilter !== "all" || progressFilter !== "all" || groupFilter !== "all" || stageFilter !== "all" || criticalFilter !== "all";
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -208,11 +212,18 @@ export default function MatrizEtapas() {
         const inPipeline =
           pipelineInaug.has((s.nome || "").trim().toLowerCase()) ||
           pipelineInaug.has((s.filial || "").trim().toLowerCase());
-        return {
-          store: s,
-          flags: computeAutoFlags(s, inPipeline),
-          derived: deriveStagesFromChecklist(s),
-        };
+        const flags = computeAutoFlags(s, inPipeline);
+        const derived = deriveStagesFromChecklist(s);
+        const st = stageStatus[s.id] || {};
+        const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
+        const planDone = PLANILHA_STAGES.filter((ps) => derived[ps.key] || st[ps.key]).length;
+        const pct = ((autoDone + planDone) / totalStagesAll) * 100;
+        const reasons: CriticalReason[] = computeCriticality(s, {
+          progressPct: pct,
+          inaugurada: flags.inaugurada,
+        });
+        const severity = highestSeverity(reasons);
+        return { store: s, flags, derived, pct, reasons, severity };
       })
       .filter((r) => !r.flags.inaugurada)
       .filter((r) => {
@@ -233,18 +244,31 @@ export default function MatrizEtapas() {
         }
         // filtro progresso
         if (progressFilter !== "all") {
-          const st = stageStatus[r.store.id] || {};
-          const autoDone = AUTO_PHASES.filter((p) => r.flags[p.key]).length;
-          const planDone = PLANILHA_STAGES.filter((s) => r.derived[s.key] || st[s.key]).length;
-          const pct = ((autoDone + planDone) / totalStagesAll) * 100;
-          if (progressFilter === "low" && pct >= 30) return false;
-          if (progressFilter === "mid" && (pct < 30 || pct > 70)) return false;
-          if (progressFilter === "high" && pct <= 70) return false;
+          if (progressFilter === "low" && r.pct >= 30) return false;
+          if (progressFilter === "mid" && (r.pct < 30 || r.pct > 70)) return false;
+          if (progressFilter === "high" && r.pct <= 70) return false;
+        }
+        // filtro criticidade
+        if (criticalFilter !== "all") {
+          if (criticalFilter === "any" && r.severity === null) return false;
+          if (criticalFilter === "alta" && r.severity !== "alta") return false;
+          if (criticalFilter === "media" && r.severity !== "media") return false;
+          if (criticalFilter === "ok" && r.severity !== null) return false;
         }
         return true;
       })
-      .sort((a, b) => a.store.nome.localeCompare(b.store.nome, "pt-BR"));
-  }, [stores, pipelineInaug, search, phaseFilter, stageFilter, progressFilter, stageStatus, totalStagesAll]);
+      .sort((a, b) => {
+        // Críticas primeiro quando o filtro não força uma ordem específica
+        const sev = (x: typeof a) => (x.severity === "alta" ? 0 : x.severity === "media" ? 1 : 2);
+        if (sev(a) !== sev(b)) return sev(a) - sev(b);
+        return a.store.nome.localeCompare(b.store.nome, "pt-BR");
+      });
+  }, [stores, pipelineInaug, search, phaseFilter, stageFilter, progressFilter, criticalFilter, stageStatus, totalStagesAll]);
+
+  const criticalCount = useMemo(
+    () => rows.filter((r) => r.severity !== null).length,
+    [rows]
+  );
 
   const autoTotals = useMemo(() => {
     const t: Record<AutoKey, number> = { funil: 0, preobra: 0, obra: 0, checklist: 0, inaugurada: 0 };
@@ -321,6 +345,11 @@ export default function MatrizEtapas() {
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <CardTitle className="text-base">
                 {rows.length} loja{rows.length !== 1 ? "s" : ""} {hasFilters ? "filtrada(s)" : "em andamento"}
+                {criticalCount > 0 && (
+                  <Badge variant="destructive" className="ml-2 gap-1 text-[10px]">
+                    <Flame className="h-3 w-3" /> {criticalCount} com alerta
+                  </Badge>
+                )}
               </CardTitle>
               <div className="relative w-full sm:w-72">
                 <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -380,6 +409,19 @@ export default function MatrizEtapas() {
                     {STAGE_GROUPS.map((g) => (
                       <SelectItem key={g.name} value={g.name}>{g.name}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Criticidade</label>
+                <Select value={criticalFilter} onValueChange={setCriticalFilter}>
+                  <SelectTrigger className="h-9 w-[190px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="any">🔥 Com alerta ({criticalCount})</SelectItem>
+                    <SelectItem value="alta">Crítica (alta)</SelectItem>
+                    <SelectItem value="media">Atenção (média)</SelectItem>
+                    <SelectItem value="ok">Sem alertas</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -464,20 +506,56 @@ export default function MatrizEtapas() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map(({ store, flags, derived }) => {
+                  {rows.map(({ store, flags, derived, reasons, severity }) => {
                     const st = stageStatus[store.id] || {};
                     const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
                     const planDone = PLANILHA_STAGES.filter((s) => derived[s.key] || st[s.key]).length;
                     const done = autoDone + planDone;
                     return (
-                      <TableRow key={store.id}>
-                        <TableCell className="sticky left-0 bg-background font-medium">
-                          <Link to={`/loja/${store.id}`} className="hover:underline">
-                            {store.nome}
-                          </Link>
-                          {store.filial && (
-                            <div className="text-[11px] text-muted-foreground">{store.filial}</div>
-                          )}
+                      <TableRow
+                        key={store.id}
+                        className={cn(
+                          severity === "alta" && "bg-destructive/[0.06] hover:bg-destructive/10",
+                          severity === "media" && "bg-[hsl(var(--accent))]/[0.06]"
+                        )}
+                      >
+                        <TableCell className={cn(
+                          "sticky left-0 font-medium",
+                          severity === "alta" ? "bg-destructive/[0.06]" : severity === "media" ? "bg-[hsl(var(--accent))]/[0.06]" : "bg-background"
+                        )}>
+                          <div className="flex items-start gap-2">
+                            <div className="min-w-0 flex-1">
+                              <Link to={`/loja/${store.id}`} className="hover:underline">
+                                {store.nome}
+                              </Link>
+                              {store.filial && (
+                                <div className="text-[11px] text-muted-foreground">{store.filial}</div>
+                              )}
+                            </div>
+                            {severity && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Badge
+                                    variant={severity === "alta" ? "destructive" : "secondary"}
+                                    className="shrink-0 gap-1 text-[10px] px-1.5 py-0 h-5"
+                                  >
+                                    {severity === "alta" ? <Flame className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                                    {reasons.length}
+                                  </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent side="right" className="max-w-xs">
+                                  <div className="font-semibold mb-1">Alertas ({reasons.length})</div>
+                                  <ul className="text-xs space-y-0.5">
+                                    {reasons.map((r, i) => (
+                                      <li key={i} className={cn(r.severity === "alta" && "text-destructive font-medium")}>
+                                        • {r.label}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
                         </TableCell>
                         {AUTO_PHASES.map((p, i) => (
                           <TableCell key={p.key} className={cn("text-center bg-muted/20", i === 0 && "border-l")}>
