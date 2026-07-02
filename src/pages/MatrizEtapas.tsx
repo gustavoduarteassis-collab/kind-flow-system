@@ -148,6 +148,8 @@ export default function MatrizEtapas() {
   const [progressFilter, setProgressFilter] = useState<string>("all"); // all | low | mid | high
   const [groupFilter, setGroupFilter] = useState<string>("all"); // all | <group name>
   const [stageFilter, setStageFilter] = useState<string>("all"); // all | done:<key> | pending:<key> (planilha)
+  const [criticalFilter, setCriticalFilter] = useState<string>("all"); // all | any | alta | media | ok
+
 
   useEffect(() => {
     (async () => {
