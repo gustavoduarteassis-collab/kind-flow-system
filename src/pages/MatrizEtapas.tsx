@@ -491,8 +491,11 @@ export default function MatrizEtapas() {
                   {rows.map(({ store, flags, derived, reasons, severity }) => {
                     const st = stageStatus[store.id] || {};
                     const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
-                    const planDone = PLANILHA_STAGES.filter((s) => derived[s.key] || st[s.key]).length;
+                    const planDone = PLANILHA_STAGES.filter(
+                      (s) => derived[s.key] === true || normalizeStage(st[s.key]) === "concluido"
+                    ).length;
                     const done = autoDone + planDone;
+
                     return (
                       <TableRow
                         key={store.id}
