@@ -86,9 +86,15 @@ const LojasUnificadas = () => {
   return (
     <div className="bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
-          <p className="text-xs text-muted-foreground">Funil, Checklist &amp; Cronograma e Inauguradas</p>
+        <div className="mb-2 flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
+            <p className="text-xs text-muted-foreground">Funil, Checklist &amp; Cronograma e Inauguradas</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate("/atualizar-planilha")}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            📥 Atualizar via Excel
+          </Button>
         </div>
         <Tabs value={tab} onValueChange={handleChange}>
           <TabsList className="grid grid-cols-3 w-full max-w-2xl">
