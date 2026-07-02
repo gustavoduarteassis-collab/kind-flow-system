@@ -83,17 +83,17 @@ export default function TarefasTab({ storeId, storeName, canEdit }: Props) {
 
   async function handleCreate() {
     if (!user || !form.title.trim()) { toast.error("Título é obrigatório"); return; }
-    const { error } = await supabase.from("tasks").insert({
+    const { error } = await supabase.from("tasks").insert([{
       user_id: user.id,
       store_id: storeId,
       title: `${form.title.trim()} — ${storeName}`,
       description: form.description || null,
-      priority: form.priority,
-      status: form.status,
+      priority: form.priority as any,
+      status: form.status as any,
       due_date: form.due_date || null,
       assigned_to: form.assigned_to || null,
-      task_type: "loja",
-    });
+      task_type: "loja" as any,
+    }]);
     if (error) { toast.error("Erro ao criar tarefa"); return; }
     toast.success("Tarefa criada!");
     setOpen(false);
