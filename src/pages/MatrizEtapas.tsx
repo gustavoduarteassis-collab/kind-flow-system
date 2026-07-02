@@ -94,14 +94,16 @@ function computeAutoFlags(store: any, inauguradaInPipeline: boolean): Record<Aut
     }
   }
 
+  const inauguradaDone =
+    inauguradaInPipeline || isStoreLiberated(store.inauguracaoChecklist, store.tipoLoja);
+
   return {
     funil: true,
     preobra: preObraDone,
     obra: obraDone,
     checklist: checklistFinalDone,
-    inaugurada: false, // set below
-    __checklistFinalDone: checklistFinalDone,
-  } as any;
+    inaugurada: inauguradaDone,
+  };
 }
 
 /**
@@ -120,30 +122,16 @@ function deriveStagesFromChecklist(store: any): Record<string, boolean> {
   const currentRound = data.rounds[data.rounds.length - 1];
   const allItems = getAllInaugItems(tipo);
 
-  // "Itens Pendentes (Checklist)" = todos os itens da última rodada resolvidos (Realizado ou Não se Aplica)
   const pendentes = allItems.filter((i) => {
     const s = currentRound.items[i.id]?.status;
     return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
   }).length;
   derived.itens_pendentes = allItems.length > 0 && pendentes === 0;
-
-  // "Loja Liberada" = status LIBERADO ou LIBERADO_COM_RESSALVAS
   derived.loja_liberada = isStoreLiberated(inaugRaw, store.tipoLoja);
 
   return derived;
 }
 
-  const inauguradaDone =
-    inauguradaInPipeline || isStoreLiberated(store.inauguracaoChecklist, store.tipoLoja);
-
-  return {
-    funil: true,
-    preobra: preObraDone,
-    obra: obraDone,
-    checklist: checklistFinalDone,
-    inaugurada: inauguradaDone,
-  };
-}
 
 export default function MatrizEtapas() {
   const { stores, loading } = useStores();
