@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Check, Minus, Search, Info, X, AlertTriangle, Flame } from "lucide-react";
+import { Check, Minus, Search, Info, X, AlertTriangle, Flame, Loader2, AlertOctagon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,50 @@ import { migrateInaugData, getAllInaugItems } from "@/data/inauguracaoChecklistD
 import { computeCriticality, highestSeverity, type CriticalReason } from "@/utils/storeCriticality";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+// -------- Status de 4 níveis nas etapas da planilha --------
+export type Stage4 = "nao_iniciado" | "em_andamento" | "com_problema" | "concluido";
+
+const STAGE_ORDER: Stage4[] = ["nao_iniciado", "em_andamento", "com_problema", "concluido"];
+
+/** Converte o valor cru vindo do JSON (bool antigo ou string nova) para Stage4. */
+function normalizeStage(v: any): Stage4 {
+  if (v === true || v === "concluido") return "concluido";
+  if (v === "em_andamento") return "em_andamento";
+  if (v === "com_problema") return "com_problema";
+  return "nao_iniciado";
+}
+
+const nextStage = (s: Stage4): Stage4 =>
+  STAGE_ORDER[(STAGE_ORDER.indexOf(s) + 1) % STAGE_ORDER.length];
+
+const STAGE_META: Record<Stage4, { label: string; classes: string; icon: JSX.Element; short: string }> = {
+  nao_iniciado: {
+    label: "Não iniciada",
+    short: "⏳ Não iniciada",
+    classes: "bg-background text-muted-foreground border-border hover:bg-muted",
+    icon: <Minus className="h-3 w-3" />,
+  },
+  em_andamento: {
+    label: "Em andamento",
+    short: "🟡 Em andamento",
+    classes: "bg-[hsl(45,95%,55%)] text-black border-[hsl(45,95%,45%)]",
+    icon: <Loader2 className="h-3.5 w-3.5" />,
+  },
+  com_problema: {
+    label: "Com problema",
+    short: "🔴 Com problema",
+    classes: "bg-destructive text-destructive-foreground border-destructive",
+    icon: <AlertOctagon className="h-3.5 w-3.5" />,
+  },
+  concluido: {
+    label: "Concluída",
+    short: "✅ Concluída",
+    classes: "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]",
+    icon: <Check className="h-4 w-4" />,
+  },
+};
+
 
 const AUTO_PHASES = [
   { key: "funil", label: "Funil", tab: "dados", desc: "Loja cadastrada no funil de expansão. Marcada automaticamente para toda loja em andamento." },
@@ -69,14 +113,14 @@ export default function MatrizEtapas() {
   const { stores, loading } = useStores();
   const [pipelineInaug, setPipelineInaug] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
-  const [stageStatus, setStageStatus] = useState<Record<string, Record<string, boolean>>>({});
+  const [stageStatus, setStageStatus] = useState<Record<string, Record<string, Stage4>>>({});
   const [saving, setSaving] = useState<string | null>(null);
   // Filtros avançados
-  const [phaseFilter, setPhaseFilter] = useState<string>("all"); // all | done:<key> | pending:<key>
-  const [progressFilter, setProgressFilter] = useState<string>("all"); // all | low | mid | high
-  const [groupFilter, setGroupFilter] = useState<string>("all"); // all | <group name>
-  const [stageFilter, setStageFilter] = useState<string>("all"); // all | done:<key> | pending:<key> (planilha)
-  const [criticalFilter, setCriticalFilter] = useState<string>("all"); // all | any | alta | media | ok
+  const [phaseFilter, setPhaseFilter] = useState<string>("all");
+  const [progressFilter, setProgressFilter] = useState<string>("all");
+  const [groupFilter, setGroupFilter] = useState<string>("all");
+  const [stageFilter, setStageFilter] = useState<string>("all");
+  const [criticalFilter, setCriticalFilter] = useState<string>("all");
 
 
   useEffect(() => {
@@ -100,26 +144,33 @@ export default function MatrizEtapas() {
   useEffect(() => {
     (async () => {
       const { data } = await supabase.from("stores").select("id, stage_status");
-      const map: Record<string, Record<string, boolean>> = {};
+      const map: Record<string, Record<string, Stage4>> = {};
       (data || []).forEach((r: any) => {
-        map[r.id] = (r.stage_status && typeof r.stage_status === "object") ? r.stage_status : {};
+        const raw = (r.stage_status && typeof r.stage_status === "object") ? r.stage_status : {};
+        const norm: Record<string, Stage4> = {};
+        for (const [k, v] of Object.entries(raw)) norm[k] = normalizeStage(v);
+        map[r.id] = norm;
       });
       setStageStatus(map);
     })();
   }, []);
 
-  const toggle = async (storeId: string, stageKey: string) => {
+  /** Avança sequencialmente o status da célula (nao_iniciado → em_andamento → com_problema → concluido → …). */
+  const cycle = async (storeId: string, stageKey: string) => {
     const current = stageStatus[storeId] || {};
-    const next = { ...current, [stageKey]: !current[stageKey] };
+    const currentVal = normalizeStage(current[stageKey]);
+    const nextVal = nextStage(currentVal);
+    const next = { ...current, [stageKey]: nextVal };
     setStageStatus((s) => ({ ...s, [storeId]: next }));
     setSaving(storeId + stageKey);
-    const { error } = await supabase.from("stores").update({ stage_status: next }).eq("id", storeId);
+    const { error } = await supabase.from("stores").update({ stage_status: next as any }).eq("id", storeId);
     setSaving(null);
     if (error) {
       toast.error("Erro ao salvar etapa");
       setStageStatus((s) => ({ ...s, [storeId]: current }));
     }
   };
+
 
   const totalStagesAll = AUTO_PHASES.length + PLANILHA_STAGES.length;
   const visibleGroups = useMemo(
@@ -144,7 +195,9 @@ export default function MatrizEtapas() {
         const derived = deriveStagesFromChecklist(s);
         const st = stageStatus[s.id] || {};
         const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
-        const planDone = PLANILHA_STAGES.filter((ps) => derived[ps.key] || st[ps.key]).length;
+        const planDone = PLANILHA_STAGES.filter(
+          (ps) => derived[ps.key] || normalizeStage(st[ps.key]) === "concluido"
+        ).length;
         const pct = ((autoDone + planDone) / totalStagesAll) * 100;
         const reasons: CriticalReason[] = computeCriticality(s, {
           progressPct: pct,
@@ -162,14 +215,15 @@ export default function MatrizEtapas() {
           if (mode === "done" && !v) return false;
           if (mode === "pending" && v) return false;
         }
-        // filtro etapa planilha
+        // filtro etapa planilha (done = concluído; pending = qualquer coisa diferente)
         if (stageFilter !== "all") {
           const [mode, key] = stageFilter.split(":");
           const st = stageStatus[r.store.id] || {};
-          const v = r.derived[key] || !!st[key];
-          if (mode === "done" && !v) return false;
-          if (mode === "pending" && v) return false;
+          const isConcluido = r.derived[key] === true || normalizeStage(st[key]) === "concluido";
+          if (mode === "done" && !isConcluido) return false;
+          if (mode === "pending" && isConcluido) return false;
         }
+
         // filtro progresso
         if (progressFilter !== "all") {
           if (progressFilter === "low" && r.pct >= 30) return false;
@@ -210,13 +264,13 @@ export default function MatrizEtapas() {
     rows.forEach((r) => {
       const st = stageStatus[r.store.id] || {};
       PLANILHA_STAGES.forEach((s) => {
-        // Derivado do Checklist Final tem prioridade — evita divergência
-        const isDone = r.derived[s.key] || !!st[s.key];
+        const isDone = r.derived[s.key] === true || normalizeStage(st[s.key]) === "concluido";
         if (isDone) t[s.key]++;
       });
     });
     return t;
   }, [rows, stageStatus]);
+
 
   const totalStages = AUTO_PHASES.length + PLANILHA_STAGES.length;
 
@@ -226,7 +280,7 @@ export default function MatrizEtapas() {
         <div>
           <h1 className="text-2xl font-bold">Matriz de Etapas</h1>
           <p className="text-sm text-muted-foreground">
-            Fases automáticas + etapas da planilha (clique para marcar/desmarcar). As etapas <strong>Itens Pendentes</strong> e <strong>Loja Liberada</strong> são sincronizadas automaticamente com o Checklist Final da loja (ficam bloqueadas quando derivadas dele para evitar divergências no X/Y).
+            Fases automáticas + etapas da planilha. <strong>Clique em cada bolinha</strong> para avançar sequencialmente entre os 4 status: Não iniciada → Em andamento → Com problema → Concluída. As etapas <strong>Itens Pendentes</strong> e <strong>Loja Liberada</strong> continuam sincronizadas com o Checklist Final (travadas em Concluída).
           </p>
         </div>
 
@@ -235,20 +289,20 @@ export default function MatrizEtapas() {
           <CardContent className="p-4">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
               <div className="flex items-center gap-2 font-medium">
-                <Info className="h-4 w-4 text-muted-foreground" /> Legenda
+                <Info className="h-4 w-4 text-muted-foreground" /> Legenda — clique para avançar status
               </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[hsl(142,60%,45%)] text-white border border-[hsl(142,60%,45%)]">
-                  <Check className="h-3.5 w-3.5" />
-                </span>
-                <span>Etapa concluída</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted text-muted-foreground border border-border">
-                  <Minus className="h-3 w-3" />
-                </span>
-                <span>Etapa pendente</span>
-              </div>
+              {(["nao_iniciado","em_andamento","com_problema","concluido"] as Stage4[]).map((k) => {
+                const m = STAGE_META[k];
+                return (
+                  <div key={k} className="flex items-center gap-2">
+                    <span className={cn("inline-flex h-6 w-6 items-center justify-center rounded-full border", m.classes)}>
+                      {m.icon}
+                    </span>
+                    <span>{m.label}</span>
+                  </div>
+                );
+              })}
+
               <div className="flex items-center gap-2">
                 <span className="inline-block h-4 w-4 rounded bg-muted/40 border" />
                 <span><span className="font-medium">Fases (auto):</span> marcadas pelo sistema conforme o avanço da loja.</span>
@@ -437,8 +491,11 @@ export default function MatrizEtapas() {
                   {rows.map(({ store, flags, derived, reasons, severity }) => {
                     const st = stageStatus[store.id] || {};
                     const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
-                    const planDone = PLANILHA_STAGES.filter((s) => derived[s.key] || st[s.key]).length;
+                    const planDone = PLANILHA_STAGES.filter(
+                      (s) => derived[s.key] === true || normalizeStage(st[s.key]) === "concluido"
+                    ).length;
                     const done = autoDone + planDone;
+
                     return (
                       <TableRow
                         key={store.id}
@@ -515,8 +572,10 @@ export default function MatrizEtapas() {
                         {visibleGroups.map((g) =>
                           g.stages.map((s, i) => {
                             const isDerived = derived[s.key] === true;
-                            const cellDone = isDerived || !!st[s.key];
+                            const rawStatus: Stage4 = isDerived ? "concluido" : normalizeStage(st[s.key]);
+                            const meta = STAGE_META[rawStatus];
                             const isSaving = saving === store.id + s.key;
+                            const upcoming = STAGE_META[nextStage(rawStatus)];
                             return (
                               <TableCell
                                 key={s.key}
@@ -527,18 +586,18 @@ export default function MatrizEtapas() {
                                     <button
                                       type="button"
                                       disabled={isSaving || isDerived}
-                                      onClick={() => !isDerived && toggle(store.id, s.key)}
+                                      onClick={() => !isDerived && cycle(store.id, s.key)}
+                                      aria-label={`${s.label}: ${meta.label}${isDerived ? " (bloqueada)" : ""}`}
                                       className={cn(
                                         "inline-flex h-7 w-7 items-center justify-center rounded-full border transition",
                                         !isDerived && "hover:scale-110",
-                                        cellDone
-                                          ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
-                                          : "bg-background text-muted-foreground border-border hover:bg-muted",
+                                        meta.classes,
                                         isDerived && "ring-2 ring-[hsl(142,60%,45%)]/40 cursor-not-allowed",
-                                        isSaving && "opacity-50"
+                                        isSaving && "opacity-50",
+                                        rawStatus === "em_andamento" && isSaving && "animate-spin"
                                       )}
                                     >
-                                      {cellDone ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
+                                      {meta.icon}
                                     </button>
                                   </TooltipTrigger>
                                   <TooltipContent side="top" className="max-w-xs">
@@ -546,16 +605,21 @@ export default function MatrizEtapas() {
                                     <div className="font-semibold">{store.nome} — {s.label}</div>
                                     <div className="text-xs mt-1">
                                       {isDerived
-                                        ? "🔒 Sincronizada automaticamente pelo Checklist Final — não pode ser desmarcada manualmente."
-                                        : cellDone
-                                          ? "✅ Concluída — clique para desmarcar."
-                                          : "⏳ Pendente — clique para marcar como concluída."}
+                                        ? "🔒 Sincronizada automaticamente pelo Checklist Final — status travado em Concluída."
+                                        : (
+                                          <>
+                                            Status atual: <strong>{meta.short}</strong>.
+                                            <br />
+                                            Clique para mudar para <strong>{upcoming.short}</strong>.
+                                          </>
+                                        )}
                                     </div>
                                     <div className="text-xs mt-1 text-muted-foreground">{s.desc}</div>
                                   </TooltipContent>
                                 </Tooltip>
                               </TableCell>
                             );
+
                           })
                         )}
                         <TableCell className="text-center text-sm tabular-nums whitespace-nowrap border-l">
