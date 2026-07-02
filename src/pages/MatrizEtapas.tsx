@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Check, Minus, Search, Info, X, AlertTriangle, Flame } from "lucide-react";
+import { Check, Minus, Search, Info, X, AlertTriangle, Flame, Loader2, AlertOctagon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,50 @@ import { migrateInaugData, getAllInaugItems } from "@/data/inauguracaoChecklistD
 import { computeCriticality, highestSeverity, type CriticalReason } from "@/utils/storeCriticality";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+
+// -------- Status de 4 níveis nas etapas da planilha --------
+export type Stage4 = "nao_iniciado" | "em_andamento" | "com_problema" | "concluido";
+
+const STAGE_ORDER: Stage4[] = ["nao_iniciado", "em_andamento", "com_problema", "concluido"];
+
+/** Converte o valor cru vindo do JSON (bool antigo ou string nova) para Stage4. */
+function normalizeStage(v: any): Stage4 {
+  if (v === true || v === "concluido") return "concluido";
+  if (v === "em_andamento") return "em_andamento";
+  if (v === "com_problema") return "com_problema";
+  return "nao_iniciado";
+}
+
+const nextStage = (s: Stage4): Stage4 =>
+  STAGE_ORDER[(STAGE_ORDER.indexOf(s) + 1) % STAGE_ORDER.length];
+
+const STAGE_META: Record<Stage4, { label: string; classes: string; icon: JSX.Element; short: string }> = {
+  nao_iniciado: {
+    label: "Não iniciada",
+    short: "⏳ Não iniciada",
+    classes: "bg-background text-muted-foreground border-border hover:bg-muted",
+    icon: <Minus className="h-3 w-3" />,
+  },
+  em_andamento: {
+    label: "Em andamento",
+    short: "🟡 Em andamento",
+    classes: "bg-[hsl(45,95%,55%)] text-black border-[hsl(45,95%,45%)]",
+    icon: <Loader2 className="h-3.5 w-3.5" />,
+  },
+  com_problema: {
+    label: "Com problema",
+    short: "🔴 Com problema",
+    classes: "bg-destructive text-destructive-foreground border-destructive",
+    icon: <AlertOctagon className="h-3.5 w-3.5" />,
+  },
+  concluido: {
+    label: "Concluída",
+    short: "✅ Concluída",
+    classes: "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]",
+    icon: <Check className="h-4 w-4" />,
+  },
+};
+
 
 const AUTO_PHASES = [
   { key: "funil", label: "Funil", tab: "dados", desc: "Loja cadastrada no funil de expansão. Marcada automaticamente para toda loja em andamento." },
