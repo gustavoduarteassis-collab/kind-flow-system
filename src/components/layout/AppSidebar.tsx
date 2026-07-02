@@ -19,6 +19,7 @@ const mainItems = [
 ];
 
 const toolItems = [
+  { title: "Validação de Datas", url: "/validacao-datas", icon: CalendarCheck },
   { title: "Diversos", url: "/diversos", icon: FolderOpen },
   { title: "Acessos", url: "/acessos", icon: KeyRound },
   { title: "Itens excluídos", url: "/itens-excluidos", icon: Trash2 },
