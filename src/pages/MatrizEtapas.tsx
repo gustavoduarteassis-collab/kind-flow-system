@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
 import { isStoreLiberated } from "@/utils/inaugurationStatus";
+import { migrateInaugData, getAllInaugItems } from "@/data/inauguracaoChecklistData";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
