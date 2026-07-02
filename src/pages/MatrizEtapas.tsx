@@ -89,6 +89,7 @@ export default function MatrizEtapas() {
           pipelineInaug.has((s.filial || "").trim().toLowerCase());
         return { store: s, flags: computePhaseFlags(s, inPipeline) };
       })
+      .filter((r) => !r.flags.inaugurada)
       .sort((a, b) => a.store.nome.localeCompare(b.store.nome, "pt-BR"));
   }, [stores, pipelineInaug, search]);
 
