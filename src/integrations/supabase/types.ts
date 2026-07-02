@@ -1174,6 +1174,50 @@ export type Database = {
           },
         ]
       }
+      store_updates: {
+        Row: {
+          autor_nome: string | null
+          autor_user_id: string | null
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          id: string
+          store_id: string
+          texto: string
+          updated_at: string
+        }
+        Insert: {
+          autor_nome?: string | null
+          autor_user_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          store_id: string
+          texto: string
+          updated_at?: string
+        }
+        Update: {
+          autor_nome?: string | null
+          autor_user_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          store_id?: string
+          texto?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_updates_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           action_plans: Json | null
@@ -1186,20 +1230,31 @@ export type Database = {
           created_at: string
           cronograma: Json
           custos: Json
+          data_contrato_locacao: string | null
+          data_liberacao_chaves: string | null
           deleted_at: string | null
           deleted_by: string | null
+          demolicao_prev: string | null
+          demolicao_real: string | null
           fase_atual: string | null
           filial: string
           franqueado: string
           id: string
           inauguracao: string
           inauguracao_checklist: Json
+          inauguracao_real: string | null
           inicio_obra_texto: string | null
           is_reforma: boolean | null
           localizacao: string | null
+          moveis_prev: string | null
+          moveis_real: string | null
           nome: string
+          obra_inicio_prev: string | null
+          obra_inicio_real: string | null
           porte: string | null
           previsao_inauguracao_texto: string | null
+          produtos_prev: string | null
+          produtos_real: string | null
           razao_social: string | null
           solicitacoes: Json
           stage_status: Json
@@ -1208,10 +1263,14 @@ export type Database = {
           status_geral: string | null
           tipo_loja: string
           uf: string | null
+          ultima_atualizacao: string | null
+          ultima_atualizacao_at: string | null
+          ultima_atualizacao_autor: string | null
           updated_at: string
           user_id: string
           version: number
           visita_tecnica: Json
+          visita_tecnica_real: string | null
         }
         Insert: {
           action_plans?: Json | null
@@ -1224,20 +1283,31 @@ export type Database = {
           created_at?: string
           cronograma?: Json
           custos?: Json
+          data_contrato_locacao?: string | null
+          data_liberacao_chaves?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
+          demolicao_prev?: string | null
+          demolicao_real?: string | null
           fase_atual?: string | null
           filial?: string
           franqueado?: string
           id?: string
           inauguracao?: string
           inauguracao_checklist?: Json
+          inauguracao_real?: string | null
           inicio_obra_texto?: string | null
           is_reforma?: boolean | null
           localizacao?: string | null
+          moveis_prev?: string | null
+          moveis_real?: string | null
           nome: string
+          obra_inicio_prev?: string | null
+          obra_inicio_real?: string | null
           porte?: string | null
           previsao_inauguracao_texto?: string | null
+          produtos_prev?: string | null
+          produtos_real?: string | null
           razao_social?: string | null
           solicitacoes?: Json
           stage_status?: Json
@@ -1246,10 +1316,14 @@ export type Database = {
           status_geral?: string | null
           tipo_loja?: string
           uf?: string | null
+          ultima_atualizacao?: string | null
+          ultima_atualizacao_at?: string | null
+          ultima_atualizacao_autor?: string | null
           updated_at?: string
           user_id: string
           version?: number
           visita_tecnica?: Json
+          visita_tecnica_real?: string | null
         }
         Update: {
           action_plans?: Json | null
@@ -1262,20 +1336,31 @@ export type Database = {
           created_at?: string
           cronograma?: Json
           custos?: Json
+          data_contrato_locacao?: string | null
+          data_liberacao_chaves?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
+          demolicao_prev?: string | null
+          demolicao_real?: string | null
           fase_atual?: string | null
           filial?: string
           franqueado?: string
           id?: string
           inauguracao?: string
           inauguracao_checklist?: Json
+          inauguracao_real?: string | null
           inicio_obra_texto?: string | null
           is_reforma?: boolean | null
           localizacao?: string | null
+          moveis_prev?: string | null
+          moveis_real?: string | null
           nome?: string
+          obra_inicio_prev?: string | null
+          obra_inicio_real?: string | null
           porte?: string | null
           previsao_inauguracao_texto?: string | null
+          produtos_prev?: string | null
+          produtos_real?: string | null
           razao_social?: string | null
           solicitacoes?: Json
           stage_status?: Json
@@ -1284,10 +1369,14 @@ export type Database = {
           status_geral?: string | null
           tipo_loja?: string
           uf?: string | null
+          ultima_atualizacao?: string | null
+          ultima_atualizacao_at?: string | null
+          ultima_atualizacao_autor?: string | null
           updated_at?: string
           user_id?: string
           version?: number
           visita_tecnica?: Json
+          visita_tecnica_real?: string | null
         }
         Relationships: []
       }
