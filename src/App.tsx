@@ -20,7 +20,7 @@ import Acessos from "./pages/Acessos";
 import ItensExcluidos from "./pages/ItensExcluidos";
 import Performance from "./pages/Performance";
 import ValidacaoDatas from "./pages/ValidacaoDatas";
-import MatrizEtapas from "./pages/MatrizEtapas";
+
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
