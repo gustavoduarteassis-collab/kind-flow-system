@@ -21,6 +21,7 @@ import {
 import { useUserDisplayName } from "@/hooks/useUserDisplayName";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { buildInauguradasFiliais } from "@/utils/inauguradaFilter";
+import { groupObrasCriticas, type GroupedCriticalAlert, type CriticalMetric } from "@/utils/obrasCriticas";
 
 type Task = {
   id: string; title: string; status: string; priority: string;
@@ -337,38 +338,10 @@ const Index = () => {
   }), [activeStores, custos]);
 
   // ----- Obras Críticas (grouped per store) -----
-  type Alert = { icon: any; label: string; tone: Sem; tab?: string; sort: number };
-  type GroupedAlert = { storeId: string; storeName: string; analista: string; alerts: Alert[]; worstTone: Sem; minSort: number };
-  const groupedAlerts: GroupedAlert[] = useMemo(() => {
-    const byStore = new Map<string, GroupedAlert>();
-    const push = (m: typeof storeMetrics[0], a: Alert) => {
-      const key = m.store.id;
-      const g = byStore.get(key) || { storeId: key, storeName: m.store.nome, analista: m.store.analistaObra || "—", alerts: [], worstTone: "muted" as Sem, minSort: 999 };
-      g.alerts.push(a);
-      const toneRank: Record<Sem, number> = { red: 3, amber: 2, green: 1, muted: 0 };
-      if (toneRank[a.tone] > toneRank[g.worstTone]) g.worstTone = a.tone;
-      if (a.sort < g.minSort) g.minSort = a.sort;
-      byStore.set(key, g);
-    };
-    storeMetrics.forEach((m) => {
-      if (m.days !== null && m.days >= 0 && m.days <= 7) {
-        push(m, { icon: Clock, label: `⏳ ${m.days === 0 ? "Inaugura hoje" : `${m.days}d p/ inaugurar`}`, tone: "red", sort: m.days });
-      }
-      if (m.vtPct === 0 && m.days !== null && m.days >= 0 && m.days < 30) {
-        push(m, { icon: Search, label: "🔍 Visita pendente", tone: "red", tab: "visita-tecnica", sort: 10 });
-      }
-      if (!m.cron) {
-        push(m, { icon: Calendar, label: "📅 Sem cronograma", tone: "amber", tab: "cronograma", sort: 20 });
-      }
-      if (!m.custo?.hasCusto && m.pct > 20) {
-        push(m, { icon: Wallet, label: "💰 Sem custo", tone: "amber", tab: "custos", sort: 30 });
-      }
-      if (m.atrasados > 10) {
-        push(m, { icon: Flame, label: `⚠️ ${m.atrasados} atrasados`, tone: "red", sort: 5 });
-      }
-    });
-    return Array.from(byStore.values()).sort((a, b) => a.minSort - b.minSort);
-  }, [storeMetrics]);
+  const groupedAlerts: GroupedCriticalAlert[] = useMemo(
+    () => groupObrasCriticas(storeMetrics as unknown as CriticalMetric[]),
+    [storeMetrics]
+  );
 
   // ----- 4 KPIs de Qualidade -----
   const qualityKpis = useMemo(() => {
