@@ -212,11 +212,18 @@ export default function MatrizEtapas() {
         const inPipeline =
           pipelineInaug.has((s.nome || "").trim().toLowerCase()) ||
           pipelineInaug.has((s.filial || "").trim().toLowerCase());
-        return {
-          store: s,
-          flags: computeAutoFlags(s, inPipeline),
-          derived: deriveStagesFromChecklist(s),
-        };
+        const flags = computeAutoFlags(s, inPipeline);
+        const derived = deriveStagesFromChecklist(s);
+        const st = stageStatus[s.id] || {};
+        const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
+        const planDone = PLANILHA_STAGES.filter((ps) => derived[ps.key] || st[ps.key]).length;
+        const pct = ((autoDone + planDone) / totalStagesAll) * 100;
+        const reasons: CriticalReason[] = computeCriticality(s, {
+          progressPct: pct,
+          inaugurada: flags.inaugurada,
+        });
+        const severity = highestSeverity(reasons);
+        return { store: s, flags, derived, pct, reasons, severity };
       })
       .filter((r) => !r.flags.inaugurada)
       .filter((r) => {
@@ -237,18 +244,31 @@ export default function MatrizEtapas() {
         }
         // filtro progresso
         if (progressFilter !== "all") {
-          const st = stageStatus[r.store.id] || {};
-          const autoDone = AUTO_PHASES.filter((p) => r.flags[p.key]).length;
-          const planDone = PLANILHA_STAGES.filter((s) => r.derived[s.key] || st[s.key]).length;
-          const pct = ((autoDone + planDone) / totalStagesAll) * 100;
-          if (progressFilter === "low" && pct >= 30) return false;
-          if (progressFilter === "mid" && (pct < 30 || pct > 70)) return false;
-          if (progressFilter === "high" && pct <= 70) return false;
+          if (progressFilter === "low" && r.pct >= 30) return false;
+          if (progressFilter === "mid" && (r.pct < 30 || r.pct > 70)) return false;
+          if (progressFilter === "high" && r.pct <= 70) return false;
+        }
+        // filtro criticidade
+        if (criticalFilter !== "all") {
+          if (criticalFilter === "any" && r.severity === null) return false;
+          if (criticalFilter === "alta" && r.severity !== "alta") return false;
+          if (criticalFilter === "media" && r.severity !== "media") return false;
+          if (criticalFilter === "ok" && r.severity !== null) return false;
         }
         return true;
       })
-      .sort((a, b) => a.store.nome.localeCompare(b.store.nome, "pt-BR"));
-  }, [stores, pipelineInaug, search, phaseFilter, stageFilter, progressFilter, stageStatus, totalStagesAll]);
+      .sort((a, b) => {
+        // Críticas primeiro quando o filtro não força uma ordem específica
+        const sev = (x: typeof a) => (x.severity === "alta" ? 0 : x.severity === "media" ? 1 : 2);
+        if (sev(a) !== sev(b)) return sev(a) - sev(b);
+        return a.store.nome.localeCompare(b.store.nome, "pt-BR");
+      });
+  }, [stores, pipelineInaug, search, phaseFilter, stageFilter, progressFilter, criticalFilter, stageStatus, totalStagesAll]);
+
+  const criticalCount = useMemo(
+    () => rows.filter((r) => r.severity !== null).length,
+    [rows]
+  );
 
   const autoTotals = useMemo(() => {
     const t: Record<AutoKey, number> = { funil: 0, preobra: 0, obra: 0, checklist: 0, inaugurada: 0 };
