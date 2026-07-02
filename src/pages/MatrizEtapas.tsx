@@ -280,7 +280,7 @@ export default function MatrizEtapas() {
         <div>
           <h1 className="text-2xl font-bold">Matriz de Etapas</h1>
           <p className="text-sm text-muted-foreground">
-            Fases automáticas + etapas da planilha (clique para marcar/desmarcar). As etapas <strong>Itens Pendentes</strong> e <strong>Loja Liberada</strong> são sincronizadas automaticamente com o Checklist Final da loja (ficam bloqueadas quando derivadas dele para evitar divergências no X/Y).
+            Fases automáticas + etapas da planilha. <strong>Clique em cada bolinha</strong> para avançar sequencialmente entre os 4 status: Não iniciada → Em andamento → Com problema → Concluída. As etapas <strong>Itens Pendentes</strong> e <strong>Loja Liberada</strong> continuam sincronizadas com o Checklist Final (travadas em Concluída).
           </p>
         </div>
 
@@ -289,20 +289,20 @@ export default function MatrizEtapas() {
           <CardContent className="p-4">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
               <div className="flex items-center gap-2 font-medium">
-                <Info className="h-4 w-4 text-muted-foreground" /> Legenda
+                <Info className="h-4 w-4 text-muted-foreground" /> Legenda — clique para avançar status
               </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[hsl(142,60%,45%)] text-white border border-[hsl(142,60%,45%)]">
-                  <Check className="h-3.5 w-3.5" />
-                </span>
-                <span>Etapa concluída</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted text-muted-foreground border border-border">
-                  <Minus className="h-3 w-3" />
-                </span>
-                <span>Etapa pendente</span>
-              </div>
+              {(["nao_iniciado","em_andamento","com_problema","concluido"] as Stage4[]).map((k) => {
+                const m = STAGE_META[k];
+                return (
+                  <div key={k} className="flex items-center gap-2">
+                    <span className={cn("inline-flex h-6 w-6 items-center justify-center rounded-full border", m.classes)}>
+                      {m.icon}
+                    </span>
+                    <span>{m.label}</span>
+                  </div>
+                );
+              })}
+
               <div className="flex items-center gap-2">
                 <span className="inline-block h-4 w-4 rounded bg-muted/40 border" />
                 <span><span className="font-medium">Fases (auto):</span> marcadas pelo sistema conforme o avanço da loja.</span>
