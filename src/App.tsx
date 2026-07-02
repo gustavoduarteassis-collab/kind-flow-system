@@ -13,6 +13,7 @@ import Equipe from "./pages/Equipe";
 import FranqueadoPortal from "./pages/FranqueadoPortal";
 
 import ImportFunil from "./pages/ImportFunil";
+import AtualizarPlanilha from "./pages/AtualizarPlanilha";
 import CustosGeral from "./pages/CustosGeral";
 import Diversos from "./pages/Diversos";
 import AGM from "./pages/AGM";
