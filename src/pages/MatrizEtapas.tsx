@@ -13,11 +13,11 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const AUTO_PHASES = [
-  { key: "funil", label: "Funil", desc: "Loja cadastrada no funil de expansão. Marcada automaticamente para toda loja em andamento." },
-  { key: "preobra", label: "Pré-Obra", desc: "Existe visita técnica registrada ou pelo menos uma solicitação operacional cadastrada." },
-  { key: "obra", label: "Obra", desc: "Checklist de obra iniciado e todos os itens marcados como REALIZADO ou NÃO SE APLICA." },
-  { key: "checklist", label: "Checklist Final", desc: "Ao menos uma rodada do checklist final de inauguração foi preenchida." },
-  { key: "inaugurada", label: "Inaugurada", desc: "Loja liberada pelo checklist final ou marcada como inaugurada no funil." },
+  { key: "funil", label: "Funil", tab: "dados", desc: "Loja cadastrada no funil de expansão. Marcada automaticamente para toda loja em andamento." },
+  { key: "preobra", label: "Pré-Obra", tab: "obra", desc: "Existe visita técnica registrada ou pelo menos uma solicitação operacional cadastrada." },
+  { key: "obra", label: "Obra", tab: "obra", desc: "Checklist de obra iniciado e todos os itens marcados como REALIZADO ou NÃO SE APLICA." },
+  { key: "checklist", label: "Checklist Final", tab: "checklist-final", desc: "Ao menos uma rodada do checklist final de inauguração foi preenchida." },
+  { key: "inaugurada", label: "Inaugurada", tab: "datas", desc: "Loja liberada pelo checklist final ou marcada como inaugurada no funil." },
 ] as const;
 
 // Etapas da planilha (Funil 2026) — ordem, agrupamento e descrições fiéis à planilha.
