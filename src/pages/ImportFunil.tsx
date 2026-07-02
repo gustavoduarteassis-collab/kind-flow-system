@@ -350,7 +350,7 @@ const ImportFunil = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Importar Funil 2026</h1>
-          <p className="text-xs text-muted-foreground">Importação aditiva — nunca sobrescreve dados existentes</p>
+          <p className="text-xs text-muted-foreground">Planilha vence — sobrescreve valores divergentes; células vazias não apagam dados</p>
         </div>
 
         {/* Upload area */}
