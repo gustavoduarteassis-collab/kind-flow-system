@@ -78,12 +78,15 @@ const ValidacaoDatas = () => {
 
   const load = async () => {
     setLoading(true);
+    setLoadError(null);
     const [{ data: pipeline, error: pErr }, { data: stores, error: sErr }] = await Promise.all([
       supabase.from("pipeline_stores").select("id, filial, local, previsao_inauguracao, data_inauguracao").is("deleted_at", null),
       supabase.from("stores").select("id, nome, inauguracao, inauguracao_real").is("deleted_at", null),
     ]);
     if (pErr || sErr) {
+      const msg = (pErr || sErr)?.message || "Erro desconhecido ao carregar dados";
       console.error(pErr || sErr);
+      setLoadError(msg);
       setRows([]); setMismatches([]); setLoading(false); return;
     }
     const issues: Row[] = [];
