@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  Building2, DollarSign, Target, Users, FolderOpen, KeyRound, Home, Trash2, TrendingUp, LayoutGrid, CalendarCheck,
+  Building2, DollarSign, Target, Users, FolderOpen, KeyRound, Home, Trash2, TrendingUp, LayoutGrid, CalendarCheck, Settings, ChevronDown,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -11,7 +12,7 @@ import logoConstance from "@/assets/logo-constance.svg";
 const mainItems = [
   { title: "Painel", url: "/", icon: Home },
   { title: "Lojas", url: "/lojas", icon: Building2 },
-  { title: "Matriz de Etapas", url: "/?tab=matriz", icon: LayoutGrid },
+  { title: "Matriz de Etapas", url: "/matriz-etapas", icon: LayoutGrid },
   { title: "Custos Geral", url: "/custos-geral", icon: DollarSign },
   { title: "AGM", url: "/agm", icon: Target },
   { title: "Equipe & Tarefas", url: "/equipe", icon: Users },
@@ -29,6 +30,8 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { pathname } = useLocation();
+  const toolsActive = toolItems.some((t) => pathname.startsWith(t.url));
+  const [toolsOpen, setToolsOpen] = useState<boolean>(toolsActive);
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
 
@@ -62,9 +65,26 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          {!collapsed && <SidebarGroupLabel>Ferramentas</SidebarGroupLabel>}
           <SidebarGroupContent>
-            <SidebarMenu>{toolItems.map(renderItem)}</SidebarMenu>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setToolsOpen((v) => !v)}
+                  isActive={toolsActive}
+                  tooltip="Ferramentas"
+                  className="justify-between"
+                >
+                  <span className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    {!collapsed && <span>⚙️ Ferramentas</span>}
+                  </span>
+                  {!collapsed && (
+                    <ChevronDown className={`h-4 w-4 transition-transform ${toolsOpen ? "" : "-rotate-90"}`} />
+                  )}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              {(toolsOpen || collapsed) && toolItems.map(renderItem)}
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
