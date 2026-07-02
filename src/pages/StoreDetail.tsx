@@ -552,6 +552,9 @@ const StoreDetail = () => {
             <TabsTrigger value="diario" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
               📓 Diário
             </TabsTrigger>
+            <TabsTrigger value="tarefas" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              ✅ Tarefas
+            </TabsTrigger>
           </TabsScrollableList>
 
           {/* 1. DADOS — cadastro/mestre da loja */}
