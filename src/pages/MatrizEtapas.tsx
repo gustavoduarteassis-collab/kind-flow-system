@@ -1,8 +1,10 @@
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Check, Minus, Search, Info } from "lucide-react";
+import { Check, Minus, Search, Info, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useStores } from "@/hooks/useStores";
@@ -139,6 +141,11 @@ export default function MatrizEtapas() {
   const [search, setSearch] = useState("");
   const [stageStatus, setStageStatus] = useState<Record<string, Record<string, boolean>>>({});
   const [saving, setSaving] = useState<string | null>(null);
+  // Filtros avançados
+  const [phaseFilter, setPhaseFilter] = useState<string>("all"); // all | done:<key> | pending:<key>
+  const [progressFilter, setProgressFilter] = useState<string>("all"); // all | low | mid | high
+  const [groupFilter, setGroupFilter] = useState<string>("all"); // all | <group name>
+  const [stageFilter, setStageFilter] = useState<string>("all"); // all | done:<key> | pending:<key> (planilha)
 
   useEffect(() => {
     (async () => {
@@ -182,6 +189,17 @@ export default function MatrizEtapas() {
     }
   };
 
+  const totalStagesAll = AUTO_PHASES.length + PLANILHA_STAGES.length;
+  const visibleGroups = useMemo(
+    () => (groupFilter === "all" ? STAGE_GROUPS : STAGE_GROUPS.filter((g) => g.name === groupFilter)),
+    [groupFilter]
+  );
+
+  const clearFilters = () => {
+    setSearch(""); setPhaseFilter("all"); setProgressFilter("all"); setGroupFilter("all"); setStageFilter("all");
+  };
+  const hasFilters = search || phaseFilter !== "all" || progressFilter !== "all" || groupFilter !== "all" || stageFilter !== "all";
+
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return stores
@@ -197,8 +215,36 @@ export default function MatrizEtapas() {
         };
       })
       .filter((r) => !r.flags.inaugurada)
+      .filter((r) => {
+        // filtro fase automática
+        if (phaseFilter !== "all") {
+          const [mode, key] = phaseFilter.split(":") as [string, AutoKey];
+          const v = r.flags[key];
+          if (mode === "done" && !v) return false;
+          if (mode === "pending" && v) return false;
+        }
+        // filtro etapa planilha
+        if (stageFilter !== "all") {
+          const [mode, key] = stageFilter.split(":");
+          const st = stageStatus[r.store.id] || {};
+          const v = r.derived[key] || !!st[key];
+          if (mode === "done" && !v) return false;
+          if (mode === "pending" && v) return false;
+        }
+        // filtro progresso
+        if (progressFilter !== "all") {
+          const st = stageStatus[r.store.id] || {};
+          const autoDone = AUTO_PHASES.filter((p) => r.flags[p.key]).length;
+          const planDone = PLANILHA_STAGES.filter((s) => r.derived[s.key] || st[s.key]).length;
+          const pct = ((autoDone + planDone) / totalStagesAll) * 100;
+          if (progressFilter === "low" && pct >= 30) return false;
+          if (progressFilter === "mid" && (pct < 30 || pct > 70)) return false;
+          if (progressFilter === "high" && pct <= 70) return false;
+        }
+        return true;
+      })
       .sort((a, b) => a.store.nome.localeCompare(b.store.nome, "pt-BR"));
-  }, [stores, pipelineInaug, search]);
+  }, [stores, pipelineInaug, search, phaseFilter, stageFilter, progressFilter, stageStatus, totalStagesAll]);
 
   const autoTotals = useMemo(() => {
     const t: Record<AutoKey, number> = { funil: 0, preobra: 0, obra: 0, checklist: 0, inaugurada: 0 };
@@ -271,10 +317,10 @@ export default function MatrizEtapas() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 space-y-3">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <CardTitle className="text-base">
-                {rows.length} loja{rows.length !== 1 ? "s" : ""} em andamento
+                {rows.length} loja{rows.length !== 1 ? "s" : ""} {hasFilters ? "filtrada(s)" : "em andamento"}
               </CardTitle>
               <div className="relative w-full sm:w-72">
                 <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -285,6 +331,63 @@ export default function MatrizEtapas() {
                   className="pl-8"
                 />
               </div>
+            </div>
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Fase (auto)</label>
+                <Select value={phaseFilter} onValueChange={setPhaseFilter}>
+                  <SelectTrigger className="h-9 w-[210px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as fases</SelectItem>
+                    {AUTO_PHASES.filter((p) => p.key !== "funil" && p.key !== "inaugurada").map((p) => [
+                      <SelectItem key={`p-${p.key}`} value={`pending:${p.key}`}>Pendente em {p.label}</SelectItem>,
+                      <SelectItem key={`d-${p.key}`} value={`done:${p.key}`}>Concluíram {p.label}</SelectItem>,
+                    ])}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Etapa da planilha</label>
+                <Select value={stageFilter} onValueChange={setStageFilter}>
+                  <SelectTrigger className="h-9 w-[240px]"><SelectValue /></SelectTrigger>
+                  <SelectContent className="max-h-[320px]">
+                    <SelectItem value="all">Todas as etapas</SelectItem>
+                    {PLANILHA_STAGES.map((s) => [
+                      <SelectItem key={`sp-${s.key}`} value={`pending:${s.key}`}>Pendente: {s.label}</SelectItem>,
+                      <SelectItem key={`sd-${s.key}`} value={`done:${s.key}`}>Concluída: {s.label}</SelectItem>,
+                    ])}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Progresso</label>
+                <Select value={progressFilter} onValueChange={setProgressFilter}>
+                  <SelectTrigger className="h-9 w-[170px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Qualquer progresso</SelectItem>
+                    <SelectItem value="low">Baixo (&lt; 30%)</SelectItem>
+                    <SelectItem value="mid">Médio (30–70%)</SelectItem>
+                    <SelectItem value="high">Alto (&gt; 70%)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Grupo (colunas)</label>
+                <Select value={groupFilter} onValueChange={setGroupFilter}>
+                  <SelectTrigger className="h-9 w-[200px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os grupos</SelectItem>
+                    {STAGE_GROUPS.map((g) => (
+                      <SelectItem key={g.name} value={g.name}>{g.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {hasFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9">
+                  <X className="h-4 w-4 mr-1" /> Limpar filtros
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent className="p-0 overflow-x-auto">
@@ -301,7 +404,7 @@ export default function MatrizEtapas() {
                     <TableHead colSpan={AUTO_PHASES.length} className="text-center bg-muted/60 text-[11px] uppercase tracking-wide border-l">
                       Fases (auto)
                     </TableHead>
-                    {STAGE_GROUPS.map((g) => (
+                    {visibleGroups.map((g) => (
                       <TableHead
                         key={g.name}
                         colSpan={g.stages.length}
@@ -330,7 +433,7 @@ export default function MatrizEtapas() {
                         </div>
                       </TableHead>
                     ))}
-                    {STAGE_GROUPS.map((g) =>
+                    {visibleGroups.map((g) =>
                       g.stages.map((s, i) => (
                         <TableHead
                           key={s.key}
@@ -403,7 +506,7 @@ export default function MatrizEtapas() {
                             </Tooltip>
                           </TableCell>
                         ))}
-                        {STAGE_GROUPS.map((g) =>
+                        {visibleGroups.map((g) =>
                           g.stages.map((s, i) => {
                             const isDerived = derived[s.key] === true;
                             const cellDone = isDerived || !!st[s.key];
