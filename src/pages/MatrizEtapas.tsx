@@ -141,6 +141,11 @@ export default function MatrizEtapas() {
   const [search, setSearch] = useState("");
   const [stageStatus, setStageStatus] = useState<Record<string, Record<string, boolean>>>({});
   const [saving, setSaving] = useState<string | null>(null);
+  // Filtros avançados
+  const [phaseFilter, setPhaseFilter] = useState<string>("all"); // all | done:<key> | pending:<key>
+  const [progressFilter, setProgressFilter] = useState<string>("all"); // all | low | mid | high
+  const [groupFilter, setGroupFilter] = useState<string>("all"); // all | <group name>
+  const [stageFilter, setStageFilter] = useState<string>("all"); // all | done:<key> | pending:<key> (planilha)
 
   useEffect(() => {
     (async () => {
@@ -184,6 +189,17 @@ export default function MatrizEtapas() {
     }
   };
 
+  const totalStagesAll = AUTO_PHASES.length + PLANILHA_STAGES.length;
+  const visibleGroups = useMemo(
+    () => (groupFilter === "all" ? STAGE_GROUPS : STAGE_GROUPS.filter((g) => g.name === groupFilter)),
+    [groupFilter]
+  );
+
+  const clearFilters = () => {
+    setSearch(""); setPhaseFilter("all"); setProgressFilter("all"); setGroupFilter("all"); setStageFilter("all");
+  };
+  const hasFilters = search || phaseFilter !== "all" || progressFilter !== "all" || groupFilter !== "all" || stageFilter !== "all";
+
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
     return stores
@@ -199,8 +215,36 @@ export default function MatrizEtapas() {
         };
       })
       .filter((r) => !r.flags.inaugurada)
+      .filter((r) => {
+        // filtro fase automática
+        if (phaseFilter !== "all") {
+          const [mode, key] = phaseFilter.split(":") as [string, AutoKey];
+          const v = r.flags[key];
+          if (mode === "done" && !v) return false;
+          if (mode === "pending" && v) return false;
+        }
+        // filtro etapa planilha
+        if (stageFilter !== "all") {
+          const [mode, key] = stageFilter.split(":");
+          const st = stageStatus[r.store.id] || {};
+          const v = r.derived[key] || !!st[key];
+          if (mode === "done" && !v) return false;
+          if (mode === "pending" && v) return false;
+        }
+        // filtro progresso
+        if (progressFilter !== "all") {
+          const st = stageStatus[r.store.id] || {};
+          const autoDone = AUTO_PHASES.filter((p) => r.flags[p.key]).length;
+          const planDone = PLANILHA_STAGES.filter((s) => r.derived[s.key] || st[s.key]).length;
+          const pct = ((autoDone + planDone) / totalStagesAll) * 100;
+          if (progressFilter === "low" && pct >= 30) return false;
+          if (progressFilter === "mid" && (pct < 30 || pct > 70)) return false;
+          if (progressFilter === "high" && pct <= 70) return false;
+        }
+        return true;
+      })
       .sort((a, b) => a.store.nome.localeCompare(b.store.nome, "pt-BR"));
-  }, [stores, pipelineInaug, search]);
+  }, [stores, pipelineInaug, search, phaseFilter, stageFilter, progressFilter, stageStatus, totalStagesAll]);
 
   const autoTotals = useMemo(() => {
     const t: Record<AutoKey, number> = { funil: 0, preobra: 0, obra: 0, checklist: 0, inaugurada: 0 };
