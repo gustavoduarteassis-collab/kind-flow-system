@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  Building2, DollarSign, Target, Users, FolderOpen, KeyRound, Home, Trash2, TrendingUp, LayoutGrid,
+  Building2, DollarSign, Target, Users, FolderOpen, KeyRound, Home, Trash2, TrendingUp, LayoutGrid, CalendarCheck,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -19,6 +19,7 @@ const mainItems = [
 ];
 
 const toolItems = [
+  { title: "Validação de Datas", url: "/validacao-datas", icon: CalendarCheck },
   { title: "Diversos", url: "/diversos", icon: FolderOpen },
   { title: "Acessos", url: "/acessos", icon: KeyRound },
   { title: "Itens excluídos", url: "/itens-excluidos", icon: Trash2 },
