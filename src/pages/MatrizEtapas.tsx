@@ -228,7 +228,7 @@ export default function MatrizEtapas() {
         <div>
           <h1 className="text-2xl font-bold">Matriz de Etapas</h1>
           <p className="text-sm text-muted-foreground">
-            Fases automáticas (calculadas pelo sistema) + etapas da planilha do Funil (clique para marcar/desmarcar). Passe o mouse sobre qualquer coluna ou marca para ver o significado.
+            Fases automáticas + etapas da planilha (clique para marcar/desmarcar). As etapas <strong>Itens Pendentes</strong> e <strong>Loja Liberada</strong> são sincronizadas automaticamente com o Checklist Final da loja (ficam bloqueadas quando derivadas dele para evitar divergências no X/Y).
           </p>
         </div>
 
