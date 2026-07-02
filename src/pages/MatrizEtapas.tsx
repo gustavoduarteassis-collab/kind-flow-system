@@ -377,7 +377,7 @@ export default function MatrizEtapas() {
                   <SelectTrigger className="h-9 w-[200px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os grupos</SelectItem>
-                    {visibleGroups.map((g) => (
+                    {STAGE_GROUPS.map((g) => (
                       <SelectItem key={g.name} value={g.name}>{g.name}</SelectItem>
                     ))}
                   </SelectContent>
