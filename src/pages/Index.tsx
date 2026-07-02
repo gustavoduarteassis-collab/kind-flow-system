@@ -644,10 +644,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Store summary */}
-      {stores.length > 0 && <StoreSummarySection
-        stores={stores}
-        inauguradasFiliais={inauguradasFiliais}
+      {/* Status das Lojas (unificado — substitui Termômetro + Resumo) */}
+      {storeMetrics.length > 0 && <StoreSummarySection
+        storeMetrics={storeMetrics}
         showReformas={showReformas}
         setShowReformas={setShowReformas}
         navigate={navigate}
