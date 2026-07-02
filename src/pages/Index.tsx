@@ -683,8 +683,11 @@ const Index = () => {
           </Table></div></Card>
         )}
       </section>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
+
 
 export default Index;
