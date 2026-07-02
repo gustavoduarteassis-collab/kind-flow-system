@@ -398,7 +398,7 @@ const ImportFunil = () => {
                 <p className="text-2xl font-bold text-emerald-600 mt-1">{counts.create}</p>
               </CardContent></Card>
               <Card><CardContent className="p-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground"><RefreshCw className="h-3.5 w-3.5" /> Campos a preencher</div>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground"><RefreshCw className="h-3.5 w-3.5" /> Campos a atualizar</div>
                 <p className="text-2xl font-bold text-amber-600 mt-1">{counts.fill}</p>
               </CardContent></Card>
               <Card><CardContent className="p-4">
