@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import MatrizEtapas from "./MatrizEtapas";
 import MuralObras from "@/components/home/MuralObras";
+import { InauguracaoBanner } from "@/components/InauguracaoBanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
