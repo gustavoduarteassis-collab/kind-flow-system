@@ -1202,6 +1202,7 @@ export type Database = {
           previsao_inauguracao_texto: string | null
           razao_social: string | null
           solicitacoes: Json
+          stage_status: Json
           status_geral: string | null
           tipo_loja: string
           uf: string | null
@@ -1237,6 +1238,7 @@ export type Database = {
           previsao_inauguracao_texto?: string | null
           razao_social?: string | null
           solicitacoes?: Json
+          stage_status?: Json
           status_geral?: string | null
           tipo_loja?: string
           uf?: string | null
@@ -1272,6 +1274,7 @@ export type Database = {
           previsao_inauguracao_texto?: string | null
           razao_social?: string | null
           solicitacoes?: Json
+          stage_status?: Json
           status_geral?: string | null
           tipo_loja?: string
           uf?: string | null

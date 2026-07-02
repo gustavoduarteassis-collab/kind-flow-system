@@ -7,9 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
 import { isStoreLiberated } from "@/utils/inaugurationStatus";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const PHASES = [
+const AUTO_PHASES = [
   { key: "funil", label: "Funil" },
   { key: "preobra", label: "Pré-Obra" },
   { key: "obra", label: "Obra" },
@@ -17,11 +18,41 @@ const PHASES = [
   { key: "inaugurada", label: "Inaugurada" },
 ] as const;
 
-type PhaseKey = typeof PHASES[number]["key"];
+// Etapas da planilha (Funil 2026) — marcação manual, persistida em stores.stage_status
+const PLANILHA_STAGES: { key: string; label: string }[] = [
+  { key: "docs", label: "Docs" },
+  { key: "cof", label: "COF" },
+  { key: "contr_franquia", label: "Contr. Franquia" },
+  { key: "contrato_locacao", label: "Contrato Locação" },
+  { key: "fampe", label: "FAMPE / Plano" },
+  { key: "dre", label: "DRE" },
+  { key: "conta_bancaria", label: "Conta Bancária" },
+  { key: "projetos", label: "Projetos" },
+  { key: "obras", label: "Obras" },
+  { key: "contrato_obras", label: "Contrato Obras" },
+  { key: "sankya", label: "Sankya" },
+  { key: "use", label: "USE" },
+  { key: "implantacao_use", label: "Implant. USE" },
+  { key: "skytef", label: "Skytef" },
+  { key: "cielo_lio", label: "Cielo/LIO" },
+  { key: "pix", label: "PIX" },
+  { key: "boa_vista", label: "Boa Vista" },
+  { key: "venda_link", label: "Venda Link" },
+  { key: "loja_apoio", label: "Loja de Apoio" },
+  { key: "loja_liberada", label: "Loja Liberada" },
+  { key: "grupo_wpp", label: "Grupo WPP" },
+  { key: "info_sistema", label: "Info e Sistema" },
+  { key: "lancamento_tx", label: "Lanç. Tx Financ." },
+  { key: "produtos_cds", label: "Produtos/CDs" },
+  { key: "equipe", label: "Equipe" },
+  { key: "mkt_loja", label: "MKT Loja/Site" },
+  { key: "internet_telefonia", label: "Internet/Tel." },
+  { key: "ecommerce", label: "Ecommerce" },
+];
 
-function computePhaseFlags(store: any, inauguradaInPipeline: boolean): Record<PhaseKey, boolean> {
-  const funilDone = true;
+type AutoKey = typeof AUTO_PHASES[number]["key"];
 
+function computeAutoFlags(store: any, inauguradaInPipeline: boolean): Record<AutoKey, boolean> {
   const visitaCount = store.visitaTecnica ? Object.keys(store.visitaTecnica).length : 0;
   const solicitCount = store.solicitacoes ? Object.keys(store.solicitacoes).length : 0;
   const preObraDone = visitaCount > 0 || solicitCount > 0;
@@ -48,7 +79,7 @@ function computePhaseFlags(store: any, inauguradaInPipeline: boolean): Record<Ph
     inauguradaInPipeline || isStoreLiberated(store.inauguracaoChecklist, store.tipoLoja);
 
   return {
-    funil: funilDone,
+    funil: true,
     preobra: preObraDone,
     obra: obraDone,
     checklist: checklistFinalDone,
@@ -60,17 +91,19 @@ export default function MatrizEtapas() {
   const { stores, loading } = useStores();
   const [pipelineInaug, setPipelineInaug] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
+  const [stageStatus, setStageStatus] = useState<Record<string, Record<string, boolean>>>({});
+  const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       const { data } = await supabase
         .from("pipeline_stores")
-        .select("nome_loja, local, filial, status_geral")
+        .select("local, filial, status_geral")
         .is("deleted_at", null);
       const set = new Set<string>();
       (data || []).forEach((r: any) => {
         if ((r.status_geral || "").toString().toLowerCase().startsWith("inaugurada")) {
-          [r.nome_loja, r.local, r.filial].filter(Boolean).forEach((v: string) =>
+          [r.local, r.filial].filter(Boolean).forEach((v: string) =>
             set.add(v.toString().trim().toLowerCase())
           );
         }
@@ -78,6 +111,30 @@ export default function MatrizEtapas() {
       setPipelineInaug(set);
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("stores").select("id, stage_status");
+      const map: Record<string, Record<string, boolean>> = {};
+      (data || []).forEach((r: any) => {
+        map[r.id] = (r.stage_status && typeof r.stage_status === "object") ? r.stage_status : {};
+      });
+      setStageStatus(map);
+    })();
+  }, []);
+
+  const toggle = async (storeId: string, stageKey: string) => {
+    const current = stageStatus[storeId] || {};
+    const next = { ...current, [stageKey]: !current[stageKey] };
+    setStageStatus((s) => ({ ...s, [storeId]: next }));
+    setSaving(storeId + stageKey);
+    const { error } = await supabase.from("stores").update({ stage_status: next }).eq("id", storeId);
+    setSaving(null);
+    if (error) {
+      toast.error("Erro ao salvar etapa");
+      setStageStatus((s) => ({ ...s, [storeId]: current }));
+    }
+  };
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -87,24 +144,36 @@ export default function MatrizEtapas() {
         const inPipeline =
           pipelineInaug.has((s.nome || "").trim().toLowerCase()) ||
           pipelineInaug.has((s.filial || "").trim().toLowerCase());
-        return { store: s, flags: computePhaseFlags(s, inPipeline) };
+        return { store: s, flags: computeAutoFlags(s, inPipeline) };
       })
       .filter((r) => !r.flags.inaugurada)
       .sort((a, b) => a.store.nome.localeCompare(b.store.nome, "pt-BR"));
   }, [stores, pipelineInaug, search]);
 
-  const totals = useMemo(() => {
-    const t: Record<PhaseKey, number> = { funil: 0, preobra: 0, obra: 0, checklist: 0, inaugurada: 0 };
-    rows.forEach((r) => PHASES.forEach((p) => { if (r.flags[p.key]) t[p.key]++; }));
+  const autoTotals = useMemo(() => {
+    const t: Record<AutoKey, number> = { funil: 0, preobra: 0, obra: 0, checklist: 0, inaugurada: 0 };
+    rows.forEach((r) => AUTO_PHASES.forEach((p) => { if (r.flags[p.key]) t[p.key]++; }));
     return t;
   }, [rows]);
+
+  const planilhaTotals = useMemo(() => {
+    const t: Record<string, number> = {};
+    PLANILHA_STAGES.forEach((s) => { t[s.key] = 0; });
+    rows.forEach((r) => {
+      const st = stageStatus[r.store.id] || {};
+      PLANILHA_STAGES.forEach((s) => { if (st[s.key]) t[s.key]++; });
+    });
+    return t;
+  }, [rows, stageStatus]);
+
+  const totalStages = AUTO_PHASES.length + PLANILHA_STAGES.length;
 
   return (
     <div className="p-4 sm:p-6 space-y-4">
       <div>
         <h1 className="text-2xl font-bold">Matriz de Etapas</h1>
         <p className="text-sm text-muted-foreground">
-          Visão rápida do progresso de cada loja em cada etapa. O check é marcado automaticamente conforme o avanço.
+          Fases automáticas (calculadas pelo sistema) + etapas da planilha do Funil (clique para marcar/desmarcar).
         </p>
       </div>
 
@@ -112,7 +181,7 @@ export default function MatrizEtapas() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <CardTitle className="text-base">
-              {rows.length} loja{rows.length !== 1 ? "s" : ""}
+              {rows.length} loja{rows.length !== 1 ? "s" : ""} em andamento
             </CardTitle>
             <div className="relative w-full sm:w-72">
               <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -125,7 +194,7 @@ export default function MatrizEtapas() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           {loading ? (
             <div className="p-8 text-center text-muted-foreground">Carregando...</div>
           ) : rows.length === 0 ? (
@@ -135,20 +204,31 @@ export default function MatrizEtapas() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="sticky left-0 bg-background z-10 min-w-[220px]">Loja</TableHead>
-                  {PHASES.map((p) => (
-                    <TableHead key={p.key} className="text-center whitespace-nowrap">
+                  {AUTO_PHASES.map((p) => (
+                    <TableHead key={p.key} className="text-center whitespace-nowrap bg-muted/40">
                       {p.label}
                       <div className="text-[10px] font-normal text-muted-foreground">
-                        {totals[p.key]}/{rows.length}
+                        {autoTotals[p.key]}/{rows.length}
                       </div>
                     </TableHead>
                   ))}
-                  <TableHead className="text-center">Progresso</TableHead>
+                  {PLANILHA_STAGES.map((s) => (
+                    <TableHead key={s.key} className="text-center whitespace-nowrap">
+                      <div className="text-[11px]">{s.label}</div>
+                      <div className="text-[10px] font-normal text-muted-foreground">
+                        {planilhaTotals[s.key]}/{rows.length}
+                      </div>
+                    </TableHead>
+                  ))}
+                  <TableHead className="text-center whitespace-nowrap">Progresso</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {rows.map(({ store, flags }) => {
-                  const done = PHASES.filter((p) => flags[p.key]).length;
+                  const st = stageStatus[store.id] || {};
+                  const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
+                  const planDone = PLANILHA_STAGES.filter((s) => st[s.key]).length;
+                  const done = autoDone + planDone;
                   return (
                     <TableRow key={store.id}>
                       <TableCell className="sticky left-0 bg-background font-medium">
@@ -159,8 +239,8 @@ export default function MatrizEtapas() {
                           <div className="text-[11px] text-muted-foreground">{store.filial}</div>
                         )}
                       </TableCell>
-                      {PHASES.map((p) => (
-                        <TableCell key={p.key} className="text-center">
+                      {AUTO_PHASES.map((p) => (
+                        <TableCell key={p.key} className="text-center bg-muted/20">
                           <div
                             className={cn(
                               "inline-flex h-7 w-7 items-center justify-center rounded-full border",
@@ -168,14 +248,37 @@ export default function MatrizEtapas() {
                                 ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
                                 : "bg-muted text-muted-foreground border-border"
                             )}
-                            title={flags[p.key] ? "Concluída" : "Pendente"}
+                            title={flags[p.key] ? "Concluída (auto)" : "Pendente"}
                           >
                             {flags[p.key] ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
                           </div>
                         </TableCell>
                       ))}
-                      <TableCell className="text-center text-sm tabular-nums">
-                        {done}/{PHASES.length}
+                      {PLANILHA_STAGES.map((s) => {
+                        const done = !!st[s.key];
+                        const isSaving = saving === store.id + s.key;
+                        return (
+                          <TableCell key={s.key} className="text-center">
+                            <button
+                              type="button"
+                              disabled={isSaving}
+                              onClick={() => toggle(store.id, s.key)}
+                              className={cn(
+                                "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
+                                done
+                                  ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
+                                  : "bg-background text-muted-foreground border-border hover:bg-muted",
+                                isSaving && "opacity-50"
+                              )}
+                              title={done ? "Concluída — clique para desmarcar" : "Pendente — clique para marcar"}
+                            >
+                              {done ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
+                            </button>
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell className="text-center text-sm tabular-nums whitespace-nowrap">
+                        {done}/{totalStages}
                       </TableCell>
                     </TableRow>
                   );
