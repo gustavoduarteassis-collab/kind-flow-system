@@ -284,8 +284,8 @@ export default function MatrizEtapas() {
                           <div className="text-[11px] text-muted-foreground">{store.filial}</div>
                         )}
                       </TableCell>
-                      {AUTO_PHASES.map((p) => (
-                        <TableCell key={p.key} className="text-center bg-muted/20">
+                      {AUTO_PHASES.map((p, i) => (
+                        <TableCell key={p.key} className={cn("text-center bg-muted/20", i === 0 && "border-l")}>
                           <div
                             className={cn(
                               "inline-flex h-7 w-7 items-center justify-center rounded-full border",
@@ -299,30 +299,35 @@ export default function MatrizEtapas() {
                           </div>
                         </TableCell>
                       ))}
-                      {PLANILHA_STAGES.map((s) => {
-                        const done = !!st[s.key];
-                        const isSaving = saving === store.id + s.key;
-                        return (
-                          <TableCell key={s.key} className="text-center">
-                            <button
-                              type="button"
-                              disabled={isSaving}
-                              onClick={() => toggle(store.id, s.key)}
-                              className={cn(
-                                "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
-                                done
-                                  ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
-                                  : "bg-background text-muted-foreground border-border hover:bg-muted",
-                                isSaving && "opacity-50"
-                              )}
-                              title={done ? "Concluída — clique para desmarcar" : "Pendente — clique para marcar"}
+                      {STAGE_GROUPS.map((g) =>
+                        g.stages.map((s, i) => {
+                          const cellDone = !!st[s.key];
+                          const isSaving = saving === store.id + s.key;
+                          return (
+                            <TableCell
+                              key={s.key}
+                              className={cn("text-center", i === 0 && "border-l", s.sub && "bg-muted/10")}
                             >
-                              {done ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
-                            </button>
-                          </TableCell>
-                        );
-                      })}
-                      <TableCell className="text-center text-sm tabular-nums whitespace-nowrap">
+                              <button
+                                type="button"
+                                disabled={isSaving}
+                                onClick={() => toggle(store.id, s.key)}
+                                className={cn(
+                                  "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
+                                  cellDone
+                                    ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
+                                    : "bg-background text-muted-foreground border-border hover:bg-muted",
+                                  isSaving && "opacity-50"
+                                )}
+                                title={cellDone ? "Concluída — clique para desmarcar" : "Pendente — clique para marcar"}
+                              >
+                                {cellDone ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
+                              </button>
+                            </TableCell>
+                          );
+                        })
+                      )}
+                      <TableCell className="text-center text-sm tabular-nums whitespace-nowrap border-l">
                         {done}/{totalStages}
                       </TableCell>
                     </TableRow>
