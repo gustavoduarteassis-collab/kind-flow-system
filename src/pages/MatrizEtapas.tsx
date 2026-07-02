@@ -8,6 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useStores } from "@/hooks/useStores";
 import { supabase } from "@/integrations/supabase/client";
 import { isStoreLiberated } from "@/utils/inaugurationStatus";
+import { migrateInaugData, getAllInaugItems } from "@/data/inauguracaoChecklistData";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -105,6 +106,33 @@ function computeAutoFlags(store: any, inauguradaInPipeline: boolean): Record<Aut
   };
 }
 
+/**
+ * Deriva marcações da planilha a partir do Checklist Final para manter Matriz e Checklist sincronizados.
+ * Retorna somente as chaves que devem ser forçadas como concluídas (evita divergência com toggles manuais).
+ */
+function deriveStagesFromChecklist(store: any): Record<string, boolean> {
+  const derived: Record<string, boolean> = {};
+  const inaugRaw: any = store.inauguracaoChecklist;
+  if (!inaugRaw || typeof inaugRaw !== "object" || Object.keys(inaugRaw).length === 0) return derived;
+
+  const tipo: "rua" | "shopping" = (store.tipoLoja || "").toUpperCase().includes("SHOPPING") ? "shopping" : "rua";
+  const data = migrateInaugData(inaugRaw, tipo);
+  if (!data.rounds || data.rounds.length === 0) return derived;
+
+  const currentRound = data.rounds[data.rounds.length - 1];
+  const allItems = getAllInaugItems(tipo);
+
+  const pendentes = allItems.filter((i) => {
+    const s = currentRound.items[i.id]?.status;
+    return s !== "TOTALMENTE_ATENDIDO" && s !== "NAO_SE_APLICA";
+  }).length;
+  derived.itens_pendentes = allItems.length > 0 && pendentes === 0;
+  derived.loja_liberada = isStoreLiberated(inaugRaw, store.tipoLoja);
+
+  return derived;
+}
+
+
 export default function MatrizEtapas() {
   const { stores, loading } = useStores();
   const [pipelineInaug, setPipelineInaug] = useState<Set<string>>(new Set());
@@ -162,7 +190,11 @@ export default function MatrizEtapas() {
         const inPipeline =
           pipelineInaug.has((s.nome || "").trim().toLowerCase()) ||
           pipelineInaug.has((s.filial || "").trim().toLowerCase());
-        return { store: s, flags: computeAutoFlags(s, inPipeline) };
+        return {
+          store: s,
+          flags: computeAutoFlags(s, inPipeline),
+          derived: deriveStagesFromChecklist(s),
+        };
       })
       .filter((r) => !r.flags.inaugurada)
       .sort((a, b) => a.store.nome.localeCompare(b.store.nome, "pt-BR"));
@@ -179,7 +211,11 @@ export default function MatrizEtapas() {
     PLANILHA_STAGES.forEach((s) => { t[s.key] = 0; });
     rows.forEach((r) => {
       const st = stageStatus[r.store.id] || {};
-      PLANILHA_STAGES.forEach((s) => { if (st[s.key]) t[s.key]++; });
+      PLANILHA_STAGES.forEach((s) => {
+        // Derivado do Checklist Final tem prioridade — evita divergência
+        const isDone = r.derived[s.key] || !!st[s.key];
+        if (isDone) t[s.key]++;
+      });
     });
     return t;
   }, [rows, stageStatus]);
@@ -192,7 +228,7 @@ export default function MatrizEtapas() {
         <div>
           <h1 className="text-2xl font-bold">Matriz de Etapas</h1>
           <p className="text-sm text-muted-foreground">
-            Fases automáticas (calculadas pelo sistema) + etapas da planilha do Funil (clique para marcar/desmarcar). Passe o mouse sobre qualquer coluna ou marca para ver o significado.
+            Fases automáticas + etapas da planilha (clique para marcar/desmarcar). As etapas <strong>Itens Pendentes</strong> e <strong>Loja Liberada</strong> são sincronizadas automaticamente com o Checklist Final da loja (ficam bloqueadas quando derivadas dele para evitar divergências no X/Y).
           </p>
         </div>
 
@@ -325,10 +361,10 @@ export default function MatrizEtapas() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map(({ store, flags }) => {
+                  {rows.map(({ store, flags, derived }) => {
                     const st = stageStatus[store.id] || {};
                     const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
-                    const planDone = PLANILHA_STAGES.filter((s) => st[s.key]).length;
+                    const planDone = PLANILHA_STAGES.filter((s) => derived[s.key] || st[s.key]).length;
                     const done = autoDone + planDone;
                     return (
                       <TableRow key={store.id}>
@@ -367,7 +403,8 @@ export default function MatrizEtapas() {
                         ))}
                         {STAGE_GROUPS.map((g) =>
                           g.stages.map((s, i) => {
-                            const cellDone = !!st[s.key];
+                            const isDerived = derived[s.key] === true;
+                            const cellDone = isDerived || !!st[s.key];
                             const isSaving = saving === store.id + s.key;
                             return (
                               <TableCell
@@ -378,13 +415,15 @@ export default function MatrizEtapas() {
                                   <TooltipTrigger asChild>
                                     <button
                                       type="button"
-                                      disabled={isSaving}
-                                      onClick={() => toggle(store.id, s.key)}
+                                      disabled={isSaving || isDerived}
+                                      onClick={() => !isDerived && toggle(store.id, s.key)}
                                       className={cn(
-                                        "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
+                                        "inline-flex h-7 w-7 items-center justify-center rounded-full border transition",
+                                        !isDerived && "hover:scale-110",
                                         cellDone
                                           ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
                                           : "bg-background text-muted-foreground border-border hover:bg-muted",
+                                        isDerived && "ring-2 ring-[hsl(142,60%,45%)]/40 cursor-not-allowed",
                                         isSaving && "opacity-50"
                                       )}
                                     >
@@ -395,7 +434,11 @@ export default function MatrizEtapas() {
                                     <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{g.name}</div>
                                     <div className="font-semibold">{store.nome} — {s.label}</div>
                                     <div className="text-xs mt-1">
-                                      {cellDone ? "✅ Concluída — clique para desmarcar." : "⏳ Pendente — clique para marcar como concluída."}
+                                      {isDerived
+                                        ? "🔒 Sincronizada automaticamente pelo Checklist Final — não pode ser desmarcada manualmente."
+                                        : cellDone
+                                          ? "✅ Concluída — clique para desmarcar."
+                                          : "⏳ Pendente — clique para marcar como concluída."}
                                     </div>
                                     <div className="text-xs mt-1 text-muted-foreground">{s.desc}</div>
                                   </TooltipContent>
