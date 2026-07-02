@@ -21,6 +21,7 @@ import {
 import { useUserDisplayName } from "@/hooks/useUserDisplayName";
 import { usePageTitle } from "@/hooks/usePageTitle";
 import { buildInauguradasFiliais } from "@/utils/inauguradaFilter";
+import { groupObrasCriticas, type GroupedCriticalAlert, type CriticalMetric } from "@/utils/obrasCriticas";
 
 type Task = {
   id: string; title: string; status: string; priority: string;
