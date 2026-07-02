@@ -800,8 +800,14 @@ const StoreDetail = () => {
           </TabsContent>
 
           {/* 7. DIÁRIO */}
-          <TabsContent value="diario" className="mt-4">
+          <TabsContent value="diario" className="mt-4 space-y-4">
+            <HistoricoAtualizacoes storeId={store.id} storeFilial={store.filial} />
             <DiarioObra storeId={store.id} />
+          </TabsContent>
+
+          {/* 8. TAREFAS DA LOJA */}
+          <TabsContent value="tarefas" className="mt-4">
+            <TarefasTab storeId={store.id} storeName={store.nome} canEdit={isTeamMember} />
           </TabsContent>
         </Tabs>
 
