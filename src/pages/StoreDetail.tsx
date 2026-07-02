@@ -64,6 +64,9 @@ import EtapasTab from "@/components/etapas/EtapasTab";
 import StoreHeaderKPIs from "@/components/store/StoreHeaderKPIs";
 import StoreCommunication from "@/components/store/StoreCommunication";
 import StoreCustosSummary from "@/components/store/StoreCustosSummary";
+import HistoricoAtualizacoes from "@/components/store/HistoricoAtualizacoes";
+import DatasTab from "@/components/store/DatasTab";
+import TarefasTab from "@/components/store/TarefasTab";
 import { useAutoMarkInaugurada } from "@/hooks/useAutoMarkInaugurada";
 import { formatBR } from "@/utils/safeDate";
 
