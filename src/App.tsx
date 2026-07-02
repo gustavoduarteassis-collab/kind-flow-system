@@ -85,6 +85,7 @@ function AppRoutes() {
         <Route path="/pipeline" element={<Navigate to="/lojas?tab=funil" replace />} />
         <Route path="/funil" element={<Navigate to="/lojas?tab=funil" replace />} />
         <Route path="/funil-importar" element={<ImportFunil />} />
+        <Route path="/atualizar-planilha" element={<AtualizarPlanilha />} />
         <Route path="/custos-geral" element={<CustosGeral />} />
         <Route path="/custos" element={<Navigate to="/custos-geral" replace />} />
         <Route path="/diversos" element={<Diversos />} />
