@@ -67,10 +67,13 @@ function validParts(d: number, m: number, y: number): string | null {
 
 const ValidacaoDatas = () => {
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [rows, setRows] = useState<Row[]>([]);
   const [totalScanned, setTotalScanned] = useState(0);
   const [mismatches, setMismatches] = useState<SyncMismatch[]>([]);
   const [syncing, setSyncing] = useState(false);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
 
   const load = async () => {
