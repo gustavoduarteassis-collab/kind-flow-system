@@ -572,8 +572,10 @@ export default function MatrizEtapas() {
                         {visibleGroups.map((g) =>
                           g.stages.map((s, i) => {
                             const isDerived = derived[s.key] === true;
-                            const cellDone = isDerived || !!st[s.key];
+                            const rawStatus: Stage4 = isDerived ? "concluido" : normalizeStage(st[s.key]);
+                            const meta = STAGE_META[rawStatus];
                             const isSaving = saving === store.id + s.key;
+                            const upcoming = STAGE_META[nextStage(rawStatus)];
                             return (
                               <TableCell
                                 key={s.key}
@@ -584,18 +586,18 @@ export default function MatrizEtapas() {
                                     <button
                                       type="button"
                                       disabled={isSaving || isDerived}
-                                      onClick={() => !isDerived && toggle(store.id, s.key)}
+                                      onClick={() => !isDerived && cycle(store.id, s.key)}
+                                      aria-label={`${s.label}: ${meta.label}${isDerived ? " (bloqueada)" : ""}`}
                                       className={cn(
                                         "inline-flex h-7 w-7 items-center justify-center rounded-full border transition",
                                         !isDerived && "hover:scale-110",
-                                        cellDone
-                                          ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
-                                          : "bg-background text-muted-foreground border-border hover:bg-muted",
+                                        meta.classes,
                                         isDerived && "ring-2 ring-[hsl(142,60%,45%)]/40 cursor-not-allowed",
-                                        isSaving && "opacity-50"
+                                        isSaving && "opacity-50",
+                                        rawStatus === "em_andamento" && isSaving && "animate-spin"
                                       )}
                                     >
-                                      {cellDone ? <Check className="h-4 w-4" /> : <Minus className="h-3 w-3" />}
+                                      {meta.icon}
                                     </button>
                                   </TooltipTrigger>
                                   <TooltipContent side="top" className="max-w-xs">
@@ -603,16 +605,21 @@ export default function MatrizEtapas() {
                                     <div className="font-semibold">{store.nome} — {s.label}</div>
                                     <div className="text-xs mt-1">
                                       {isDerived
-                                        ? "🔒 Sincronizada automaticamente pelo Checklist Final — não pode ser desmarcada manualmente."
-                                        : cellDone
-                                          ? "✅ Concluída — clique para desmarcar."
-                                          : "⏳ Pendente — clique para marcar como concluída."}
+                                        ? "🔒 Sincronizada automaticamente pelo Checklist Final — status travado em Concluída."
+                                        : (
+                                          <>
+                                            Status atual: <strong>{meta.short}</strong>.
+                                            <br />
+                                            Clique para mudar para <strong>{upcoming.short}</strong>.
+                                          </>
+                                        )}
                                     </div>
                                     <div className="text-xs mt-1 text-muted-foreground">{s.desc}</div>
                                   </TooltipContent>
                                 </Tooltip>
                               </TableCell>
                             );
+
                           })
                         )}
                         <TableCell className="text-center text-sm tabular-nums whitespace-nowrap border-l">
