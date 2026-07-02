@@ -437,10 +437,15 @@ const Index = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setTab}>
-        <TabsList className="grid grid-cols-2 w-full max-w-md">
+        <TabsList className="grid grid-cols-3 w-full max-w-xl">
           <TabsTrigger value="resumo">Resumo</TabsTrigger>
+          <TabsTrigger value="mural">Mural de Obras</TabsTrigger>
           <TabsTrigger value="matriz">Matriz de Etapas</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="mural" className="mt-4">
+          <MuralObras />
+        </TabsContent>
 
         <TabsContent value="matriz" className="mt-4">
           <MatrizEtapas />
