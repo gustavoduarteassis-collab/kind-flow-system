@@ -407,6 +407,19 @@ export default function MatrizEtapas() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Criticidade</label>
+                <Select value={criticalFilter} onValueChange={setCriticalFilter}>
+                  <SelectTrigger className="h-9 w-[190px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="any">🔥 Com alerta ({criticalCount})</SelectItem>
+                    <SelectItem value="alta">Crítica (alta)</SelectItem>
+                    <SelectItem value="media">Atenção (média)</SelectItem>
+                    <SelectItem value="ok">Sem alertas</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               {hasFilters && (
                 <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9">
                   <X className="h-4 w-4 mr-1" /> Limpar filtros
