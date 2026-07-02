@@ -361,10 +361,10 @@ export default function MatrizEtapas() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map(({ store, flags }) => {
+                  {rows.map(({ store, flags, derived }) => {
                     const st = stageStatus[store.id] || {};
                     const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
-                    const planDone = PLANILHA_STAGES.filter((s) => st[s.key]).length;
+                    const planDone = PLANILHA_STAGES.filter((s) => derived[s.key] || st[s.key]).length;
                     const done = autoDone + planDone;
                     return (
                       <TableRow key={store.id}>
@@ -403,7 +403,8 @@ export default function MatrizEtapas() {
                         ))}
                         {STAGE_GROUPS.map((g) =>
                           g.stages.map((s, i) => {
-                            const cellDone = !!st[s.key];
+                            const isDerived = derived[s.key] === true;
+                            const cellDone = isDerived || !!st[s.key];
                             const isSaving = saving === store.id + s.key;
                             return (
                               <TableCell
@@ -414,13 +415,15 @@ export default function MatrizEtapas() {
                                   <TooltipTrigger asChild>
                                     <button
                                       type="button"
-                                      disabled={isSaving}
-                                      onClick={() => toggle(store.id, s.key)}
+                                      disabled={isSaving || isDerived}
+                                      onClick={() => !isDerived && toggle(store.id, s.key)}
                                       className={cn(
-                                        "inline-flex h-7 w-7 items-center justify-center rounded-full border transition hover:scale-110",
+                                        "inline-flex h-7 w-7 items-center justify-center rounded-full border transition",
+                                        !isDerived && "hover:scale-110",
                                         cellDone
                                           ? "bg-[hsl(142,60%,45%)] text-white border-[hsl(142,60%,45%)]"
                                           : "bg-background text-muted-foreground border-border hover:bg-muted",
+                                        isDerived && "ring-2 ring-[hsl(142,60%,45%)]/40 cursor-not-allowed",
                                         isSaving && "opacity-50"
                                       )}
                                     >
@@ -431,7 +434,11 @@ export default function MatrizEtapas() {
                                     <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{g.name}</div>
                                     <div className="font-semibold">{store.nome} — {s.label}</div>
                                     <div className="text-xs mt-1">
-                                      {cellDone ? "✅ Concluída — clique para desmarcar." : "⏳ Pendente — clique para marcar como concluída."}
+                                      {isDerived
+                                        ? "🔒 Sincronizada automaticamente pelo Checklist Final — não pode ser desmarcada manualmente."
+                                        : cellDone
+                                          ? "✅ Concluída — clique para desmarcar."
+                                          : "⏳ Pendente — clique para marcar como concluída."}
                                     </div>
                                     <div className="text-xs mt-1 text-muted-foreground">{s.desc}</div>
                                   </TooltipContent>
