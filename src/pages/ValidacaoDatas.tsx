@@ -76,40 +76,108 @@ const ValidacaoDatas = () => {
       .from("pipeline_stores")
       .select("id, filial, local, previsao_inauguracao, data_inauguracao")
       .is("deleted_at", null);
-    if (error) {
-      console.error(error);
-      setRows([]);
-      setLoading(false);
-      return;
+  const [rows, setRows] = useState<Row[]>([]);
+  const [totalScanned, setTotalScanned] = useState(0);
+  const [mismatches, setMismatches] = useState<SyncMismatch[]>([]);
+  const [syncing, setSyncing] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const [{ data: pipeline, error: pErr }, { data: stores, error: sErr }] = await Promise.all([
+      supabase.from("pipeline_stores").select("id, filial, local, previsao_inauguracao, data_inauguracao").is("deleted_at", null),
+      supabase.from("stores").select("id, nome, inauguracao, inauguracao_real").is("deleted_at", null),
+    ]);
+    if (pErr || sErr) {
+      console.error(pErr || sErr);
+      setRows([]); setMismatches([]); setLoading(false); return;
     }
     const issues: Row[] = [];
-    (data || []).forEach((r: any) => {
+    (pipeline || []).forEach((r: any) => {
       const m1 = validate(r.previsao_inauguracao);
       const m2 = validate(r.data_inauguracao);
       const motivos: string[] = [];
       if (m1) motivos.push(`Previsão de inauguração — ${m1}`);
       if (m2) motivos.push(`Data de inauguração — ${m2}`);
       if (motivos.length) {
-        issues.push({
-          id: r.id,
-          filial: r.filial,
-          local: r.local,
-          previsao_inauguracao: r.previsao_inauguracao,
-          data_inauguracao: r.data_inauguracao,
-          motivo: motivos.join(" · "),
-        });
+        issues.push({ id: r.id, filial: r.filial, local: r.local, previsao_inauguracao: r.previsao_inauguracao, data_inauguracao: r.data_inauguracao, motivo: motivos.join(" · ") });
       }
     });
-    // Ordena por local
     issues.sort((a, b) => (a.local || "").localeCompare(b.local || ""));
+
+    // Sync check: pair pipeline_stores × stores by normalized name
+    const toIso = (v: string | null | undefined): string | null => {
+      if (!v) return null;
+      const raw = String(v).trim();
+      if (!raw) return null;
+      const iso = /^(\d{4})-(\d{2})-(\d{2})/.exec(raw);
+      if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+      const br = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(raw);
+      if (br) {
+        const d = br[1].padStart(2, "0"), m = br[2].padStart(2, "0");
+        const y = br[3].length === 2 ? String(2000 + +br[3]) : br[3];
+        return `${y}-${m}-${d}`;
+      }
+      return raw;
+    };
+    const slug = (s: string | null | undefined) =>
+      (s || "").toString().split("\n")[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+
+    const storeMap = new Map<string, any>();
+    (stores || []).forEach((s: any) => {
+      const k = slug(s.nome);
+      if (k) storeMap.set(k, s);
+    });
+
+    const mm: SyncMismatch[] = [];
+    (pipeline || []).forEach((p: any) => {
+      const s = storeMap.get(slug(p.local));
+      if (!s) return;
+      const prevP = toIso(p.previsao_inauguracao);
+      const prevS = toIso(s.inauguracao);
+      const realP = toIso(p.data_inauguracao);
+      const realS = toIso(s.inauguracao_real);
+      if ((prevP || prevS) && prevP !== prevS) {
+        mm.push({ store_id: s.id, pipeline_id: p.id, nome: (s.nome || p.local || "").split("\n")[0], campo: "Previsão de inauguração", painel: prevS, funil: prevP });
+      }
+      if ((realP || realS) && realP !== realS) {
+        mm.push({ store_id: s.id, pipeline_id: p.id, nome: (s.nome || p.local || "").split("\n")[0], campo: "Data de inauguração", painel: realS, funil: realP });
+      }
+    });
+    mm.sort((a, b) => a.nome.localeCompare(b.nome));
+
     setRows(issues);
-    setTotalScanned((data || []).length);
+    setMismatches(mm);
+    setTotalScanned((pipeline || []).length);
     setLoading(false);
   };
 
-  useEffect(() => {
+  useEffect(() => { load(); }, []);
+
+  const sincronizar = async (m: SyncMismatch) => {
+    setSyncing(true);
+    const patch: any = {};
+    if (m.campo === "Previsão de inauguração") patch.inauguracao = m.funil;
+    else patch.inauguracao_real = m.funil;
+    const { error } = await supabase.from("stores").update(patch).eq("id", m.store_id);
+    setSyncing(false);
+    if (error) { toast.error("Falha ao sincronizar: " + error.message); return; }
+    toast.success("Painel sincronizado com o Funil");
     load();
-  }, []);
+  };
+
+  const sincronizarTudo = async () => {
+    if (mismatches.length === 0) return;
+    setSyncing(true);
+    for (const m of mismatches) {
+      const patch: any = {};
+      if (m.campo === "Previsão de inauguração") patch.inauguracao = m.funil;
+      else patch.inauguracao_real = m.funil;
+      await supabase.from("stores").update(patch).eq("id", m.store_id);
+    }
+    setSyncing(false);
+    toast.success(`${mismatches.length} divergência(s) sincronizada(s)`);
+    load();
+  };
 
   const summary = useMemo(() => {
     const formato = rows.filter((r) => /Formato inválido/.test(r.motivo)).length;
@@ -117,6 +185,7 @@ const ValidacaoDatas = () => {
     const anoFora = rows.filter((r) => /Ano fora/.test(r.motivo)).length;
     return { formato, dataInexistente, anoFora };
   }, [rows]);
+
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 space-y-4">
