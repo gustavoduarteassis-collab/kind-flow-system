@@ -1,0 +1,1 @@
+ALTER TABLE public.stores ADD COLUMN IF NOT EXISTS stage_status jsonb NOT NULL DEFAULT '{}'::jsonb;
