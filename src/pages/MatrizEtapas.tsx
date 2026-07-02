@@ -317,10 +317,10 @@ export default function MatrizEtapas() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-3 space-y-3">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <CardTitle className="text-base">
-                {rows.length} loja{rows.length !== 1 ? "s" : ""} em andamento
+                {rows.length} loja{rows.length !== 1 ? "s" : ""} {hasFilters ? "filtrada(s)" : "em andamento"}
               </CardTitle>
               <div className="relative w-full sm:w-72">
                 <Search className="h-4 w-4 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -331,6 +331,63 @@ export default function MatrizEtapas() {
                   className="pl-8"
                 />
               </div>
+            </div>
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Fase (auto)</label>
+                <Select value={phaseFilter} onValueChange={setPhaseFilter}>
+                  <SelectTrigger className="h-9 w-[210px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as fases</SelectItem>
+                    {AUTO_PHASES.filter((p) => p.key !== "funil" && p.key !== "inaugurada").map((p) => [
+                      <SelectItem key={`p-${p.key}`} value={`pending:${p.key}`}>Pendente em {p.label}</SelectItem>,
+                      <SelectItem key={`d-${p.key}`} value={`done:${p.key}`}>Concluíram {p.label}</SelectItem>,
+                    ])}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Etapa da planilha</label>
+                <Select value={stageFilter} onValueChange={setStageFilter}>
+                  <SelectTrigger className="h-9 w-[240px]"><SelectValue /></SelectTrigger>
+                  <SelectContent className="max-h-[320px]">
+                    <SelectItem value="all">Todas as etapas</SelectItem>
+                    {PLANILHA_STAGES.map((s) => [
+                      <SelectItem key={`sp-${s.key}`} value={`pending:${s.key}`}>Pendente: {s.label}</SelectItem>,
+                      <SelectItem key={`sd-${s.key}`} value={`done:${s.key}`}>Concluída: {s.label}</SelectItem>,
+                    ])}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Progresso</label>
+                <Select value={progressFilter} onValueChange={setProgressFilter}>
+                  <SelectTrigger className="h-9 w-[170px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Qualquer progresso</SelectItem>
+                    <SelectItem value="low">Baixo (&lt; 30%)</SelectItem>
+                    <SelectItem value="mid">Médio (30–70%)</SelectItem>
+                    <SelectItem value="high">Alto (&gt; 70%)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Grupo (colunas)</label>
+                <Select value={groupFilter} onValueChange={setGroupFilter}>
+                  <SelectTrigger className="h-9 w-[200px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os grupos</SelectItem>
+                    {STAGE_GROUPS.map((g) => (
+                      <SelectItem key={g.name} value={g.name}>{g.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {hasFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9">
+                  <X className="h-4 w-4 mr-1" /> Limpar filtros
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent className="p-0 overflow-x-auto">
