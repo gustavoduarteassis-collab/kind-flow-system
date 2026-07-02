@@ -200,9 +200,9 @@ export default function MatrizEtapas() {
   );
 
   const clearFilters = () => {
-    setSearch(""); setPhaseFilter("all"); setProgressFilter("all"); setGroupFilter("all"); setStageFilter("all");
+    setSearch(""); setPhaseFilter("all"); setProgressFilter("all"); setGroupFilter("all"); setStageFilter("all"); setCriticalFilter("all");
   };
-  const hasFilters = search || phaseFilter !== "all" || progressFilter !== "all" || groupFilter !== "all" || stageFilter !== "all";
+  const hasFilters = search || phaseFilter !== "all" || progressFilter !== "all" || groupFilter !== "all" || stageFilter !== "all" || criticalFilter !== "all";
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
