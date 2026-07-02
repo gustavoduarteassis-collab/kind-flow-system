@@ -425,7 +425,8 @@ const Index = () => {
   const activeTab = tabParam === "matriz" || tabParam === "mural" ? tabParam : "resumo";
   const setTab = (v: string) => {
     const next = new URLSearchParams(sp);
-    if (v === "matriz") next.set("tab", "matriz"); else next.delete("tab");
+    if (v === "matriz" || v === "mural") next.set("tab", v);
+    else next.delete("tab");
     setSp(next, { replace: true });
   };
 
