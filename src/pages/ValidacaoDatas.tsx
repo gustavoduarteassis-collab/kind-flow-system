@@ -69,17 +69,9 @@ const ValidacaoDatas = () => {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
   const [totalScanned, setTotalScanned] = useState(0);
-
-  const load = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("pipeline_stores")
-      .select("id, filial, local, previsao_inauguracao, data_inauguracao")
-      .is("deleted_at", null);
-  const [rows, setRows] = useState<Row[]>([]);
-  const [totalScanned, setTotalScanned] = useState(0);
   const [mismatches, setMismatches] = useState<SyncMismatch[]>([]);
   const [syncing, setSyncing] = useState(false);
+
 
   const load = async () => {
     setLoading(true);
