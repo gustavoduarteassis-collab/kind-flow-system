@@ -142,52 +142,47 @@ const semBg: Record<Sem, string> = {
 
 // --------- existing store summary section (kept as-is) ---------
 
-type SortKey = "nome" | "analista" | "progresso" | "realizados" | "atrasados" | "naoiniciados" | "andamento";
+type SortKey = "nome" | "analista" | "dias" | "checklist" | "visita" | "cron" | "custo" | "sem";
 
 function StoreSummarySection({
-  stores, inauguradasFiliais, showReformas, setShowReformas, navigate,
+  storeMetrics, showReformas, setShowReformas, navigate,
 }: {
-  stores: any[];
-  inauguradasFiliais: Set<string>;
+  storeMetrics: any[];
   showReformas: boolean;
   setShowReformas: (fn: (v: boolean) => boolean) => void;
   navigate: (to: string) => void;
 }) {
-  const [sortKey, setSortKey] = useState<SortKey>("atrasados");
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortKey, setSortKey] = useState<SortKey>("dias");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  const totalItems = checklistCategories.flatMap((c) => c.items).length;
-  const rows = useMemo(() => {
-    return stores
-      .filter((store) => {
-        if (store.isReforma && !showReformas) return false;
-        if (store.filial && inauguradasFiliais.has(String(store.filial))) return false;
-        return true;
-      })
-      .map((store) => {
-        const counts: Partial<Record<StatusType, number>> = {};
-        Object.values(store.checklist).forEach((c: any) => { counts[c.status] = (counts[c.status] || 0) + 1; });
-        const done = (counts["REALIZADO"] || 0) + (counts["NÃO SE APLICA"] || 0);
-        const pct = totalItems > 0 ? Math.round((done / totalItems) * 100) : 0;
-        const inProgress = (counts["EM COTAÇÃO"] || 0) + (counts["EM TRANSPORTE"] || 0) + (counts["EM ELABORAÇÃO"] || 0) + (counts["EM ANÁLISE"] || 0) + (counts["EM CONTRATAÇÃO"] || 0) + (counts["CONSTRUTORA"] || 0);
-        return { store, counts, pct, inProgress, atrasados: counts["ATRASADO"] || 0, realizados: counts["REALIZADO"] || 0, naoIni: counts["NÃO INICIADO"] || 0 };
-      })
-      .filter((r) => r.pct < 100);
-  }, [stores, inauguradasFiliais, showReformas, totalItems]);
+  const rows = useMemo(() => storeMetrics
+    .filter((m) => showReformas || !m.store.isReforma)
+    .map((m) => {
+      const chkTone: Sem = m.pct >= 70 ? "green" : m.pct >= 40 ? "amber" : "red";
+      const vtTone: Sem = m.vtPct >= 70 ? "green" : m.vtPct >= 30 ? "amber" : m.vtPct === 0 ? "red" : "amber";
+      const cronTone: Sem = m.cron ? "green" : "red";
+      const custoTone: Sem = m.custo?.hasCusto ? "green" : "red";
+      const toneScore: Record<Sem, number> = { red: 3, amber: 2, green: 1, muted: 0 };
+      const overall: Sem = [chkTone, vtTone, cronTone, custoTone]
+        .reduce<Sem>((worst, t) => (toneScore[t] > toneScore[worst] ? t : worst), "green");
+      return { m, chkTone, vtTone, cronTone, custoTone, overall };
+    }), [storeMetrics, showReformas]);
 
   const sorted = useMemo(() => {
     const arr = [...rows];
     const dir = sortDir === "asc" ? 1 : -1;
+    const toneScore: Record<Sem, number> = { green: 0, amber: 1, red: 2, muted: 3 };
     arr.sort((a, b) => {
-      const get = (r: typeof a) => {
+      const get = (r: typeof a): any => {
         switch (sortKey) {
-          case "nome": return r.store.nome.toLowerCase();
-          case "analista": return (r.store.analistaObra || "").toLowerCase();
-          case "progresso": return r.pct;
-          case "realizados": return r.realizados;
-          case "atrasados": return r.atrasados;
-          case "naoiniciados": return r.naoIni;
-          case "andamento": return r.inProgress;
+          case "nome": return r.m.store.nome.toLowerCase();
+          case "analista": return (r.m.store.analistaObra || "").toLowerCase();
+          case "dias": return r.m.days ?? 99999;
+          case "checklist": return r.m.pct;
+          case "visita": return r.m.vtPct;
+          case "cron": return r.m.cron ? 1 : 0;
+          case "custo": return r.m.custo?.hasCusto ? 1 : 0;
+          case "sem": return toneScore[r.overall];
         }
       };
       const av = get(a); const bv = get(b);
@@ -200,7 +195,7 @@ function StoreSummarySection({
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    else { setSortKey(k); setSortDir(k === "nome" || k === "analista" ? "asc" : "desc"); }
+    else { setSortKey(k); setSortDir(k === "nome" || k === "analista" || k === "dias" ? "asc" : "desc"); }
   };
   const SortHead = ({ k, children, align = "left" }: { k: SortKey; children: any; align?: "left" | "center" }) => (
     <TableHead className={align === "center" ? "text-center" : ""}>
@@ -210,12 +205,20 @@ function StoreSummarySection({
     </TableHead>
   );
 
+  const dotClass = (t: Sem) =>
+    t === "green" ? "bg-[hsl(var(--success))]" : t === "amber" ? "bg-[hsl(38,90%,55%)]" : t === "red" ? "bg-destructive" : "bg-muted-foreground/40";
+  const badge = (t: Sem, label: string) => (
+    <span className={`inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] ${semBg[t]}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${dotClass(t)}`} />{label}
+    </span>
+  );
+
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h2 className="text-lg font-semibold">Resumo das Lojas</h2>
-          <p className="text-xs text-muted-foreground">Mostrando {sorted.length} de {stores.length} lojas (apenas em andamento)</p>
+          <h2 className="text-lg font-semibold flex items-center gap-2"><Thermometer className="h-5 w-5" /> Status das Lojas</h2>
+          <p className="text-xs text-muted-foreground">Mostrando {sorted.length} loja(s) ativas</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant={showReformas ? "default" : "outline"} size="sm" className="gap-2" onClick={() => setShowReformas((v) => !v)}>
@@ -232,37 +235,42 @@ function StoreSummarySection({
         <TableHeader><TableRow>
           <SortHead k="nome">Loja</SortHead>
           <SortHead k="analista">Analista</SortHead>
-          <SortHead k="progresso" align="center">Progresso</SortHead>
-          <SortHead k="realizados" align="center">Realizados</SortHead>
-          <SortHead k="atrasados" align="center">Atrasados</SortHead>
-          <SortHead k="naoiniciados" align="center">Não Iniciados</SortHead>
-          <SortHead k="andamento" align="center">Em Andamento</SortHead>
+          <SortHead k="dias" align="center">Dias p/ inaug.</SortHead>
+          <SortHead k="checklist" align="center">Checklist %</SortHead>
+          <SortHead k="visita" align="center">Visita</SortHead>
+          <SortHead k="cron" align="center">Cronograma</SortHead>
+          <SortHead k="custo" align="center">Custo</SortHead>
+          <SortHead k="sem" align="center">Semáforo</SortHead>
         </TableRow></TableHeader>
         <TableBody>
-          {sorted.map(({ store, pct, inProgress, atrasados, realizados, naoIni }) => (
-            <TableRow key={store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${store.id}`)}>
-              <TableCell className="font-medium">{store.nome}</TableCell>
+          {sorted.map(({ m, chkTone, vtTone, cronTone, custoTone, overall }) => (
+            <TableRow key={m.store.id} className="cursor-pointer hover:bg-muted/50" onClick={() => navigate(`/loja/${m.store.id}`)}>
+              <TableCell className="font-medium">{m.store.nome}</TableCell>
               <TableCell className="text-sm">
-                {store.analistaObra ? (
-                  <span className="text-primary cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/lojas?analista=${encodeURIComponent(store.analistaObra)}`); }}>
-                    {store.analistaObra}
+                {m.store.analistaObra ? (
+                  <span className="text-primary cursor-pointer hover:underline" onClick={(e) => { e.stopPropagation(); navigate(`/lojas?analista=${encodeURIComponent(m.store.analistaObra)}`); }}>
+                    {m.store.analistaObra}
                   </span>
-                ) : <span className="text-muted-foreground italic">sem analista</span>}
+                ) : <span className="text-muted-foreground italic">—</span>}
+              </TableCell>
+              <TableCell className="text-center text-sm">
+                {m.days === null ? <span className="text-muted-foreground">—</span> :
+                  m.days < 0 ? <span className="text-destructive font-semibold">{m.days}d</span> :
+                  m.days <= 14 ? <span className="text-[hsl(38,90%,40%)] font-semibold">{m.days}d</span> :
+                  <span>{m.days}d</span>}
               </TableCell>
               <TableCell className="text-center">
                 <div className="flex items-center gap-2 justify-center">
-                  <Progress value={pct} className="h-1.5 w-16" />
-                  <span className="text-xs font-semibold">{pct}%</span>
+                  <Progress value={m.pct} className="h-1.5 w-16" />
+                  <span className="text-xs font-semibold">{m.pct}%</span>
                 </div>
               </TableCell>
-              <TableCell className="text-center"><Badge className="bg-[hsl(var(--success))] text-[hsl(var(--success-foreground))] text-xs">{realizados}</Badge></TableCell>
+              <TableCell className="text-center">{badge(vtTone, `${m.vtPct}%`)}</TableCell>
+              <TableCell className="text-center">{badge(cronTone, m.cron ? "ok" : "—")}</TableCell>
+              <TableCell className="text-center">{badge(custoTone, m.custo?.hasCusto ? "ok" : "—")}</TableCell>
               <TableCell className="text-center">
-                {atrasados > 0
-                  ? <span className="text-destructive font-bold text-sm">{atrasados}</span>
-                  : <span className="text-xs text-muted-foreground">0</span>}
+                <span className={`inline-block h-3 w-3 rounded-full ${dotClass(overall)}`} title={overall} />
               </TableCell>
-              <TableCell className="text-center"><span className="text-xs text-muted-foreground">{naoIni}</span></TableCell>
-              <TableCell className="text-center"><span className="text-xs text-muted-foreground">{inProgress}</span></TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -270,6 +278,7 @@ function StoreSummarySection({
     </section>
   );
 }
+
 
 
 const Index = () => {
