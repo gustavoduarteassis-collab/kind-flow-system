@@ -452,6 +452,7 @@ const CustosGeral = () => {
   return (
     <div className="bg-background">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-3">
+        <InauguracaoBanner />
         <div className="flex items-start justify-between gap-4 flex-wrap mb-4">
           <div className="flex items-center gap-3">
             <img src={logoConstance} alt="" className="h-9 w-auto" />
