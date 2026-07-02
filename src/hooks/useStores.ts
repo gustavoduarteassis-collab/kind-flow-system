@@ -100,6 +100,24 @@ export function useStores() {
     if ((updates as any).inauguracaoChecklist !== undefined) dbUpdates.inauguracao_checklist = (updates as any).inauguracaoChecklist;
     if ((updates as any).solicitacoes !== undefined) dbUpdates.solicitacoes = (updates as any).solicitacoes;
     if ((updates as any).visitaTecnica !== undefined) dbUpdates.visita_tecnica = (updates as any).visitaTecnica;
+    const dateMap: Record<string, string> = {
+      dataContratoLocacao: "data_contrato_locacao",
+      dataLiberacaoChaves: "data_liberacao_chaves",
+      demolicaoPrev: "demolicao_prev",
+      demolicaoReal: "demolicao_real",
+      obraInicioPrev: "obra_inicio_prev",
+      obraInicioReal: "obra_inicio_real",
+      moveisPrev: "moveis_prev",
+      moveisReal: "moveis_real",
+      produtosPrev: "produtos_prev",
+      produtosReal: "produtos_real",
+      inauguracaoReal: "inauguracao_real",
+      visitaTecnicaReal: "visita_tecnica_real",
+    };
+    for (const [k, col] of Object.entries(dateMap)) {
+      const v = (updates as any)[k];
+      if (v !== undefined) dbUpdates[col] = v || null;
+    }
 
     await supabase.from("stores").update(dbUpdates).eq("id", id);
   }, []);
