@@ -243,12 +243,12 @@ const ImportFunil = () => {
         const fieldsToFill: string[] = [];
         for (const key of FILLABLE_FIELDS) {
           const newVal = row.data[key];
-          if (!newVal) continue;
-          // Regra: nunca sobrescreve dado já preenchido — preserva todo histórico.
-          if (isEmpty(existing[key])) fieldsToFill.push(key);
+          if (!newVal) continue; // planilha vazia nunca apaga dado existente
+          // Planilha vence: se valor difere do banco, sobrescreve.
+          const current = existing[key] == null ? "" : String(existing[key]).trim();
+          if (current !== newVal) fieldsToFill.push(key);
         }
-        // Se "Previsão inicial de inauguração" existe na planilha e
-        // a "Data de Inauguração" ainda está vazia no banco, preenche também.
+        // Espelha previsão → data_inauguracao quando data ainda vazia no banco.
         if (row.data.previsao_inauguracao && isEmpty(existing.data_inauguracao)
             && !fieldsToFill.includes("data_inauguracao")) {
           row.data.data_inauguracao = row.data.previsao_inauguracao;
@@ -263,6 +263,7 @@ const ImportFunil = () => {
           fieldsToFill,
         });
       }
+
       setPreview(items);
     } finally {
       setPreviewing(false);
