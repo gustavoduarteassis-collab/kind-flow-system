@@ -8,6 +8,7 @@ import { useStores } from "@/hooks/useStores";
 import { buildInauguradasFiliais } from "@/utils/inauguradaFilter";
 import Pipeline from "./Pipeline";
 import Lojas from "./Lojas";
+import { InauguracaoBanner } from "@/components/InauguracaoBanner";
 
 type TabKey = "funil" | "checklist" | "inauguradas";
 
@@ -23,9 +24,9 @@ const LojasUnificadas = () => {
     "funil";
   const [tab, setTab] = useState<TabKey>(VALID_TABS.includes(initial) ? initial : "funil");
 
-  // Counts
   const { stores } = useStores();
   const [funilCount, setFunilCount] = useState<number | null>(null);
+  const [inauguradasCountPipeline, setInauguradasCountPipeline] = useState<number>(0);
   const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
   const [inauguradasNomes, setInauguradasNomes] = useState<Set<string>>(new Set());
 
@@ -46,16 +47,21 @@ const LojasUnificadas = () => {
       const norm = (s: string) =>
         s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
       const nomes = new Set<string>();
+      let inaugCount = 0;
       (data || []).forEach((r: any) => {
         const status = String(r.status_geral || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-        if (status.startsWith("inaugurada") && r.local) nomes.add(norm(String(r.local)));
+        if (status.startsWith("inaugurada")) {
+          inaugCount++;
+          if (r.local) nomes.add(norm(String(r.local)));
+        }
       });
       setInauguradasNomes(nomes);
+      setInauguradasCountPipeline(inaugCount);
     };
     load();
   }, []);
 
-  const { checklistCount, inauguradasCount } = useMemo(() => {
+  const { checklistCount } = useMemo(() => {
     const normName = (s: string) =>
       s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
     const isInaug = (s: typeof stores[0]) => {
@@ -66,10 +72,9 @@ const LojasUnificadas = () => {
       }
       return false;
     };
-    let inaug = 0;
     let other = 0;
-    for (const s of stores) (isInaug(s) ? inaug++ : other++);
-    return { checklistCount: other, inauguradasCount: inaug };
+    for (const s of stores) if (!isInaug(s)) other++;
+    return { checklistCount: other };
   }, [stores, inauguradasFiliais, inauguradasNomes]);
 
   const handleChange = (v: string) => {
@@ -85,11 +90,12 @@ const LojasUnificadas = () => {
 
   return (
     <div className="bg-background min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-3">
+        <InauguracaoBanner />
         <div className="mb-2 flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
-            <p className="text-xs text-muted-foreground">Funil, Checklist &amp; Cronograma e Inauguradas</p>
+            <p className="text-xs text-muted-foreground">Funil, Em Obra / Ativas e Inauguradas</p>
           </div>
           <Button variant="outline" size="sm" onClick={() => navigate("/atualizar-planilha")}>
             <FileSpreadsheet className="h-4 w-4 mr-2" />
@@ -99,11 +105,10 @@ const LojasUnificadas = () => {
         <Tabs value={tab} onValueChange={handleChange}>
           <TabsList className="grid grid-cols-3 w-full max-w-2xl">
             <TabsTrigger value="funil">Funil ({fmtCount(funilCount)})</TabsTrigger>
-            <TabsTrigger value="checklist">Checklist &amp; Cronograma ({checklistCount})</TabsTrigger>
-            <TabsTrigger value="inauguradas">Inauguradas ({inauguradasCount})</TabsTrigger>
+            <TabsTrigger value="checklist">Em Obra / Ativas ({checklistCount})</TabsTrigger>
+            <TabsTrigger value="inauguradas">Inauguradas ({inauguradasCountPipeline})</TabsTrigger>
           </TabsList>
 
-          {/* Render each tab only when active to avoid duplicate queries */}
           <TabsContent value="funil" className="mt-4">
             {tab === "funil" && <Pipeline />}
           </TabsContent>
@@ -111,7 +116,7 @@ const LojasUnificadas = () => {
             {tab === "checklist" && <Lojas forceMode="andamento" hideHeader />}
           </TabsContent>
           <TabsContent value="inauguradas" className="mt-4">
-            {tab === "inauguradas" && <Lojas forceMode="inauguradas" hideHeader />}
+            {tab === "inauguradas" && <Pipeline initialTab="inauguradas" />}
           </TabsContent>
         </Tabs>
       </div>
