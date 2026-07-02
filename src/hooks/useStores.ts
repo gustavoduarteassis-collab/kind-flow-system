@@ -134,6 +134,31 @@ export function useStores() {
       if (v !== undefined) dbUpdates[col] = v || null;
     }
 
+    const textMap: Record<string, string> = {
+      cidade: "cidade",
+      uf: "uf",
+      endereco: "endereco",
+      cep: "cep",
+      telefone: "telefone",
+      emailLoja: "email_loja",
+      cnpj: "cnpj",
+      razaoSocial: "razao_social",
+      marca: "marca",
+      shoppingNome: "shopping_nome",
+      observacoesGerais: "observacoes_gerais",
+      porte: "porte",
+      localizacao: "localizacao",
+    };
+    for (const [k, col] of Object.entries(textMap)) {
+      const v = (updates as any)[k];
+      if (v !== undefined) dbUpdates[col] = v ?? null;
+    }
+    if ((updates as any).metragemM2 !== undefined) {
+      const n = (updates as any).metragemM2;
+      dbUpdates.metragem_m2 = (n === "" || n === null || n === undefined) ? null : Number(n);
+    }
+    if ((updates as any).stageStatus !== undefined) dbUpdates.stage_status = (updates as any).stageStatus;
+
     await supabase.from("stores").update(dbUpdates).eq("id", id);
   }, []);
 
