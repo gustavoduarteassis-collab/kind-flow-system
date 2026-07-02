@@ -865,6 +865,56 @@ export type Database = {
         }
         Relationships: []
       }
+      pendencias_pos_inauguracao: {
+        Row: {
+          created_at: string
+          criado_por: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          descricao: string
+          id: string
+          prazo: string | null
+          responsavel: string | null
+          status: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criado_por?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          descricao: string
+          id?: string
+          prazo?: string | null
+          responsavel?: string | null
+          status?: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criado_por?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          descricao?: string
+          id?: string
+          prazo?: string | null
+          responsavel?: string | null
+          status?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pendencias_pos_inauguracao_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_project_log: {
         Row: {
           changed_by: string | null
@@ -1118,6 +1168,50 @@ export type Database = {
         }
         Relationships: []
       }
+      stage_comments: {
+        Row: {
+          autor_nome: string | null
+          autor_user_id: string | null
+          created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          id: string
+          stage_key: string
+          store_id: string
+          texto: string
+        }
+        Insert: {
+          autor_nome?: string | null
+          autor_user_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          stage_key: string
+          store_id: string
+          texto: string
+        }
+        Update: {
+          autor_nome?: string | null
+          autor_user_id?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          id?: string
+          stage_key?: string
+          store_id?: string
+          texto?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stage_comments_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       store_communications: {
         Row: {
           attachment_url: string | null
@@ -1221,14 +1315,21 @@ export type Database = {
       stores: {
         Row: {
           action_plans: Json | null
+          analista_arquitetura: string | null
           analista_obra: string
+          area_m2: number | null
+          cd_origem: string | null
           cep: string | null
+          chaves_prev: string | null
+          chaves_real: string | null
           checklist: Json
           cidade: string | null
           cnpj: string | null
           cobranca_nota: string | null
           comentarios_obras: string | null
           construtor: string
+          contrato_locacao_prev: string | null
+          contrato_locacao_real: string | null
           created_at: string
           cronograma: Json
           custos: Json
@@ -1238,16 +1339,25 @@ export type Database = {
           deleted_by: string | null
           demolicao_prev: string | null
           demolicao_real: string | null
+          email_financeiro: string | null
           email_loja: string | null
+          email_operacional: string | null
           endereco: string | null
           fase_atual: string | null
+          faturamento_mercadoria_prev: string | null
+          faturamento_mercadoria_real: string | null
           filial: string
           franqueado: string
+          gerente_regional: string | null
+          grade_produtos: string | null
+          horario_funcionamento: string | null
           id: string
+          implantadora: string | null
           inauguracao: string
           inauguracao_checklist: Json
           inauguracao_real: string | null
           inicio_obra_texto: string | null
+          inscricao_estadual: string | null
           is_reforma: boolean | null
           localizacao: string | null
           marca: string | null
@@ -1255,11 +1365,15 @@ export type Database = {
           moveis_prev: string | null
           moveis_real: string | null
           nome: string
+          num_pisos: number | null
           obra_inicio_prev: string | null
           obra_inicio_real: string | null
           observacoes_gerais: string | null
           porte: string | null
+          previsao_faturamento: string | null
           previsao_inauguracao_texto: string | null
+          produtos_chegada_prev: string | null
+          produtos_chegada_real: string | null
           produtos_prev: string | null
           produtos_real: string | null
           razao_social: string | null
@@ -1268,8 +1382,12 @@ export type Database = {
           stage_status: Json
           stage_status_updated_at: string | null
           stage_status_updated_by: string | null
+          status_faturamento: string | null
           status_geral: string | null
+          status_geral_manual: string | null
           telefone: string | null
+          telefone_franqueado: string | null
+          tipo_localizacao: string | null
           tipo_loja: string
           uf: string | null
           ultima_atualizacao: string | null
@@ -1280,17 +1398,25 @@ export type Database = {
           version: number
           visita_tecnica: Json
           visita_tecnica_real: string | null
+          visita_tecnica_realizada: string | null
         }
         Insert: {
           action_plans?: Json | null
+          analista_arquitetura?: string | null
           analista_obra?: string
+          area_m2?: number | null
+          cd_origem?: string | null
           cep?: string | null
+          chaves_prev?: string | null
+          chaves_real?: string | null
           checklist?: Json
           cidade?: string | null
           cnpj?: string | null
           cobranca_nota?: string | null
           comentarios_obras?: string | null
           construtor?: string
+          contrato_locacao_prev?: string | null
+          contrato_locacao_real?: string | null
           created_at?: string
           cronograma?: Json
           custos?: Json
@@ -1300,16 +1426,25 @@ export type Database = {
           deleted_by?: string | null
           demolicao_prev?: string | null
           demolicao_real?: string | null
+          email_financeiro?: string | null
           email_loja?: string | null
+          email_operacional?: string | null
           endereco?: string | null
           fase_atual?: string | null
+          faturamento_mercadoria_prev?: string | null
+          faturamento_mercadoria_real?: string | null
           filial?: string
           franqueado?: string
+          gerente_regional?: string | null
+          grade_produtos?: string | null
+          horario_funcionamento?: string | null
           id?: string
+          implantadora?: string | null
           inauguracao?: string
           inauguracao_checklist?: Json
           inauguracao_real?: string | null
           inicio_obra_texto?: string | null
+          inscricao_estadual?: string | null
           is_reforma?: boolean | null
           localizacao?: string | null
           marca?: string | null
@@ -1317,11 +1452,15 @@ export type Database = {
           moveis_prev?: string | null
           moveis_real?: string | null
           nome: string
+          num_pisos?: number | null
           obra_inicio_prev?: string | null
           obra_inicio_real?: string | null
           observacoes_gerais?: string | null
           porte?: string | null
+          previsao_faturamento?: string | null
           previsao_inauguracao_texto?: string | null
+          produtos_chegada_prev?: string | null
+          produtos_chegada_real?: string | null
           produtos_prev?: string | null
           produtos_real?: string | null
           razao_social?: string | null
@@ -1330,8 +1469,12 @@ export type Database = {
           stage_status?: Json
           stage_status_updated_at?: string | null
           stage_status_updated_by?: string | null
+          status_faturamento?: string | null
           status_geral?: string | null
+          status_geral_manual?: string | null
           telefone?: string | null
+          telefone_franqueado?: string | null
+          tipo_localizacao?: string | null
           tipo_loja?: string
           uf?: string | null
           ultima_atualizacao?: string | null
@@ -1342,17 +1485,25 @@ export type Database = {
           version?: number
           visita_tecnica?: Json
           visita_tecnica_real?: string | null
+          visita_tecnica_realizada?: string | null
         }
         Update: {
           action_plans?: Json | null
+          analista_arquitetura?: string | null
           analista_obra?: string
+          area_m2?: number | null
+          cd_origem?: string | null
           cep?: string | null
+          chaves_prev?: string | null
+          chaves_real?: string | null
           checklist?: Json
           cidade?: string | null
           cnpj?: string | null
           cobranca_nota?: string | null
           comentarios_obras?: string | null
           construtor?: string
+          contrato_locacao_prev?: string | null
+          contrato_locacao_real?: string | null
           created_at?: string
           cronograma?: Json
           custos?: Json
@@ -1362,16 +1513,25 @@ export type Database = {
           deleted_by?: string | null
           demolicao_prev?: string | null
           demolicao_real?: string | null
+          email_financeiro?: string | null
           email_loja?: string | null
+          email_operacional?: string | null
           endereco?: string | null
           fase_atual?: string | null
+          faturamento_mercadoria_prev?: string | null
+          faturamento_mercadoria_real?: string | null
           filial?: string
           franqueado?: string
+          gerente_regional?: string | null
+          grade_produtos?: string | null
+          horario_funcionamento?: string | null
           id?: string
+          implantadora?: string | null
           inauguracao?: string
           inauguracao_checklist?: Json
           inauguracao_real?: string | null
           inicio_obra_texto?: string | null
+          inscricao_estadual?: string | null
           is_reforma?: boolean | null
           localizacao?: string | null
           marca?: string | null
@@ -1379,11 +1539,15 @@ export type Database = {
           moveis_prev?: string | null
           moveis_real?: string | null
           nome?: string
+          num_pisos?: number | null
           obra_inicio_prev?: string | null
           obra_inicio_real?: string | null
           observacoes_gerais?: string | null
           porte?: string | null
+          previsao_faturamento?: string | null
           previsao_inauguracao_texto?: string | null
+          produtos_chegada_prev?: string | null
+          produtos_chegada_real?: string | null
           produtos_prev?: string | null
           produtos_real?: string | null
           razao_social?: string | null
@@ -1392,8 +1556,12 @@ export type Database = {
           stage_status?: Json
           stage_status_updated_at?: string | null
           stage_status_updated_by?: string | null
+          status_faturamento?: string | null
           status_geral?: string | null
+          status_geral_manual?: string | null
           telefone?: string | null
+          telefone_franqueado?: string | null
+          tipo_localizacao?: string | null
           tipo_loja?: string
           uf?: string | null
           ultima_atualizacao?: string | null
@@ -1404,6 +1572,7 @@ export type Database = {
           version?: number
           visita_tecnica?: Json
           visita_tecnica_real?: string | null
+          visita_tecnica_realizada?: string | null
         }
         Relationships: []
       }
