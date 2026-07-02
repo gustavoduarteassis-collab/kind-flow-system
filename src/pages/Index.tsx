@@ -327,29 +327,38 @@ const Index = () => {
     return { store, inaugDate, days, vtPct, cron, ...chk, custo };
   }), [activeStores, custos]);
 
-  // ----- Obras Críticas -----
-  type Alert = { storeId: string; storeName: string; icon: any; label: string; tone: Sem; tab?: string; sort: number };
-  const alerts: Alert[] = useMemo(() => {
-    const out: Alert[] = [];
+  // ----- Obras Críticas (grouped per store) -----
+  type Alert = { icon: any; label: string; tone: Sem; tab?: string; sort: number };
+  type GroupedAlert = { storeId: string; storeName: string; analista: string; alerts: Alert[]; worstTone: Sem; minSort: number };
+  const groupedAlerts: GroupedAlert[] = useMemo(() => {
+    const byStore = new Map<string, GroupedAlert>();
+    const push = (m: typeof storeMetrics[0], a: Alert) => {
+      const key = m.store.id;
+      const g = byStore.get(key) || { storeId: key, storeName: m.store.nome, analista: m.store.analistaObra || "—", alerts: [], worstTone: "muted" as Sem, minSort: 999 };
+      g.alerts.push(a);
+      const toneRank: Record<Sem, number> = { red: 3, amber: 2, green: 1, muted: 0 };
+      if (toneRank[a.tone] > toneRank[g.worstTone]) g.worstTone = a.tone;
+      if (a.sort < g.minSort) g.minSort = a.sort;
+      byStore.set(key, g);
+    };
     storeMetrics.forEach((m) => {
-      const sName = m.store.nome;
       if (m.days !== null && m.days >= 0 && m.days <= 7) {
-        out.push({ storeId: m.store.id, storeName: sName, icon: Clock, label: `⏳ ${m.days === 0 ? "Inaugura hoje" : `${m.days} dia(s) para inaugurar`}`, tone: "red", sort: m.days });
+        push(m, { icon: Clock, label: `⏳ ${m.days === 0 ? "Inaugura hoje" : `${m.days}d p/ inaugurar`}`, tone: "red", sort: m.days });
       }
       if (m.vtPct === 0 && m.days !== null && m.days >= 0 && m.days < 30) {
-        out.push({ storeId: m.store.id, storeName: sName, icon: Search, label: "🔍 Visita Técnica pendente", tone: "red", tab: "visita-tecnica", sort: 10 });
+        push(m, { icon: Search, label: "🔍 Visita pendente", tone: "red", tab: "visita-tecnica", sort: 10 });
       }
       if (!m.cron) {
-        out.push({ storeId: m.store.id, storeName: sName, icon: Calendar, label: "📅 Cronograma não iniciado", tone: "amber", tab: "cronograma", sort: 20 });
+        push(m, { icon: Calendar, label: "📅 Sem cronograma", tone: "amber", tab: "cronograma", sort: 20 });
       }
       if (!m.custo?.hasCusto && m.pct > 20) {
-        out.push({ storeId: m.store.id, storeName: sName, icon: Wallet, label: "💰 Custos não registrados", tone: "amber", tab: "custos", sort: 30 });
+        push(m, { icon: Wallet, label: "💰 Sem custo", tone: "amber", tab: "custos", sort: 30 });
       }
       if (m.atrasados > 10) {
-        out.push({ storeId: m.store.id, storeName: sName, icon: Flame, label: `⚠️ ${m.atrasados} itens atrasados`, tone: "red", sort: 5 });
+        push(m, { icon: Flame, label: `⚠️ ${m.atrasados} atrasados`, tone: "red", sort: 5 });
       }
     });
-    return out.sort((a, b) => a.sort - b.sort).slice(0, 20);
+    return Array.from(byStore.values()).sort((a, b) => a.minSort - b.minSort);
   }, [storeMetrics]);
 
   // ----- 4 KPIs de Qualidade -----
