@@ -377,7 +377,7 @@ export default function MatrizEtapas() {
                   <SelectTrigger className="h-9 w-[200px]"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos os grupos</SelectItem>
-                    {STAGE_GROUPS.map((g) => (
+                    {visibleGroups.map((g) => (
                       <SelectItem key={g.name} value={g.name}>{g.name}</SelectItem>
                     ))}
                   </SelectContent>
@@ -404,7 +404,7 @@ export default function MatrizEtapas() {
                     <TableHead colSpan={AUTO_PHASES.length} className="text-center bg-muted/60 text-[11px] uppercase tracking-wide border-l">
                       Fases (auto)
                     </TableHead>
-                    {STAGE_GROUPS.map((g) => (
+                    {visibleGroups.map((g) => (
                       <TableHead
                         key={g.name}
                         colSpan={g.stages.length}
@@ -433,7 +433,7 @@ export default function MatrizEtapas() {
                         </div>
                       </TableHead>
                     ))}
-                    {STAGE_GROUPS.map((g) =>
+                    {visibleGroups.map((g) =>
                       g.stages.map((s, i) => (
                         <TableHead
                           key={s.key}
@@ -506,7 +506,7 @@ export default function MatrizEtapas() {
                             </Tooltip>
                           </TableCell>
                         ))}
-                        {STAGE_GROUPS.map((g) =>
+                        {visibleGroups.map((g) =>
                           g.stages.map((s, i) => {
                             const isDerived = derived[s.key] === true;
                             const cellDone = isDerived || !!st[s.key];
