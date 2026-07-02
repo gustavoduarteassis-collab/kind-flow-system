@@ -264,13 +264,13 @@ export default function MatrizEtapas() {
     rows.forEach((r) => {
       const st = stageStatus[r.store.id] || {};
       PLANILHA_STAGES.forEach((s) => {
-        // Derivado do Checklist Final tem prioridade — evita divergência
-        const isDone = r.derived[s.key] || !!st[s.key];
+        const isDone = r.derived[s.key] === true || normalizeStage(st[s.key]) === "concluido";
         if (isDone) t[s.key]++;
       });
     });
     return t;
   }, [rows, stageStatus]);
+
 
   const totalStages = AUTO_PHASES.length + PLANILHA_STAGES.length;
 
