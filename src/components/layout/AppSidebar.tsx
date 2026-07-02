@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import logoConstance from "@/assets/logo-constance.svg";
 
-const items = [
+const mainItems = [
   { title: "Painel", url: "/", icon: Home },
   { title: "Lojas", url: "/lojas", icon: Building2 },
   { title: "Matriz de Etapas", url: "/matriz-etapas", icon: LayoutGrid },
@@ -16,6 +16,9 @@ const items = [
   { title: "AGM", url: "/agm", icon: Target },
   { title: "Equipe & Tarefas", url: "/equipe", icon: Users },
   { title: "Performance", url: "/performance", icon: TrendingUp },
+];
+
+const toolItems = [
   { title: "Diversos", url: "/diversos", icon: FolderOpen },
   { title: "Acessos", url: "/acessos", icon: KeyRound },
   { title: "Itens excluídos", url: "/itens-excluidos", icon: Trash2 },
@@ -27,6 +30,17 @@ export function AppSidebar() {
   const { pathname } = useLocation();
   const isActive = (path: string) =>
     path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(path + "/");
+
+  const renderItem = (item: { title: string; url: string; icon: any }) => (
+    <SidebarMenuItem key={item.url}>
+      <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+        <NavLink to={item.url} className="flex items-center gap-2">
+          <item.icon className="h-4 w-4" />
+          {!collapsed && <span>{item.title}</span>}
+        </NavLink>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
 
   return (
     <Sidebar collapsible="icon">
@@ -41,20 +55,15 @@ export function AppSidebar() {
       </div>
       <SidebarContent className="overflow-y-auto flex-1 min-h-0">
         <SidebarGroup>
-          {!collapsed && <SidebarGroupLabel>Módulos</SidebarGroupLabel>}
+          {!collapsed && <SidebarGroupLabel>Operação</SidebarGroupLabel>}
           <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <NavLink to={item.url} className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <SidebarMenu>{mainItems.map(renderItem)}</SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          {!collapsed && <SidebarGroupLabel>Ferramentas</SidebarGroupLabel>}
+          <SidebarGroupContent>
+            <SidebarMenu>{toolItems.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
