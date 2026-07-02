@@ -13,6 +13,7 @@ import Equipe from "./pages/Equipe";
 import FranqueadoPortal from "./pages/FranqueadoPortal";
 
 import ImportFunil from "./pages/ImportFunil";
+import AtualizarPlanilha from "./pages/AtualizarPlanilha";
 import CustosGeral from "./pages/CustosGeral";
 import Diversos from "./pages/Diversos";
 import AGM from "./pages/AGM";
@@ -84,6 +85,7 @@ function AppRoutes() {
         <Route path="/pipeline" element={<Navigate to="/lojas?tab=funil" replace />} />
         <Route path="/funil" element={<Navigate to="/lojas?tab=funil" replace />} />
         <Route path="/funil-importar" element={<ImportFunil />} />
+        <Route path="/atualizar-planilha" element={<AtualizarPlanilha />} />
         <Route path="/custos-geral" element={<CustosGeral />} />
         <Route path="/custos" element={<Navigate to="/custos-geral" replace />} />
         <Route path="/diversos" element={<Diversos />} />

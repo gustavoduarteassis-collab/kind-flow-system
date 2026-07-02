@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { FileSpreadsheet } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useStores } from "@/hooks/useStores";
@@ -13,6 +15,7 @@ const VALID_TABS: TabKey[] = ["funil", "checklist", "inauguradas"];
 const STORAGE_KEY = "lojas:lastTab";
 
 const LojasUnificadas = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initial: TabKey =
     (VALID_TABS.includes(searchParams.get("tab") as TabKey) && (searchParams.get("tab") as TabKey)) ||
@@ -83,9 +86,15 @@ const LojasUnificadas = () => {
   return (
     <div className="bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
-          <p className="text-xs text-muted-foreground">Funil, Checklist &amp; Cronograma e Inauguradas</p>
+        <div className="mb-2 flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
+            <p className="text-xs text-muted-foreground">Funil, Checklist &amp; Cronograma e Inauguradas</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => navigate("/atualizar-planilha")}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            📥 Atualizar via Excel
+          </Button>
         </div>
         <Tabs value={tab} onValueChange={handleChange}>
           <TabsList className="grid grid-cols-3 w-full max-w-2xl">
