@@ -201,13 +201,72 @@ const ValidacaoDatas = () => {
         <Card><CardContent className="p-4"><div className="text-xs text-muted-foreground">Data inexistente / ano fora</div><div className="text-2xl font-bold">{summary.dataInexistente + summary.anoFora}</div></CardContent></Card>
       </div>
 
+      {/* Alerta permanente: Painel × Funil fora de sincronia */}
+      <Card className={mismatches.length > 0 ? "border-orange-500/60 bg-orange-500/5" : "border-emerald-500/40 bg-emerald-500/5"}>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center justify-between text-base">
+            <span className="flex items-center gap-2">
+              <GitCompare className={`h-4 w-4 ${mismatches.length > 0 ? "text-orange-500" : "text-emerald-600"}`} />
+              Sincronia Painel da Loja × Funil
+              <Badge variant={mismatches.length > 0 ? "destructive" : "outline"}>
+                {mismatches.length} divergência{mismatches.length === 1 ? "" : "s"}
+              </Badge>
+            </span>
+            {mismatches.length > 0 && (
+              <Button size="sm" onClick={sincronizarTudo} disabled={syncing}>
+                Sincronizar tudo (usar Funil)
+              </Button>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {mismatches.length === 0 ? (
+            <div className="px-4 py-3 text-xs text-muted-foreground">
+              Painel da Loja e Funil estão 100% sincronizados nas datas de inauguração.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50 text-left">
+                  <tr>
+                    <th className="p-3">Loja</th>
+                    <th className="p-3">Campo</th>
+                    <th className="p-3">Painel</th>
+                    <th className="p-3">Funil</th>
+                    <th className="p-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mismatches.map((m, i) => (
+                    <tr key={`${m.store_id}-${m.campo}-${i}`} className="border-t">
+                      <td className="p-3">
+                        <Link to={`/loja/${m.store_id}`} className="text-primary underline">{m.nome}</Link>
+                      </td>
+                      <td className="p-3 text-xs text-muted-foreground">{m.campo}</td>
+                      <td className="p-3"><Badge variant="outline">{m.painel || "vazio"}</Badge></td>
+                      <td className="p-3"><Badge>{m.funil || "vazio"}</Badge></td>
+                      <td className="p-3">
+                        <Button size="sm" variant="outline" disabled={syncing} onClick={() => sincronizar(m)}>
+                          Usar Funil
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {!loading && rows.length === 0 && (
         <Alert>
           <CheckCircle2 className="h-4 w-4" />
-          <AlertTitle>Tudo certo</AlertTitle>
-          <AlertDescription>Nenhuma data inválida ou fora do formato encontrada.</AlertDescription>
+          <AlertTitle>Formato das datas OK</AlertTitle>
+          <AlertDescription>Nenhuma data inválida ou fora do formato encontrada no Funil.</AlertDescription>
         </Alert>
       )}
+
 
       {rows.length > 0 && (
         <Card>
