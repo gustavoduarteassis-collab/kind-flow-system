@@ -220,25 +220,52 @@ export default function MatrizEtapas() {
           ) : (
             <Table>
               <TableHeader>
+                {/* Linha de grupos */}
                 <TableRow>
-                  <TableHead className="sticky left-0 bg-background z-10 min-w-[220px]">Loja</TableHead>
-                  {AUTO_PHASES.map((p) => (
-                    <TableHead key={p.key} className="text-center whitespace-nowrap bg-muted/40">
+                  <TableHead rowSpan={2} className="sticky left-0 bg-background z-10 min-w-[220px] align-bottom">Loja</TableHead>
+                  <TableHead colSpan={AUTO_PHASES.length} className="text-center bg-muted/60 text-[11px] uppercase tracking-wide border-l">
+                    Fases (auto)
+                  </TableHead>
+                  {STAGE_GROUPS.map((g) => (
+                    <TableHead
+                      key={g.name}
+                      colSpan={g.stages.length}
+                      className="text-center text-[11px] uppercase tracking-wide bg-muted/30 border-l"
+                    >
+                      {g.name}
+                    </TableHead>
+                  ))}
+                  <TableHead rowSpan={2} className="text-center whitespace-nowrap align-bottom border-l">Progresso</TableHead>
+                </TableRow>
+                {/* Linha de etapas */}
+                <TableRow>
+                  {AUTO_PHASES.map((p, i) => (
+                    <TableHead key={p.key} className={cn("text-center whitespace-nowrap bg-muted/40", i === 0 && "border-l")}>
                       {p.label}
                       <div className="text-[10px] font-normal text-muted-foreground">
                         {autoTotals[p.key]}/{rows.length}
                       </div>
                     </TableHead>
                   ))}
-                  {PLANILHA_STAGES.map((s) => (
-                    <TableHead key={s.key} className="text-center whitespace-nowrap">
-                      <div className="text-[11px]">{s.label}</div>
-                      <div className="text-[10px] font-normal text-muted-foreground">
-                        {planilhaTotals[s.key]}/{rows.length}
-                      </div>
-                    </TableHead>
-                  ))}
-                  <TableHead className="text-center whitespace-nowrap">Progresso</TableHead>
+                  {STAGE_GROUPS.map((g) =>
+                    g.stages.map((s, i) => (
+                      <TableHead
+                        key={s.key}
+                        className={cn(
+                          "text-center whitespace-nowrap",
+                          i === 0 && "border-l",
+                          s.sub && "bg-muted/10"
+                        )}
+                      >
+                        <div className={cn("text-[11px]", s.sub && "pl-2 italic text-muted-foreground")}>
+                          {s.sub ? "↳ " : ""}{s.label}
+                        </div>
+                        <div className="text-[10px] font-normal text-muted-foreground">
+                          {planilhaTotals[s.key]}/{rows.length}
+                        </div>
+                      </TableHead>
+                    ))
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
