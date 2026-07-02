@@ -195,7 +195,9 @@ export default function MatrizEtapas() {
         const derived = deriveStagesFromChecklist(s);
         const st = stageStatus[s.id] || {};
         const autoDone = AUTO_PHASES.filter((p) => flags[p.key]).length;
-        const planDone = PLANILHA_STAGES.filter((ps) => derived[ps.key] || st[ps.key]).length;
+        const planDone = PLANILHA_STAGES.filter(
+          (ps) => derived[ps.key] || normalizeStage(st[ps.key]) === "concluido"
+        ).length;
         const pct = ((autoDone + planDone) / totalStagesAll) * 100;
         const reasons: CriticalReason[] = computeCriticality(s, {
           progressPct: pct,
@@ -213,14 +215,15 @@ export default function MatrizEtapas() {
           if (mode === "done" && !v) return false;
           if (mode === "pending" && v) return false;
         }
-        // filtro etapa planilha
+        // filtro etapa planilha (done = concluído; pending = qualquer coisa diferente)
         if (stageFilter !== "all") {
           const [mode, key] = stageFilter.split(":");
           const st = stageStatus[r.store.id] || {};
-          const v = r.derived[key] || !!st[key];
-          if (mode === "done" && !v) return false;
-          if (mode === "pending" && v) return false;
+          const isConcluido = r.derived[key] === true || normalizeStage(st[key]) === "concluido";
+          if (mode === "done" && !isConcluido) return false;
+          if (mode === "pending" && isConcluido) return false;
         }
+
         // filtro progresso
         if (progressFilter !== "all") {
           if (progressFilter === "low" && r.pct >= 30) return false;
