@@ -1389,6 +1389,7 @@ export type Database = {
           telefone_franqueado: string | null
           tipo_localizacao: string | null
           tipo_loja: string
+          tipo_registro: string
           uf: string | null
           ultima_atualizacao: string | null
           ultima_atualizacao_at: string | null
@@ -1476,6 +1477,7 @@ export type Database = {
           telefone_franqueado?: string | null
           tipo_localizacao?: string | null
           tipo_loja?: string
+          tipo_registro?: string
           uf?: string | null
           ultima_atualizacao?: string | null
           ultima_atualizacao_at?: string | null
@@ -1563,6 +1565,7 @@ export type Database = {
           telefone_franqueado?: string | null
           tipo_localizacao?: string | null
           tipo_loja?: string
+          tipo_registro?: string
           uf?: string | null
           ultima_atualizacao?: string | null
           ultima_atualizacao_at?: string | null

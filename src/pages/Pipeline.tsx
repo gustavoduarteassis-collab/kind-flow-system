@@ -342,7 +342,11 @@ const Pipeline = ({ initialTab }: { initialTab?: "novas" | "reformas" | "inaugur
   const isNova = (s: PipelineStore) => !isInaugurada(s) && !isReforma(s);
   const getStoreTimelineDate = (s: PipelineStore) => s.previsao_inauguracao || (isInaugurada(s) ? s.data_inauguracao : "");
 
-  const analistas = useMemo(() => Array.from(new Set(stores.map((s) => s.analista_obra).filter(Boolean))).sort(), [stores]);
+  const analistas = useMemo(() => {
+    const ALLOWED = new Set(["Deise", "Thainara", "Gizelia"]);
+    const present = new Set(stores.map((s) => (s.analista_obra || "").trim()).filter(Boolean));
+    return Array.from(present).filter((a) => ALLOWED.has(a)).sort();
+  }, [stores]);
   const meses = useMemo(() => {
     const set = new Set<string>();
     for (const s of stores) { const k = getMonthKey(getStoreTimelineDate(s)); if (k) set.add(k); }
