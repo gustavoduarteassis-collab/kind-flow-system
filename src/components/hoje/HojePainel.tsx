@@ -8,7 +8,7 @@ import { ANALISTAS_ORDEM, useLojasPendentesHoje } from "@/hooks/useLojasPendente
 import { InauguracaoBanner } from "@/components/InauguracaoBanner";
 
 export default function HojePainel() {
-  const { grupos, acompanhamento, totalLojas, loading, error } = useLojasPendentesHoje();
+  const { grupos, acompanhamento, totalLojas, loading, error, refresh } = useLojasPendentesHoje();
 
   return (
     <div className="bg-background min-h-screen">
@@ -60,7 +60,7 @@ export default function HojePainel() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             {ANALISTAS_ORDEM.map((a) => (
-              <AnalistaColuna key={a} analista={a} lojas={grupos[a]} acompanhamento={acompanhamento[a]} />
+              <AnalistaColuna key={a} analista={a} lojas={grupos[a]} acompanhamento={acompanhamento[a]} onCobrada={refresh} />
             ))}
           </div>
         )}
