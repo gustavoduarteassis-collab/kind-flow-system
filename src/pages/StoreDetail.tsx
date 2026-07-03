@@ -783,6 +783,11 @@ const StoreDetail = () => {
           <TabsContent value="tarefas" className="mt-4">
             <TarefasTab storeId={store.id} storeName={store.nome} canEdit={isTeamMember} />
           </TabsContent>
+
+          {/* 9. PENDÊNCIAS */}
+          <TabsContent value="pendencias" className="mt-4">
+            <PendenciasTab storeId={store.id} defaultResponsavel={store.analistaObra} />
+          </TabsContent>
         </Tabs>
 
         {/* Dialog for syncing category name to all stores */}
