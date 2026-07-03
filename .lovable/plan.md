@@ -1,91 +1,91 @@
 
-# Plano — Melhorias Profundas Constance Obra
+# Painel "Hoje" — Plano de Componentes
 
-**Regra absoluta:** todas as mudanças são **aditivas**. Nada existente é apagado, renomeado ou sobrescrito. Novas colunas são opcionais/nullable; novos componentes convivem com os atuais.
+## Rota
+- `/` → nova `HojePainel` (padrão)
+- `/painel/detalhado` → visão antiga (Resumo + Alertas + Mural em 3 abas), acessível via botão "Ver detalhado" no topo do Hoje
+- `/painel` também redireciona para `/`
 
-Executarei na ordem sugerida (5 → 3 → 4 → 1 → 2 → 7 → 6 → 8), em 8 ondas independentes, cada uma entregável e testável. Aprove uma por vez.
+## Arquivos a criar
 
----
+```
+src/
+├─ pages/
+│  ├─ Index.tsx                  ← passa a renderizar <HojePainel />
+│  └─ PainelDetalhado.tsx        ← NOVO — recebe o JSX das 3 abas atuais (extraído de Index.tsx sem alteração de lógica)
+├─ components/hoje/
+│  ├─ HojePainel.tsx             ← NOVO — container + link "Ver detalhado"
+│  ├─ AnalistaColuna.tsx         ← NOVO — grupo por analista (header com nome + contagem)
+│  └─ LojaPendenteCard.tsx       ← NOVO — card individual (loja, pendência, dias, botão Cobrar)
+└─ hooks/
+   └─ useLojasPendentesHoje.ts   ← NOVO — query única + agrupamento
+```
 
-## Onda 1 — Importação Excel completa (Bloco 5)
+## Lógica do hook `useLojasPendentesHoje`
 
-Alimenta todas as ondas seguintes.
+Uma query só, sem alterar tabelas nem inserir dados:
 
-- Nova página `/importar-planilha` (mantém `/importar-funil` intacta) com botão **📥 Atualizar via Excel** na tela `Lojas`.
-- Leitura das 4 abas: `FUNIL 2026`, `INAUGURADAS 2026`, `REFORMAS 2026`, `REPASSE-ENCERRAMENTO-TROCA 2026`.
-- Parser (`src/utils/planilhaMasterImport.ts`) faz o mapeamento completo Excel → sistema (todas as colunas listadas no Bloco 5.C).
-- Match por **Filial** (fallback Nome). Colunas vazias **nunca** sobrescrevem.
-- Tela de prévia (diff): novas × existentes × campos alterados por loja, com checkbox por linha.
-- Bolinhas coloridas convertidas para estados da matriz (verde=Concluído, amarelo=Em andamento, vermelho=Problema, vazio=Não iniciado).
-- Coluna "Comentários" ao lado de cada etapa vira registro em `stage_comments` com autor "Importado via Excel".
-- Coluna "Status" (texto livre) é **adicionada** em `store_updates` (nunca substitui).
-- Log em `funil_import_logs` reutilizando estrutura existente.
+```ts
+supabase.from("stores")
+  .select("id, nome, franqueado, analista_obra, tipo_registro,
+           ultima_atualizacao, ultima_atualizacao_at,
+           inauguracao, inauguracao_real,
+           demolicao_prev, demolicao_real,
+           obra_inicio_prev, obra_inicio_real,
+           moveis_prev, moveis_real,
+           produtos_prev, produtos_real,
+           checklist")
+  .in("tipo_registro", ["nova","reforma","repasse","troca"])
+  .is("deleted_at", null);
+```
 
-## Onda 2 — Matriz de 4 estados (Bloco 3)
+Para cada loja:
+1. Calcula progresso do checklist (mesma função de `Index.tsx`).
+2. Chama `computeCriticality()` de `src/utils/storeCriticality.ts` (já existe — reaproveita a mesma regra de Obras Críticas + Mural).
+3. Se `reasons.length === 0` → descarta.
+4. `pendenciaCurta` = `reasons[0].label` (a mais crítica). `diasParado` = `daysSince(ultima_atualizacao_at)` (fallback: sem update → 999).
+5. `analistaKey` = `analista_obra` normalizado, ou `"Gustavo"` se vazio.
+6. Agrupa por `analistaKey`, ordena cada grupo por `diasParado desc`.
+7. Ordem das colunas fixa: **Deise, Thainara, Gizelia, Gustavo**.
 
-- Novo tipo `StageStatus4 = 'nao_iniciado' | 'em_andamento' | 'com_problema' | 'concluido'` em `src/data/matrizStages.ts`.
-- Célula clicável cicla os 4 estados. Cores: cinza / amarelo / vermelho / verde. Legenda atualizada.
-- Contador X/Y conta apenas `concluido`.
-- Migração de dados: booleans atuais viram `concluido` (true) ou `nao_iniciado` (false) automaticamente na leitura — sem alterar o JSONB gravado.
+Retorna:
+```ts
+{ grupos: Record<Analista, LojaPendente[]>, totalLojas: number, loading }
+```
 
-## Onda 3 — Comentários por etapa (Bloco 4)
+## Componentes
 
-- Nova tabela `stage_comments` (store_id, stage_key, texto, autor, created_at) com RLS por `is_authorized_team`.
-- Ícone 💬 na célula da matriz com contador quando >0 comentários.
-- Popover ao clicar: campo texto + histórico cronológico reverso "DD/MM: [texto] — [autor]".
-- Mesmos comentários exibidos na aba `Etapas` do Painel da Loja (reusa `EtapasPlanilhaLoja.tsx`).
+### `HojePainel.tsx`
+Layout: header com título + total de lojas + botão `Ver detalhado` (link para `/painel/detalhado`). Grid responsivo 1/2/4 colunas — uma coluna por analista.
 
-## Onda 4 — Expansão do cadastro da loja (Bloco 1)
+### `AnalistaColuna.tsx`
+Header sticky com nome do analista, badge de contagem, e cor da marca. Lista vertical de `LojaPendenteCard`.
 
-- Migração aditiva: novas colunas nullable em `stores` (razao_social, ie, cd_origem, tipo_localizacao, area_m2, num_pisos, horario, email_operacional, email_financeiro, telefone_franqueado, gerente_regional, analista_arquitetura, implantadora, grade_produtos, previsao_faturamento, status_faturamento).
-- Alguns campos já existem (`metragem_m2`, `endereco`, `cep`, `telefone`, `email_loja`, `cnpj`, `shopping_nome`) — serão reaproveitados com aliases; nada removido.
-- `DadosTab.tsx` reorganizado em 5 seções: **Identificação**, **Localização**, **Contatos**, **Equipe e Gestão**, **Comercial**. Campos antigos preservados dentro das seções.
+### `LojaPendenteCard.tsx`
+```
+┌──────────────────────────────────┐
+│ Shopping Interlagos              │
+│ 🔴 Início de obra atrasado 12d   │
+│ Parado há 23d                    │
+│               [ Cobrar ]         │
+└──────────────────────────────────┘
+```
+Botão **Cobrar** → `navigator.clipboard.writeText()` com:
+```
+Oi {franqueado}: {pendenciaCurta} está parada há {diasParado} dias.
+Pode me atualizar?
+```
+Se `franqueado` vazio → "Oi". Toast de confirmação.
 
-## Onda 5 — Expansão da aba Datas (Bloco 2)
+## Estados de UI
+- Loading: skeletons por coluna.
+- Grupo vazio: card "Sem pendências ✅".
+- Nenhuma pendência global: card centralizado grande.
 
-- Migração aditiva: pares `contrato_locacao_prev/real`, `chaves_prev/real`, `demolicao_prev/real` (já existe), `obra_inicio_prev/real` (já existe), `moveis_prev/real` (já existe), `faturamento_mercadoria_prev/real`, `produtos_chegada_prev/real`, `inauguracao_real` (já existe), `visita_tecnica_realizada`.
-- Componente `PrevRealField` reutilizável com badge de desvio automático (verde/vermelho + dias).
-- `DatasTab.tsx` recebe as novas linhas mantendo as atuais.
+## O que NÃO muda
+- Banco: nenhuma migração, nenhum insert/update.
+- Componentes antigos (`MuralObras`, blocos de Alertas Críticos, Resumo) permanecem intactos — apenas movem-se para `PainelDetalhado.tsx`.
+- Rotas atuais continuam válidas via redirect.
 
-## Onda 6 — Pendências pós-inauguração (Bloco 7)
-
-- Nova tabela `pendencias_pos_inauguracao` (store_id, descricao, responsavel, prazo, status).
-- Seção condicional na aba Dados/Datas quando `inaugurada = true`.
-- Bloco na Home "⚠️ Pendências pós inauguração" agregando por loja.
-
-## Onda 7 — Categoria Repasse/Encerramento/Troca (Bloco 6)
-
-- Novo valor de `categoria` sem migrar dados existentes; enum já é texto livre em `status_geral`.
-- Aba **Repasse** adicionada em `LojasUnificadas.tsx` ao lado de `Inauguradas`.
-- Status específicos: "Repasse em andamento", "Encerrada", "Troca concluída".
-- Reutiliza o mesmo cadastro/painel das demais.
-
-## Onda 8 — Melhorias de UX/Liderança (Bloco 8)
-
-- **8.1** Filtro por analista na `MatrizEtapas.tsx` (dropdown reutilizando `analista_obra`).
-- **8.2** Coluna "Dias para inauguração" após o nome, cor automática (verde >30, amarelo 15–30, vermelho <15).
-- **8.3** Campo `status_geral_manual` (`no_prazo | atencao | critico | paralisado`) exibido como badge colorido em Matriz, Funil (`LojasUnificadas`), AGM e Home. **Não** substitui o `status_geral` atual — é um campo paralelo.
-- **8.4** Botão "📤 Exportar para Excel" em `Lojas` gerando `.xlsx` no formato da planilha da diretora via `exceljs` (util `exportPlanilhaMaster.ts`).
-
----
-
-## Detalhes Técnicos
-
-**Banco (migrações aditivas, todas nullable):**
-- `stores`: +16 colunas do Bloco 1, +8 pares prev/real do Bloco 2, +`status_geral_manual`.
-- `stage_comments`: nova tabela com RLS + GRANT + índices por `(store_id, stage_key)`.
-- `pendencias_pos_inauguracao`: nova tabela com RLS + GRANT + soft delete.
-- Reutiliza `store_updates`, `funil_import_logs`, `stage_status` JSONB existentes.
-
-**Frontend:**
-- Novos: `src/utils/planilhaMasterImport.ts`, `src/utils/exportPlanilhaMaster.ts`, `src/components/store/PrevRealField.tsx`, `src/components/store/PendenciasPosInauguracao.tsx`, `src/components/matriz/StageCommentPopover.tsx`, `src/pages/AtualizarPlanilha.tsx`.
-- Editados aditivamente: `DadosTab.tsx`, `DatasTab.tsx`, `MatrizEtapas.tsx`, `EtapasPlanilhaLoja.tsx`, `LojasUnificadas.tsx`, `Index.tsx`, `matrizStages.ts`.
-
-**Segurança:**
-- Toda tabela nova com RLS + GRANT + policies via `is_authorized_team`.
-- Import Excel valida tamanho/tipo no cliente antes de processar.
-
----
-
-**Como quer prosseguir?**  
-Confirmo com "**pode seguir Onda 1**" (ou a que preferir) e sigo entregando uma por vez.
+## Relatório final
+Ao final imprimo: rota, árvore de arquivos criados, e contagens reais por analista (executando `psql` read-only sobre `stores` para prever o que a UI vai mostrar).
