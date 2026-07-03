@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import MuralObras from "@/components/home/MuralObras";
+import PendenciasInauguradasTab from "@/components/painel/PendenciasInauguradasTab";
 import { InauguracaoBanner } from "@/components/InauguracaoBanner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStores } from "@/hooks/useStores";
@@ -413,10 +414,12 @@ const PainelDetalhado = () => {
 
   const [sp, setSp] = useSearchParams();
   const tabParam = sp.get("tab");
-  const activeTab = tabParam === "alertas" || tabParam === "mural" ? tabParam : "resumo";
+  const activeTab =
+    tabParam === "alertas" || tabParam === "mural" || tabParam === "pend-inauguradas"
+      ? tabParam : "resumo";
   const setTab = (v: string) => {
     const next = new URLSearchParams(sp);
-    if (v === "alertas" || v === "mural") next.set("tab", v);
+    if (v === "alertas" || v === "mural" || v === "pend-inauguradas") next.set("tab", v);
     else next.delete("tab");
     setSp(next, { replace: true });
   };
@@ -473,10 +476,11 @@ const PainelDetalhado = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setTab}>
-        <TabsList className="grid grid-cols-3 w-full max-w-xl">
+        <TabsList className="grid grid-cols-4 w-full max-w-2xl">
           <TabsTrigger value="resumo">Resumo</TabsTrigger>
           <TabsTrigger value="alertas">Alertas Críticos</TabsTrigger>
           <TabsTrigger value="mural">Mural de Obras</TabsTrigger>
+          <TabsTrigger value="pend-inauguradas">Pend. Inauguradas</TabsTrigger>
         </TabsList>
 
         <TabsContent value="mural" className="mt-4">
@@ -485,6 +489,10 @@ const PainelDetalhado = () => {
 
         <TabsContent value="alertas" className="mt-4">
           <AlertasCriticosSection />
+        </TabsContent>
+
+        <TabsContent value="pend-inauguradas" className="mt-4">
+          <PendenciasInauguradasTab />
         </TabsContent>
 
         <TabsContent value="resumo" className="mt-4 space-y-8">
