@@ -18,6 +18,12 @@ export type LojaPendente = {
   semUpdate: boolean;
 };
 
+export type LojaAcompanhamento = {
+  id: string;
+  nome: string;
+  ultimaAtualizacaoAt: string | null;
+};
+
 function progressPct(checklist: any): number {
   if (!checklist || typeof checklist !== "object") return 0;
   let total = 0, done = 0;
@@ -45,6 +51,9 @@ export function useLojasPendentesHoje() {
   const [grupos, setGrupos] = useState<Record<Analista, LojaPendente[]>>({
     Deise: [], Thainara: [], Gizelia: [], Gustavo: [],
   });
+  const [acompanhamento, setAcompanhamento] = useState<Record<Analista, LojaAcompanhamento[]>>({
+    Deise: [], Thainara: [], Gizelia: [], Gustavo: [],
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,6 +77,9 @@ export function useLojasPendentesHoje() {
       const buckets: Record<Analista, LojaPendente[]> = {
         Deise: [], Thainara: [], Gizelia: [], Gustavo: [],
       };
+      const acomp: Record<Analista, LojaAcompanhamento[]> = {
+        Deise: [], Thainara: [], Gizelia: [], Gustavo: [],
+      };
       for (const row of (data || []) as any[]) {
         const store: Store = {
           id: row.id, nome: row.nome, franqueado: row.franqueado || "",
@@ -86,24 +98,43 @@ export function useLojasPendentesHoje() {
         const pct = progressPct(row.checklist);
         const inaugurada = !!row.inauguracao_real;
         const reasons = computeCriticality(store, { progressPct: pct, inaugurada });
-        if (reasons.length === 0) continue;
+        const analista = normalizaAnalista(row.analista_obra);
+
+        if (reasons.length === 0) {
+          if (!inaugurada) {
+            acomp[analista].push({
+              id: row.id,
+              nome: row.nome,
+              ultimaAtualizacaoAt: row.ultima_atualizacao_at || null,
+            });
+          }
+          continue;
+        }
 
         const worst =
           reasons.find((r) => r.severity === "alta") || reasons[0];
         const dias = daysSince(row.ultima_atualizacao_at);
-        buckets[normalizaAnalista(row.analista_obra)].push({
+        buckets[analista].push({
           id: row.id,
           nome: row.nome,
           franqueado: row.franqueado || "",
-          analista: normalizaAnalista(row.analista_obra),
+          analista,
           pendenciaCurta: worst.label,
           severity: worst.severity,
           diasParado: dias === null ? 999 : dias,
           semUpdate: dias === null,
         });
       }
-      for (const k of ANALISTAS_ORDEM) buckets[k].sort((a, b) => b.diasParado - a.diasParado);
+      for (const k of ANALISTAS_ORDEM) {
+        buckets[k].sort((a, b) => b.diasParado - a.diasParado);
+        acomp[k].sort((a, b) => {
+          const da = a.ultimaAtualizacaoAt ? new Date(a.ultimaAtualizacaoAt).getTime() : 0;
+          const db = b.ultimaAtualizacaoAt ? new Date(b.ultimaAtualizacaoAt).getTime() : 0;
+          return db - da;
+        });
+      }
       setGrupos(buckets);
+      setAcompanhamento(acomp);
       setLoading(false);
     })();
     return () => { cancel = true; };
@@ -114,5 +145,5 @@ export function useLojasPendentesHoje() {
     [grupos]
   );
 
-  return { grupos, totalLojas, loading, error };
+  return { grupos, acompanhamento, totalLojas, loading, error };
 }
