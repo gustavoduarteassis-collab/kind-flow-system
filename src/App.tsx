@@ -19,7 +19,7 @@ import Diversos from "./pages/Diversos";
 import AGM from "./pages/AGM";
 import Acessos from "./pages/Acessos";
 import ItensExcluidos from "./pages/ItensExcluidos";
-import Performance from "./pages/Performance";
+// import Performance from "./pages/Performance"; // desativado da UI
 import ValidacaoDatas from "./pages/ValidacaoDatas";
 
 import NotFound from "./pages/NotFound";
