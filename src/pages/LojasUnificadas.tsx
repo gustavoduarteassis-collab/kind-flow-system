@@ -91,7 +91,7 @@ const LojasUnificadas = () => {
   return (
     <div className="bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-3">
-        <InauguracaoBanner />
+        
         <div className="mb-2 flex items-start justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>

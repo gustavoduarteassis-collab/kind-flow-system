@@ -5,7 +5,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, LayoutDashboard, Sparkles } from "lucide-react";
 import AnalistaColuna from "./AnalistaColuna";
 import { ANALISTAS_ORDEM, useLojasPendentesHoje } from "@/hooks/useLojasPendentesHoje";
-import { InauguracaoBanner } from "@/components/InauguracaoBanner";
 
 export default function HojePainel() {
   const { grupos, acompanhamento, totalLojas, loading, error, refresh } = useLojasPendentesHoje();
@@ -13,7 +12,7 @@ export default function HojePainel() {
   return (
     <div className="bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
-        <InauguracaoBanner />
+
 
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
