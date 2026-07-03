@@ -754,11 +754,8 @@ const Equipe = () => {
           <TabsList className="mb-6 flex-wrap">
             <TabsTrigger value="visao" className="gap-2"><LayoutDashboard className="h-4 w-4" /> Visão Geral</TabsTrigger>
             <TabsTrigger value="tarefas" className="gap-2"><ListTodo className="h-4 w-4" /> Tarefas</TabsTrigger>
-            <TabsTrigger value="habitos" className="gap-2"><Target className="h-4 w-4" /> Hábitos</TabsTrigger>
-            <TabsTrigger value="atividades" className="gap-2"><Activity className="h-4 w-4" /> Atividades</TabsTrigger>
-            <TabsTrigger value="programacao" className="gap-2"><Calendar className="h-4 w-4" /> Programação</TabsTrigger>
-            <TabsTrigger value="calendario" className="gap-2"><Calendar className="h-4 w-4" /> Calendário</TabsTrigger>
             <TabsTrigger value="equipe" className="gap-2"><Users className="h-4 w-4" /> Equipe</TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="visao">
