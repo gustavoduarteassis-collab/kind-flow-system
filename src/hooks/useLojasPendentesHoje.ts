@@ -24,13 +24,14 @@ function progressPct(checklist: any): number {
   for (const cat of checklistCategories) {
     for (const item of cat.items) {
       total++;
-      const st = checklist?.[cat.id]?.[item.id]?.status as StatusType | undefined;
-      if (st === "realizado" || st === "nao-se-aplica") done++;
-      else if (st === "andamento") done += 0.5;
+      const st = String(checklist?.[cat.id]?.[item.id]?.status || "").toUpperCase();
+      if (st === "REALIZADO" || st === "NÃO SE APLICA") done++;
+      else if (st === "REALIZANDO" || st === "EM ANDAMENTO") done += 0.5;
     }
   }
   return total ? (done / total) * 100 : 0;
 }
+
 
 function normalizaAnalista(v?: string | null): Analista {
   const raw = (v || "").trim().toLowerCase();
