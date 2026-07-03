@@ -19,7 +19,7 @@ import Diversos from "./pages/Diversos";
 import AGM from "./pages/AGM";
 import Acessos from "./pages/Acessos";
 import ItensExcluidos from "./pages/ItensExcluidos";
-import Performance from "./pages/Performance";
+// import Performance from "./pages/Performance"; // desativado da UI
 import ValidacaoDatas from "./pages/ValidacaoDatas";
 
 import NotFound from "./pages/NotFound";
@@ -92,7 +92,7 @@ function AppRoutes() {
         <Route path="/agm" element={<AGM />} />
         <Route path="/acessos" element={<Acessos />} />
         <Route path="/itens-excluidos" element={<ItensExcluidos />} />
-        <Route path="/performance" element={<Performance />} />
+        <Route path="/performance" element={<Navigate to="/" replace />} />
         <Route path="/validacao-datas" element={<ValidacaoDatas />} />
         <Route path="/matriz-etapas" element={<Navigate to="/?tab=matriz" replace />} />
         <Route path="*" element={<NotFound />} />

@@ -16,7 +16,7 @@ const mainItems = [
   { title: "Custos Geral", url: "/custos-geral", icon: DollarSign },
   { title: "AGM", url: "/agm", icon: Target },
   { title: "Equipe & Tarefas", url: "/equipe", icon: Users },
-  { title: "Performance", url: "/performance", icon: TrendingUp },
+
 ];
 
 const toolItems = [
