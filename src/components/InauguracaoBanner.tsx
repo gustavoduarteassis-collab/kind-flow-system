@@ -6,7 +6,7 @@ import { useInauguracoesPendentes } from "@/hooks/useInauguracoesPendentes";
 
 export function InauguracaoBanner({ compact = false }: { compact?: boolean }) {
   const { items, loading, dismiss, dismissAll } = useInauguracoesPendentes();
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const navigate = useNavigate();
   if (loading || items.length === 0) return null;
 
