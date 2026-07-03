@@ -21,6 +21,7 @@ import CustosObra from "@/components/CustosObra";
 import DiarioObra from "@/components/DiarioObra";
 import FornecedoresObra from "@/components/FornecedoresObra";
 import ChecklistInauguracao from "@/components/ChecklistInauguracao";
+import PendenciasTab from "@/components/loja/PendenciasTab";
 import SolicitacoesLoja from "@/components/SolicitacoesLoja";
 import ChecklistVisitaTecnica from "@/components/ChecklistVisitaTecnica";
 import { InaugChecklistData } from "@/data/inauguracaoChecklistData";
@@ -557,6 +558,9 @@ const StoreDetail = () => {
             <TabsTrigger value="tarefas" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
               ✅ Tarefas
             </TabsTrigger>
+            <TabsTrigger value="pendencias" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              🚩 Pendências
+            </TabsTrigger>
           </TabsScrollableList>
 
           {/* 1. DADOS — cadastro/mestre da loja */}
@@ -778,6 +782,11 @@ const StoreDetail = () => {
           {/* 8. TAREFAS DA LOJA */}
           <TabsContent value="tarefas" className="mt-4">
             <TarefasTab storeId={store.id} storeName={store.nome} canEdit={isTeamMember} />
+          </TabsContent>
+
+          {/* 9. PENDÊNCIAS */}
+          <TabsContent value="pendencias" className="mt-4">
+            <PendenciasTab storeId={store.id} defaultResponsavel={store.analistaObra} />
           </TabsContent>
         </Tabs>
 

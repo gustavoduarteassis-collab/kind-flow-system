@@ -2,11 +2,18 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Clock, AlertTriangle } from "lucide-react";
+import { Copy, Clock, AlertTriangle, Bell } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import type { LojaPendente } from "@/hooks/useLojasPendentesHoje";
 
-export default function LojaPendenteCard({ loja }: { loja: LojaPendente }) {
+export default function LojaPendenteCard({
+  loja,
+  onCobrada,
+}: {
+  loja: LojaPendente;
+  onCobrada?: () => void;
+}) {
   const navigate = useNavigate();
   const parado = loja.semUpdate ? "sem update" : `${loja.diasParado}d parada`;
   const parkColor =
@@ -25,24 +32,38 @@ export default function LojaPendenteCard({ loja }: { loja: LojaPendente }) {
     } catch {
       toast.error("Não foi possível copiar", { description: msg });
     }
+
+    if (!loja.jaCobrada && loja.pendenciaId) {
+      const { error } = await (supabase as any)
+        .from("pendencias")
+        .update({ status: "cobrada" })
+        .eq("id", loja.pendenciaId);
+      if (error) toast.error("Não foi possível marcar como cobrada", { description: error.message });
+      else onCobrada?.();
+    }
   };
 
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-3 space-y-2">
-        <button
-          className="text-left w-full"
-          onClick={() => navigate(`/loja/${loja.id}`)}
-        >
+        <button className="text-left w-full" onClick={() => navigate(`/loja/${loja.id}`)}>
           <p className="font-semibold text-sm leading-tight line-clamp-2">{loja.nome}</p>
         </button>
         <div className="flex items-start gap-1.5 text-xs">
           <AlertTriangle className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${loja.severity === "alta" ? "text-destructive" : "text-amber-500"}`} />
           <span className="text-foreground/90 line-clamp-2">{loja.pendenciaCurta}</span>
         </div>
-        <div className={`flex items-center gap-1 text-xs ${parkColor}`}>
+        <div className={`flex items-center gap-1 text-xs ${parkColor} flex-wrap`}>
           <Clock className="h-3 w-3" />
           <span>{parado}</span>
+          {loja.extraCount > 0 && (
+            <Badge variant="secondary" className="text-[10px] font-normal">+{loja.extraCount}</Badge>
+          )}
+          {loja.jaCobrada && (
+            <Badge variant="outline" className="text-[10px] font-normal">
+              <Bell className="h-2.5 w-2.5 mr-0.5" /> cobrada
+            </Badge>
+          )}
           {loja.franqueado && (
             <Badge variant="outline" className="ml-auto text-[10px] font-normal">
               {loja.franqueado.split(/\s+/)[0]}

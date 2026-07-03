@@ -23,10 +23,12 @@ export default function AnalistaColuna({
   analista,
   lojas,
   acompanhamento = [],
+  onCobrada,
 }: {
   analista: Analista;
   lojas: LojaPendente[];
   acompanhamento?: LojaAcompanhamento[];
+  onCobrada?: () => void;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -43,7 +45,7 @@ export default function AnalistaColuna({
         </div>
       ) : (
         <div className="flex flex-col gap-2">
-          {lojas.map((l) => <LojaPendenteCard key={l.id} loja={l} />)}
+          {lojas.map((l) => <LojaPendenteCard key={l.id} loja={l} onCobrada={onCobrada} />)}
         </div>
       )}
 

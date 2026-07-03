@@ -865,6 +865,59 @@ export type Database = {
         }
         Relationships: []
       }
+      pendencias: {
+        Row: {
+          aguardando_quem: Database["public"]["Enums"]["pendencia_aguardando"]
+          criado_em: string
+          criado_por: string | null
+          deleted_at: string | null
+          descricao: string
+          id: string
+          prazo_cobranca: string | null
+          resolvido_em: string | null
+          responsavel_interno: string | null
+          status: Database["public"]["Enums"]["pendencia_status"]
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          aguardando_quem: Database["public"]["Enums"]["pendencia_aguardando"]
+          criado_em?: string
+          criado_por?: string | null
+          deleted_at?: string | null
+          descricao: string
+          id?: string
+          prazo_cobranca?: string | null
+          resolvido_em?: string | null
+          responsavel_interno?: string | null
+          status?: Database["public"]["Enums"]["pendencia_status"]
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          aguardando_quem?: Database["public"]["Enums"]["pendencia_aguardando"]
+          criado_em?: string
+          criado_por?: string | null
+          deleted_at?: string | null
+          descricao?: string
+          id?: string
+          prazo_cobranca?: string | null
+          resolvido_em?: string | null
+          responsavel_interno?: string | null
+          status?: Database["public"]["Enums"]["pendencia_status"]
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pendencias_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pendencias_pos_inauguracao: {
         Row: {
           created_at: string
@@ -2000,6 +2053,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      can_edit_pendencia: { Args: { _responsavel: string }; Returns: boolean }
       current_actor_name: { Args: never; Returns: string }
       is_authorized_team: { Args: { check_user_id: string }; Returns: boolean }
       list_soft_deleted: {
@@ -2019,6 +2073,13 @@ export type Database = {
       unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
+      pendencia_aguardando:
+        | "franqueado"
+        | "juridico"
+        | "fornecedor"
+        | "shopping"
+        | "interno"
+      pendencia_status: "aberta" | "cobrada" | "resolvida"
       task_priority: "baixa" | "media" | "alta" | "urgente"
       task_recurrence: "nao" | "diaria" | "semanal" | "mensal"
       task_status: "pendente" | "em_andamento" | "concluida" | "cancelada"
@@ -2150,6 +2211,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      pendencia_aguardando: [
+        "franqueado",
+        "juridico",
+        "fornecedor",
+        "shopping",
+        "interno",
+      ],
+      pendencia_status: ["aberta", "cobrada", "resolvida"],
       task_priority: ["baixa", "media", "alta", "urgente"],
       task_recurrence: ["nao", "diaria", "semanal", "mensal"],
       task_status: ["pendente", "em_andamento", "concluida", "cancelada"],

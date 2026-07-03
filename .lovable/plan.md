@@ -1,91 +1,74 @@
+# Plano — Módulo Pendências
 
-# Painel "Hoje" — Plano de Componentes
+## 1. Schema (migration única)
 
-## Rota
-- `/` → nova `HojePainel` (padrão)
-- `/painel/detalhado` → visão antiga (Resumo + Alertas + Mural em 3 abas), acessível via botão "Ver detalhado" no topo do Hoje
-- `/painel` também redireciona para `/`
+### Enums novos
+- `pendencia_aguardando` — `franqueado | juridico | fornecedor | shopping | interno`
+- `pendencia_status` — `aberta | cobrada | resolvida`
 
-## Arquivos a criar
+### Tabela `public.pendencias`
+| coluna | tipo | notas |
+|---|---|---|
+| `id` | uuid PK | `gen_random_uuid()` |
+| `store_id` | uuid NOT NULL | FK → `public.stores(id)` ON DELETE CASCADE |
+| `descricao` | text NOT NULL | |
+| `aguardando_quem` | `pendencia_aguardando` NOT NULL | |
+| `responsavel_interno` | text | nome do analista (mesmo padrão de `stores.analista_obra`) |
+| `prazo_cobranca` | date | opcional |
+| `status` | `pendencia_status` NOT NULL default `'aberta'` | |
+| `resolvido_em` | timestamptz | preenchido quando `status='resolvida'` |
+| `criado_em` | timestamptz NOT NULL default `now()` | |
+| `criado_por` | uuid | `auth.uid()` no insert |
+| `updated_at` | timestamptz NOT NULL default `now()` | trigger `update_updated_at_column` |
+| `deleted_at` | timestamptz | soft-delete (padrão do projeto) |
 
-```
-src/
-├─ pages/
-│  ├─ Index.tsx                  ← passa a renderizar <HojePainel />
-│  └─ PainelDetalhado.tsx        ← NOVO — recebe o JSX das 3 abas atuais (extraído de Index.tsx sem alteração de lógica)
-├─ components/hoje/
-│  ├─ HojePainel.tsx             ← NOVO — container + link "Ver detalhado"
-│  ├─ AnalistaColuna.tsx         ← NOVO — grupo por analista (header com nome + contagem)
-│  └─ LojaPendenteCard.tsx       ← NOVO — card individual (loja, pendência, dias, botão Cobrar)
-└─ hooks/
-   └─ useLojasPendentesHoje.ts   ← NOVO — query única + agrupamento
-```
+Índices: `store_id`, `(status, store_id)`, `responsavel_interno`.
 
-## Lógica do hook `useLojasPendentesHoje`
+### GRANTs
+`SELECT, INSERT, UPDATE, DELETE` → `authenticated`; `ALL` → `service_role`. Sem `anon`.
 
-Uma query só, sem alterar tabelas nem inserir dados:
+### RLS
+- **SELECT**: qualquer autenticado (`auth.uid() IS NOT NULL`) — leitura ampla igual às outras tabelas operacionais.
+- **INSERT / UPDATE / DELETE**: só quando o usuário for
+  - Gustavo (via `team_members.name = 'Gustavo'` ligado ao `auth.uid()`), **OU**
+  - o próprio `responsavel_interno` (match por nome em `team_members` do `auth.uid()`).
 
-```ts
-supabase.from("stores")
-  .select("id, nome, franqueado, analista_obra, tipo_registro,
-           ultima_atualizacao, ultima_atualizacao_at,
-           inauguracao, inauguracao_real,
-           demolicao_prev, demolicao_real,
-           obra_inicio_prev, obra_inicio_real,
-           moveis_prev, moveis_real,
-           produtos_prev, produtos_real,
-           checklist")
-  .in("tipo_registro", ["nova","reforma","repasse","troca"])
-  .is("deleted_at", null);
-```
+Implementado via função `SECURITY DEFINER` `public.can_edit_pendencia(_responsavel text)` que retorna `true` se `current_actor_name() = 'Gustavo'` ou `= _responsavel`. Evita recursão.
 
-Para cada loja:
-1. Calcula progresso do checklist (mesma função de `Index.tsx`).
-2. Chama `computeCriticality()` de `src/utils/storeCriticality.ts` (já existe — reaproveita a mesma regra de Obras Críticas + Mural).
-3. Se `reasons.length === 0` → descarta.
-4. `pendenciaCurta` = `reasons[0].label` (a mais crítica). `diasParado` = `daysSince(ultima_atualizacao_at)` (fallback: sem update → 999).
-5. `analistaKey` = `analista_obra` normalizado, ou `"Gustavo"` se vazio.
-6. Agrupa por `analistaKey`, ordena cada grupo por `diasParado desc`.
-7. Ordem das colunas fixa: **Deise, Thainara, Gizelia, Gustavo**.
+## 2. Frontend
 
-Retorna:
-```ts
-{ grupos: Record<Analista, LojaPendente[]>, totalLojas: number, loading }
-```
+### Nova aba "Pendências" em `/loja/:id`
+- Componente `src/components/loja/PendenciasTab.tsx`.
+- Hook `src/hooks/usePendencias.ts` — `list`, `create`, `update`, `markResolved`, `markCobrada`.
+- Registrar a aba em `src/pages/LojaDetalhe.tsx` (ou arquivo equivalente das tabs da loja — vou localizar no momento da execução).
+- Formulário (dialog): descrição (textarea), aguardando quem (select), responsável interno (select com analistas), prazo de cobrança (date, opcional).
+- Lista: cards agrupados por status (Aberta / Cobrada / Resolvida), com ações "Cobrar" (status→cobrada), "Resolver" (status→resolvida + resolvido_em=now()), "Editar", "Excluir" (soft-delete).
 
-## Componentes
+### Painel "Hoje" — nova fonte de verdade
+Refatorar `src/hooks/useLojasPendentesHoje.ts`:
+- Query nova: `pendencias` com `status IN ('aberta','cobrada')` + join client-side com `stores` (`deleted_at IS NULL`, `tipo_registro IN (...)`, `inauguracao_real IS NULL`).
+- `pendenciaCurta` = `descricao` da pendência mais antiga da loja (truncada).
+- `diasParado` = `now() - pendencias.criado_em` (dias corridos).
+- Se uma loja tiver >1 pendência aberta, o card mostra a mais antiga + badge "+N".
+- Agrupamento por `responsavel_interno` (fallback `stores.analista_obra` → `Gustavo`) mantido; ordem `Deise, Thainara, Gizelia, Gustavo` preservada.
+- Seção "Em acompanhamento" continua funcionando (lojas ativas **sem** pendência aberta).
 
-### `HojePainel.tsx`
-Layout: header com título + total de lojas + botão `Ver detalhado` (link para `/painel/detalhado`). Grid responsivo 1/2/4 colunas — uma coluna por analista.
+Botão "Cobrar" no card agora:
+1. Copia mensagem pro clipboard (como já faz).
+2. Atualiza `status → 'cobrada'` na pendência exibida.
 
-### `AnalistaColuna.tsx`
-Header sticky com nome do analista, badge de contagem, e cor da marca. Lista vertical de `LojaPendenteCard`.
+## 3. Migração de dados
+Nenhuma. Pendências antigas em texto livre continuam visíveis no histórico da loja como estão hoje. A partir da entrada em produção, só o que for cadastrado em `pendencias` alimenta o painel Hoje.
 
-### `LojaPendenteCard.tsx`
-```
-┌──────────────────────────────────┐
-│ Shopping Interlagos              │
-│ 🔴 Início de obra atrasado 12d   │
-│ Parado há 23d                    │
-│               [ Cobrar ]         │
-└──────────────────────────────────┘
-```
-Botão **Cobrar** → `navigator.clipboard.writeText()` com:
-```
-Oi {franqueado}: {pendenciaCurta} está parada há {diasParado} dias.
-Pode me atualizar?
-```
-Se `franqueado` vazio → "Oi". Toast de confirmação.
+## 4. Impacto em código existente
+- **Alterado**: `useLojasPendentesHoje.ts`, `LojaPendenteCard.tsx` (para chamar update de status), arquivo de tabs da loja.
+- **Criado**: migration, `usePendencias.ts`, `PendenciasTab.tsx`, `PendenciaFormDialog.tsx`, `PendenciaCard.tsx`.
+- **Intocado**: tabelas existentes, `computeCriticality`, seção detalhado (`/painel/detalhado`), demais páginas.
 
-## Estados de UI
-- Loading: skeletons por coluna.
-- Grupo vazio: card "Sem pendências ✅".
-- Nenhuma pendência global: card centralizado grande.
+## Ordem de execução
+1. Aplicar migration (aguarda aprovação).
+2. Criar hook + componentes da aba Pendências.
+3. Refatorar `useLojasPendentesHoje` + `LojaPendenteCard`.
+4. Verificar build e rota.
 
-## O que NÃO muda
-- Banco: nenhuma migração, nenhum insert/update.
-- Componentes antigos (`MuralObras`, blocos de Alertas Críticos, Resumo) permanecem intactos — apenas movem-se para `PainelDetalhado.tsx`.
-- Rotas atuais continuam válidas via redirect.
-
-## Relatório final
-Ao final imprimo: rota, árvore de arquivos criados, e contagens reais por analista (executando `psql` read-only sobre `stores` para prever o que a UI vai mostrar).
+Confirma pra eu disparar a migration?
