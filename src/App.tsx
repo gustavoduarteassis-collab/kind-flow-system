@@ -77,6 +77,9 @@ function AppRoutes() {
     <Routes>
       <Route element={<AppLayout />}>
         <Route path="/" element={<Index />} />
+        <Route path="/painel" element={<Navigate to="/" replace />} />
+        <Route path="/painel/detalhado" element={<PainelDetalhado />} />
+
         <Route path="/lojas" element={<LojasUnificadas />} />
         <Route path="/lojas/:slug" element={<StoreSlugResolver />} />
         <Route path="/loja/:id" element={<StoreDetail />} />
