@@ -92,7 +92,7 @@ function AppRoutes() {
         <Route path="/agm" element={<AGM />} />
         <Route path="/acessos" element={<Acessos />} />
         <Route path="/itens-excluidos" element={<ItensExcluidos />} />
-        <Route path="/performance" element={<Performance />} />
+        <Route path="/performance" element={<Navigate to="/" replace />} />
         <Route path="/validacao-datas" element={<ValidacaoDatas />} />
         <Route path="/matriz-etapas" element={<Navigate to="/?tab=matriz" replace />} />
         <Route path="*" element={<NotFound />} />
