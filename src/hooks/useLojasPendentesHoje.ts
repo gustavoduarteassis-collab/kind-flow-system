@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { computeCriticality, daysSince } from "@/utils/storeCriticality";
 import type { Store } from "@/data/checklistData";
-import { checklistCategories, type StatusType } from "@/data/checklistData";
+import { checklistCategories } from "@/data/checklistData";
 
 export type Analista = "Deise" | "Thainara" | "Gizelia" | "Gustavo";
 export const ANALISTAS_ORDEM: Analista[] = ["Deise", "Thainara", "Gizelia", "Gustavo"];
