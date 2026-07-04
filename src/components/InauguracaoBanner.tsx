@@ -16,8 +16,8 @@ export function InauguracaoBanner({ compact = false }: { compact?: boolean }) {
         <div className="flex items-center gap-2 text-[hsl(30,80%,35%)] dark:text-[hsl(35,90%,65%)] font-semibold text-sm">
           <PartyPopper className="h-4 w-4" />
           {items.length === 1
-            ? `${items[0].nome} inaugurada! Existem pendências.`
-            : `${items.length} lojas inauguradas com pendências`}
+            ? `${items[0].nome} inaugurada! Custo ou contrato pendente.`
+            : `${items.length} lojas inauguradas com custo/contrato pendente`}
         </div>
         <button
           onClick={() => setExpanded((v) => !v)}

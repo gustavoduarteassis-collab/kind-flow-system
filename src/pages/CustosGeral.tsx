@@ -31,6 +31,14 @@ const fmt = (v: number) =>
 const fmtM2 = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 2 });
 
+/** Compact currency: R$ 27,4 mi / R$ 27,4 mil. Full value on tooltip. */
+const fmtCompact = (v: number) => {
+  const abs = Math.abs(v);
+  if (abs >= 1_000_000) return `R$ ${(v / 1_000_000).toLocaleString("pt-BR", { maximumFractionDigits: 2 })} mi`;
+  if (abs >= 1_000) return `R$ ${(v / 1_000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
+  return fmt(v);
+};
+
 const TIPOS = ["TRADICIONAL", "LIGHT", "OUTLET"] as const;
 const CATEGORIAS = [
   { key: "maoDeObra", label: "Mão de Obra" },
@@ -484,9 +492,9 @@ const CustosGeral = () => {
             <div className="text-[11px] text-muted-foreground uppercase tracking-wide">Lojas {dashboardAno}</div>
             <div className="text-2xl font-bold mt-0.5">{headerKpis.count}</div>
           </div>
-          <div className="rounded-lg border bg-card p-3">
+          <div className="rounded-lg border bg-card p-3" title={fmt(headerKpis.inv)}>
             <div className="text-[11px] text-muted-foreground uppercase tracking-wide">Investido</div>
-            <div className="text-lg font-bold mt-0.5 truncate">{fmt(headerKpis.inv)}</div>
+            <div className="text-2xl font-bold mt-0.5">{fmtCompact(headerKpis.inv)}</div>
           </div>
           <div className="rounded-lg border bg-card p-3">
             <div className="text-[11px] text-muted-foreground uppercase tracking-wide">Área (m²)</div>
