@@ -26,7 +26,7 @@ const LojasUnificadas = () => {
 
   const { stores } = useStores();
   const [funilCount, setFunilCount] = useState<number | null>(null);
-  const [inauguradasCountPipeline, setInauguradasCountPipeline] = useState<number>(0);
+  const [inauguradasCount, setInauguradasCount] = useState<number>(0);
   const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
   const [inauguradasNomes, setInauguradasNomes] = useState<Set<string>>(new Set());
 
@@ -47,16 +47,19 @@ const LojasUnificadas = () => {
       const norm = (s: string) =>
         s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
       const nomes = new Set<string>();
-      let inaugCount = 0;
       (data || []).forEach((r: any) => {
         const status = String(r.status_geral || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-        if (status.startsWith("inaugurada")) {
-          inaugCount++;
-          if (r.local) nomes.add(norm(String(r.local)));
-        }
+        if (status.startsWith("inaugurada") && r.local) nomes.add(norm(String(r.local)));
       });
       setInauguradasNomes(nomes);
-      setInauguradasCountPipeline(inaugCount);
+
+      // Fonte única de verdade para contagem de inauguradas: stores.inauguracao_real.
+      const { count: sc } = await supabase
+        .from("stores")
+        .select("id", { count: "exact", head: true })
+        .not("inauguracao_real", "is", null)
+        .is("deleted_at", null);
+      if (typeof sc === "number") setInauguradasCount(sc);
     };
     load();
   }, []);
@@ -106,7 +109,7 @@ const LojasUnificadas = () => {
           <TabsList className="grid grid-cols-3 w-full max-w-2xl">
             <TabsTrigger value="funil">Funil ({fmtCount(funilCount)})</TabsTrigger>
             <TabsTrigger value="checklist">Em Obra / Ativas ({checklistCount})</TabsTrigger>
-            <TabsTrigger value="inauguradas">Inauguradas ({inauguradasCountPipeline})</TabsTrigger>
+            <TabsTrigger value="inauguradas">Inauguradas ({inauguradasCount})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="funil" className="mt-4">
