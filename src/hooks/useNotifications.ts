@@ -28,8 +28,18 @@ export function useNotifications() {
       .select("*")
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
-      .limit(10);
-    setItems((data as Notification[]) ?? []);
+      .limit(30);
+    // Client-side dedupe: keep the most recent per (type, title, related_id).
+    const seen = new Set<string>();
+    const unique: Notification[] = [];
+    for (const n of (data as Notification[]) ?? []) {
+      const key = `${n.type}|${n.title}|${n.related_table ?? ""}|${n.related_id ?? ""}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      unique.push(n);
+      if (unique.length >= 10) break;
+    }
+    setItems(unique);
     setLoading(false);
   }, [user]);
 

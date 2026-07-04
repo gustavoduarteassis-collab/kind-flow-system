@@ -23,6 +23,7 @@ import Acessos from "./pages/Acessos";
 import ItensExcluidos from "./pages/ItensExcluidos";
 // import Performance from "./pages/Performance"; // desativado da UI
 import ValidacaoDatas from "./pages/ValidacaoDatas";
+import MatrizEtapas from "./pages/MatrizEtapas";
 
 import NotFound from "./pages/NotFound";
 import AppLayout from "./components/layout/AppLayout";
@@ -99,7 +100,7 @@ function AppRoutes() {
         <Route path="/itens-excluidos" element={<ItensExcluidos />} />
         <Route path="/performance" element={<Navigate to="/" replace />} />
         <Route path="/validacao-datas" element={<ValidacaoDatas />} />
-        <Route path="/matriz-etapas" element={<Navigate to="/?tab=matriz" replace />} />
+        <Route path="/matriz-etapas" element={<MatrizEtapas />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

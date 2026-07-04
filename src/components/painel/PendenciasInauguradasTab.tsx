@@ -87,14 +87,26 @@ export default function PendenciasInauguradasTab() {
 
   const total = useMemo(() => groups.reduce((s, g) => s + g.pendencias.length, 0), [groups]);
 
-  if (loading) return <p className="text-sm text-muted-foreground">Carregando…</p>;
-  if (error) return <Card className="border-destructive"><CardContent className="p-4 text-sm text-destructive">Erro: {error}</CardContent></Card>;
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        {[0, 1, 2].map((i) => (
+          <Card key={i}><CardContent className="p-3">
+            <div className="h-4 w-1/2 bg-muted rounded animate-pulse mb-2" />
+            <div className="h-3 w-1/3 bg-muted rounded animate-pulse" />
+          </CardContent></Card>
+        ))}
+      </div>
+    );
+  }
+  if (error) return <Card className="border-destructive"><CardContent className="p-4 text-sm text-destructive">Não foi possível carregar as pendências. Tente novamente em instantes.</CardContent></Card>;
 
   if (groups.length === 0) {
     return (
       <Card><CardContent className="p-10 flex flex-col items-center gap-3 text-center">
         <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-        <p className="font-semibold">Nenhuma pendência aberta em lojas inauguradas.</p>
+        <p className="font-semibold">Nenhuma pendência registrada em lojas inauguradas.</p>
+        <p className="text-xs text-muted-foreground">Esta lista mostra apenas pendências abertas manualmente na aba "Pendências" de cada loja. O banner do topo usa outra regra (custo/contrato).</p>
       </CardContent></Card>
     );
   }
@@ -104,10 +116,10 @@ export default function PendenciasInauguradasTab() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <StoreIcon className="h-5 w-5" /> Pendências de Lojas Inauguradas
+            <StoreIcon className="h-5 w-5" /> Pendências registradas em lojas inauguradas
           </h2>
           <p className="text-xs text-muted-foreground">
-            {total} pendência(s) em {groups.length} loja(s)
+            {total} pendência(s) em {groups.length} loja(s) · fonte: aba "Pendências" de cada loja
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => setOpenAll(v => !v)}>

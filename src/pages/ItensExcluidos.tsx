@@ -37,14 +37,17 @@ export default function ItensExcluidos() {
 
   const load = async (table: string) => {
     setLoading(true);
-    const { data, error } = await supabase.rpc("list_soft_deleted" as any, { _table: table });
-    if (error) {
-      toast.error("Erro ao carregar: " + error.message);
-      setRows([]);
-    } else {
+    try {
+      const { data, error } = await supabase.rpc("list_soft_deleted" as any, { _table: table });
+      if (error) throw error;
       setRows((data as Row[]) ?? []);
+    } catch (err: any) {
+      console.error("list_soft_deleted error:", err);
+      toast.error("Não foi possível carregar os itens excluídos. Tente novamente em instantes.");
+      setRows([]);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => { load(active); }, [active]);
