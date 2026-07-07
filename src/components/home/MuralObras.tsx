@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Clock, Calendar, Search, Flame, ChevronRight, MessageSquare } from "lucide-react";
+import { AlertTriangle, Clock, Calendar, Search, Flame, ChevronRight, MessageSquare, Pencil } from "lucide-react";
 import { useStores } from "@/hooks/useStores";
 import { isStoreLiberated } from "@/utils/inaugurationStatus";
 import {
@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
  */
 export default function MuralObras() {
   const { stores, loading } = useStores();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [onlyCritical, setOnlyCritical] = useState(false);
 
@@ -196,6 +197,19 @@ export default function MuralObras() {
                     {stale === 0 ? "hoje" : `${stale}d`}
                   </span>
                 )}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-6 px-2 text-[10px] gap-1 shrink-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/loja/${s.id}/atualizar`);
+                  }}
+                >
+                  <Pencil className="h-3 w-3" /> Atualizar
+                </Button>
                 <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </Link>

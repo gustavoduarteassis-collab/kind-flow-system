@@ -8,6 +8,7 @@ import PainelDetalhado from "./pages/PainelDetalhado";
 
 import LojasUnificadas from "./pages/LojasUnificadas";
 import StoreDetail from "./pages/StoreDetail";
+import AtualizacaoRapida from "./pages/AtualizacaoRapida";
 import StoreReport from "./pages/StoreReport";
 import StoreSlugResolver from "./pages/StoreSlugResolver";
 import Auth from "./pages/Auth";
@@ -86,6 +87,7 @@ function AppRoutes() {
         <Route path="/lojas" element={<LojasUnificadas />} />
         <Route path="/lojas/:slug" element={<StoreSlugResolver />} />
         <Route path="/loja/:id" element={<StoreDetail />} />
+        <Route path="/loja/:id/atualizar" element={<AtualizacaoRapida />} />
         <Route path="/loja/:id/relatorio" element={<StoreReport />} />
         <Route path="/equipe" element={<Equipe />} />
         <Route path="/pipeline" element={<Navigate to="/lojas?tab=funil" replace />} />
