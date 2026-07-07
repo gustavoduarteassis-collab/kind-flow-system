@@ -8,6 +8,7 @@ import PainelDetalhado from "./pages/PainelDetalhado";
 
 import LojasUnificadas from "./pages/LojasUnificadas";
 import StoreDetail from "./pages/StoreDetail";
+import AtualizacaoRapida from "./pages/AtualizacaoRapida";
 import StoreReport from "./pages/StoreReport";
 import StoreSlugResolver from "./pages/StoreSlugResolver";
 import Auth from "./pages/Auth";
