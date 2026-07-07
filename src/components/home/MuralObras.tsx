@@ -117,31 +117,39 @@ export default function MuralObras() {
         }[] = [
           {
             key: "urgente",
-            title: "INAUGURANDO EM ATÉ 14 DIAS",
+            title: "INAUGURANDO EM ATÉ 14 DIAS (ou atrasadas)",
             icon: "🔴",
             headerClass: "text-destructive border-destructive/40",
-            items: cards.filter((c) => c.dInaug !== null && c.dInaug >= 0 && c.dInaug <= 14),
+            items: cards
+              .filter((c) => c.dInaug !== null && c.dInaug <= 14)
+              .sort((a, b) => (a.dInaug! - b.dInaug!)),
           },
           {
             key: "atencao",
             title: "ATENÇÃO — 15 a 30 dias",
             icon: "🟡",
             headerClass: "text-[hsl(var(--accent-foreground))] border-[hsl(var(--accent))]/40",
-            items: cards.filter((c) => c.dInaug !== null && c.dInaug > 14 && c.dInaug <= 30),
+            items: cards
+              .filter((c) => c.dInaug !== null && c.dInaug > 14 && c.dInaug <= 30)
+              .sort((a, b) => (a.dInaug! - b.dInaug!)),
           },
           {
             key: "no-prazo",
             title: "NO PRAZO — mais de 30 dias",
             icon: "🟢",
             headerClass: "text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
-            items: cards.filter((c) => c.dInaug !== null && c.dInaug > 30),
+            items: cards
+              .filter((c) => c.dInaug !== null && c.dInaug > 30)
+              .sort((a, b) => (a.dInaug! - b.dInaug!)),
           },
           {
             key: "sem-data",
             title: "SEM DATA DE INAUGURAÇÃO",
             icon: "⚪",
             headerClass: "text-muted-foreground border-muted",
-            items: cards.filter((c) => c.dInaug === null),
+            items: cards
+              .filter((c) => c.dInaug === null)
+              .sort((a, b) => (b.stale ?? -1) - (a.stale ?? -1)),
           },
         ];
 
