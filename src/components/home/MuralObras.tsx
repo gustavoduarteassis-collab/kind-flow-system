@@ -107,115 +107,175 @@ export default function MuralObras() {
             Nenhuma loja encontrada com os filtros atuais.
           </CardContent>
         </Card>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {cards.map(({ s, progressPct, reasons, severity, milestone, dInaug, stale }) => (
-            <Link
-              key={s.id}
-              to={`/loja/${s.id}`}
-              className={cn(
-                "group rounded-xl border bg-card p-3 shadow-sm hover:shadow-md transition-all flex flex-col gap-2",
-                severity === "alta" && "border-destructive/60 bg-destructive/5",
-                severity === "media" && "border-[hsl(var(--accent))]/60 bg-[hsl(var(--accent))]/5"
-              )}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="font-semibold text-sm truncate">{s.nome}</div>
-                  <div className="text-[11px] text-muted-foreground truncate">
-                    {[s.filial, s.tipoLoja].filter(Boolean).join(" • ") || "—"}
-                  </div>
-                </div>
-                {severity && (
-                  <Badge
-                    variant={severity === "alta" ? "destructive" : "secondary"}
-                    className="gap-1 text-[10px] shrink-0"
-                  >
-                    <AlertTriangle className="h-3 w-3" /> {severity === "alta" ? "Crítica" : "Atenção"}
-                  </Badge>
-                )}
-              </div>
+      ) : (() => {
+        const groups: {
+          key: string;
+          title: string;
+          icon: string;
+          headerClass: string;
+          items: typeof cards;
+        }[] = [
+          {
+            key: "urgente",
+            title: "INAUGURANDO EM ATÉ 14 DIAS",
+            icon: "🔴",
+            headerClass: "text-destructive border-destructive/40",
+            items: cards.filter((c) => c.dInaug !== null && c.dInaug >= 0 && c.dInaug <= 14),
+          },
+          {
+            key: "atencao",
+            title: "ATENÇÃO — 15 a 30 dias",
+            icon: "🟡",
+            headerClass: "text-[hsl(var(--accent-foreground))] border-[hsl(var(--accent))]/40",
+            items: cards.filter((c) => c.dInaug !== null && c.dInaug > 14 && c.dInaug <= 30),
+          },
+          {
+            key: "no-prazo",
+            title: "NO PRAZO — mais de 30 dias",
+            icon: "🟢",
+            headerClass: "text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+            items: cards.filter((c) => c.dInaug !== null && c.dInaug > 30),
+          },
+          {
+            key: "sem-data",
+            title: "SEM DATA DE INAUGURAÇÃO",
+            icon: "⚪",
+            headerClass: "text-muted-foreground border-muted",
+            items: cards.filter((c) => c.dInaug === null),
+          },
+        ];
 
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                  <span>Progresso obra</span>
-                  <span className="tabular-nums">{Math.round(progressPct)}%</span>
-                </div>
-                <Progress value={progressPct} className="h-1.5" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="rounded bg-muted/40 p-1.5">
-                  <div className="text-muted-foreground flex items-center gap-1">
-                    <Calendar className="h-3 w-3" /> Inauguração
-                  </div>
-                  <div className="font-medium">
-                    {dInaug === null
-                      ? "—"
-                      : dInaug === 0
-                        ? "Hoje"
-                        : dInaug > 0
-                          ? `em ${dInaug}d`
-                          : `atrasada ${Math.abs(dInaug)}d`}
-                  </div>
-                </div>
-                <div className="rounded bg-muted/40 p-1.5">
-                  <div className="text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Próx. marco
-                  </div>
-                  <div className="font-medium truncate">
-                    {milestone ? `${milestone.label} • ${milestone.days}d` : "—"}
-                  </div>
+        const renderCard = ({ s, progressPct, reasons, severity, milestone, dInaug, stale }: typeof cards[number]) => (
+          <Link
+            key={s.id}
+            to={`/loja/${s.id}`}
+            className={cn(
+              "group rounded-xl border bg-card p-3 shadow-sm hover:shadow-md transition-all flex flex-col gap-2",
+              severity === "alta" && "border-destructive/60 bg-destructive/5",
+              severity === "media" && "border-[hsl(var(--accent))]/60 bg-[hsl(var(--accent))]/5"
+            )}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="font-semibold text-sm truncate">{s.nome}</div>
+                <div className="text-[11px] text-muted-foreground truncate">
+                  {[s.filial, s.tipoLoja].filter(Boolean).join(" • ") || "—"}
                 </div>
               </div>
-
-              {reasons.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {reasons.slice(0, 3).map((r, i) => (
-                    <span
-                      key={i}
-                      className={cn(
-                        "text-[10px] px-1.5 py-0.5 rounded border",
-                        r.severity === "alta"
-                          ? "border-destructive/40 text-destructive bg-destructive/10"
-                          : "border-[hsl(var(--accent))]/40 text-[hsl(var(--accent-foreground))] bg-[hsl(var(--accent))]/10"
-                      )}
-                    >
-                      {r.label}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className="mt-auto pt-1 border-t flex items-center gap-1 text-[11px] text-muted-foreground min-h-[24px]">
-                <MessageSquare className="h-3 w-3 shrink-0" />
-                <span className="truncate flex-1">
-                  {s.ultimaAtualizacao || <span className="italic">Sem atualização</span>}
-                </span>
-                {stale !== null && (
-                  <span className={cn("shrink-0", stale > 14 && "text-destructive font-medium")}>
-                    {stale === 0 ? "hoje" : `${stale}d`}
-                  </span>
-                )}
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  className="h-6 px-2 text-[10px] gap-1 shrink-0"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    navigate(`/loja/${s.id}/atualizar`);
-                  }}
+              {severity && (
+                <Badge
+                  variant={severity === "alta" ? "destructive" : "secondary"}
+                  className="gap-1 text-[10px] shrink-0"
                 >
-                  <Pencil className="h-3 w-3" /> Atualizar
-                </Button>
-                <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <AlertTriangle className="h-3 w-3" /> {severity === "alta" ? "Crítica" : "Atenção"}
+                </Badge>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                <span>Progresso obra</span>
+                <span className="tabular-nums">{Math.round(progressPct)}%</span>
               </div>
-            </Link>
-          ))}
-        </div>
-      )}
+              <Progress value={progressPct} className="h-1.5" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="rounded bg-muted/40 p-1.5">
+                <div className="text-muted-foreground flex items-center gap-1">
+                  <Calendar className="h-3 w-3" /> Inauguração
+                </div>
+                <div className="font-medium">
+                  {dInaug === null
+                    ? "—"
+                    : dInaug === 0
+                      ? "Hoje"
+                      : dInaug > 0
+                        ? `em ${dInaug}d`
+                        : `atrasada ${Math.abs(dInaug)}d`}
+                </div>
+              </div>
+              <div className="rounded bg-muted/40 p-1.5">
+                <div className="text-muted-foreground flex items-center gap-1">
+                  <Clock className="h-3 w-3" /> Próx. marco
+                </div>
+                <div className="font-medium truncate">
+                  {milestone ? `${milestone.label} • ${milestone.days}d` : "—"}
+                </div>
+              </div>
+            </div>
+
+            {reasons.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {reasons.slice(0, 3).map((r, i) => (
+                  <span
+                    key={i}
+                    className={cn(
+                      "text-[10px] px-1.5 py-0.5 rounded border",
+                      r.severity === "alta"
+                        ? "border-destructive/40 text-destructive bg-destructive/10"
+                        : "border-[hsl(var(--accent))]/40 text-[hsl(var(--accent-foreground))] bg-[hsl(var(--accent))]/10"
+                    )}
+                  >
+                    {r.label}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-auto pt-1 border-t flex items-center gap-1 text-[11px] text-muted-foreground min-h-[24px] flex-wrap">
+              <MessageSquare className="h-3 w-3 shrink-0" />
+              <span className="truncate flex-1 min-w-0">
+                {s.ultimaAtualizacao || <span className="italic">Sem atualização</span>}
+              </span>
+              {stale === null ? (
+                <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 shrink-0">
+                  Nunca atualizada
+                </Badge>
+              ) : stale > 7 ? (
+                <Badge variant="destructive" className="text-[9px] px-1.5 py-0 h-4 shrink-0">
+                  ⚠ Sem update há {stale}d
+                </Badge>
+              ) : (
+                <span className="shrink-0 tabular-nums">
+                  {stale === 0 ? "hoje" : `${stale}d`}
+                </span>
+              )}
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-6 px-2 text-[10px] gap-1 shrink-0"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  navigate(`/loja/${s.id}/atualizar`);
+                }}
+              >
+                <Pencil className="h-3 w-3" /> Atualizar
+              </Button>
+              <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          </Link>
+        );
+
+        return (
+          <div className="space-y-6">
+            {groups.filter((g) => g.items.length > 0).map((g) => (
+              <section key={g.key} className="space-y-3">
+                <div className={cn("flex items-center gap-2 pb-2 border-b text-sm font-semibold uppercase tracking-wide", g.headerClass)}>
+                  <span>{g.icon}</span>
+                  <span>{g.title}</span>
+                  <span className="text-xs font-normal opacity-70">({g.items.length} loja{g.items.length !== 1 ? "s" : ""})</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  {g.items.map(renderCard)}
+                </div>
+              </section>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }
