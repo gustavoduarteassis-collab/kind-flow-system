@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Clock, Calendar, Search, Flame, ChevronRight, MessageSquare } from "lucide-react";
+import { AlertTriangle, Clock, Calendar, Search, Flame, ChevronRight, MessageSquare, Pencil } from "lucide-react";
 import { useStores } from "@/hooks/useStores";
 import { isStoreLiberated } from "@/utils/inaugurationStatus";
 import {
