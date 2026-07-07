@@ -197,6 +197,19 @@ export default function MuralObras() {
                     {stale === 0 ? "hoje" : `${stale}d`}
                   </span>
                 )}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-6 px-2 text-[10px] gap-1 shrink-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/loja/${s.id}/atualizar`);
+                  }}
+                >
+                  <Pencil className="h-3 w-3" /> Atualizar
+                </Button>
                 <ChevronRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </Link>
