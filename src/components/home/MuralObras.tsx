@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
  */
 export default function MuralObras() {
   const { stores, loading } = useStores();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [onlyCritical, setOnlyCritical] = useState(false);
 
