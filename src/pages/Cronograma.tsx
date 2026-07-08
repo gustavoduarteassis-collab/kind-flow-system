@@ -154,7 +154,7 @@ export default function Cronograma() {
     setSyncing(true);
     try {
       const notInaug = pipeline.filter(
-        (p) => !isInaugurada(p.status_geral) && p.filial && p.filial.trim(),
+        (p) => !isInaugurada(p.status_geral) && !p.reforma && !p.transferido && p.filial && p.filial.trim(),
       );
       const byFilial = new Map(
         visitas.map((v) => [String(v.filial || "").trim().toLowerCase(), v]),
