@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-route
 import Index from "./pages/Index";
 import ObrasDashboard from "./pages/ObrasDashboard";
 import PainelDetalhado from "./pages/PainelDetalhado";
+import Cronograma from "./pages/Cronograma";
 
 import LojasUnificadas from "./pages/LojasUnificadas";
 import StoreDetail from "./pages/StoreDetail";
