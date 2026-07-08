@@ -52,6 +52,8 @@ interface PipelineRow {
   data_inauguracao: string | null;
   previsao_inauguracao: string | null;
   status_geral: string | null;
+  reforma: boolean | null;
+  transferido: boolean | null;
   deleted_at: string | null;
 }
 
@@ -124,7 +126,7 @@ export default function Cronograma() {
       const [{ data: v, error: ve }, { data: p, error: pe }] = await Promise.all([
         (supabase as any).from("visitas_cronograma").select("*").is("deleted_at", null),
         supabase.from("pipeline_stores")
-          .select("id,filial,local,cidade,estado,analista_obra,implantadora,data_inauguracao,previsao_inauguracao,status_geral,deleted_at")
+          .select("id,filial,local,cidade,estado,analista_obra,implantadora,data_inauguracao,previsao_inauguracao,status_geral,reforma,transferido,deleted_at")
           .is("deleted_at", null),
       ]);
       if (ve) throw ve;
@@ -152,7 +154,7 @@ export default function Cronograma() {
     setSyncing(true);
     try {
       const notInaug = pipeline.filter(
-        (p) => !isInaugurada(p.status_geral) && p.filial && p.filial.trim(),
+        (p) => !isInaugurada(p.status_geral) && !p.reforma && !p.transferido && p.filial && p.filial.trim(),
       );
       const byFilial = new Map(
         visitas.map((v) => [String(v.filial || "").trim().toLowerCase(), v]),
@@ -343,7 +345,7 @@ export default function Cronograma() {
 
   const filialsNoCronograma = useMemo(() => {
     const inCron = new Set(visitas.map((v) => String(v.filial || "").trim().toLowerCase()));
-    return pipeline.filter((p) => p.filial && !inCron.has(p.filial.trim().toLowerCase()) && !isInaugurada(p.status_geral));
+    return pipeline.filter((p) => p.filial && !inCron.has(p.filial.trim().toLowerCase()) && !isInaugurada(p.status_geral) && !p.reforma && !p.transferido);
   }, [visitas, pipeline]);
 
   const newFiltered = useMemo(() => {
