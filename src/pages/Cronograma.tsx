@@ -345,7 +345,7 @@ export default function Cronograma() {
 
   const filialsNoCronograma = useMemo(() => {
     const inCron = new Set(visitas.map((v) => String(v.filial || "").trim().toLowerCase()));
-    return pipeline.filter((p) => p.filial && !inCron.has(p.filial.trim().toLowerCase()) && !isInaugurada(p.status_geral));
+    return pipeline.filter((p) => p.filial && !inCron.has(p.filial.trim().toLowerCase()) && !isInaugurada(p.status_geral) && !p.reforma && !p.transferido);
   }, [visitas, pipeline]);
 
   const newFiltered = useMemo(() => {
