@@ -1890,6 +1890,90 @@ export type Database = {
         }
         Relationships: []
       }
+      visitas_cronograma: {
+        Row: {
+          analista_responsavel: string | null
+          cidade: string | null
+          confirmacao_chegada: string | null
+          confirmacao_visita: string | null
+          created_at: string
+          data_chegada_implantacao: string | null
+          data_inauguracao: string | null
+          data_visita_tecnica: string | null
+          deleted_at: string | null
+          filial: string | null
+          id: string
+          implantacao_realizada: boolean | null
+          loja_nome: string
+          observacoes: string | null
+          pipeline_store_id: string | null
+          status_passagem_chegada: string
+          status_passagem_visita: string
+          uf: string | null
+          updated_at: string
+          visita_realizada: boolean | null
+        }
+        Insert: {
+          analista_responsavel?: string | null
+          cidade?: string | null
+          confirmacao_chegada?: string | null
+          confirmacao_visita?: string | null
+          created_at?: string
+          data_chegada_implantacao?: string | null
+          data_inauguracao?: string | null
+          data_visita_tecnica?: string | null
+          deleted_at?: string | null
+          filial?: string | null
+          id?: string
+          implantacao_realizada?: boolean | null
+          loja_nome: string
+          observacoes?: string | null
+          pipeline_store_id?: string | null
+          status_passagem_chegada?: string
+          status_passagem_visita?: string
+          uf?: string | null
+          updated_at?: string
+          visita_realizada?: boolean | null
+        }
+        Update: {
+          analista_responsavel?: string | null
+          cidade?: string | null
+          confirmacao_chegada?: string | null
+          confirmacao_visita?: string | null
+          created_at?: string
+          data_chegada_implantacao?: string | null
+          data_inauguracao?: string | null
+          data_visita_tecnica?: string | null
+          deleted_at?: string | null
+          filial?: string | null
+          id?: string
+          implantacao_realizada?: boolean | null
+          loja_nome?: string
+          observacoes?: string | null
+          pipeline_store_id?: string | null
+          status_passagem_chegada?: string
+          status_passagem_visita?: string
+          uf?: string | null
+          updated_at?: string
+          visita_realizada?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visitas_cronograma_pipeline_store_id_fkey"
+            columns: ["pipeline_store_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visitas_cronograma_pipeline_store_id_fkey"
+            columns: ["pipeline_store_id"]
+            isOneToOne: false
+            referencedRelation: "pipeline_stores_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       pipeline_stores_public: {
