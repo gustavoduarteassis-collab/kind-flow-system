@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  Building2, DollarSign, Target, Users, FolderOpen, KeyRound, Home, Trash2, TrendingUp, LayoutGrid, CalendarCheck, Settings, ChevronDown, Store, LayoutDashboard,
+  Building2, DollarSign, Target, Users, FolderOpen, KeyRound, Home, Trash2, TrendingUp, LayoutGrid, CalendarCheck, Settings, ChevronDown, Store, LayoutDashboard, Calendar,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
