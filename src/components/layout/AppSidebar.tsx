@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  Building2, DollarSign, Target, Users, FolderOpen, KeyRound, Home, Trash2, TrendingUp, LayoutGrid, CalendarCheck, Settings, ChevronDown, Store, LayoutDashboard,
+  Building2, DollarSign, Target, Users, FolderOpen, KeyRound, Home, Trash2, TrendingUp, LayoutGrid, CalendarCheck, Settings, ChevronDown, Store, LayoutDashboard, Calendar,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -11,6 +11,7 @@ import logoConstance from "@/assets/logo-constance.svg";
 
 const mainItems = [
   { title: "Obras", url: "/obras", icon: LayoutDashboard },
+  { title: "Cronograma", url: "/cronograma", icon: Calendar },
   { title: "Lojas", url: "/lojas", icon: Building2 },
   { title: "Custos Geral", url: "/custos-geral", icon: DollarSign },
   { title: "AGM", url: "/agm", icon: Target },
