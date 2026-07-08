@@ -11,6 +11,7 @@ import logoConstance from "@/assets/logo-constance.svg";
 
 const mainItems = [
   { title: "Obras", url: "/obras", icon: LayoutDashboard },
+  { title: "Cronograma", url: "/cronograma", icon: Calendar },
   { title: "Lojas", url: "/lojas", icon: Building2 },
   { title: "Custos Geral", url: "/custos-geral", icon: DollarSign },
   { title: "AGM", url: "/agm", icon: Target },
