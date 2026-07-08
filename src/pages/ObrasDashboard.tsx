@@ -63,9 +63,9 @@ function normFilial(v?: string | null) {
   return String(v || "").trim();
 }
 
-function daysUntilDate(dateStr?: string | null): number | null {
+function parseFlexibleDate(dateStr?: string | null): Date | null {
   if (!dateStr) return null;
-  const parts = String(dateStr).match(/(\d{2})\/(\d{2})\/(\d{2,4})/);
+  const parts = String(dateStr).match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
   let d: Date;
   if (parts) {
     const year = parts[3].length === 2 ? 2000 + parseInt(parts[3]) : parseInt(parts[3]);
@@ -73,17 +73,22 @@ function daysUntilDate(dateStr?: string | null): number | null {
   } else {
     d = new Date(dateStr);
   }
-  if (isNaN(d.getTime())) return null;
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function daysUntilDate(dateStr?: string | null): number | null {
+  const d = parseFlexibleDate(dateStr);
+  if (!d) return null;
   const today = new Date(); today.setHours(0, 0, 0, 0);
   return Math.round((d.getTime() - today.getTime()) / 86400000);
 }
 
 function daysSinceDate(isoStr?: string | null): number | null {
-  if (!isoStr) return null;
-  const d = new Date(isoStr);
-  if (isNaN(d.getTime())) return null;
+  const d = parseFlexibleDate(isoStr);
+  if (!d) return null;
   return Math.round((Date.now() - d.getTime()) / 86400000);
 }
+
 
 function farolFor(row: any, store: StoreLite | undefined): FarolTipo {
   const dias = daysUntilDate(row.data_inauguracao || row.previsao_inauguracao);
@@ -197,12 +202,11 @@ export default function ObrasDashboard() {
     }).length;
     const currentYear = new Date().getFullYear();
     const inaugYear = inauguradas.filter((s) => {
-      const raw = s.data_inauguracao || "";
-      const m = String(raw).match(/\d{2,4}$/);
-      if (!m) return false;
-      const yr = m[0].length === 2 ? 2000 + parseInt(m[0]) : parseInt(m[0]);
-      return yr === currentYear;
+      // Prefer real inauguration date; fall back to forecast — same precedence used for "Dias".
+      const d = parseFlexibleDate(s.data_inauguracao) || parseFlexibleDate(s.previsao_inauguracao);
+      return d !== null && d.getFullYear() === currentYear;
     }).length;
+
     return { total, inaug14, semAtual, inaugYear };
   }, [funil, reformas, repasses, ativas, inauguradas, storeByFilial]);
 
