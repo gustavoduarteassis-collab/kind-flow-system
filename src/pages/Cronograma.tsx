@@ -52,6 +52,8 @@ interface PipelineRow {
   data_inauguracao: string | null;
   previsao_inauguracao: string | null;
   status_geral: string | null;
+  reforma: boolean | null;
+  transferido: boolean | null;
   deleted_at: string | null;
 }
 
