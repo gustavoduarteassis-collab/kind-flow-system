@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
+import ObrasDashboard from "./pages/ObrasDashboard";
 import PainelDetalhado from "./pages/PainelDetalhado";
 
 import LojasUnificadas from "./pages/LojasUnificadas";
@@ -80,8 +81,9 @@ function AppRoutes() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<Index />} />
-        <Route path="/painel" element={<Navigate to="/" replace />} />
+        <Route path="/" element={<ObrasDashboard />} />
+        <Route path="/obras" element={<ObrasDashboard />} />
+        <Route path="/painel" element={<Index />} />
         <Route path="/painel/detalhado" element={<PainelDetalhado />} />
 
         <Route path="/lojas" element={<LojasUnificadas />} />
