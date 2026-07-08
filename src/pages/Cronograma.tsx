@@ -126,7 +126,7 @@ export default function Cronograma() {
       const [{ data: v, error: ve }, { data: p, error: pe }] = await Promise.all([
         (supabase as any).from("visitas_cronograma").select("*").is("deleted_at", null),
         supabase.from("pipeline_stores")
-          .select("id,filial,local,cidade,estado,analista_obra,implantadora,data_inauguracao,previsao_inauguracao,status_geral,deleted_at")
+          .select("id,filial,local,cidade,estado,analista_obra,implantadora,data_inauguracao,previsao_inauguracao,status_geral,reforma,transferido,deleted_at")
           .is("deleted_at", null),
       ]);
       if (ve) throw ve;
