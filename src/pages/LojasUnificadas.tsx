@@ -119,7 +119,7 @@ const LojasUnificadas = () => {
             {tab === "checklist" && <Lojas forceMode="andamento" hideHeader />}
           </TabsContent>
           <TabsContent value="inauguradas" className="mt-4">
-            {tab === "inauguradas" && <Pipeline initialTab="inauguradas" />}
+            {tab === "inauguradas" && <Lojas forceMode="inauguradas" hideHeader />}
           </TabsContent>
         </Tabs>
       </div>
