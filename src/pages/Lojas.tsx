@@ -292,6 +292,24 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
                   Limpar filtros
                 </Button>
               )}
+              <div className="ml-auto inline-flex rounded-md border bg-card p-0.5">
+                <Button
+                  variant={viewMode === "lista" ? "default" : "ghost"}
+                  size="sm"
+                  className="gap-1.5 h-8"
+                  onClick={() => setViewMode("lista")}
+                >
+                  <List className="h-4 w-4" /> Lista
+                </Button>
+                <Button
+                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  size="sm"
+                  className="gap-1.5 h-8"
+                  onClick={() => setViewMode("cards")}
+                >
+                  <LayoutGrid className="h-4 w-4" /> Cards
+                </Button>
+              </div>
             </div>
           </>
         )}
