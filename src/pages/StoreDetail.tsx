@@ -740,15 +740,6 @@ const StoreDetail = () => {
                 <TabsTrigger value="comunicacao" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
                   💬 Comunicação
                 </TabsTrigger>
-                {checklistCategories.map((cat) => {
-                  const catProgress = getCategoryProgress(cat.id);
-                  return (
-                    <TabsTrigger key={cat.id} value={cat.id} className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
-                      {getCategoryName(cat.id, cat.nome)}
-                      <span className="ml-1.5 text-[10px] opacity-70">{catProgress}%</span>
-                    </TabsTrigger>
-                  );
-                })}
               </TabsScrollableList>
 
               <TabsContent value="cronograma" className="mt-4">
