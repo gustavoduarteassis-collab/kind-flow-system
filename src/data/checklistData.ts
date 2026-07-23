@@ -287,7 +287,7 @@ export const checklistCategories: ChecklistCategory[] = [
     nome: "Marketing",
     statusOptions: defaultStatusOptions,
     items: [
-      { id: 132, atividade: "Solicitar arte do adesivo de tapume ao marketing Constance", responsavel: "Franqueado" },
+      { id: 132, atividade: "Cadastro Deskfy - Acesso Informações Abertura de Loja", responsavel: "Implantação" },
       { id: 135, atividade: "Compra do Kit VM (ACRÍLICO E GRÁFICA) - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado", observacoes: "Acrílico e gráfica - Novo de Novo BH" },
       { id: 136, atividade: "Compra do Kit VM (SUPORTES METÁLICOS) - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado", observacoes: "Metálicos - João Instanshop" },
       { id: 137, atividade: "Compra do Kit VM (PRECIFICADORES) - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado", observacoes: "Precificadores - Callegari" },
