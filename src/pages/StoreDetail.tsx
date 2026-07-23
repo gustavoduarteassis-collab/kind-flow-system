@@ -394,19 +394,45 @@ const StoreDetail = () => {
   };
 
 
+  // Days until inauguration for hero chip
+  const heroDias = store.inauguracao
+    ? Math.ceil((new Date(store.inauguracao).getTime() - Date.now()) / 86400000)
+    : null;
+  const heroTipoLabel = (store.tipoRegistro || "").toLowerCase();
+  const heroBadge =
+    heroTipoLabel === "inaugurada" ? { label: "🎉 Inaugurada", cls: "bg-[hsl(142,60%,90%)] text-[hsl(142,60%,25%)] border-[hsl(142,60%,60%)]" } :
+    heroTipoLabel === "reforma" ? { label: "🔨 Reforma", cls: "bg-[hsl(38,90%,92%)] text-[hsl(38,90%,25%)] border-[hsl(38,90%,60%)]" } :
+    { label: "🆕 Nova loja", cls: "bg-primary/10 text-primary border-primary/40" };
+
   return (
     <div className="bg-background">
-      <header className="border-b bg-card/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-1">
-              <h1 className="text-xl font-bold tracking-tight">{store.nome}</h1>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-0.5 flex-wrap">
+      <header className="border-b bg-gradient-to-b from-card to-card/40 relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-[hsl(var(--accent))] to-primary" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-start gap-3 mb-4 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] uppercase tracking-wider font-semibold ${heroBadge.cls}`}>
+                  {heroBadge.label}
+                </span>
                 {store.filial && (
-                  <span className="flex items-center gap-1">
-                    <Store className="h-3.5 w-3.5" /> Filial: {store.filial}
+                  <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
+                    Filial {store.filial}
                   </span>
                 )}
+                {heroDias !== null && (
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-semibold ${
+                    heroDias < 0 ? "bg-destructive/10 text-destructive border-destructive/40" :
+                    heroDias <= 14 ? "bg-[hsl(38,90%,92%)] text-[hsl(38,90%,25%)] border-[hsl(38,90%,60%)]" :
+                    "bg-[hsl(142,60%,92%)] text-[hsl(142,60%,25%)] border-[hsl(142,60%,60%)]"
+                  }`}>
+                    <Calendar className="h-3 w-3" />
+                    {heroDias < 0 ? `${Math.abs(heroDias)}d em atraso` : heroDias === 0 ? "inaugura hoje" : `${heroDias}d p/ inauguração`}
+                  </span>
+                )}
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">{store.nome}</h1>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2 flex-wrap">
                 {editingHeader && isTeamMember ? (
                   <>
                     <div className="flex items-center gap-1">
