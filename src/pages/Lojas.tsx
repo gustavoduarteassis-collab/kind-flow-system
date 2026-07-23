@@ -581,6 +581,7 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
             );
           })}
         </div>
+        )}
       </main>
 
       {/* Edit Store Dialog */}
