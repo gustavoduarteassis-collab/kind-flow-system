@@ -698,26 +698,20 @@ const StoreDetail = () => {
                     )}
                     <div className="overflow-x-auto">
                       <Table>
-                        <TableHeader>
-                          <TableRow className="bg-muted/50">
+                        <TableHeader className="sticky top-0 z-20 bg-muted shadow-sm">
+                          <TableRow className="bg-muted/95 backdrop-blur">
                             <TableHead className="w-12 text-center">#</TableHead>
                             <TableHead className="min-w-[350px]">Atividade</TableHead>
-                            <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
                             {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
                               <TableHead className="w-[130px]">Prazo Inicial</TableHead>
                             )}
                             <TableHead className="w-[130px]">Prazo Final</TableHead>
                             <TableHead className="w-[170px]">Status</TableHead>
                             {AQUISICAO_CATEGORIES_DEFAULT[cat.id] !== undefined && (
-                              <>
-                                <TableHead className="w-[150px]">Fornecedor</TableHead>
-                                <TableHead className="w-[130px]">Valor Previsto</TableHead>
-                                <TableHead className="w-[130px]">Valor Realizado</TableHead>
-                              </>
+                              <TableHead className="w-[130px]">Valor Realizado</TableHead>
                             )}
                             <TableHead className="w-[140px]">Responsável</TableHead>
                             <TableHead className="min-w-[160px]">Observações</TableHead>
-                            <TableHead className="min-w-[200px]">Passo a Passo</TableHead>
                           </TableRow>
                         </TableHeader>
 
