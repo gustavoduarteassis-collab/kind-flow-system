@@ -751,13 +751,10 @@ const StoreDetail = () => {
                                   </div>
                                 </TableCell>
                                 {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
-                                  <TableCell>
-                                    <Input type="date" className="h-8 text-xs" value={data.prazoInicial} onChange={(e) => handleFieldChange(item.id, "prazoInicial", e.target.value)} />
-                                  </TableCell>
-                                )}
                                 <TableCell>
                                   <Input type="date" className="h-8 text-xs" value={data.prazoFinal} onChange={(e) => handleFieldChange(item.id, "prazoFinal", e.target.value)} />
                                 </TableCell>
+                                )}
                                 <TableCell>
                                   <Select value={data.status} onValueChange={(v) => handleStatusChange(item.id, v as StatusType)}>
                                     <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
