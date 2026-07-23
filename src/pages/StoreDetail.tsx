@@ -70,6 +70,7 @@ import DatasTab from "@/components/store/DatasTab";
 import DadosTab from "@/components/store/DadosTab";
 import EtapasPlanilhaLoja from "@/components/store/EtapasPlanilhaLoja";
 import TarefasTab from "@/components/store/TarefasTab";
+import ResumoTab from "@/components/store/ResumoTab";
 import { useAutoMarkInaugurada } from "@/hooks/useAutoMarkInaugurada";
 import { formatBR } from "@/utils/safeDate";
 
@@ -94,7 +95,7 @@ const StoreDetail = () => {
   const { getStore, updateStore } = useStores();
   const store = getStore(id || "");
 
-  const [activeTab, setActiveTab] = useState("etapas");
+  const [activeTab, setActiveTab] = useState("resumo");
   const { user } = useAuth();
   const [isTeamMember, setIsTeamMember] = useState(false);
   const [editingHeader, setEditingHeader] = useState(false);
@@ -534,6 +535,9 @@ const StoreDetail = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsScrollableList>
+            <TabsTrigger value="resumo" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              ✨ Resumo
+            </TabsTrigger>
             <TabsTrigger value="dados" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
               📇 Dados
             </TabsTrigger>
@@ -565,6 +569,15 @@ const StoreDetail = () => {
               🚩 Pendências
             </TabsTrigger>
           </TabsScrollableList>
+
+          {/* 0. RESUMO — visão executiva narrativa */}
+          <TabsContent value="resumo" className="mt-4">
+            <ResumoTab
+              store={store}
+              onJumpTab={(t) => setActiveTab(t)}
+              onOpenAtualizar={() => navigate(`/loja/${store.id}/atualizar`)}
+            />
+          </TabsContent>
 
           {/* 1. DADOS — cadastro/mestre da loja */}
           <TabsContent value="dados" className="mt-4">

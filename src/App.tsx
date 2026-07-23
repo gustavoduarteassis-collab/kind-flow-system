@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
+import Executivo from "./pages/Executivo";
 import ObrasDashboard from "./pages/ObrasDashboard";
 import PainelDetalhado from "./pages/PainelDetalhado";
 import Cronograma from "./pages/Cronograma";
@@ -82,7 +83,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<ObrasDashboard />} />
+        <Route path="/" element={<Executivo />} />
+        <Route path="/executivo" element={<Executivo />} />
         <Route path="/obras" element={<ObrasDashboard />} />
         <Route path="/cronograma" element={<Cronograma />} />
         <Route path="/painel" element={<Index />} />
