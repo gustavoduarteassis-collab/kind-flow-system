@@ -169,6 +169,29 @@ export default function Executivo() {
       });
     }
 
+    // Ritmo mensal: inauguradas por mês (6 meses passados) + previstas (3 futuros)
+    const MONTH_NAMES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+    const months: { label: string; realized: number; forecast: number; isPast: boolean; isCurrent: boolean }[] = [];
+    for (let i = -5; i <= 3; i++) {
+      const ref = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + i + 1, 0);
+      const realized = ativas.filter((s) => {
+        const d = parseDate((s as any).inauguracaoReal);
+        return d && d >= ref && d <= monthEnd;
+      }).length;
+      const forecast = emObra.filter((s) => {
+        const d = parseDate(s.inauguracao);
+        return d && d >= ref && d <= monthEnd && !parseDate((s as any).inauguracaoReal);
+      }).length;
+      months.push({
+        label: MONTH_NAMES[ref.getMonth()],
+        realized,
+        forecast,
+        isPast: i < 0,
+        isCurrent: i === 0,
+      });
+    }
+
     return {
       totalAtivas: ativas.length,
       totalEmObra: emObra.length,
@@ -178,8 +201,10 @@ export default function Executivo() {
       riscos,
       vitorias,
       weeks,
+      months,
     };
   }, [stores]);
+
 
   // Meta anual configurável
   const [metaAnual, setMetaAnual] = useState<number>(() => {
