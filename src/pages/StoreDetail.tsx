@@ -543,6 +543,9 @@ const StoreDetail = () => {
             <TabsTrigger value="etapas" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
               🧭 Etapas
             </TabsTrigger>
+            <TabsTrigger value="checklist" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              📋 Checklist
+            </TabsTrigger>
             <TabsTrigger value="obra" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
               🏗️ Obra
             </TabsTrigger>
