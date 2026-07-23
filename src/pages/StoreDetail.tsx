@@ -598,7 +598,130 @@ const StoreDetail = () => {
             />
           </TabsContent>
 
-          {/* 4. OBRA — agrupa Cronograma, Visita Técnica, Fornecedores, Solicitações, Comunicação e categorias do checklist */}
+          {/* 3b. CHECKLIST DE IMPLANTAÇÃO (Tradicional / Light) */}
+          <TabsContent value="checklist" className="mt-4">
+            <Tabs defaultValue={checklistCategories[0]?.id}>
+              <TabsScrollableList>
+                {checklistCategories.map((cat) => {
+                  const catProgress = getCategoryProgress(cat.id);
+                  return (
+                    <TabsTrigger key={cat.id} value={cat.id} className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                      {getCategoryName(cat.id, cat.nome)}
+                      <span className="ml-1.5 text-[10px] opacity-70">{catProgress}%</span>
+                    </TabsTrigger>
+                  );
+                })}
+              </TabsScrollableList>
+
+              {checklistCategories.map((cat) => (
+                <TabsContent key={cat.id} value={cat.id} className="mt-4">
+                  {isTeamMember && (
+                    <div className="mb-3">
+                      <Input
+                        className="h-9 text-sm font-semibold max-w-md"
+                        value={getCategoryName(cat.id, cat.nome)}
+                        onChange={(e) => handleCategoryNameChange(cat.id, e.target.value)}
+                        onBlur={(e) => handleCategoryNameBlur(cat.id, e.target.value)}
+                      />
+                    </div>
+                  )}
+                  <div className="rounded-xl border bg-card overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="w-12 text-center">#</TableHead>
+                            <TableHead className="min-w-[350px]">Atividade</TableHead>
+                            <TableHead className="min-w-[140px]">Pré-requisito</TableHead>
+                            {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
+                              <TableHead className="w-[130px]">Prazo Inicial</TableHead>
+                            )}
+                            <TableHead className="w-[130px]">Prazo Final</TableHead>
+                            <TableHead className="w-[170px]">Status</TableHead>
+                            <TableHead className="w-[140px]">Responsável</TableHead>
+                            <TableHead className="min-w-[160px]">Observações</TableHead>
+                            <TableHead className="min-w-[200px]">Passo a Passo</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {cat.items.map((item) => {
+                            const data = store.checklist[item.id] || {
+                              status: "NÃO INICIADO" as StatusType,
+                              prazoInicial: "",
+                              prazoFinal: "",
+                              observacoes: "",
+                            };
+                            const isImpeditivo = item.atividade.includes("IMPEDITIVO");
+                            return (
+                              <TableRow
+                                key={item.id}
+                                className={
+                                  data.status === "ATRASADO" ? "bg-destructive/5"
+                                  : data.status === "REALIZADO" ? "bg-[hsl(142,60%,95%)]"
+                                  : data.status === "REALIZANDO" ? "bg-[hsl(152,40%,92%)]"
+                                  : data.status === "EM ANDAMENTO" ? "bg-[hsl(45,90%,95%)]"
+                                  : isImpeditivo ? "bg-[hsl(38,90%,97%)]" : ""
+                                }
+                              >
+                                <TableCell className="text-center font-mono text-xs text-muted-foreground">{item.id}</TableCell>
+                                <TableCell>
+                                  <div className="text-sm break-words whitespace-normal">
+                                    {isTeamMember ? (
+                                      <Textarea
+                                        className="min-h-[36px] text-xs font-medium resize-none overflow-hidden"
+                                        rows={2}
+                                        value={data.atividade || item.atividade}
+                                        onChange={(e) => handleFieldChange(item.id, "atividade", e.target.value)}
+                                      />
+                                    ) : (
+                                      <span className="whitespace-pre-line">{data.atividade || item.atividade}</span>
+                                    )}
+                                    {isImpeditivo && (
+                                      <Badge variant="outline" className="ml-2 mt-1 text-[10px] border-[hsl(38,90%,55%)] text-[hsl(38,90%,40%)]">IMPEDITIVO</Badge>
+                                    )}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">{item.preRequisito || "—"}</TableCell>
+                                {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
+                                  <TableCell>
+                                    <Input type="date" className="h-8 text-xs" value={data.prazoInicial} onChange={(e) => handleFieldChange(item.id, "prazoInicial", e.target.value)} />
+                                  </TableCell>
+                                )}
+                                <TableCell>
+                                  <Input type="date" className="h-8 text-xs" value={data.prazoFinal} onChange={(e) => handleFieldChange(item.id, "prazoFinal", e.target.value)} />
+                                </TableCell>
+                                <TableCell>
+                                  <Select value={data.status} onValueChange={(v) => handleStatusChange(item.id, v as StatusType)}>
+                                    <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      {cat.statusOptions.map((s) => (
+                                        <SelectItem key={s} value={s}>
+                                          <Badge className={`${statusColors[s]} text-[10px]`}>{s}</Badge>
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                                <TableCell className="text-xs">{item.responsavel}</TableCell>
+                                <TableCell>
+                                  <Textarea className="min-h-[36px] text-xs resize-none overflow-hidden" rows={2} placeholder="Obs..." value={data.observacoes} onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)} />
+                                </TableCell>
+                                <TableCell>
+                                  <Textarea className="min-h-[36px] text-xs resize-none overflow-hidden" rows={2} placeholder="Instruções detalhadas..." value={data.descricao || ""} onChange={(e) => handleFieldChange(item.id, "descricao", e.target.value)} disabled={!isTeamMember} />
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </TabsContent>
+
+
           <TabsContent value="obra" className="mt-4">
             <Tabs defaultValue="cronograma">
               <TabsScrollableList>
