@@ -160,7 +160,7 @@ export const checklistCategories: ChecklistCategory[] = [
     statusOptions: defaultStatusOptions,
     items: [
       { id: 36, atividade: "Cotação de Construtora", responsavel: "Franqueado" },
-      { id: 37, atividade: "Documentação para início de obras", responsavel: "Franqueado", observacoes: "Contrato de locação e contrato de obras" },
+      { id: 37, atividade: "Contrato de Obras - OBRIGATÓRIO", responsavel: "Franqueado", observacoes: "Contrato de locação e contrato de obras" },
       { id: 38, atividade: "Contratar seguro da obra - OBRIGATÓRIO", responsavel: "Franqueado" },
       { id: 39, atividade: "Providenciar ART da obra - OBRIGATÓRIO", responsavel: "Franqueado" },
       { id: 40, atividade: "Providenciar cronograma de obras - OBRIGATÓRIO", responsavel: "Franqueado" },
