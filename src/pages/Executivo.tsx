@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useStores } from "@/hooks/useStores";
 import {
   PartyPopper,
@@ -13,8 +14,12 @@ import {
   ArrowRight,
   Trophy,
   Building2,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
 import { formatBR } from "@/utils/safeDate";
+
 
 function parseDate(s?: string | null): Date | null {
   if (!s) return null;
