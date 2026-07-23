@@ -17,8 +17,11 @@ import {
   Pencil,
   Check,
   X,
+  Printer,
+  Flame,
 } from "lucide-react";
 import { formatBR } from "@/utils/safeDate";
+
 
 
 function parseDate(s?: string | null): Date | null {
