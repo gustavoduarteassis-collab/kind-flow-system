@@ -47,6 +47,9 @@ export interface Store {
     observacoes: string;
     descricao?: string;
     atividade?: string;
+    fornecedor?: string;
+    valorPrevisto?: number;
+    valorRealizado?: number;
   }>;
   cronograma: CronogramaStore;
   inauguracaoChecklist: InaugChecklistData;
