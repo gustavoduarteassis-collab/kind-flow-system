@@ -374,13 +374,29 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
         {viewMode === "lista" && filtered.length > 0 && (
           <div className="rounded-lg border bg-card overflow-hidden">
             <div className="hidden md:grid grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_120px_minmax(0,1.4fr)_80px_36px] gap-3 px-4 py-2 border-b bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
-              <div>Loja</div>
-              <div>Analista</div>
-              <div>Franqueado</div>
-              <div>Inauguração</div>
-              <div>Progresso</div>
-              <div className="text-center">Solic.</div>
-              <div />
+              {(() => {
+                const arrow = (k: SortKey) => sortBy !== k ? <span className="opacity-30">↕</span> : (sortDir === "asc" ? <span className="text-primary">▲</span> : <span className="text-primary">▼</span>);
+                const H = ({ k, label }: { k: SortKey; label: string }) => (
+                  <button
+                    type="button"
+                    onClick={() => toggleSort(k)}
+                    className={`flex items-center gap-1 text-left uppercase tracking-wide hover:text-foreground transition-colors ${sortBy === k ? "text-foreground" : ""}`}
+                  >
+                    {label} {arrow(k)}
+                  </button>
+                );
+                return (
+                  <>
+                    <H k="nome" label="Loja" />
+                    <H k="analista" label="Analista" />
+                    <H k="franqueado" label="Franqueado" />
+                    <H k="inauguracao" label="Inauguração" />
+                    <div>Progresso</div>
+                    <div className="text-center">Solic.</div>
+                    <div />
+                  </>
+                );
+              })()}
             </div>
             {filtered.map((store) => {
               const progress = getProgress(store);
