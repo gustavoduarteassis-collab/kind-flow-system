@@ -129,7 +129,6 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 16, atividade: "Fazer o cadastro na maquininha LIO após o recebimento em loja", preRequisito: "Item 16", responsavel: "Franqueado" },
       { id: 17, atividade: "Cadastro estabelecimento para venda link", preRequisito: "Item 16", responsavel: "Franqueado" },
       { id: 18, atividade: "Cadastro de venda para Closet Infinito", responsavel: "Franqueado" },
-      { id: 19, atividade: "Conferir todo o percurso financeiro da venda através da venda teste (Cielo, Bradesco, Skytef e dados do cupom fiscal)", responsavel: "Franqueado" },
       { id: 20, atividade: "Cadastro PIX", responsavel: "Implantadoras" },
       { id: 21, atividade: "Cadastro Boa Vista", responsavel: "Implantadoras" },
       { id: 22, atividade: "Liberação de produto e acessórios", responsavel: "Mariana Coutinho" },
