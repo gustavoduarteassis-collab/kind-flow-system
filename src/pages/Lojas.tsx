@@ -173,7 +173,7 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
     atrasada: visible.filter((s) => classifyStatus(s) === "atrasada").length,
   };
 
-  const filtered = visible.filter(
+  const filteredUnsorted = visible.filter(
     (s) =>
       (s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
@@ -181,6 +181,34 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
       (!filterAnalista || s.analistaObra === filterAnalista) &&
       (filterStatus === "todas" || classifyStatus(s) === filterStatus)
   );
+  const filtered = (() => {
+    if (!sortBy) return filteredUnsorted;
+    const arr = [...filteredUnsorted];
+    const dir = sortDir === "asc" ? 1 : -1;
+    const cmpStr = (a: string, b: string) => {
+      const ae = !a, be = !b;
+      if (ae && be) return 0;
+      if (ae) return 1; // empties sempre no fim
+      if (be) return -1;
+      return a.localeCompare(b, "pt-BR", { sensitivity: "base" }) * dir;
+    };
+    arr.sort((a, b) => {
+      if (sortBy === "nome") return cmpStr(a.nome || "", b.nome || "");
+      if (sortBy === "analista") return cmpStr(a.analistaObra || "", b.analistaObra || "");
+      if (sortBy === "franqueado") return cmpStr(a.franqueado || "", b.franqueado || "");
+      if (sortBy === "inauguracao") {
+        const ta = a.inauguracao ? new Date(a.inauguracao).getTime() : NaN;
+        const tb = b.inauguracao ? new Date(b.inauguracao).getTime() : NaN;
+        const ae = isNaN(ta), be = isNaN(tb);
+        if (ae && be) return 0;
+        if (ae) return 1;
+        if (be) return -1;
+        return (ta - tb) * dir;
+      }
+      return 0;
+    });
+    return arr;
+  })();
   const hiddenInauguradasCount = stores.filter(isInaugurada).length;
 
   const progressColor = (p: number, atrasados: number) => {
