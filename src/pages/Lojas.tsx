@@ -35,7 +35,7 @@ interface LojasProps {
   tipoFilter?: "novas" | "reformas";
 }
 
-const Lojas = ({ forceMode, hideHeader }: LojasProps = {}) => {
+const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
   const { stores, addStore, deleteStore, updateStore } = useStores();
   const { user } = useAuth();
   const navigate = useNavigate();
