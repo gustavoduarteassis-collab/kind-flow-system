@@ -52,6 +52,11 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
   const showInauguradas = forceMode === "inauguradas" ? true : forceMode === "andamento" ? false : showInauguradasState;
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({ id: "", nome: "", filial: "", franqueado: "", construtor: "", analistaObra: "", inauguracao: "" });
+  const [viewMode, setViewMode] = useState<"lista" | "cards">(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("lojas.viewMode") : null;
+    return saved === "cards" ? "cards" : "lista";
+  });
+  useEffect(() => { localStorage.setItem("lojas.viewMode", viewMode); }, [viewMode]);
 
   useEffect(() => {
     if (!user) return;
