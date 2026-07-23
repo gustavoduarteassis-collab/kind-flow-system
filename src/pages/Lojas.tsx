@@ -202,14 +202,17 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
       if (sortBy === "analista") return cmpStr(a.analistaObra || "", b.analistaObra || "");
       if (sortBy === "franqueado") return cmpStr(a.franqueado || "", b.franqueado || "");
       if (sortBy === "inauguracao") {
-        const ta = a.inauguracao ? new Date(a.inauguracao).getTime() : NaN;
-        const tb = b.inauguracao ? new Date(b.inauguracao).getTime() : NaN;
+        const da = (a as any).inauguracaoReal || a.inauguracao;
+        const db = (b as any).inauguracaoReal || b.inauguracao;
+        const ta = da ? new Date(da).getTime() : NaN;
+        const tb = db ? new Date(db).getTime() : NaN;
         const ae = isNaN(ta), be = isNaN(tb);
         if (ae && be) return 0;
         if (ae) return 1;
         if (be) return -1;
         return (ta - tb) * dir;
       }
+
       return 0;
     });
     return arr;
