@@ -335,6 +335,90 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
           </div>
         )}
 
+        {viewMode === "lista" && filtered.length > 0 && (
+          <div className="rounded-lg border bg-card overflow-hidden">
+            <div className="hidden md:grid grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_120px_minmax(0,1.4fr)_80px_36px] gap-3 px-4 py-2 border-b bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+              <div>Loja</div>
+              <div>Analista</div>
+              <div>Franqueado</div>
+              <div>Inauguração</div>
+              <div>Progresso</div>
+              <div className="text-center">Solic.</div>
+              <div />
+            </div>
+            {filtered.map((store) => {
+              const progress = getProgress(store);
+              const counts = getStatusCounts(store);
+              const atrasados = counts["ATRASADO"] || 0;
+              const days = daysUntil(store.inauguracao);
+              const inaugurada = isInaugurada(store);
+              const overdue = !inaugurada && days !== null && days < 0 && progress < 100;
+              const urgent = !inaugurada && days !== null && days >= 0 && days <= 14 && progress < 100;
+              const barColor = progressColor(progress, atrasados);
+              const sol = (store as any).solicitacoes || {};
+              const solTotal = SOLICITACOES_ITEMS.length;
+              const solDone = SOLICITACOES_ITEMS.filter((i) => sol[i.id]?.status === "concluido").length;
+              return (
+                <div
+                  key={store.id}
+                  onClick={() => navigate(`/loja/${store.id}`)}
+                  className={`group grid grid-cols-1 md:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_120px_minmax(0,1.4fr)_80px_36px] gap-3 px-4 py-3 border-b last:border-b-0 items-center cursor-pointer transition-colors hover:bg-muted/40 ${overdue ? "bg-destructive/5" : ""}`}
+                >
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm truncate">{store.nome}</span>
+                      {store.filial && <span className="text-[11px] text-muted-foreground">#{store.filial}</span>}
+                      {inaugurada && <Badge className="bg-[hsl(152,60%,40%)] text-white text-[10px]">Inaugurada</Badge>}
+                      {overdue && <Badge variant="destructive" className="text-[10px] gap-1"><AlertTriangle className="h-3 w-3" />Atrasada</Badge>}
+                      {urgent && !overdue && <Badge className="bg-[hsl(38,90%,55%)] text-[hsl(38,90%,15%)] text-[10px]">⏰ {days}d</Badge>}
+                    </div>
+                  </div>
+                  <div
+                    className="text-sm text-muted-foreground truncate hover:text-primary"
+                    onClick={(e) => { if (store.analistaObra) { e.stopPropagation(); setFilterAnalista(store.analistaObra); } }}
+                  >
+                    {store.analistaObra || "—"}
+                  </div>
+                  <div className="text-sm text-muted-foreground truncate">{store.franqueado || "—"}</div>
+                  <div className={`text-xs ${overdue ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                    {store.inauguracao ? (
+                      <>
+                        {formatBR(store.inauguracao)}
+                        {days !== null && !inaugurada && (
+                          <div className="text-[10px] opacity-70">
+                            {days < 0 ? `${Math.abs(days)}d atrás` : days === 0 ? "hoje" : `em ${days}d`}
+                          </div>
+                        )}
+                      </>
+                    ) : "—"}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                      <div className={`h-full ${barColor} transition-all`} style={{ width: `${progress}%` }} />
+                    </div>
+                    <span className="text-xs font-semibold w-9 text-right">{progress}%</span>
+                  </div>
+                  <div className="text-center text-xs">
+                    <span className={solDone === solTotal ? "text-[hsl(152,60%,40%)] font-semibold" : "text-muted-foreground"}>
+                      {solDone}/{solTotal}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-end gap-1">
+                    {isTeamMember && (
+                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                        onClick={(e) => { e.stopPropagation(); openEditStore(store); }}>
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                      </Button>
+                    )}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {viewMode === "cards" && (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((store) => {
             const progress = getProgress(store);
