@@ -83,7 +83,8 @@ function AppRoutes() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<ObrasDashboard />} />
+        <Route path="/" element={<Executivo />} />
+        <Route path="/executivo" element={<Executivo />} />
         <Route path="/obras" element={<ObrasDashboard />} />
         <Route path="/cronograma" element={<Cronograma />} />
         <Route path="/painel" element={<Index />} />
