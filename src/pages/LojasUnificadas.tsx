@@ -100,10 +100,16 @@ const LojasUnificadas = () => {
             <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
             <p className="text-xs text-muted-foreground">Funil, Em Obra / Ativas e Inauguradas</p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate("/atualizar-planilha")}>
-            <FileSpreadsheet className="h-4 w-4 mr-2" />
-            📥 Atualizar via Excel
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => navigate("/obras")}>
+              <LayoutDashboard className="h-4 w-4 mr-2" />
+              📊 Painel gerencial
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => navigate("/atualizar-planilha")}>
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              📥 Atualizar via Excel
+            </Button>
+          </div>
         </div>
         <Tabs value={tab} onValueChange={handleChange}>
           <TabsList className="grid grid-cols-3 w-full max-w-2xl">
