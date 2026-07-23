@@ -213,7 +213,7 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 80, atividade: "Instalação Teca Lisa", responsavel: "Construtora" },
       { id: 81, atividade: "Instalação Antenas", responsavel: "Construtora" },
       { id: 82, atividade: "Montagem dos Móveis", responsavel: "Construtora" },
-      { id: 83, atividade: "Sistema de circuito interno (câmeras)", responsavel: "Construtora" },
+      { id: 83, atividade: "Sistema de circuito interno (câmeras)", responsavel: "Construtora", observacoes: "Se tiver câmera no ACM ela deverá ser branca" },
       { id: 84, atividade: "Instalação letreiro e fachada", responsavel: "Construtora" },
       { id: 85, atividade: "Espelhos e cantoneiras - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Construtora" },
       { id: 86, atividade: "Fixação das placas de bombeiros (extintor, saídas de emergência), luminárias de emergência e fita antiderrapante no piso escada", responsavel: "Construtora" },
