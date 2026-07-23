@@ -5,8 +5,8 @@ import { FileSpreadsheet, LayoutDashboard } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useStores } from "@/hooks/useStores";
-import { buildInauguradasFiliais } from "@/utils/inauguradaFilter";
 import Lojas from "./Lojas";
+
 
 type TabKey = "novas" | "reformas" | "inauguradas";
 
