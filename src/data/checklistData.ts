@@ -87,6 +87,7 @@ export interface Store {
   porte?: string;
   localizacao?: string;
   stageStatus?: Record<string, boolean>;
+  tipoRegistro?: string;
 }
 
 const defaultStatusOptions: StatusType[] = [
