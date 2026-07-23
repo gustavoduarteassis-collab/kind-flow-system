@@ -481,12 +481,14 @@ function KpiCard({
   value,
   hint,
   tone,
+  progress,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
-  hint: string;
+  hint: React.ReactNode;
   tone: "ok" | "warn" | "bad" | "neutral";
+  progress?: number;
 }) {
   const toneClasses: Record<string, string> = {
     ok: "bg-[hsl(142,60%,96%)] border-[hsl(142,60%,80%)]",
@@ -500,18 +502,65 @@ function KpiCard({
     bad: "text-destructive bg-destructive/15",
     neutral: "text-primary bg-primary/10",
   };
+  const progressColor: Record<string, string> = {
+    ok: "bg-[hsl(142,60%,45%)]",
+    warn: "bg-[hsl(38,90%,55%)]",
+    bad: "bg-destructive/70",
+    neutral: "bg-primary",
+  };
   return (
     <Card className={`p-5 border ${toneClasses[tone]}`}>
       <div className="flex items-start gap-3">
         <div className={`rounded-full p-2 shrink-0 ${iconTone[tone]}`}>{icon}</div>
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
             {label}
           </p>
           <p className="text-3xl font-bold tabular-nums leading-tight mt-1">{value}</p>
-          <p className="text-xs text-muted-foreground mt-0.5">{hint}</p>
+          <div className="text-xs text-muted-foreground mt-0.5">{hint}</div>
+          {typeof progress === "number" && (
+            <div className="mt-2 h-1.5 rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full ${progressColor[tone]}`}
+                style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </Card>
   );
 }
+
+function Sparkline({ weeks }: { weeks: { label: string; count: number }[] }) {
+  const w = 240;
+  const h = 56;
+  const pad = 4;
+  const max = Math.max(1, ...weeks.map((x) => x.count));
+  const step = (w - pad * 2) / Math.max(1, weeks.length - 1);
+  const points = weeks.map((x, i) => {
+    const px = pad + i * step;
+    const py = h - pad - ((x.count / max) * (h - pad * 2));
+    return { px, py, ...x };
+  });
+  const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.px.toFixed(1)},${p.py.toFixed(1)}`).join(" ");
+  const area = `${path} L${points[points.length - 1].px.toFixed(1)},${h - pad} L${pad},${h - pad} Z`;
+  return (
+    <svg width={w} height={h} className="text-primary" role="img" aria-label="Momentum semanal">
+      <path d={area} fill="currentColor" opacity={0.12} />
+      <path d={path} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      {points.map((p, i) => (
+        <circle
+          key={i}
+          cx={p.px}
+          cy={p.py}
+          r={i === points.length - 1 ? 3 : 2}
+          fill="currentColor"
+        >
+          <title>{`${p.label}: ${p.count}`}</title>
+        </circle>
+      ))}
+    </svg>
+  );
+}
+
