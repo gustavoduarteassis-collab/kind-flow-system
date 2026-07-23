@@ -5,9 +5,11 @@ import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserDisplayName } from "@/hooks/useUserDisplayName";
 import { Button } from "@/components/ui/button";
-import { LogOut, ChevronRight } from "lucide-react";
+import { LogOut, ChevronRight, Search } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
+import { CommandPalette } from "@/components/CommandPalette";
 import { supabase } from "@/integrations/supabase/client";
+
 
 const labelMap: Record<string, string> = {
   "": "Painel",
@@ -94,6 +96,20 @@ export default function AppLayout() {
               <Breadcrumbs />
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const ev = new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true });
+                  window.dispatchEvent(ev);
+                }}
+                className="hidden md:inline-flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 hover:bg-muted rounded-lg px-2.5 py-1.5 border border-transparent hover:border-border transition-colors"
+                aria-label="Buscar (Ctrl+K)"
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span>Buscar…</span>
+                <kbd className="ml-1 pointer-events-none inline-flex h-4 select-none items-center gap-0.5 rounded border bg-background px-1 font-mono text-[10px] font-medium text-muted-foreground">
+                  ⌘K
+                </kbd>
+              </button>
               <NotificationBell />
               <div className="hidden sm:flex items-center gap-2 bg-muted rounded-lg px-2.5 py-1.5">
                 <div className="h-7 w-7 rounded-full bg-[hsl(var(--accent))]/20 border border-[hsl(var(--accent))]/30 flex items-center justify-center text-xs font-bold text-[hsl(var(--accent))]">
@@ -105,12 +121,15 @@ export default function AppLayout() {
                 <LogOut className="h-4 w-4" /> <span className="hidden sm:inline">Sair</span>
               </Button>
             </div>
+
           </header>
           <main className="flex-1 min-w-0 overflow-x-hidden">
             <Outlet />
           </main>
         </div>
+        <CommandPalette />
       </div>
     </SidebarProvider>
   );
 }
+
