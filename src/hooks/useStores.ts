@@ -64,6 +64,7 @@ export function useStores() {
         porte: row.porte || "",
         localizacao: row.localizacao || "",
         stageStatus: (row.stage_status && typeof row.stage_status === "object") ? row.stage_status : {},
+        tipoRegistro: row.tipo_registro || "",
       })));
     }
     setLoading(false);

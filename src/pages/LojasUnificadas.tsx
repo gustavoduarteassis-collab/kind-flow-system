@@ -6,13 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useStores } from "@/hooks/useStores";
 import { buildInauguradasFiliais } from "@/utils/inauguradaFilter";
-import Pipeline from "./Pipeline";
 import Lojas from "./Lojas";
-import { InauguracaoBanner } from "@/components/InauguracaoBanner";
 
-type TabKey = "funil" | "checklist" | "inauguradas";
+type TabKey = "novas" | "reformas" | "inauguradas";
 
-const VALID_TABS: TabKey[] = ["funil", "checklist", "inauguradas"];
+const VALID_TABS: TabKey[] = ["novas", "reformas", "inauguradas"];
 const STORAGE_KEY = "lojas:lastTab";
 
 const LojasUnificadas = () => {
@@ -21,24 +19,16 @@ const LojasUnificadas = () => {
   const initial: TabKey =
     (VALID_TABS.includes(searchParams.get("tab") as TabKey) && (searchParams.get("tab") as TabKey)) ||
     ((typeof window !== "undefined" && (sessionStorage.getItem(STORAGE_KEY) as TabKey)) as TabKey) ||
-    "funil";
-  const [tab, setTab] = useState<TabKey>(VALID_TABS.includes(initial) ? initial : "funil");
+    "novas";
+  const [tab, setTab] = useState<TabKey>(VALID_TABS.includes(initial) ? initial : "novas");
 
   const { stores } = useStores();
-  const [funilCount, setFunilCount] = useState<number | null>(null);
-  const [inauguradasCount, setInauguradasCount] = useState<number>(0);
   const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
   const [inauguradasNomes, setInauguradasNomes] = useState<Set<string>>(new Set());
+  const [inauguradasCount, setInauguradasCount] = useState<number>(0);
 
   useEffect(() => {
     const load = async () => {
-      const { count } = await supabase
-        .from("pipeline_stores")
-        .select("id", { count: "exact", head: true })
-        .eq("transferido", false)
-        .is("deleted_at", null);
-      if (typeof count === "number") setFunilCount(count);
-
       const { data } = await supabase
         .from("pipeline_stores")
         .select("filial,local,status_geral")
@@ -53,7 +43,6 @@ const LojasUnificadas = () => {
       });
       setInauguradasNomes(nomes);
 
-      // Fonte única de verdade para contagem de inauguradas: stores.inauguracao_real.
       const { count: sc } = await supabase
         .from("stores")
         .select("id", { count: "exact", head: true })
@@ -64,7 +53,7 @@ const LojasUnificadas = () => {
     load();
   }, []);
 
-  const { checklistCount } = useMemo(() => {
+  const { novasCount, reformasCount } = useMemo(() => {
     const normName = (s: string) =>
       s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
     const isInaug = (s: typeof stores[0]) => {
@@ -75,13 +64,19 @@ const LojasUnificadas = () => {
       }
       return false;
     };
-    let other = 0;
-    for (const s of stores) if (!isInaug(s)) other++;
-    return { checklistCount: other };
+    let novas = 0;
+    let reformas = 0;
+    for (const s of stores) {
+      if (isInaug(s)) continue;
+      const t = (s.tipoRegistro || "").toLowerCase();
+      if (t === "reforma") reformas++;
+      else novas++;
+    }
+    return { novasCount: novas, reformasCount: reformas };
   }, [stores, inauguradasFiliais, inauguradasNomes]);
 
   const handleChange = (v: string) => {
-    const next = (VALID_TABS.includes(v as TabKey) ? v : "funil") as TabKey;
+    const next = (VALID_TABS.includes(v as TabKey) ? v : "novas") as TabKey;
     setTab(next);
     sessionStorage.setItem(STORAGE_KEY, next);
     const sp = new URLSearchParams(searchParams);
@@ -89,16 +84,13 @@ const LojasUnificadas = () => {
     setSearchParams(sp, { replace: true });
   };
 
-  const fmtCount = (n: number | null) => (n === null ? "…" : n);
-
   return (
     <div className="bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-3">
-        
         <div className="mb-2 flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Lojas</h1>
-            <p className="text-xs text-muted-foreground">Funil, Em Obra / Ativas e Inauguradas</p>
+            <h1 className="text-2xl font-bold tracking-tight">Lojas & Obras</h1>
+            <p className="text-xs text-muted-foreground">Clique em qualquer loja para ver checklists, custos, pendências e mais.</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => navigate("/obras")}>
@@ -113,16 +105,16 @@ const LojasUnificadas = () => {
         </div>
         <Tabs value={tab} onValueChange={handleChange}>
           <TabsList className="grid grid-cols-3 w-full max-w-2xl">
-            <TabsTrigger value="funil">Funil ({fmtCount(funilCount)})</TabsTrigger>
-            <TabsTrigger value="checklist">Em Obra / Ativas ({checklistCount})</TabsTrigger>
-            <TabsTrigger value="inauguradas">Inauguradas ({inauguradasCount})</TabsTrigger>
+            <TabsTrigger value="novas">🆕 Novas Lojas ({novasCount})</TabsTrigger>
+            <TabsTrigger value="reformas">🔨 Reformas ({reformasCount})</TabsTrigger>
+            <TabsTrigger value="inauguradas">🎉 Inauguradas ({inauguradasCount})</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="funil" className="mt-4">
-            {tab === "funil" && <Pipeline />}
+          <TabsContent value="novas" className="mt-4">
+            {tab === "novas" && <Lojas forceMode="andamento" tipoFilter="novas" hideHeader />}
           </TabsContent>
-          <TabsContent value="checklist" className="mt-4">
-            {tab === "checklist" && <Lojas forceMode="andamento" hideHeader />}
+          <TabsContent value="reformas" className="mt-4">
+            {tab === "reformas" && <Lojas forceMode="andamento" tipoFilter="reformas" hideHeader />}
           </TabsContent>
           <TabsContent value="inauguradas" className="mt-4">
             {tab === "inauguradas" && <Lojas forceMode="inauguradas" hideHeader />}

@@ -31,9 +31,11 @@ interface LojasProps {
   forceMode?: "inauguradas" | "andamento";
   /** When true, hides the page title/subtitle header (used when embedded under tabs). */
   hideHeader?: boolean;
+  /** Filter by tipo_registro. "novas" = nova/repasse/troca/vazio, "reformas" = reforma. */
+  tipoFilter?: "novas" | "reformas";
 }
 
-const Lojas = ({ forceMode, hideHeader }: LojasProps = {}) => {
+const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
   const { stores, addStore, deleteStore, updateStore } = useStores();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -138,7 +140,15 @@ const Lojas = ({ forceMode, hideHeader }: LojasProps = {}) => {
     return "andamento";
   };
 
+  const matchesTipo = (s: typeof stores[0]) => {
+    if (!tipoFilter) return true;
+    const t = (s.tipoRegistro || "").toLowerCase();
+    if (tipoFilter === "reformas") return t === "reforma";
+    // "novas": tudo que não é reforma (nova, repasse, troca, vazio)
+    return t !== "reforma";
+  };
   const visible = stores.filter((s) => {
+    if (!matchesTipo(s)) return false;
     if (forceMode === "inauguradas") return isInaugurada(s);
     return showInauguradas || !isInaugurada(s);
   });
