@@ -751,7 +751,22 @@ const StoreDetail = () => {
                                   </div>
                                 </TableCell>
                                 <TableCell>
-                                  <Input type="date" className="h-8 text-xs" value={data.prazoFinal} onChange={(e) => handleFieldChange(item.id, "prazoFinal", e.target.value)} />
+                                  <div className="flex flex-col gap-0.5">
+                                    <Input
+                                      type="date"
+                                      lang="pt-BR"
+                                      className="h-8 text-xs"
+                                      value={data.prazoFinal || ""}
+                                      onChange={(e) => handleFieldChange(item.id, "prazoFinal", e.target.value)}
+                                    />
+                                    <span className="text-[10px] text-muted-foreground tabular-nums">
+                                      {data.prazoFinal
+                                        ? new Date(`${data.prazoFinal}T12:00:00`).toLocaleDateString("pt-BR", {
+                                            day: "2-digit", month: "2-digit", year: "numeric",
+                                          })
+                                        : "— sem prazo —"}
+                                    </span>
+                                  </div>
                                 </TableCell>
                                 <TableCell>
                                   <Select value={data.status} onValueChange={(v) => handleStatusChange(item.id, v as StatusType)}>
