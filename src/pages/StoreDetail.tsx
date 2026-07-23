@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useStores } from "@/hooks/useStores";
-import { checklistCategories, StatusType, getCustosCategoria } from "@/data/checklistData";
+import { checklistCategories, StatusType, getCustosCategoria, AQUISICAO_CATEGORIES_DEFAULT } from "@/data/checklistData";
 import { upsertCustosFromChecklist } from "@/data/custosData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
