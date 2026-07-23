@@ -57,6 +57,14 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
     return saved === "cards" ? "cards" : "lista";
   });
   useEffect(() => { localStorage.setItem("lojas.viewMode", viewMode); }, [viewMode]);
+  type SortKey = "nome" | "analista" | "franqueado" | "inauguracao";
+  const [sortBy, setSortBy] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const toggleSort = (k: SortKey) => {
+    if (sortBy !== k) { setSortBy(k); setSortDir("asc"); }
+    else if (sortDir === "asc") setSortDir("desc");
+    else { setSortBy(null); setSortDir("asc"); }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -165,7 +173,7 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
     atrasada: visible.filter((s) => classifyStatus(s) === "atrasada").length,
   };
 
-  const filtered = visible.filter(
+  const filteredUnsorted = visible.filter(
     (s) =>
       (s.nome.toLowerCase().includes(search.toLowerCase()) ||
       s.franqueado.toLowerCase().includes(search.toLowerCase()) ||
@@ -173,6 +181,34 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
       (!filterAnalista || s.analistaObra === filterAnalista) &&
       (filterStatus === "todas" || classifyStatus(s) === filterStatus)
   );
+  const filtered = (() => {
+    if (!sortBy) return filteredUnsorted;
+    const arr = [...filteredUnsorted];
+    const dir = sortDir === "asc" ? 1 : -1;
+    const cmpStr = (a: string, b: string) => {
+      const ae = !a, be = !b;
+      if (ae && be) return 0;
+      if (ae) return 1; // empties sempre no fim
+      if (be) return -1;
+      return a.localeCompare(b, "pt-BR", { sensitivity: "base" }) * dir;
+    };
+    arr.sort((a, b) => {
+      if (sortBy === "nome") return cmpStr(a.nome || "", b.nome || "");
+      if (sortBy === "analista") return cmpStr(a.analistaObra || "", b.analistaObra || "");
+      if (sortBy === "franqueado") return cmpStr(a.franqueado || "", b.franqueado || "");
+      if (sortBy === "inauguracao") {
+        const ta = a.inauguracao ? new Date(a.inauguracao).getTime() : NaN;
+        const tb = b.inauguracao ? new Date(b.inauguracao).getTime() : NaN;
+        const ae = isNaN(ta), be = isNaN(tb);
+        if (ae && be) return 0;
+        if (ae) return 1;
+        if (be) return -1;
+        return (ta - tb) * dir;
+      }
+      return 0;
+    });
+    return arr;
+  })();
   const hiddenInauguradasCount = stores.filter(isInaugurada).length;
 
   const progressColor = (p: number, atrasados: number) => {
@@ -338,13 +374,29 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
         {viewMode === "lista" && filtered.length > 0 && (
           <div className="rounded-lg border bg-card overflow-hidden">
             <div className="hidden md:grid grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1fr)_120px_minmax(0,1.4fr)_80px_36px] gap-3 px-4 py-2 border-b bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
-              <div>Loja</div>
-              <div>Analista</div>
-              <div>Franqueado</div>
-              <div>Inauguração</div>
-              <div>Progresso</div>
-              <div className="text-center">Solic.</div>
-              <div />
+              {(() => {
+                const arrow = (k: SortKey) => sortBy !== k ? <span className="opacity-30">↕</span> : (sortDir === "asc" ? <span className="text-primary">▲</span> : <span className="text-primary">▼</span>);
+                const H = ({ k, label }: { k: SortKey; label: string }) => (
+                  <button
+                    type="button"
+                    onClick={() => toggleSort(k)}
+                    className={`flex items-center gap-1 text-left uppercase tracking-wide hover:text-foreground transition-colors ${sortBy === k ? "text-foreground" : ""}`}
+                  >
+                    {label} {arrow(k)}
+                  </button>
+                );
+                return (
+                  <>
+                    <H k="nome" label="Loja" />
+                    <H k="analista" label="Analista" />
+                    <H k="franqueado" label="Franqueado" />
+                    <H k="inauguracao" label="Inauguração" />
+                    <div>Progresso</div>
+                    <div className="text-center">Solic.</div>
+                    <div />
+                  </>
+                );
+              })()}
             </div>
             {filtered.map((store) => {
               const progress = getProgress(store);
