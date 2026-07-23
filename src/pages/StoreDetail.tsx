@@ -543,6 +543,9 @@ const StoreDetail = () => {
             <TabsTrigger value="etapas" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
               🧭 Etapas
             </TabsTrigger>
+            <TabsTrigger value="checklist" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
+              📋 Checklist
+            </TabsTrigger>
             <TabsTrigger value="obra" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium transition-colors">
               🏗️ Obra
             </TabsTrigger>
@@ -595,25 +598,10 @@ const StoreDetail = () => {
             />
           </TabsContent>
 
-          {/* 4. OBRA — agrupa Cronograma, Visita Técnica, Fornecedores, Solicitações, Comunicação e categorias do checklist */}
-          <TabsContent value="obra" className="mt-4">
-            <Tabs defaultValue="cronograma">
+          {/* 3b. CHECKLIST DE IMPLANTAÇÃO (Tradicional / Light) */}
+          <TabsContent value="checklist" className="mt-4">
+            <Tabs defaultValue={checklistCategories[0]?.id}>
               <TabsScrollableList>
-                <TabsTrigger value="cronograma" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
-                  📊 Cronograma
-                </TabsTrigger>
-                <TabsTrigger value="visita-tecnica" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
-                  🔍 Visita Técnica
-                </TabsTrigger>
-                <TabsTrigger value="fornecedores" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
-                  🏭 Fornecedores
-                </TabsTrigger>
-                <TabsTrigger value="solicitacoes" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
-                  📋 Solicitações
-                </TabsTrigger>
-                <TabsTrigger value="comunicacao" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
-                  💬 Comunicação
-                </TabsTrigger>
                 {checklistCategories.map((cat) => {
                   const catProgress = getCategoryProgress(cat.id);
                   return (
@@ -624,30 +612,6 @@ const StoreDetail = () => {
                   );
                 })}
               </TabsScrollableList>
-
-              <TabsContent value="cronograma" className="mt-4">
-                <CronogramaObra store={store} onUpdate={(cronograma) => updateStore(store.id, { cronograma })} />
-              </TabsContent>
-              <TabsContent value="visita-tecnica" className="mt-4">
-                <ChecklistVisitaTecnica
-                  storeId={store.id}
-                  storeInauguracao={store.inauguracao || ""}
-                  data={(store as any).visitaTecnica || {}}
-                  onDataChange={(visitaTecnica) => updateStore(store.id, { visitaTecnica } as any)}
-                />
-              </TabsContent>
-              <TabsContent value="fornecedores" className="mt-4">
-                <FornecedoresObra />
-              </TabsContent>
-              <TabsContent value="solicitacoes" className="mt-4">
-                <SolicitacoesLoja
-                  data={(store as any).solicitacoes || {}}
-                  onUpdate={(solicitacoes) => updateStore(store.id, { solicitacoes } as any)}
-                />
-              </TabsContent>
-              <TabsContent value="comunicacao" className="mt-4">
-                <StoreCommunication storeId={store.id} storeName={store.nome} franqueado={store.franqueado} />
-              </TabsContent>
 
               {checklistCategories.map((cat) => (
                 <TabsContent key={cat.id} value={cat.id} className="mt-4">
@@ -754,6 +718,56 @@ const StoreDetail = () => {
                   </div>
                 </TabsContent>
               ))}
+            </Tabs>
+          </TabsContent>
+
+
+          <TabsContent value="obra" className="mt-4">
+            <Tabs defaultValue="cronograma">
+              <TabsScrollableList>
+                <TabsTrigger value="cronograma" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                  📊 Cronograma
+                </TabsTrigger>
+                <TabsTrigger value="visita-tecnica" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                  🔍 Visita Técnica
+                </TabsTrigger>
+                <TabsTrigger value="fornecedores" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                  🏭 Fornecedores
+                </TabsTrigger>
+                <TabsTrigger value="solicitacoes" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                  📋 Solicitações
+                </TabsTrigger>
+                <TabsTrigger value="comunicacao" className="bg-muted/50 text-muted-foreground hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg px-3 py-2 text-xs sm:text-sm whitespace-nowrap font-medium">
+                  💬 Comunicação
+                </TabsTrigger>
+              </TabsScrollableList>
+
+              <TabsContent value="cronograma" className="mt-4">
+                <CronogramaObra store={store} onUpdate={(cronograma) => updateStore(store.id, { cronograma })} />
+              </TabsContent>
+              <TabsContent value="visita-tecnica" className="mt-4">
+                <ChecklistVisitaTecnica
+                  storeId={store.id}
+                  storeInauguracao={store.inauguracao || ""}
+                  data={(store as any).visitaTecnica || {}}
+                  onDataChange={(visitaTecnica) => updateStore(store.id, { visitaTecnica } as any)}
+                />
+              </TabsContent>
+              <TabsContent value="fornecedores" className="mt-4">
+                <FornecedoresObra />
+              </TabsContent>
+              <TabsContent value="solicitacoes" className="mt-4">
+                <SolicitacoesLoja
+                  data={(store as any).solicitacoes || {}}
+                  onUpdate={(solicitacoes) => updateStore(store.id, { solicitacoes } as any)}
+                />
+              </TabsContent>
+              <TabsContent value="comunicacao" className="mt-4">
+                <StoreCommunication storeId={store.id} storeName={store.nome} franqueado={store.franqueado} />
+              </TabsContent>
+
+
+
             </Tabs>
           </TabsContent>
 
