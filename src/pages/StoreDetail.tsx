@@ -759,13 +759,13 @@ const StoreDetail = () => {
                                       value={data.prazoFinal || ""}
                                       onChange={(e) => handleFieldChange(item.id, "prazoFinal", e.target.value)}
                                     />
-                                    <span className="text-[10px] text-muted-foreground tabular-nums">
-                                      {data.prazoFinal
-                                        ? new Date(`${data.prazoFinal}T12:00:00`).toLocaleDateString("pt-BR", {
-                                            day: "2-digit", month: "2-digit", year: "numeric",
-                                          })
-                                        : "— sem prazo —"}
-                                    </span>
+                                    {data.prazoFinal && (
+                                      <span className="text-[10px] text-muted-foreground tabular-nums">
+                                        {new Date(`${data.prazoFinal}T12:00:00`).toLocaleDateString("pt-BR", {
+                                          day: "2-digit", month: "2-digit", year: "numeric",
+                                        })}
+                                      </span>
+                                    )}
                                   </div>
                                 </TableCell>
                                 <TableCell>
