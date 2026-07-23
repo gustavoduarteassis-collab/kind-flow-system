@@ -232,14 +232,73 @@ export default function Executivo() {
           </p>
         </div>
 
+        {/* Sparkline: momentum das últimas 8 semanas */}
+        <Card className="p-5">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground">Momentum</p>
+              <p className="text-sm mt-1">
+                <span className="font-semibold text-foreground">
+                  {analytics.weeks.reduce((a, w) => a + w.count, 0)}
+                </span>{" "}
+                atualizações nas últimas 8 semanas ·{" "}
+                <span className={
+                  analytics.weeks[7].count >= analytics.weeks[6].count
+                    ? "text-primary" : "text-destructive"
+                }>
+                  {analytics.weeks[7].count} nesta semana
+                </span>
+              </p>
+            </div>
+            <Sparkline weeks={analytics.weeks} />
+          </div>
+        </Card>
+
         {/* KPIs executivos */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
             icon={<PartyPopper className="h-5 w-5" />}
-            label={`Inauguradas em ${now.getFullYear()}`}
-            value={String(analytics.inauguradas2026)}
-            hint="ano corrente"
-            tone="ok"
+            label={`Meta ${now.getFullYear()}`}
+            value={`${analytics.inauguradas2026}/${metaAnual}`}
+            hint={
+              editingMeta ? (
+                <span className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    min={1}
+                    value={metaDraft}
+                    onChange={(e) => setMetaDraft(e.target.value)}
+                    className="h-6 w-16 text-xs px-1"
+                    autoFocus
+                  />
+                  <button
+                    className="text-primary hover:opacity-80"
+                    onClick={() => {
+                      const n = parseInt(metaDraft, 10);
+                      if (Number.isFinite(n) && n > 0) setMetaAnual(n);
+                      setEditingMeta(false);
+                    }}
+                  >
+                    <Check className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    className="text-muted-foreground hover:opacity-80"
+                    onClick={() => { setMetaDraft(String(metaAnual)); setEditingMeta(false); }}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </span>
+              ) : (
+                <button
+                  className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+                  onClick={() => { setMetaDraft(String(metaAnual)); setEditingMeta(true); }}
+                >
+                  {metaPct}% da meta <Pencil className="h-3 w-3 opacity-60" />
+                </button>
+              )
+            }
+            tone={metaPct >= 75 ? "ok" : metaPct >= 40 ? "warn" : "bad"}
+            progress={metaPct}
           />
           <KpiCard
             icon={<CalendarClock className="h-5 w-5" />}
@@ -263,6 +322,7 @@ export default function Executivo() {
             tone="neutral"
           />
         </div>
+
 
         {/* Riscos + Próximas inaugurações */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
