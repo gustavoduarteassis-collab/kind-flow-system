@@ -133,6 +133,7 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
   const normName = (s: string) =>
     s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   const isInaugurada = (s: typeof stores[0]) => {
+    if ((s.tipoRegistro || "").toLowerCase() === "inaugurada") return true;
     if (s.filial && inauguradasFiliais.has(String(s.filial))) return true;
     if (s.nome) {
       const n = normName(s.nome);
@@ -155,17 +156,20 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
   };
 
   const matchesTipo = (s: typeof stores[0]) => {
-    if (!tipoFilter) return true;
     const t = (s.tipoRegistro || "").toLowerCase();
+    // Exclui repasse/troca/encerramento/interno das listas principais
+    if (["repasse", "troca", "encerramento", "interno"].includes(t)) return false;
+    if (!tipoFilter) return true;
     if (tipoFilter === "reformas") return t === "reforma";
-    // "novas": tudo que não é reforma (nova, repasse, troca, vazio)
-    return t !== "reforma";
+    // "novas": apenas 'nova' ou vazio (inauguradas ficam na aba própria)
+    return t === "nova" || t === "";
   };
   const visible = stores.filter((s) => {
     if (!matchesTipo(s)) return false;
     if (forceMode === "inauguradas") return isInaugurada(s);
     return showInauguradas || !isInaugurada(s);
   });
+
   const kpis = {
     total: visible.length,
     andamento: visible.filter((s) => classifyStatus(s) === "andamento").length,
