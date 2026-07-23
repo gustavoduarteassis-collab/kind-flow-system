@@ -225,7 +225,20 @@ export default function Executivo() {
 
   if (loading) {
     return (
-      <div className="p-8 text-muted-foreground">Carregando painel executivo…</div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 animate-pulse">
+        <div className="h-4 w-48 bg-muted rounded" />
+        <div className="h-10 w-3/4 bg-muted rounded" />
+        <div className="h-4 w-1/2 bg-muted rounded" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 bg-muted rounded-lg" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+          <div className="h-72 bg-muted rounded-lg" />
+          <div className="h-72 bg-muted rounded-lg" />
+        </div>
+      </div>
     );
   }
 
@@ -237,14 +250,21 @@ export default function Executivo() {
       ? "Boa tarde"
       : "Boa noite";
 
+  const maxMonth = Math.max(1, ...analytics.months.map((m) => Math.max(m.realized, m.forecast)));
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Hero narrativo */}
         <div className="space-y-2">
-          <p className="text-sm uppercase tracking-widest text-muted-foreground">
-            {saudacao} · Painel Executivo
-          </p>
+          <div className="flex items-start justify-between gap-4 flex-wrap print:hidden">
+            <p className="text-sm uppercase tracking-widest text-muted-foreground">
+              {saudacao} · Painel Executivo
+            </p>
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
+              <Printer className="h-4 w-4" /> Imprimir resumo
+            </Button>
+          </div>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight">
             <span className="text-primary">{analytics.inauguradas2026}</span> lojas
             inauguradas em {now.getFullYear()} ·{" "}
@@ -260,27 +280,101 @@ export default function Executivo() {
           </p>
         </div>
 
-        {/* Sparkline: momentum das últimas 8 semanas */}
-        <Card className="p-5">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <p className="text-xs uppercase tracking-widest text-muted-foreground">Momentum</p>
-              <p className="text-sm mt-1">
-                <span className="font-semibold text-foreground">
-                  {analytics.weeks.reduce((a, w) => a + w.count, 0)}
-                </span>{" "}
-                atualizações nas últimas 8 semanas ·{" "}
-                <span className={
-                  analytics.weeks[7].count >= analytics.weeks[6].count
-                    ? "text-primary" : "text-destructive"
-                }>
-                  {analytics.weeks[7].count} nesta semana
-                </span>
-              </p>
+        {/* Alerta proativo — narrativa acionável */}
+        {analytics.riscos.length > 0 && (
+          <Card className="p-5 border-destructive/40 bg-gradient-to-r from-destructive/5 via-background to-background">
+            <div className="flex items-start gap-4 flex-wrap">
+              <div className="rounded-full bg-destructive/15 p-2.5 shrink-0">
+                <Flame className="h-5 w-5 text-destructive" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] uppercase tracking-widest text-destructive font-semibold">
+                  Atenção necessária hoje
+                </p>
+                <p className="text-lg font-semibold tracking-tight mt-0.5">
+                  {analytics.riscos.length} {analytics.riscos.length === 1 ? "loja precisa" : "lojas precisam"} da sua atenção
+                </p>
+                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                  {analytics.riscos.slice(0, 3).map((r, idx) => (
+                    <span key={r.store.id}>
+                      <button
+                        className="text-foreground font-medium hover:text-primary underline underline-offset-2 decoration-dotted"
+                        onClick={() => navigate(`/loja/${r.store.id}`)}
+                      >
+                        {r.store.nome}
+                      </button>
+                      <span className="text-muted-foreground"> — {r.motivos[0]}</span>
+                      {idx < Math.min(2, analytics.riscos.length - 1) ? " · " : ""}
+                    </span>
+                  ))}
+                  {analytics.riscos.length > 3 && (
+                    <span> · e mais {analytics.riscos.length - 3}</span>
+                  )}
+                </p>
+              </div>
             </div>
-            <Sparkline weeks={analytics.weeks} />
-          </div>
-        </Card>
+          </Card>
+        )}
+
+        {/* Momentum + Ritmo Mensal */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card className="p-5">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground">Momentum</p>
+                <p className="text-sm mt-1">
+                  <span className="font-semibold text-foreground">
+                    {analytics.weeks.reduce((a, w) => a + w.count, 0)}
+                  </span>{" "}
+                  atualizações · 8 semanas ·{" "}
+                  <span className={
+                    analytics.weeks[7].count >= analytics.weeks[6].count
+                      ? "text-primary" : "text-destructive"
+                  }>
+                    {analytics.weeks[7].count} nesta semana
+                  </span>
+                </p>
+              </div>
+              <Sparkline weeks={analytics.weeks} />
+            </div>
+          </Card>
+
+          <Card className="p-5">
+            <p className="text-xs uppercase tracking-widest text-muted-foreground">Ritmo mensal de inaugurações</p>
+            <div className="mt-3 flex items-end justify-between gap-1.5 h-20">
+              {analytics.months.map((m, i) => {
+                const value = m.isPast || m.isCurrent ? m.realized : m.forecast;
+                const heightPct = (value / maxMonth) * 100;
+                const barColor = m.isPast
+                  ? "bg-primary"
+                  : m.isCurrent
+                  ? "bg-[hsl(var(--accent))]"
+                  : "bg-primary/25";
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1 min-w-0">
+                    <span className="text-[10px] font-semibold tabular-nums">{value || ""}</span>
+                    <div className="w-full h-14 flex items-end">
+                      <div
+                        className={`w-full rounded-t transition-all ${barColor}`}
+                        style={{ height: `${Math.max(4, heightPct)}%` }}
+                        title={`${m.label}: ${m.isPast || m.isCurrent ? m.realized + " realizadas" : m.forecast + " previstas"}`}
+                      />
+                    </div>
+                    <span className={`text-[10px] ${m.isCurrent ? "text-[hsl(var(--accent))] font-bold" : "text-muted-foreground"}`}>
+                      {m.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-3 flex-wrap">
+              <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-primary" /> realizadas</span>
+              <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-[hsl(var(--accent))]" /> mês atual</span>
+              <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-primary/25" /> previstas</span>
+            </p>
+          </Card>
+        </div>
+
 
         {/* KPIs executivos */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
