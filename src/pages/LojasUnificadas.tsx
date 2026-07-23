@@ -23,57 +23,19 @@ const LojasUnificadas = () => {
   const [tab, setTab] = useState<TabKey>(VALID_TABS.includes(initial) ? initial : "novas");
 
   const { stores } = useStores();
-  const [inauguradasFiliais, setInauguradasFiliais] = useState<Set<string>>(new Set());
-  const [inauguradasNomes, setInauguradasNomes] = useState<Set<string>>(new Set());
-  const [inauguradasCount, setInauguradasCount] = useState<number>(0);
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase
-        .from("pipeline_stores")
-        .select("filial,local,status_geral")
-        .is("deleted_at", null);
-      setInauguradasFiliais(buildInauguradasFiliais(data as any));
-      const norm = (s: string) =>
-        s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-      const nomes = new Set<string>();
-      (data || []).forEach((r: any) => {
-        const status = String(r.status_geral || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-        if (status.startsWith("inaugurada") && r.local) nomes.add(norm(String(r.local)));
-      });
-      setInauguradasNomes(nomes);
-
-      const { count: sc } = await supabase
-        .from("stores")
-        .select("id", { count: "exact", head: true })
-        .not("inauguracao_real", "is", null)
-        .is("deleted_at", null);
-      if (typeof sc === "number") setInauguradasCount(sc);
-    };
-    load();
-  }, []);
-
-  const { novasCount, reformasCount } = useMemo(() => {
-    const normName = (s: string) =>
-      s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-    const isInaug = (s: typeof stores[0]) => {
-      if (s.filial && inauguradasFiliais.has(String(s.filial))) return true;
-      if (s.nome) {
-        const n = normName(s.nome);
-        for (const pn of inauguradasNomes) if (pn.includes(n) || n.includes(pn)) return true;
-      }
-      return false;
-    };
-    let novas = 0;
-    let reformas = 0;
+  const { novasCount, reformasCount, inauguradasCount } = useMemo(() => {
+    let novas = 0, reformas = 0, inaug = 0;
     for (const s of stores) {
-      if (isInaug(s)) continue;
       const t = (s.tipoRegistro || "").toLowerCase();
-      if (t === "reforma") reformas++;
-      else novas++;
+      if (t === "inaugurada") inaug++;
+      else if (t === "reforma") reformas++;
+      else if (t === "nova" || t === "") novas++;
+      // repasse/troca/encerramento/interno ficam fora dos 3 grupos principais
     }
-    return { novasCount: novas, reformasCount: reformas };
-  }, [stores, inauguradasFiliais, inauguradasNomes]);
+    return { novasCount: novas, reformasCount: reformas, inauguradasCount: inaug };
+  }, [stores]);
+
 
   const handleChange = (v: string) => {
     const next = (VALID_TABS.includes(v as TabKey) ? v : "novas") as TabKey;
