@@ -58,13 +58,14 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
   });
   useEffect(() => { localStorage.setItem("lojas.viewMode", viewMode); }, [viewMode]);
   type SortKey = "nome" | "analista" | "franqueado" | "inauguracao";
-  const [sortBy, setSortBy] = useState<SortKey | null>(null);
+  const [sortBy, setSortBy] = useState<SortKey | null>("inauguracao");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const toggleSort = (k: SortKey) => {
     if (sortBy !== k) { setSortBy(k); setSortDir("asc"); }
     else if (sortDir === "asc") setSortDir("desc");
     else { setSortBy(null); setSortDir("asc"); }
   };
+
 
   useEffect(() => {
     if (!user) return;
@@ -132,6 +133,7 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
   const normName = (s: string) =>
     s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
   const isInaugurada = (s: typeof stores[0]) => {
+    if ((s.tipoRegistro || "").toLowerCase() === "inaugurada") return true;
     if (s.filial && inauguradasFiliais.has(String(s.filial))) return true;
     if (s.nome) {
       const n = normName(s.nome);
@@ -154,17 +156,20 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
   };
 
   const matchesTipo = (s: typeof stores[0]) => {
-    if (!tipoFilter) return true;
     const t = (s.tipoRegistro || "").toLowerCase();
+    // Exclui repasse/troca/encerramento/interno das listas principais
+    if (["repasse", "troca", "encerramento", "interno"].includes(t)) return false;
+    if (!tipoFilter) return true;
     if (tipoFilter === "reformas") return t === "reforma";
-    // "novas": tudo que não é reforma (nova, repasse, troca, vazio)
-    return t !== "reforma";
+    // "novas": apenas 'nova' ou vazio (inauguradas ficam na aba própria)
+    return t === "nova" || t === "";
   };
   const visible = stores.filter((s) => {
     if (!matchesTipo(s)) return false;
     if (forceMode === "inauguradas") return isInaugurada(s);
     return showInauguradas || !isInaugurada(s);
   });
+
   const kpis = {
     total: visible.length,
     andamento: visible.filter((s) => classifyStatus(s) === "andamento").length,
@@ -197,14 +202,17 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
       if (sortBy === "analista") return cmpStr(a.analistaObra || "", b.analistaObra || "");
       if (sortBy === "franqueado") return cmpStr(a.franqueado || "", b.franqueado || "");
       if (sortBy === "inauguracao") {
-        const ta = a.inauguracao ? new Date(a.inauguracao).getTime() : NaN;
-        const tb = b.inauguracao ? new Date(b.inauguracao).getTime() : NaN;
+        const da = (a as any).inauguracaoReal || a.inauguracao;
+        const db = (b as any).inauguracaoReal || b.inauguracao;
+        const ta = da ? new Date(da).getTime() : NaN;
+        const tb = db ? new Date(db).getTime() : NaN;
         const ae = isNaN(ta), be = isNaN(tb);
         if (ae && be) return 0;
         if (ae) return 1;
         if (be) return -1;
         return (ta - tb) * dir;
       }
+
       return 0;
     });
     return arr;
