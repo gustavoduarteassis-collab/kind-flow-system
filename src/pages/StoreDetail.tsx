@@ -702,10 +702,7 @@ const StoreDetail = () => {
                           <TableRow className="bg-muted/95 backdrop-blur">
                             <TableHead className="w-12 text-center">#</TableHead>
                             <TableHead className="min-w-[350px]">Atividade</TableHead>
-                            {(cat.id === "obra-aquisicao" || cat.id === "obra-execucao") && (
-                              <TableHead className="w-[130px]">Prazo Inicial</TableHead>
-                            )}
-                            <TableHead className="w-[130px]">Prazo Final</TableHead>
+                            <TableHead className="w-[130px]">Prazo</TableHead>
                             <TableHead className="w-[170px]">Status</TableHead>
                             {AQUISICAO_CATEGORIES_DEFAULT[cat.id] !== undefined && (
                               <TableHead className="w-[130px]">Valor Realizado</TableHead>
