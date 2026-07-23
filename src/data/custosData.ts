@@ -103,3 +103,43 @@ export function createDefaultCustos(): CustosData {
     })),
   };
 }
+
+/**
+ * Cria/atualiza um item de custos vinculado a um item do Checklist de Implantação.
+ * Usado quando o analista/franqueado fecha um item da parte de Aquisição:
+ * os valores digitados no checklist alimentam automaticamente Custos de Obra.
+ */
+export function upsertCustosFromChecklist(
+  custos: CustosData | undefined | null,
+  checklistItemId: number,
+  custosCategoriaId: string,
+  nomeAtividade: string,
+  patch: { fornecedor?: string; valorPrevisto?: number; valorRealizado?: number; proposta?: string }
+): CustosData {
+  const base: CustosData =
+    custos && (custos as any).categorias
+      ? JSON.parse(JSON.stringify(custos))
+      : createDefaultCustos();
+  const cat = base.categorias.find((c) => c.id === custosCategoriaId);
+  if (!cat) return base;
+  const linkedId = `checklist-${checklistItemId}`;
+  let item = cat.items.find((i) => i.id === linkedId);
+  if (!item) {
+    item = {
+      id: linkedId,
+      nome: nomeAtividade,
+      fornecedor: "",
+      valorPrevisto: 0,
+      valorRealizado: 0,
+      proposta: "",
+    };
+    cat.items.push(item);
+  } else {
+    item.nome = nomeAtividade;
+  }
+  if (patch.fornecedor !== undefined) item.fornecedor = patch.fornecedor;
+  if (patch.valorPrevisto !== undefined) item.valorPrevisto = patch.valorPrevisto;
+  if (patch.valorRealizado !== undefined) item.valorRealizado = patch.valorRealizado;
+  if (patch.proposta !== undefined) item.proposta = patch.proposta;
+  return base;
+}

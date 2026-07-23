@@ -47,6 +47,9 @@ export interface Store {
     observacoes: string;
     descricao?: string;
     atividade?: string;
+    fornecedor?: string;
+    valorPrevisto?: number;
+    valorRealizado?: number;
   }>;
   cronograma: CronogramaStore;
   inauguracaoChecklist: InaugChecklistData;
@@ -330,3 +333,40 @@ export function createDefaultChecklist(): Store["checklist"] {
   });
   return checklist;
 }
+
+/**
+ * Categorias do Checklist que representam AQUISIÇÃO (compra de itens/serviços).
+ * Ao fechar (ou preencher valor em) itens dessas categorias, os valores fluem
+ * automaticamente para a aba "Custos de Obra".
+ *
+ * Cada entrada mapeia para o `id` da categoria em CustosData (execucao, moveis,
+ * piso, iluminacao, informatica, demais).
+ */
+export const AQUISICAO_CATEGORIES_DEFAULT: Record<string, string> = {
+  "obra-aquisicao": "demais",
+  informatica: "informatica",
+  "mobiliario-apoio": "demais",
+  "papelaria-contratos": "demais",
+  marketing: "demais",
+};
+
+// Override por item (dentro de obra-aquisicao) para caírem na categoria correta
+export const ITEM_CUSTOS_CATEGORIA: Record<number, string> = {
+  36: "execucao", 37: "execucao", 38: "execucao", 39: "execucao", 40: "execucao",
+  41: "execucao", // tapume + adesivo
+  42: "demais", 43: "demais", // ar condicionado / cortina de ar
+  44: "moveis", // marcenaria
+  45: "demais",
+  46: "piso", 47: "piso",
+  48: "demais", 49: "demais", 50: "demais", 51: "demais", 52: "demais",
+  53: "iluminacao", 54: "iluminacao",
+  55: "demais", 56: "demais",
+  57: "informatica", // contador de fluxo
+  58: "demais", 59: "demais", 60: "demais",
+};
+
+export function getCustosCategoria(categoriaChecklist: string, itemId: number): string | null {
+  if (ITEM_CUSTOS_CATEGORIA[itemId]) return ITEM_CUSTOS_CATEGORIA[itemId];
+  return AQUISICAO_CATEGORIES_DEFAULT[categoriaChecklist] || null;
+}
+

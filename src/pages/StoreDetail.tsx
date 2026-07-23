@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useStores } from "@/hooks/useStores";
-import { checklistCategories, StatusType } from "@/data/checklistData";
+import { checklistCategories, StatusType, getCustosCategoria, AQUISICAO_CATEGORIES_DEFAULT } from "@/data/checklistData";
+import { upsertCustosFromChecklist } from "@/data/custosData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -218,11 +219,35 @@ const StoreDetail = () => {
     updateStore(store.id, { checklist: newChecklist });
   };
 
-  const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes" | "descricao" | "atividade", value: string) => {
+  const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes" | "descricao" | "atividade" | "fornecedor", value: string) => {
     const newChecklist = { ...store.checklist };
     newChecklist[itemId] = { ...newChecklist[itemId], [field]: value };
     updateStore(store.id, { checklist: newChecklist });
   };
+
+  // Aquisição → Custos: preenche valor/fornecedor no checklist e propaga para store.custos
+  const handleAquisicaoChange = (
+    itemId: number,
+    catId: string,
+    atividade: string,
+    field: "fornecedor" | "valorPrevisto" | "valorRealizado",
+    rawValue: string
+  ) => {
+    const custosCatId = getCustosCategoria(catId, itemId);
+    if (!custosCatId) return;
+    const parsed = field === "fornecedor" ? rawValue : parseFloat(rawValue) || 0;
+    const newChecklist = { ...store.checklist };
+    newChecklist[itemId] = { ...newChecklist[itemId], [field]: parsed as any };
+    const newCustos = upsertCustosFromChecklist(
+      (store as any).custos,
+      itemId,
+      custosCatId,
+      atividade,
+      { [field]: parsed } as any
+    );
+    updateStore(store.id, { checklist: newChecklist, custos: newCustos } as any);
+  };
+
 
   const getCategoryProgress = (categoryId: string) => {
     const cat = checklistCategories.find((c) => c.id === categoryId);
@@ -665,6 +690,12 @@ const StoreDetail = () => {
                     </div>
                   )}
                   <div className="rounded-xl border bg-card overflow-hidden">
+                    {AQUISICAO_CATEGORIES_DEFAULT[cat.id] !== undefined && (
+                      <div className="px-4 py-2 text-[11px] text-muted-foreground bg-[hsl(38,90%,97%)] border-b border-[hsl(38,90%,88%)]">
+                        💡 <strong>Categoria de Aquisição</strong> — preencha Fornecedor e Valores.
+                        Ao salvar, o item é enviado automaticamente para <strong>Custos de Obra</strong>.
+                      </div>
+                    )}
                     <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
@@ -677,11 +708,19 @@ const StoreDetail = () => {
                             )}
                             <TableHead className="w-[130px]">Prazo Final</TableHead>
                             <TableHead className="w-[170px]">Status</TableHead>
+                            {AQUISICAO_CATEGORIES_DEFAULT[cat.id] !== undefined && (
+                              <>
+                                <TableHead className="w-[150px]">Fornecedor</TableHead>
+                                <TableHead className="w-[130px]">Valor Previsto</TableHead>
+                                <TableHead className="w-[130px]">Valor Realizado</TableHead>
+                              </>
+                            )}
                             <TableHead className="w-[140px]">Responsável</TableHead>
                             <TableHead className="min-w-[160px]">Observações</TableHead>
                             <TableHead className="min-w-[200px]">Passo a Passo</TableHead>
                           </TableRow>
                         </TableHeader>
+
                         <TableBody>
                           {cat.items.map((item) => {
                             const data = store.checklist[item.id] || {
@@ -741,7 +780,40 @@ const StoreDetail = () => {
                                     </SelectContent>
                                   </Select>
                                 </TableCell>
+                                {AQUISICAO_CATEGORIES_DEFAULT[cat.id] !== undefined && (
+                                  <>
+                                    <TableCell>
+                                      <Input
+                                        className="h-8 text-xs"
+                                        placeholder="Fornecedor..."
+                                        value={(data as any).fornecedor || ""}
+                                        onChange={(e) => handleAquisicaoChange(item.id, cat.id, item.atividade, "fornecedor", e.target.value)}
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      <Input
+                                        className="h-8 text-xs"
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0,00"
+                                        value={(data as any).valorPrevisto ?? ""}
+                                        onChange={(e) => handleAquisicaoChange(item.id, cat.id, item.atividade, "valorPrevisto", e.target.value)}
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      <Input
+                                        className="h-8 text-xs"
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0,00"
+                                        value={(data as any).valorRealizado ?? ""}
+                                        onChange={(e) => handleAquisicaoChange(item.id, cat.id, item.atividade, "valorRealizado", e.target.value)}
+                                      />
+                                    </TableCell>
+                                  </>
+                                )}
                                 <TableCell className="text-xs">{item.responsavel}</TableCell>
+
                                 <TableCell>
                                   <Textarea className="min-h-[36px] text-xs resize-none overflow-hidden" rows={2} placeholder="Obs..." value={data.observacoes} onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)} />
                                 </TableCell>
