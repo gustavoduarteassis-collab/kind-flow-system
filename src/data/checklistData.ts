@@ -241,7 +241,6 @@ export const checklistCategories: ChecklistCategory[] = [
       { id: 101, atividade: "Impressora de etiquetas marca Zebra modelo ZD230", responsavel: "Franqueado" },
       { id: 102, atividade: "Impressora Térmica não fiscal marca Bematech modelo MP 4200", responsavel: "Franqueado" },
       { id: 103, atividade: "Impressora laser Multifuncional HP modelo 127FN (Verificar tensão 110 ou 220 V e comprar transformador se necessário)", responsavel: "Franqueado" },
-      { id: 138, atividade: "TV 65''", responsavel: "Franqueado" },
       { id: 104, atividade: "Coletor de Dados - C3tech leitor de código de barras s/ fio LB-W300BK CCD Ergônomico automático Wireless 2.4GHz sensor CCD 1D 300 scans - IMPEDITIVO DE INAUGURAÇÃO", responsavel: "Franqueado" },
       { id: 105, atividade: "Configuração da rede de internet e montagem do rack - C/ NO MÍNIMO 1 SEMANA ANTES DA DATA DA ANALISTA DE IMPLANTAÇÃO CHEGAR", responsavel: "Franqueado" },
       { id: 106, atividade: "Configuração do sistema USE pelo responsável da implantação da Data System", responsavel: "Implantadoras" },
