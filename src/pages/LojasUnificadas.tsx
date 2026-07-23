@@ -51,9 +51,11 @@ const LojasUnificadas = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-3">
         <div className="mb-2 flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Lojas & Obras</h1>
-            <p className="text-xs text-muted-foreground">Clique em qualquer loja para ver checklists, custos, pendências e mais.</p>
+            <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">Portfólio</p>
+            <h1 className="text-3xl font-bold tracking-tight leading-tight">Lojas &amp; Obras</h1>
+            <p className="text-xs text-muted-foreground mt-1">Clique em qualquer loja para ver checklists, custos, pendências e mais.</p>
           </div>
+
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => navigate("/obras")}>
               <LayoutDashboard className="h-4 w-4 mr-2" />
