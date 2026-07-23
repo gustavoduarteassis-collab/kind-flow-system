@@ -780,7 +780,40 @@ const StoreDetail = () => {
                                     </SelectContent>
                                   </Select>
                                 </TableCell>
+                                {AQUISICAO_CATEGORIES_DEFAULT[cat.id] !== undefined && (
+                                  <>
+                                    <TableCell>
+                                      <Input
+                                        className="h-8 text-xs"
+                                        placeholder="Fornecedor..."
+                                        value={(data as any).fornecedor || ""}
+                                        onChange={(e) => handleAquisicaoChange(item.id, cat.id, item.atividade, "fornecedor", e.target.value)}
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      <Input
+                                        className="h-8 text-xs"
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0,00"
+                                        value={(data as any).valorPrevisto ?? ""}
+                                        onChange={(e) => handleAquisicaoChange(item.id, cat.id, item.atividade, "valorPrevisto", e.target.value)}
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      <Input
+                                        className="h-8 text-xs"
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="0,00"
+                                        value={(data as any).valorRealizado ?? ""}
+                                        onChange={(e) => handleAquisicaoChange(item.id, cat.id, item.atividade, "valorRealizado", e.target.value)}
+                                      />
+                                    </TableCell>
+                                  </>
+                                )}
                                 <TableCell className="text-xs">{item.responsavel}</TableCell>
+
                                 <TableCell>
                                   <Textarea className="min-h-[36px] text-xs resize-none overflow-hidden" rows={2} placeholder="Obs..." value={data.observacoes} onChange={(e) => handleFieldChange(item.id, "observacoes", e.target.value)} />
                                 </TableCell>
