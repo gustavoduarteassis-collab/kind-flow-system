@@ -31,6 +31,8 @@ interface LojasProps {
   forceMode?: "inauguradas" | "andamento";
   /** When true, hides the page title/subtitle header (used when embedded under tabs). */
   hideHeader?: boolean;
+  /** Filter by tipo_registro. "novas" = nova/repasse/troca/vazio, "reformas" = reforma. */
+  tipoFilter?: "novas" | "reformas";
 }
 
 const Lojas = ({ forceMode, hideHeader }: LojasProps = {}) => {
