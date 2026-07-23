@@ -219,11 +219,35 @@ const StoreDetail = () => {
     updateStore(store.id, { checklist: newChecklist });
   };
 
-  const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes" | "descricao" | "atividade", value: string) => {
+  const handleFieldChange = (itemId: number, field: "prazoInicial" | "prazoFinal" | "observacoes" | "descricao" | "atividade" | "fornecedor", value: string) => {
     const newChecklist = { ...store.checklist };
     newChecklist[itemId] = { ...newChecklist[itemId], [field]: value };
     updateStore(store.id, { checklist: newChecklist });
   };
+
+  // Aquisição → Custos: preenche valor/fornecedor no checklist e propaga para store.custos
+  const handleAquisicaoChange = (
+    itemId: number,
+    catId: string,
+    atividade: string,
+    field: "fornecedor" | "valorPrevisto" | "valorRealizado",
+    rawValue: string
+  ) => {
+    const custosCatId = getCustosCategoria(catId, itemId);
+    if (!custosCatId) return;
+    const parsed = field === "fornecedor" ? rawValue : parseFloat(rawValue) || 0;
+    const newChecklist = { ...store.checklist };
+    newChecklist[itemId] = { ...newChecklist[itemId], [field]: parsed as any };
+    const newCustos = upsertCustosFromChecklist(
+      (store as any).custos,
+      itemId,
+      custosCatId,
+      atividade,
+      { [field]: parsed } as any
+    );
+    updateStore(store.id, { checklist: newChecklist, custos: newCustos } as any);
+  };
+
 
   const getCategoryProgress = (categoryId: string) => {
     const cat = checklistCategories.find((c) => c.id === categoryId);
