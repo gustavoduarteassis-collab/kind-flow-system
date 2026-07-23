@@ -1,29 +1,41 @@
-# Unificar Obras + Lojas em uma navegação só
 
-## Diagnóstico
-Hoje o menu tem dois itens que confundem a equipe:
-- **Obras** (`/obras`) — dashboard com KPIs e as abas Funil / Reformas / Repasses (painel gerencial)
-- **Lojas** (`/lojas` → `LojasUnificadas`) — abas Funil / Em Obra / Inauguradas com cards clicáveis que abrem a loja com todos os checklists
+## Objetivo
+Sincronizar a tabela `stores` com a planilha **Funil_2026_R01.xlsx** classificando corretamente cada loja e ordenando a UI por data de inauguração. **Nenhum registro será excluído** — checklists, custos, cronograma, comentários e demais campos permanecem intactos.
 
-Na prática são a **mesma base de dados** (stores + pipeline_stores), mostradas de dois jeitos. A equipe quer **uma lista só, clicável, que abre a loja com tudo** (checklist, custos, pendências, etc.).
+## Fonte dos dados (planilha)
+| Aba | Nº lojas | Destino |
+|---|---|---|
+| FUNIL 2026 | 27 | Aba **🆕 Novas Lojas** (tipo_registro = `nova`) |
+| INAUGURADAS 2026 | 22 | Aba **🎉 Inauguradas** (tipo_registro = `inaugurada`) |
+| REFORMAS 2026 | 32 | Aba **🔨 Reformas** (tipo_registro = `reforma`) |
+| REPASSE-ENCERRAMENTO-TROCA | 10 | Página separada, fora das 3 abas |
 
-## O que vou fazer
+## Estratégia de merge (aditiva)
 
-1. **Deixar `Lojas` como entrada única e principal** no sidebar (é a que já tem cards clicáveis abrindo `/loja/:id` com todas as abas).
-2. **Remover "Obras" do sidebar** — sem apagar a página. `/obras` continua existindo e passa a ser um atalho interno acessível via botão "📊 Ver painel gerencial" dentro da tela de Lojas, para quem quiser os KPIs.
-3. **Renomear a entrada** no sidebar de "Lojas" para **"Lojas & Obras"** para eliminar a dúvida "onde vejo obra?".
-4. **Rota `/`**: hoje aponta para "Hoje". Mantenho igual. `/obras` continua respondendo (nada é excluído).
+**Chave de match:** `filial` (número). Se filial já existir em `stores` → `UPDATE`. Se não existir → `INSERT`.
 
-## Arquivos alterados
+Para cada loja da planilha, aplicar `UPDATE` apenas em campos identificadores/comerciais:
+- `nome`, `cidade`, `uf`, `franqueado`, `telefone_franqueado`, `analista_arquitetura`,
+- `tipo_localizacao` (Rua/Shopping), `porte` (Light/Tradicional),
+- `previsao_inauguracao` (data prevista), `inauguracao_real` (só na aba Inauguradas),
+- `tipo_registro` conforme a aba.
 
-- `src/components/layout/AppSidebar.tsx` — remover item "Obras", renomear "Lojas" → "Lojas & Obras", garantir ícone único.
-- `src/pages/LojasUnificadas.tsx` — adicionar botão discreto "📊 Painel gerencial" ao lado do "📥 Atualizar via Excel", navegando para `/obras`.
+**Preservado (nunca sobrescrito):** `checklist`, `inauguracao_checklist`, `custos`, `cronograma`, `comentarios_obras`, `visita_tecnica`, `solicitacoes`, `action_plans`, `observacoes_gerais`, `stage_status`, todas as datas *_real já preenchidas fora da aba Inauguradas.
 
-## O que NÃO muda
-- Nenhuma tabela, coluna, RLS ou dado é tocado.
-- Página `/obras` continua funcionando (só sai do menu).
-- Rotas, componentes e arquivos permanecem.
-- Dashboard "Hoje" (`/`) intacto.
+## Novo valor de tipo_registro: `inaugurada`
+Hoje as lojas inauguradas ficam como `tipo_registro='nova'` + status no `pipeline_stores`. Vou introduzir `tipo_registro='inaugurada'` para as 22 lojas da aba Inauguradas 2026 (mais claro e independente do pipeline). O filtro visual da aba **🎉 Inauguradas** passa a considerar `tipo_registro='inaugurada'` OU o status no pipeline (compatibilidade retroativa).
 
-## Resultado
-Um único ponto de entrada no menu (**Lojas & Obras**) com Funil / Em Obra / Inauguradas, cards clicáveis abrindo a loja completa. O painel gerencial vira um atalho secundário, sem ocupar espaço no menu principal.
+## Repasse / Encerramento / Troca
+As 10 lojas da 4ª aba **não vão** para Novas/Reformas/Inauguradas. Mantêm `tipo_registro='repasse' | 'troca' | 'encerramento'` e continuam acessíveis pela página dedicada. Vou garantir que `LojasUnificadas.tsx` **exclua** esses tipos das três abas principais.
+
+## Ordenação por data de inauguração
+Em `src/pages/Lojas.tsx` a ordenação padrão passa a ser por data de inauguração (`inauguracao_real` quando presente, senão `previsao_inauguracao`), do mais próximo para o mais distante. Cabeçalhos clicáveis continuam funcionando.
+
+## Passos técnicos
+1. **Migração SQL** aditiva: `UPDATE`s por filial + `INSERT`s das lojas novas (identificadas: nenhuma da planilha, todas já existem por filial — a confirmar após diff detalhado).
+2. **Ajuste UI** em `LojasUnificadas.tsx` para excluir `repasse/troca/encerramento` das 3 abas e reconhecer `tipo_registro='inaugurada'`.
+3. **Ajuste ordenação** em `src/pages/Lojas.tsx` (default = data inauguração asc).
+4. Nenhum `DROP`, nenhum `DELETE`.
+
+## Confirmação antes de aplicar
+Antes de rodar o SQL final, vou gerar o **diff loja-a-loja** (o que muda em cada filial) para você validar. Só executo depois do seu OK.
