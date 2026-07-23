@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import {
-  Plus, Store, Calendar, User, Search, Trash2, ChevronRight, Building2, ArrowLeft, Pencil,
+  Plus, Store, Calendar, User, Search, Trash2, ChevronRight, Building2, ArrowLeft, Pencil, LayoutGrid, List,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
