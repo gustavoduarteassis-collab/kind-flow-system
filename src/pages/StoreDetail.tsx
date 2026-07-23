@@ -689,16 +689,16 @@ const StoreDetail = () => {
                       />
                     </div>
                   )}
-                  <div className="rounded-xl border bg-card overflow-hidden">
+                  <div className="rounded-xl border bg-card">
                     {AQUISICAO_CATEGORIES_DEFAULT[cat.id] !== undefined && (
                       <div className="px-4 py-2 text-[11px] text-muted-foreground bg-[hsl(38,90%,97%)] border-b border-[hsl(38,90%,88%)]">
                         💡 <strong>Categoria de Aquisição</strong> — preencha Fornecedor e Valores.
                         Ao salvar, o item é enviado automaticamente para <strong>Custos de Obra</strong>.
                       </div>
                     )}
-                    <div className="overflow-x-auto">
+                    <div>
                       <Table>
-                        <TableHeader className="sticky top-0 z-20 bg-muted shadow-sm">
+                        <TableHeader className="sticky top-0 z-30 bg-muted shadow-sm [&_th]:bg-muted">
                           <TableRow className="bg-muted/95 backdrop-blur">
                             <TableHead className="w-12 text-center">#</TableHead>
                             <TableHead className="min-w-[350px]">Atividade</TableHead>
