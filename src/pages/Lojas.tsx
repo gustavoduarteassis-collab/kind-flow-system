@@ -58,13 +58,14 @@ const Lojas = ({ forceMode, hideHeader, tipoFilter }: LojasProps = {}) => {
   });
   useEffect(() => { localStorage.setItem("lojas.viewMode", viewMode); }, [viewMode]);
   type SortKey = "nome" | "analista" | "franqueado" | "inauguracao";
-  const [sortBy, setSortBy] = useState<SortKey | null>(null);
+  const [sortBy, setSortBy] = useState<SortKey | null>("inauguracao");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const toggleSort = (k: SortKey) => {
     if (sortBy !== k) { setSortBy(k); setSortDir("asc"); }
     else if (sortDir === "asc") setSortDir("desc");
     else { setSortBy(null); setSortDir("asc"); }
   };
+
 
   useEffect(() => {
     if (!user) return;
