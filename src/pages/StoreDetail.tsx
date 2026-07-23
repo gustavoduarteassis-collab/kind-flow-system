@@ -690,6 +690,12 @@ const StoreDetail = () => {
                     </div>
                   )}
                   <div className="rounded-xl border bg-card overflow-hidden">
+                    {AQUISICAO_CATEGORIES_DEFAULT[cat.id] !== undefined && (
+                      <div className="px-4 py-2 text-[11px] text-muted-foreground bg-[hsl(38,90%,97%)] border-b border-[hsl(38,90%,88%)]">
+                        💡 <strong>Categoria de Aquisição</strong> — preencha Fornecedor e Valores.
+                        Ao salvar, o item é enviado automaticamente para <strong>Custos de Obra</strong>.
+                      </div>
+                    )}
                     <div className="overflow-x-auto">
                       <Table>
                         <TableHeader>
@@ -702,11 +708,19 @@ const StoreDetail = () => {
                             )}
                             <TableHead className="w-[130px]">Prazo Final</TableHead>
                             <TableHead className="w-[170px]">Status</TableHead>
+                            {AQUISICAO_CATEGORIES_DEFAULT[cat.id] !== undefined && (
+                              <>
+                                <TableHead className="w-[150px]">Fornecedor</TableHead>
+                                <TableHead className="w-[130px]">Valor Previsto</TableHead>
+                                <TableHead className="w-[130px]">Valor Realizado</TableHead>
+                              </>
+                            )}
                             <TableHead className="w-[140px]">Responsável</TableHead>
                             <TableHead className="min-w-[160px]">Observações</TableHead>
                             <TableHead className="min-w-[200px]">Passo a Passo</TableHead>
                           </TableRow>
                         </TableHeader>
+
                         <TableBody>
                           {cat.items.map((item) => {
                             const data = store.checklist[item.id] || {
