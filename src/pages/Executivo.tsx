@@ -154,6 +154,21 @@ export default function Executivo() {
       })
       .slice(0, 5);
 
+    // Sparkline: atualizações por semana nas últimas 8 semanas
+    const weeks: { label: string; count: number }[] = [];
+    for (let i = 7; i >= 0; i--) {
+      const end = new Date(now.getTime() - i * 7 * 86400000);
+      const start = new Date(end.getTime() - 7 * 86400000);
+      const count = ativas.filter((s) => {
+        const d = parseDate((s as any).ultimaAtualizacaoAt);
+        return d && d > start && d <= end;
+      }).length;
+      weeks.push({
+        label: `${start.getDate()}/${start.getMonth() + 1}`,
+        count,
+      });
+    }
+
     return {
       totalAtivas: ativas.length,
       totalEmObra: emObra.length,
@@ -162,8 +177,23 @@ export default function Executivo() {
       inaug14: inaug14.length,
       riscos,
       vitorias,
+      weeks,
     };
   }, [stores]);
+
+  // Meta anual configurável
+  const [metaAnual, setMetaAnual] = useState<number>(() => {
+    const raw = typeof window !== "undefined" ? localStorage.getItem("executivo.metaAnual") : null;
+    const n = raw ? parseInt(raw, 10) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : 40;
+  });
+  const [editingMeta, setEditingMeta] = useState(false);
+  const [metaDraft, setMetaDraft] = useState(String(metaAnual));
+  useEffect(() => {
+    localStorage.setItem("executivo.metaAnual", String(metaAnual));
+  }, [metaAnual]);
+  const metaPct = metaAnual > 0 ? Math.min(100, Math.round((analytics.inauguradas2026 / metaAnual) * 100)) : 0;
+
 
   if (loading) {
     return (
